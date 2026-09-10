@@ -238,6 +238,8 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         return;
       }
       case 'block-start': {
+        $('count').classList.remove('on');
+        cdShown = -1;
         beeper.play('go');
         showStage('go', event.interval.name, `${event.targetWatts} W · ${event.interval.cadence_min ?? '—'}+ rpm`, '', 1800);
         return;
