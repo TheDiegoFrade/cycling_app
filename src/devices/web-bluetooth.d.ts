@@ -28,6 +28,7 @@ interface BluetoothDevice extends EventTarget {
 interface RequestDeviceOptions {
   filters?: Array<{ services?: string[] }>;
   optionalServices?: string[];
+  acceptAllDevices?: boolean;
 }
 
 interface Bluetooth {

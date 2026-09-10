@@ -31,6 +31,7 @@ export function renderConnect(container: HTMLElement): void {
           <button id="trainer-sim">Usar simulador</button>
         </div>
         <div class="hint" id="trainer-reading" style="margin-top:10px">— W · — rpm</div>
+        <div id="trainer-error"></div>
       </div>
 
       <h2>Banda de pulso</h2>
@@ -41,6 +42,7 @@ export function renderConnect(container: HTMLElement): void {
           <button id="hr-sim">Usar simulador</button>
         </div>
         <div class="hint" id="hr-reading" style="margin-top:10px">— lpm</div>
+        <div id="hr-error"></div>
       </div>
 
       ${!hasBluetooth ? '<div class="callout">Este navegador no expone Web Bluetooth (necesitas Chrome de escritorio sobre HTTPS o localhost). Puedes seguir con el simulador.</div>' : ''}
@@ -58,6 +60,7 @@ export function renderConnect(container: HTMLElement): void {
     dot: 'trainer-dot',
     stateEl: 'trainer-state',
     readingEl: 'trainer-reading',
+    errorEl: 'trainer-error',
     makeReal: () => new BleTrainerAdapter(),
     makeSim: () => new SimulatedTrainerAdapter(),
     formatReading: (r) => `${r.power} W · ${r.cadence} rpm`,
@@ -72,6 +75,7 @@ export function renderConnect(container: HTMLElement): void {
     dot: 'hr-dot',
     stateEl: 'hr-state',
     readingEl: 'hr-reading',
+    errorEl: 'hr-error',
     makeReal: () => new BleHrAdapter(),
     makeSim: () => new SimulatedHrAdapter(),
     formatReading: (hr) => `${hr} lpm`,
@@ -89,6 +93,7 @@ interface SensorWiring<A extends TrainerAdapter | HrAdapter, R> {
   dot: string;
   stateEl: string;
   readingEl: string;
+  errorEl: string;
   makeReal: () => A;
   makeSim: () => A;
   formatReading: (r: R) => string;
@@ -103,6 +108,7 @@ function wireSensor<A extends TrainerAdapter | HrAdapter, R>(
   const dot = document.getElementById(cfg.dot)!;
   const stateEl = document.getElementById(cfg.stateEl)!;
   const readingEl = document.getElementById(cfg.readingEl)!;
+  const errorEl = document.getElementById(cfg.errorEl)!;
 
   function paint(state: ConnectionState): void {
     dot.className = `status-dot ${state}`;
@@ -111,6 +117,7 @@ function wireSensor<A extends TrainerAdapter | HrAdapter, R>(
 
   function attach(adapter: A): void {
     paint(adapter.state);
+    errorEl.innerHTML = '';
     adapter.onStateChange(paint);
     if (kind === 'trainer') {
       (adapter as TrainerAdapter).onReading((r) => (readingEl.textContent = cfg.formatReading(r as R)));
@@ -125,9 +132,13 @@ function wireSensor<A extends TrainerAdapter | HrAdapter, R>(
   document.getElementById(cfg.connectBtn)?.addEventListener('click', () => {
     const adapter = cfg.makeReal();
     attach(adapter);
-    adapter.connect().catch((err) => {
+    adapter.connect().catch((err: unknown) => {
       paint('error');
       console.error(err);
+      const message = err instanceof Error ? err.message : String(err);
+      // NotFoundError con este texto = el usuario cerró el selector de Chrome sin elegir nada
+      if (message.includes('User cancelled')) return;
+      errorEl.innerHTML = `<div class="error-box">${message}</div>`;
     });
   });
 

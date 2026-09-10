@@ -18,9 +18,29 @@ export class BleHrAdapter implements HrAdapter {
   async connect(): Promise<void> {
     this.manuallyDisconnected = false;
     this.setState('connecting');
-    this.device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['heart_rate'] }] });
+    // acceptAllDevices en vez de filtrar por servicio: muchos relojes (p. ej.
+    // Huawei/Honor) no anuncian `heart_rate` en el paquete de advertising
+    // aunque lo tengan disponible tras conectar, así que filtrar los deja
+    // fuera del selector. optionalServices sigue siendo obligatorio para
+    // poder leer el servicio después de emparejar.
+    this.device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['heart_rate'] });
     this.device.addEventListener('gattserverdisconnected', this.handleDisconnected);
-    await this.attachToDevice();
+    try {
+      await this.attachToDevice();
+    } catch (err) {
+      this.setState('error');
+      throw this.explainError(err);
+    }
+  }
+
+  private explainError(err: unknown): Error {
+    const message = err instanceof Error ? err.message : String(err);
+    if (/service/i.test(message) && /not found/i.test(message)) {
+      return new Error(
+        `"${this.device?.name ?? 'el dispositivo'}" no expone el servicio de pulso estándar de Bluetooth (\`heart_rate\`). Esto es normal en smartwatches (Huawei, Honor, Apple Watch, etc.) que solo comparten el pulso con su propia app — necesitas una banda/correa dedicada (Garmin HRM-Dual, Polar H10, Wahoo TICKR...) que sí lo transmita abiertamente.`,
+      );
+    }
+    return err instanceof Error ? err : new Error(message);
   }
 
   disconnect(): void {
