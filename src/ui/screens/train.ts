@@ -47,6 +47,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         <div class="sensor"><span class="status-dot" id="hr-dot"></span><span id="hr-name">Banda</span></div>
         <div class="sensor">FTP <b class="num">${appState.profile.ftp}</b></div>
         <div class="sensor bias"><button id="bMinus" type="button">−</button><b class="num" id="bias">100%</b><button id="bPlus" type="button">+</button></div>
+        <button id="btnErg" type="button" title="al apagarlo, la app deja de mandarle el objetivo en watts al rodillo">ERG: ON</button>
         <button id="btnRules" type="button">Reglas</button>
         <div class="clock num"><span id="elapsed">00:00</span> <span>/ <span id="total">00:00</span></span></div>
         <button id="btnMain" type="button">Empezar</button>
@@ -111,15 +112,20 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const unsubTrainerState = trainer.onStateChange((s) => ($('trainer-dot').className = `status-dot ${s}`));
   const unsubHrState = hr.onStateChange((s) => ($('hr-dot').className = `status-dot ${s}`));
 
+  const SENSOR_STALE_MS = 4000;
   let latestPower = 0;
   let latestCadence = 0;
   let latestHr = 0;
+  let lastPowerReadingAt = performance.now();
+  let lastHrReadingAt = performance.now();
   const unsubTrainerReading = trainer.onReading((r) => {
     latestPower = r.power;
     latestCadence = r.cadence;
+    lastPowerReadingAt = performance.now();
   });
   const unsubHrReading = hr.onReading((v) => {
     latestHr = v;
+    lastHrReadingAt = performance.now();
   });
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -127,6 +133,8 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   let cdShown = -1;
   let currentIndex0 = 0;
   let currentTimeLeft = workout.intervals[0]?.duration_s ?? 0;
+  let ergEnabled = true;
+  let lastTargetWatts = 0;
 
   const history: Sample[] = [];
   const alerts: SessionRecord['alerts'] = [];
@@ -233,7 +241,8 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         const next = workout.intervals[currentIndex0 + 1];
         $('ivNext').innerHTML = next ? `siguiente: <b>${next.name}</b> · ${next.cadence_min ?? '—'}+ rpm` : 'siguiente: fin';
         if ($('stage').classList.contains('idle')) paintIdle();
-        trainer.setTarget(event.sample.target);
+        lastTargetWatts = event.sample.target;
+        if (ergEnabled) trainer.setTarget(lastTargetWatts);
         draw();
         return;
       }
@@ -335,7 +344,18 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     pollTimer = setInterval(() => {
       const ticks = clock.poll(performance.now());
       for (let i = 0; i < ticks.length; i++) {
-        const events = engine.tick({ power: latestPower, cadence: latestCadence, hr: latestHr });
+        // si un sensor se cae (o deja de mandar notificaciones sin que BLE
+        // avise de la desconexión), se graban ceros en vez de congelar la
+        // última lectura en silencio — así se nota en la pantalla y en el
+        // registro de la sesión.
+        const now = performance.now();
+        const powerStale = now - lastPowerReadingAt > SENSOR_STALE_MS;
+        const hrStale = now - lastHrReadingAt > SENSOR_STALE_MS;
+        const events = engine.tick({
+          power: powerStale ? 0 : latestPower,
+          cadence: powerStale ? 0 : latestCadence,
+          hr: hrStale ? 0 : latestHr,
+        });
         events.forEach(handleEvent);
       }
     }, 200);
@@ -356,6 +376,17 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
 
   $('bMinus').addEventListener('click', () => adjustIntensity(-5));
   $('bPlus').addEventListener('click', () => adjustIntensity(5));
+
+  $('btnErg').addEventListener('click', () => {
+    ergEnabled = !ergEnabled;
+    $('btnErg').textContent = `ERG: ${ergEnabled ? 'ON' : 'OFF'}`;
+    if (ergEnabled) {
+      // al reactivarlo, vuelve a mandar el objetivo actual de inmediato en
+      // vez de esperar al próximo tick para que el rodillo enganche ya
+      trainer.setTarget(lastTargetWatts);
+    }
+    showStage('info', `ERG ${ergEnabled ? 'activado' : 'desactivado'}`, ergEnabled ? '' : 'el rodillo deja de recibir el objetivo en watts', '', 1800);
+  });
 
   function toggleRun(): void {
     if (engine.currentState === 'idle') {
