@@ -1,6 +1,7 @@
 import { METRIC_IDS, isMetricId } from './metrics';
 import { COMPARISON_OPS, INTERVAL_TYPES, RULE_LEVELS, SOUND_IDS } from './types';
 import type { Interval, Rule, SoundId } from './types';
+import { POWER_ZONES } from './zones';
 
 export interface ValidationResult {
   valid: boolean;
@@ -72,7 +73,7 @@ function validateScope(scope: unknown, ruleLabel: string, intervalCount: number 
   }
   if (!isRecord(scope)) {
     return [
-      `${ruleLabel} tiene un \`scope\` inválido; debe ser \`"all"\`, \`{type:[...]}\`, \`{intervals:[...]}\` o \`{minutes:[ini,fin]}\``,
+      `${ruleLabel} tiene un \`scope\` inválido; debe ser \`"all"\`, \`{type:[...]}\`, \`{intervals:[...]}\`, \`{minutes:[ini,fin]}\` o \`{zone:[...]}\``,
     ];
   }
 
@@ -115,6 +116,19 @@ function validateScope(scope: unknown, ruleLabel: string, intervalCount: number 
       errors.push(`${ruleLabel} tiene \`scope.minutes\` inválido; debe ser \`[inicio, fin]\` en minutos`);
     } else if (minutes[0] < 0 || minutes[1] <= minutes[0]) {
       errors.push(`${ruleLabel} tiene \`scope.minutes\` inválido: [${minutes[0]}, ${minutes[1]}]; el fin debe ser mayor que el inicio y ambos mayores o iguales a 0`);
+    }
+  } else if ('zone' in scope) {
+    const zones = scope.zone;
+    if (!Array.isArray(zones) || zones.length === 0) {
+      errors.push(`${ruleLabel} tiene \`scope.zone\` inválido; debe ser un arreglo no vacío de zonas de potencia`);
+    } else {
+      for (const z of zones) {
+        if (!POWER_ZONES.includes(z as (typeof POWER_ZONES)[number])) {
+          errors.push(
+            `${ruleLabel} usa la zona \`${String(z)}\` en \`scope.zone\`, que no existe; las zonas disponibles son: ${list(POWER_ZONES.map(String))}`,
+          );
+        }
+      }
     }
   } else {
     errors.push(

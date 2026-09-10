@@ -71,7 +71,7 @@ Toda regla tiene la misma forma. Solo cambia el contenido.
 ```
 
 - `op`: `<`, `<=`, `>`, `>=`.
-- `scope`: `"all"`, `{"type": ["interval","recovery"]}`, `{"intervals": [4, 6]}` (índice desde 1) o `{"minutes": [20, 40]}`.
+- `scope`: `"all"`, `{"type": ["interval","recovery"]}`, `{"intervals": [4, 6]}` (índice desde 1), `{"minutes": [20, 40]}` o `{"zone": [1, 2]}` (zona de potencia del bloque, 1 a 6, según su `power_pct`: 1 <55%, 2 <75%, 3 <90%, 4 <105%, 5 <120%, 6 el resto). Útil para poner un límite de pulso distinto por zona, por ejemplo techo 106 en zona 1 y techo 128 / piso 106 en zona 2, sin tener que listar los números de bloque a mano.
 - `tolerance_s`: segundos que la condición debe sostenerse antes de avisar. 0 = inmediato.
 - `repeat_s`: cada cuántos segundos repetir mientras siga la condición. `null` = una sola vez.
 - `level`: `"info"` (azul, no pide acción), `"adjust"` (amarillo, corrige algo), `"danger"` (rojo, límite de seguridad).

@@ -122,6 +122,28 @@ describe('validateWorkout', () => {
     expect(result.errors.some((e) => e.includes('scope.minutes'))).toBe(true);
   });
 
+  it('acepta scope.zone con zonas de potencia válidas (1–6)', () => {
+    const w = validWorkout();
+    w.rules![0].scope = { zone: [1, 2] };
+    const result = validateWorkout(w);
+    expect(result.valid).toBe(true);
+  });
+
+  it('rechaza scope.zone con una zona fuera de 1–6', () => {
+    const w = validWorkout();
+    // @ts-expect-error probando dato inválido a propósito
+    w.rules![0].scope = { zone: [7] };
+    const result = validateWorkout(w);
+    expect(result.errors.some((e) => e.includes('zona `7`') && e.includes('1, 2, 3, 4, 5, 6'))).toBe(true);
+  });
+
+  it('rechaza scope.zone vacío', () => {
+    const w = validWorkout();
+    w.rules![0].scope = { zone: [] };
+    const result = validateWorkout(w);
+    expect(result.errors.some((e) => e.includes('scope.zone'))).toBe(true);
+  });
+
   it('rechaza ids de regla duplicados', () => {
     const w = validWorkout();
     w.rules![1].id = 'piso-cadencia';

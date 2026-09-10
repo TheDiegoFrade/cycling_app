@@ -1,4 +1,5 @@
 import type { MetricId } from './metrics';
+import type { PowerZone } from './zones';
 
 export type IntervalType = 'warmup' | 'steady' | 'interval' | 'recovery' | 'cooldown' | 'free';
 
@@ -46,7 +47,8 @@ export type RuleScope =
   | 'all'
   | { type: IntervalType[] }
   | { intervals: number[] }
-  | { minutes: [number, number] };
+  | { minutes: [number, number] }
+  | { zone: PowerZone[] }; // zona de potencia (1–6) del bloque, ver core/zones.ts
 
 export interface Rule {
   id: string;

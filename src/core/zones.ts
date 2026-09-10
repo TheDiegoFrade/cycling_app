@@ -1,7 +1,11 @@
+export type PowerZone = 1 | 2 | 3 | 4 | 5 | 6;
+
+export const POWER_ZONES: readonly PowerZone[] = [1, 2, 3, 4, 5, 6];
+
 /** Zona de potencia (1–6, gris→azul→verde→amarillo→naranja→rojo) a partir del
  * % de FTP. Umbrales estilo Coggan: recuperación, resistencia, tempo, umbral,
  * VO2max, anaeróbico. */
-export function powerZone(powerPct: number): 1 | 2 | 3 | 4 | 5 | 6 {
+export function powerZone(powerPct: number): PowerZone {
   if (powerPct < 55) return 1;
   if (powerPct < 75) return 2;
   if (powerPct < 90) return 3;
