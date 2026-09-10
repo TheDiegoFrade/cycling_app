@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rodillo — pantalla de entrenamiento v6 · intensidad ajustable</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000; --panel:#0E1013; --line:#232830;
+    --text:#DDE1E6; --muted:#7A838E; --yellow:#FFD400;
+    --z1:#7C8A96; --z2:#4F9BD9; --z3:#58B368; --z4:#E4B63C; --z5:#EF7F3A; --z6:#E14B4B;
+    --ok:#58B368; --warn:#FFD400; --bad:#E5322D; --info:#4F9BD9;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:Barlow,system-ui,sans-serif;overflow:hidden}
+  .num{font-family:"Barlow Condensed",Barlow,sans-serif;font-weight:600;font-variant-numeric:tabular-nums}
+
+  .app{height:100vh;display:grid;grid-template-rows:auto 1fr 26vh auto;gap:10px;padding:12px 18px 14px}
+
+  .top{display:flex;align-items:center;gap:20px;font-size:15px;color:var(--muted)}
+  .top .title{color:var(--text);font-weight:600;font-size:17px}
+  .sensor{display:flex;align-items:center;gap:7px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+  .top .clock{margin-left:auto;font-size:22px;color:var(--text)}
+  .top .clock span{color:var(--muted);font-size:15px}
+  .top button{background:transparent;border:1px solid var(--line);color:var(--text);padding:7px 14px;border-radius:6px;font:inherit;font-weight:500;cursor:pointer}
+  .top button:hover{border-color:var(--muted)}
+  .top button:focus-visible{outline:2px solid var(--z2);outline-offset:2px}
+  .bias{gap:4px} .bias b{color:var(--text);font-size:20px;min-width:52px;text-align:center} .bias button{padding:3px 10px;font-size:18px;line-height:1} .bias b.down{color:var(--warn)}
+
+  /* escenario de mensajes */
+  .stage{border-radius:10px;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px 40px;min-height:0;transition:background .3s;position:relative}
+  .stage .headline{font-size:clamp(48px,8vw,120px);line-height:1;font-weight:600;letter-spacing:-.01em}
+  .stage .detail{font-size:clamp(20px,2.6vw,34px);color:var(--muted);margin-top:16px;font-weight:500}
+  .stage .why{position:absolute;bottom:14px;right:20px;font-size:13px;color:var(--muted);opacity:.8}
+  .stage.idle .headline{color:var(--muted)} .stage.idle .detail{color:#4E565F}
+  .stage.info{background:#000} .stage.info .headline{color:var(--info)} .stage.info .detail{color:var(--text)}
+  .stage.warn{background:#000} .stage.warn .headline{color:var(--yellow);font-size:clamp(64px,10vw,150px)} .stage.warn .detail{color:var(--text)} .stage.go{background:var(--yellow)} .stage.go .headline,.stage.go .detail,.stage.go .why{color:#000}
+  .stage.bad{background:var(--bad)} .stage.bad .headline,.stage.bad .detail,.stage.bad .why{color:#fff}
+  .stage.warn,.stage.bad,.stage.go{animation:shake .5s}
+  .stage.pause{background:#000;outline:2px dashed var(--line);outline-offset:-8px} .stage.pause .headline{color:var(--text)} .stage.pause .detail{color:var(--muted)}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+  /* gráfica de progreso estilo Rouvy */
+  .graph{background:var(--panel);border-radius:10px;position:relative}
+  .graph canvas{display:block;width:100%;height:100%}
+  .graph .legend{position:absolute;top:8px;left:14px;font-size:13px;color:var(--muted);display:flex;gap:16px}
+  .legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px}
+
+  /* fila de números */
+  .nums{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.2fr;gap:10px}
+  .card{background:var(--panel);border-radius:10px;padding:12px 20px 10px;display:flex;flex-direction:column;justify-content:center}
+  .label{font-size:15px;color:var(--muted)}
+  .row{display:flex;align-items:baseline;gap:14px}
+  .v{font-size:clamp(64px,7.5vw,108px);line-height:.95;transition:color .3s}
+  .sub{font-size:18px;color:var(--muted)}
+  .sub b{color:var(--text);font-weight:600}
+  .zone{font-size:15px;padding:2px 9px;border-radius:4px;color:#10181F;font-weight:600;align-self:center}
+  .erg{font-size:12px;padding:2px 7px;border-radius:4px;background:#1B2027;color:var(--muted);align-self:center}
+  .card.iv .v{font-size:clamp(44px,5vw,72px)}
+  .card.iv .next{font-size:15px;color:var(--muted);margin-top:4px}
+  .card.iv .next b{color:var(--text);font-weight:500}
+
+  /* cuenta regresiva */
+  .count{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#000;overflow:hidden}
+  .count.on{display:flex}
+  .count .ring{position:absolute;width:min(70vh,70vw);height:min(70vh,70vw);border-radius:50%;border:8px solid var(--yellow);opacity:0}
+  .count .ring.go{animation:ring 1s ease-out}
+  @keyframes ring{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.15);opacity:0}}
+  .count .n{font-size:min(62vh,52vw);line-height:1;color:var(--yellow)}
+  .count .n.go{animation:pop 1s cubic-bezier(.2,.8,.2,1)}
+  @keyframes pop{0%{transform:scale(1.35);opacity:.3}30%{transform:scale(1);opacity:1}100%{transform:scale(.92);opacity:.9}}
+  .count .what{position:absolute;bottom:12vh;font-size:clamp(24px,3.5vw,44px);color:var(--muted);text-align:center}
+  .count .what b{color:var(--yellow);display:block;font-size:1.3em;margin-top:6px}
+
+  .rules{position:fixed;right:18px;top:60px;width:300px;background:#0E1013;border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--muted);line-height:1.5;display:none;z-index:5}
+  .rules.on{display:block}
+  .rules h4{color:var(--text);font-weight:600;margin-bottom:4px;font-size:14px}
+  .rules code{font-family:inherit;color:var(--text)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="title">VO2 4×4 con cadencia alta</div>
+    <div class="sensor"><span class="dot"></span>Saris H3</div>
+    <div class="sensor"><span class="dot"></span>Garmin HRM</div>
+    <div class="sensor">FTP <b class="num" style="color:var(--text)">280</b></div>
+    <div class="sensor bias"><button id="bMinus" type="button" title="flecha abajo">−</button><b class="num" id="bias">100%</b><button id="bPlus" type="button" title="flecha arriba">+</button></div>
+    <button id="btnRules" type="button">Reglas del workout</button>
+    <button id="btnDrop" type="button">Simular caída a 64 rpm</button>
+    <div class="clock num"><span id="elapsed">00:00</span> <span>/ <span id="total">00:00</span></span></div>
+    <button id="btn" type="button" title="espacio">Iniciar demo (10×)</button>
+  </div>
+
+  <div class="stage idle" id="stage">
+    <div class="headline" id="hl">Listo</div>
+    <div class="detail" id="dt">Conecta el rodillo y la banda, carga tu workout y arranca.</div>
+    <div class="why" id="why"></div>
+  </div>
+
+  <div class="graph">
+    <div class="legend"><span><i style="background:var(--bad)"></i>Pulso</span><span><i style="background:var(--z2)"></i>Cadencia</span><span><i style="background:#fff;opacity:.6"></i>Potencia</span></div>
+    <canvas id="g"></canvas>
+  </div>
+
+  <div class="nums">
+    <div class="card">
+      <div class="label">Potencia</div>
+      <div class="row"><div class="v num" id="pw">—</div><div class="sub">objetivo <b class="num" id="tgt">—</b> W</div><span class="erg">ERG</span></div>
+    </div>
+    <div class="card">
+      <div class="label">Cadencia</div>
+      <div class="row"><div class="v num" id="cad">—</div><div class="sub">mín <b class="num" id="cadMin">—</b></div></div>
+    </div>
+    <div class="card">
+      <div class="label">Pulso</div>
+      <div class="row"><div class="v num" id="hr">—</div><span class="zone" id="hrZone" style="background:var(--z1)">Z1</span></div>
+    </div>
+    <div class="card iv">
+      <div class="label">Intervalo <span id="ivIdx"></span></div>
+      <div class="row"><div class="v num" id="ivLeft">—</div><span class="zone" id="ivZone" style="background:var(--z1)">Z1</span></div>
+      <div class="next" id="ivNext"></div>
+    </div>
+  </div>
+</div>
+
+<div class="count" id="count"><div class="ring" id="ring"></div><div class="n num" id="countN">5</div><div class="what" id="countWhat"></div></div>
+
+<div class="rules" id="rules">
+  <h4>Reglas activas</h4>
+  <div>· cadencia <code>&lt; 70</code> en cualquier momento → alerta inmediata, se repite cada <code>4 s</code> hasta que subas</div>
+  <div>· cadencia &lt; mínimo del intervalo por <code>8 s</code> → letras amarillas gigantes, beep doble grave</div>
+  <div>· pulso &gt; <code>176</code> → bloque rojo completo, tres beeps descendentes</div>
+  <div>· <code>5 s</code> antes de cada cambio → pantalla negra, número amarillo, ticks; al arrancar flash amarillo</div>
+  <div>· comentarios del coach → azul, campanita suave</div>
+  <div>· intensidad: <code>+/−</code> 5 %, flechas <code>↑↓</code> 1 %; aplica a todo lo que falta</div>
+  <div style="margin-top:8px">Todo esto se define por workout, tú o el AI.</div>
+</div>
+
+<script>
+const FTP=280;
+const W=[
+  {d:180,p:.55,c:85,n:'Calentamiento'},{d:60,p:.85,c:95,n:'Activación'},{d:120,p:.50,c:85,n:'Suave'},
+  {d:240,p:1.15,c:95,n:'VO2 1 de 4'},{d:180,p:.50,c:85,n:'Recuperación'},
+  {d:240,p:1.15,c:95,n:'VO2 2 de 4'},{d:180,p:.50,c:85,n:'Recuperación'},
+  {d:240,p:1.15,c:95,n:'VO2 3 de 4'},{d:180,p:.50,c:85,n:'Recuperación'},
+  {d:240,p:1.15,c:95,n:'VO2 4 de 4'},{d:240,p:.45,c:80,n:'Vuelta a la calma'}];
+const TEXT=[{t:20,m:'Hoy el foco es cadencia',d:'Que no baje de 95 en los VO2.'},{t:600,m:'Primer VO2 hecho',d:'Los que cuentan son el 3 y el 4.'},{t:1560,m:'Último',d:'Aquí es donde se decide la carrera.'}];
+const RULES={cadHold:8,hrMax:176,countdown:5,cadFloor:70,cadFloorRepeat:4};
+let dropUntil=-1,floorSince=null,floorLast=-99,bias=1;
+const segStart=[];let acc=0;W.forEach(s=>{segStart.push(acc);acc+=s.d});const TOTAL=acc;
+
+let t=0,running=false,timer=null,hist=[],lowSince=null,shown=new Set(),cdShown=-1,hrSim=95,lastSeg=-1;
+const $=id=>document.getElementById(id);
+const fmt=s=>{s=Math.max(0,Math.round(s));const m=Math.floor(s/60),r=s%60;return `${m}:${r<10?'0':''}${r}`};
+const zoneOf=p=>p<.55?1:p<.75?2:p<.9?3:p<1.05?4:p<1.2?5:6;
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const hrZone=h=>h<125?1:h<145?2:h<158?3:h<170?4:5;
+const segIndex=t=>{let i=0;while(i<W.length-1&&t>=segStart[i+1])i++;return i};
+
+/* beeps: cada evento tiene su firma sonora */
+let ac=null;
+function tone(f,ms,at=0,vol=.18,type='sine'){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;o.connect(g);g.connect(ac.destination);const t0=ac.currentTime+at;g.gain.setValueAtTime(vol,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+ms/1000);o.start(t0);o.stop(t0+ms/1000)}catch(e){}}
+const SND={
+  tick:()=>tone(880,70),
+  go:()=>{tone(1320,260);tone(1760,180,.2)},
+  cad:()=>{tone(330,140,0,.2,'square');tone(330,140,.2,.2,'square')},
+  hr:()=>{tone(660,150);tone(520,150,.18);tone(400,260,.36)},
+  coach:()=>{tone(1047,220,0,.1);tone(1319,320,.12,.1)},
+};
+
+/* escenario */
+let stageTimer=null;
+function idle(){const i=segIndex(t),s=W[i];const st=$('stage');st.className='stage idle';$('hl').textContent=s.n;$('dt').textContent=`${Math.round(s.p*FTP*bias)} W · cadencia ${s.c}+ · ${fmt(s.d-(t-segStart[i]))} restante`;$('why').textContent=''}
+function show(kind,hl,dt,why,hold=8000){const st=$('stage');st.className='stage';void st.offsetWidth;st.className='stage '+kind;$('hl').textContent=hl;$('dt').textContent=dt;$('why').textContent=why;clearTimeout(stageTimer);stageTimer=setTimeout(idle,hold)}
+
+/* sensores simulados */
+function sample(t){
+  const i=segIndex(t),s=W[i],into=t-segStart[i];
+  const target=Math.round(s.p*FTP*bias);
+  const power=Math.round(target+(Math.random()*16-8)+(into<4?-(4-into)*15:0));
+  let cad=s.c+3+Math.round(Math.random()*4-2);
+  if((i===5&&into>70&&into<110)||(i===7&&into>150&&into<190))cad=s.c-9+Math.round(Math.random()*3);
+  if(t<dropUntil)cad=62+Math.round(Math.random()*4);
+  const hrT=95+s.p*70+(i>=7?8:0);hrSim+=(hrT-hrSim)*.06+(Math.random()*.8-.4);
+  return {i,s,into,target,power,cad,hr:Math.round(hrSim)};
+}
+
+function tick(){
+  if(t>=TOTAL){stop();show('info','Terminado','Guardado y enviado a intervals.icu.','',999999);return}
+  const x=sample(t);hist.push({t,...x});
+  $('elapsed').textContent=fmt(t);
+  $('pw').textContent=x.power;$('pw').style.color=Math.abs(x.power-x.target)>x.target*.06?css('--warn'):css('--text');
+  $('tgt').textContent=x.target;
+  $('cad').textContent=x.cad;$('cadMin').textContent=x.s.c;$('cad').style.color=x.cad<x.s.c?css('--warn'):css('--text');
+  $('hr').textContent=x.hr;const hz=hrZone(x.hr);$('hrZone').textContent='Z'+hz;$('hrZone').style.background=css('--z'+hz);
+  const z=zoneOf(x.s.p);$('ivZone').textContent='Z'+z;$('ivZone').style.background=css('--z'+z);
+  $('ivIdx').textContent=`${x.i+1} / ${W.length}`;$('ivLeft').textContent=fmt(x.s.d-x.into);
+  const nx=W[x.i+1];$('ivNext').innerHTML=nx?`siguiente: <b>${nx.n}</b> · ${Math.round(nx.p*FTP*bias)} W · ${nx.c}+ rpm`:'siguiente: fin';
+
+  if(x.i!==lastSeg){lastSeg=x.i;if($('stage').classList.contains('idle'))idle();}
+  else if($('stage').classList.contains('idle'))$('dt').textContent=`${x.target} W · cadencia ${x.s.c}+ · ${fmt(x.s.d-x.into)} restante`;
+
+  if(x.cad<RULES.cadFloor){
+    floorSince=floorSince??t;const below=t-floorSince;
+    if(t-floorLast>=RULES.cadFloorRepeat){floorLast=t;
+      show('warn',`No bajes de ${RULES.cadFloor}`,`${x.cad} rpm${below>=4?` · llevas ${below} s abajo`:''} · sube ya`,'regla: cadencia nunca < 70 rpm',RULES.cadFloorRepeat*1000+500);SND.cad()}
+  } else {
+    if(floorSince!==null){floorSince=null;floorLast=-99;show('info','Bien',`${x.cad} rpm, de vuelta arriba de ${RULES.cadFloor}`,'',2500);SND.tick()}
+    if(x.cad<x.s.c){lowSince=lowSince??t;if(t-lowSince===RULES.cadHold){show('warn','Sube la cadencia',`${x.cad} rpm · mínimo del intervalo ${x.s.c}`,'regla: cadencia bajo mínimo del intervalo 8 s');SND.cad()}}
+    else lowSince=null;
+  }
+  if(x.hr>RULES.hrMax&&t%20===0){show('bad','Baja las pulsaciones',`${x.hr} lpm · límite ${RULES.hrMax} · respira largo`,'regla: pulso > 176');SND.hr()}
+  TEXT.forEach(e=>{if(t>=e.t&&!shown.has(e.t)){shown.add(e.t);show('info',e.m,e.d,'comentario del coach',9000);SND.coach()}});
+
+  const left=x.s.d-x.into;
+  if(nx&&left<=RULES.countdown&&left>0){$('count').classList.add('on');if(cdShown!==left){cdShown=left;const n=$('countN'),r=$('ring');n.textContent=left;n.className='n num';r.className='ring';void n.offsetWidth;n.className='n num go';r.className='ring go';SND.tick()}
+    $('countWhat').innerHTML=`siguiente<b>${nx.n} · ${Math.round(nx.p*FTP)} W · ${nx.c}+ rpm</b>`}
+  else{if($('count').classList.contains('on')){SND.go();show('go',x.s.n,`${x.target} W · ${x.s.c}+ rpm`,'',1800)}$('count').classList.remove('on');cdShown=-1}
+
+  draw();t++;
+}
+
+function draw(){
+  const c=$('g'),rct=c.getBoundingClientRect(),dpr=devicePixelRatio||1;c.width=rct.width*dpr;c.height=rct.height*dpr;
+  const g=c.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);const w=rct.width,h=rct.height,pad=10,top=26;
+  g.clearRect(0,0,w,h);
+  const X=tt=>pad+(tt/TOTAL)*(w-2*pad);
+  const cur=segIndex(t);W.forEach((s,i)=>{const bh=(s.p*bias/1.3)*(h-top-pad);g.fillStyle=css('--z'+zoneOf(s.p));g.globalAlpha=i<cur?.3:i===cur?.9:.55;g.fillRect(X(segStart[i])+1,h-pad-bh,X(segStart[i]+s.d)-X(segStart[i])-2,bh)});
+  g.globalAlpha=1;
+  if(hist.length>1){
+    const line=(k,min,max,col,lw)=>{g.beginPath();g.strokeStyle=col;g.lineWidth=lw;g.lineJoin='round';hist.forEach((p,j)=>{const x=X(p.t),y=h-pad-((p[k]-min)/(max-min))*(h-top-pad);j?g.lineTo(x,y):g.moveTo(x,y)});g.stroke()};
+    line('power',0,FTP*1.3,'rgba(255,255,255,.35)',1.5);
+    line('cad',60,110,css('--z2'),2);
+    line('hr',80,190,css('--bad'),2.5);
+  }
+  g.fillStyle='#fff';g.fillRect(X(t)-1,top,2,h-top-pad);
+}
+
+function start(){running=true;$('btn').textContent='Pausar';SND.tick();clearTimeout(stageTimer);idle();timer=setInterval(tick,100)}
+function stop(){running=false;clearInterval(timer);if(t>=TOTAL){$('btn').textContent='Terminado';return}$('btn').textContent='Continuar';$('count').classList.remove('on');show('pause','Pausa',`ERG en reposo · ${fmt(t)} de ${fmt(TOTAL)} · espacio para continuar`,'',999999);tone(520,120)}
+$('btn').onclick=()=>running?stop():start();
+addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();running?stop():start()}});
+$('btnRules').onclick=()=>$('rules').classList.toggle('on');
+$('btnDrop').onclick=()=>{dropUntil=t+14;if(!running)start()};
+function setBias(d){bias=Math.min(1.2,Math.max(.5,Math.round((bias+d)*100)/100));const b=$('bias');b.textContent=Math.round(bias*100)+'%';b.className='num'+(bias<1?' down':'');tone(bias<1?600:900,60);if(running){const i=segIndex(t),s=W[i];show('info',`Intensidad ${Math.round(bias*100)}%`,`${s.n} ahora a ${Math.round(s.p*FTP*bias)} W · se guarda en el registro`,'ajuste manual',1600)}draw()}
+$('bMinus').onclick=()=>setBias(-.05);$('bPlus').onclick=()=>setBias(.05);
+addEventListener('keydown',e=>{if(e.code==='ArrowDown'){e.preventDefault();setBias(-.01)}if(e.code==='ArrowUp'){e.preventDefault();setBias(.01)}});
+$('total').textContent=fmt(TOTAL);
+addEventListener('resize',draw);draw();
+</script>
+</body>
+</html>
