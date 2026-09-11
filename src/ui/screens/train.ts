@@ -55,7 +55,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
 
       <div class="stage idle" id="stage">
         <div class="headline" id="hl">Listo</div>
-        <div class="detail" id="dt">Presiona Empezar (espacio para pausar/continuar luego).</div>
+        <div class="detail" id="dt">Empieza a pedalear para arrancar, o presiona Empezar · espacio para pausar/continuar luego.</div>
         <div class="why" id="why"></div>
       </div>
 
@@ -97,7 +97,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const plan = buildPlan(workout.intervals);
   $('total').textContent = fmt(plan.totalDuration);
 
-  const engine = new SessionEngine({ workout, profile: appState.profile, rules });
+  const engine = new SessionEngine({ workout, profile: appState.profile, rules, autoPauseAfterS: 5 });
   const clock = new Clock();
   const wakeLock = new WakeLockGuard();
 
@@ -129,6 +129,9 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   });
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;
+  let autoStartTimer: ReturnType<typeof setInterval> | null = null;
+  let autoStartStreak = 0;
+  const AUTO_START_PEDAL_S = 3;
   let stageTimer: ReturnType<typeof setTimeout> | null = null;
   let cdShown = -1;
   let currentIndex0 = 0;
@@ -390,6 +393,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
 
   function toggleRun(): void {
     if (engine.currentState === 'idle') {
+      stopAutoStartWatcher();
       beeper.unlock();
       wakeLock.acquire();
       $('btnMain').textContent = 'Pausar';
@@ -403,6 +407,32 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   }
 
   $('btnMain').addEventListener('click', toggleRun);
+
+  /** Como en Rouvy: si pedaleas unos segundos antes de tocar nada, arranca
+   * solo. Deja de vigilar en cuanto la sesión empieza (por acá o por el
+   * botón/espacio). */
+  function startAutoStartWatcher(): void {
+    if (autoStartTimer) return;
+    autoStartTimer = setInterval(() => {
+      if (engine.currentState !== 'idle') {
+        stopAutoStartWatcher();
+        return;
+      }
+      if (latestCadence > 0) {
+        autoStartStreak++;
+        if (autoStartStreak >= AUTO_START_PEDAL_S) toggleRun();
+      } else {
+        autoStartStreak = 0;
+      }
+    }, 1000);
+  }
+
+  function stopAutoStartWatcher(): void {
+    if (autoStartTimer) clearInterval(autoStartTimer);
+    autoStartTimer = null;
+  }
+
+  startAutoStartWatcher();
 
   function onKeydown(e: KeyboardEvent): void {
     if (e.code === 'Space') {
@@ -424,6 +454,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
 
   return () => {
     stopPollLoop();
+    stopAutoStartWatcher();
     wakeLock.release();
     window.removeEventListener('keydown', onKeydown);
     window.removeEventListener('resize', draw);
