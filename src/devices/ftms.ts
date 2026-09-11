@@ -19,6 +19,8 @@ export class BleTrainerAdapter implements TrainerAdapter {
   private manuallyDisconnected = false;
   private currentTarget = 100;
   private lastCadence = 0;
+  private pendingWrite = false;
+  private lastSentTarget: number | null = null;
 
   async connect(): Promise<void> {
     this.manuallyDisconnected = false;
@@ -37,15 +39,28 @@ export class BleTrainerAdapter implements TrainerAdapter {
     this.setState('disconnected');
   }
 
-  /** Manda el objetivo ERG. Se manda en cada llamada — el motor de la
-   * sesión ya decide cuándo llamar (cambio de bloque, cambio de
-   * intensidad), este adaptador no deduplica. */
+  /** Manda el objetivo ERG. Si ya hay un envío en el aire (Bluetooth
+   * congestionado, otra app peleando por el mismo rodillo, la pestaña
+   * estuvo en segundo plano y se acumularon ticks) no se encola uno nuevo
+   * — se descarta. El motor llama a esto cada segundo, así que el próximo
+   * tick manda el valor más reciente en cuanto el canal se libera, en vez
+   * de ir entregando una fila de objetivos viejos con retraso. */
   setTarget(watts: number): void {
     this.currentTarget = watts;
     if (this.state !== 'connected' || !this.controlCharacteristic) return;
-    this.controlCharacteristic.writeValueWithResponse(buildSetTargetPower(watts)).catch(() => {
-      /* si falla, el próximo cambio de bloque/intensidad lo vuelve a intentar */
-    });
+    if (this.pendingWrite || this.lastSentTarget === watts) return;
+    this.pendingWrite = true;
+    this.controlCharacteristic
+      .writeValueWithResponse(buildSetTargetPower(watts))
+      .then(() => {
+        this.lastSentTarget = watts;
+      })
+      .catch(() => {
+        /* si falla, el próximo tick lo vuelve a intentar */
+      })
+      .finally(() => {
+        this.pendingWrite = false;
+      });
   }
 
   onReading(cb: (r: TrainerReading) => void): () => void {
@@ -88,6 +103,7 @@ export class BleTrainerAdapter implements TrainerAdapter {
     await this.controlCharacteristic.writeValueWithResponse(buildRequestControl());
     await this.controlCharacteristic.writeValueWithResponse(buildStart());
     await this.controlCharacteristic.writeValueWithResponse(buildSetTargetPower(this.currentTarget));
+    this.lastSentTarget = this.currentTarget;
 
     this.reconnectAttempt = 0;
     this.setState('connected');
