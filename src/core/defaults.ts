@@ -40,7 +40,12 @@ export function buildFactoryRules(profile: Profile): Rule[] {
       tolerance_s: ERG_DETACHED_TOLERANCE_S,
       repeat_s: ERG_DETACHED_REPEAT_S,
       level: 'adjust',
-      message: 'El ERG se desenganchó, pedalea más rápido',
+      // ojo: esto es un síntoma (la potencia real quedó por debajo del
+      // objetivo 10 s seguidos), no una desconexión confirmada del rodillo
+      // — el mensaje no debe insinuar que el ERG "se desenganchó" cuando
+      // puede ser simplemente que bajaste el ritmo.
+      message: 'No estás llegando al objetivo, pedalea más rápido',
+      detail: '{power_pct_target}% del objetivo',
       sound: 'alarm_low',
     },
   ];

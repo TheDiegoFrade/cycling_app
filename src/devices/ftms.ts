@@ -1,4 +1,11 @@
-import { buildRequestControl, buildSetTargetPower, buildStart, parseIndoorBikeData } from './ftms-protocol';
+import {
+  buildRequestControl,
+  buildSetTargetPower,
+  buildStart,
+  CONTROL_POINT_RESULT,
+  parseControlPointResponse,
+  parseIndoorBikeData,
+} from './ftms-protocol';
 import type { ConnectionState, TrainerAdapter, TrainerReading } from './types';
 
 const RECONNECT_DELAYS_MS = [1000, 2000, 4000, 8000, 16000];
@@ -21,6 +28,7 @@ export class BleTrainerAdapter implements TrainerAdapter {
   private lastCadence = 0;
   private pendingWrite = false;
   private lastSentTarget: number | null = null;
+  private recoveringErg = false;
 
   async connect(): Promise<void> {
     this.manuallyDisconnected = false;
@@ -88,6 +96,8 @@ export class BleTrainerAdapter implements TrainerAdapter {
     await this.dataCharacteristic.startNotifications();
 
     this.controlCharacteristic = await service.getCharacteristic('fitness_machine_control_point');
+    this.controlCharacteristic.addEventListener('characteristicvaluechanged', this.handleControlResponse);
+    await this.controlCharacteristic.startNotifications();
 
     // status es opcional (detectar si el rodillo pierde el modo ERG); no
     // interrumpe la conexión si el dispositivo no lo expone.
@@ -115,6 +125,38 @@ export class BleTrainerAdapter implements TrainerAdapter {
     if (cadence !== null) this.lastCadence = cadence;
     this.readingCbs.forEach((cb) => cb({ power: power ?? 0, cadence: cadence ?? this.lastCadence }));
   };
+
+  /** Cada comando al control point (incluido cada set target power) trae
+   * una respuesta con código de resultado. Si el rodillo deja de aceptar
+   * comandos (p. ej. `controlNotPermitted`) sin que la conexión BLE se
+   * caiga, `writeValueWithResponse` igual resuelve — el rechazo solo se ve
+   * acá. Reaccionamos repitiendo la secuencia completa de enganche. */
+  private handleControlResponse = (): void => {
+    if (!this.controlCharacteristic?.value) return;
+    const response = parseControlPointResponse(this.controlCharacteristic.value);
+    if (response && response.resultCode !== CONTROL_POINT_RESULT.success) {
+      this.recoverErgControl();
+    }
+  };
+
+  private recoverErgControl(): void {
+    if (this.recoveringErg || !this.controlCharacteristic) return;
+    this.recoveringErg = true;
+    const characteristic = this.controlCharacteristic;
+    characteristic
+      .writeValueWithResponse(buildRequestControl())
+      .then(() => characteristic.writeValueWithResponse(buildStart()))
+      .then(() => characteristic.writeValueWithResponse(buildSetTargetPower(this.currentTarget)))
+      .then(() => {
+        this.lastSentTarget = this.currentTarget;
+      })
+      .catch(() => {
+        /* si esto también falla, la próxima respuesta con error lo reintenta */
+      })
+      .finally(() => {
+        this.recoveringErg = false;
+      });
+  }
 
   private handleDisconnected = (): void => {
     if (this.manuallyDisconnected) return;

@@ -64,3 +64,27 @@ export function buildSetTargetPower(watts: number): Uint8Array {
   dv.setInt16(1, Math.round(watts), true);
   return new Uint8Array(buf);
 }
+
+export const CONTROL_POINT_RESULT = {
+  success: 1,
+  opCodeNotSupported: 2,
+  invalidParameter: 3,
+  operationFailed: 4,
+  controlNotPermitted: 5,
+} as const;
+
+export interface ControlPointResponse {
+  requestOpCode: number;
+  resultCode: number;
+}
+
+/** Cada comando al control point dispara una respuesta (notify/indicate) en
+ * la misma característica: `0x80` + el opcode que se está respondiendo +
+ * un código de resultado. Un `resultCode` distinto de `success` (p. ej.
+ * `controlNotPermitted`) es la señal real de que el rodillo salió de modo
+ * ERG — el aviso de "ERG desenganchado" que ya existía solo detecta el
+ * síntoma (potencia muy por debajo del objetivo), esto detecta la causa. */
+export function parseControlPointResponse(data: DataView): ControlPointResponse | null {
+  if (data.byteLength < 3 || data.getUint8(0) !== 0x80) return null;
+  return { requestOpCode: data.getUint8(1), resultCode: data.getUint8(2) };
+}

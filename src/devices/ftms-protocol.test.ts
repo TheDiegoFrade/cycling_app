@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { buildRequestControl, buildSetTargetPower, buildStart, parseIndoorBikeData } from './ftms-protocol';
+import {
+  buildRequestControl,
+  buildSetTargetPower,
+  buildStart,
+  CONTROL_POINT_RESULT,
+  parseControlPointResponse,
+  parseIndoorBikeData,
+} from './ftms-protocol';
 
 function dv(bytes: number[]): DataView {
   return new DataView(new Uint8Array(bytes).buffer);
@@ -71,5 +78,25 @@ describe('mensajes del control point', () => {
 
   it('set target power redondea watts fraccionarios', () => {
     expect(Array.from(buildSetTargetPower(199.6))).toEqual([0x05, 0xc8, 0x00]);
+  });
+});
+
+describe('parseControlPointResponse', () => {
+  it('lee el opcode respondido y el código de resultado', () => {
+    const response = parseControlPointResponse(dv([0x80, 0x05, CONTROL_POINT_RESULT.success]));
+    expect(response).toEqual({ requestOpCode: 0x05, resultCode: CONTROL_POINT_RESULT.success });
+  });
+
+  it('reconoce un rechazo de control (controlNotPermitted)', () => {
+    const response = parseControlPointResponse(dv([0x80, 0x05, CONTROL_POINT_RESULT.controlNotPermitted]));
+    expect(response?.resultCode).toBe(CONTROL_POINT_RESULT.controlNotPermitted);
+  });
+
+  it('devuelve null si no empieza con el marcador 0x80', () => {
+    expect(parseControlPointResponse(dv([0x00, 0x05, 0x01]))).toBeNull();
+  });
+
+  it('devuelve null si el mensaje es más corto de 3 bytes', () => {
+    expect(parseControlPointResponse(dv([0x80, 0x05]))).toBeNull();
   });
 });
