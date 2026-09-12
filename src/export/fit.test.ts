@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { encodeFitActivity } from './fit';
 import { fitCrc16 } from './fit-crc';
-import type { Sample } from '../core/types';
+import type { Profile, Sample } from '../core/types';
+
+const profile: Profile = { ftp: 250, hr_max: 190, cadence_floor: 70, hr_ceiling: 176 };
 
 function sample(t: number, interval_index: number, power = 150, cadence = 90, hr = 130): Sample {
   return { t, power, cadence, hr, target: 150, intensity: 100, interval_index };
@@ -47,7 +49,7 @@ const GLOBAL = { fileId: 0, record: 20, lap: 19, session: 18, activity: 34 };
 
 describe('encodeFitActivity', () => {
   it('la cabecera tiene el tamaño, la firma .FIT y el CRC correctos', () => {
-    const file = encodeFitActivity(new Date('2026-01-01T10:00:00Z'), [sample(0, 0)]);
+    const file = encodeFitActivity(new Date('2026-01-01T10:00:00Z'), [sample(0, 0)], profile);
     expect(file[0]).toBe(14); // header_size
     expect(String.fromCharCode(...file.subarray(8, 12))).toBe('.FIT');
     const headerCrc = file[12] | (file[13] << 8);
@@ -55,13 +57,13 @@ describe('encodeFitActivity', () => {
   });
 
   it('data_size en la cabecera coincide con los bytes reales entre cabecera y CRC final', () => {
-    const file = encodeFitActivity(new Date('2026-01-01T10:00:00Z'), [sample(0, 0), sample(1, 0)]);
+    const file = encodeFitActivity(new Date('2026-01-01T10:00:00Z'), [sample(0, 0), sample(1, 0)], profile);
     const dataSize = file[4] | (file[5] << 8) | (file[6] << 16) | (file[7] << 24);
     expect(file.length).toBe(14 + dataSize + 2);
   });
 
   it('el CRC final cubre todo el archivo salvo los últimos 2 bytes', () => {
-    const file = encodeFitActivity(new Date('2026-01-01T10:00:00Z'), [sample(0, 0)]);
+    const file = encodeFitActivity(new Date('2026-01-01T10:00:00Z'), [sample(0, 0)], profile);
     const trailingCrc = file[file.length - 2] | (file[file.length - 1] << 8);
     expect(trailingCrc).toBe(fitCrc16(file.subarray(0, file.length - 2)));
   });
@@ -75,7 +77,7 @@ describe('encodeFitActivity', () => {
       sample(4, 1),
       sample(5, 2),
     ];
-    const file = encodeFitActivity(new Date('2026-01-01T10:00:00Z'), samples);
+    const file = encodeFitActivity(new Date('2026-01-01T10:00:00Z'), samples, profile);
     const counts = readMessageCounts(file);
     expect(counts[GLOBAL.record]).toBe(6);
     expect(counts[GLOBAL.lap]).toBe(3);
@@ -85,7 +87,7 @@ describe('encodeFitActivity', () => {
   });
 
   it('no revienta con una sola muestra (sesión mínima)', () => {
-    const file = encodeFitActivity(new Date('2026-01-01T10:00:00Z'), [sample(0, 0)]);
+    const file = encodeFitActivity(new Date('2026-01-01T10:00:00Z'), [sample(0, 0)], profile);
     const counts = readMessageCounts(file);
     expect(counts[GLOBAL.record]).toBe(1);
     expect(counts[GLOBAL.lap]).toBe(1);
