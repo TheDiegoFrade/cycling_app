@@ -4,6 +4,7 @@ const ITEMS: { screen: Screen; label: string }[] = [
   { screen: 'home', label: 'Inicio' },
   { screen: 'connect', label: 'Conectar' },
   { screen: 'summary', label: 'Resumen' },
+  { screen: 'history', label: 'Historial' },
 ];
 
 export function renderNav(active: Screen): string {
