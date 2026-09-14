@@ -15,8 +15,8 @@ const SOUNDS = [
   { id: 'chime', label: 'Chime (comentario)' },
 ] as const;
 
-function profileFieldRow(key: keyof Profile, label: string, value: number): string {
-  return `<label>${label}<input type="number" data-profile-field="${key}" value="${value}"></label>`;
+function profileFieldRow(key: keyof Profile, label: string, value: number, hint?: string): string {
+  return `<label>${label}<input type="number" data-profile-field="${key}" value="${value}" ${hint ? `title="${hint}"` : ''}>${hint ? `<span style="font-size:12px;color:var(--muted)">${hint}</span>` : ''}</label>`;
 }
 
 function workoutListItem(w: Workout): string {
@@ -110,9 +110,9 @@ export function renderHome(container: HTMLElement): void {
       <div class="panel">
         <div class="grid-form" id="profile-form">
           ${profileFieldRow('ftp', 'FTP (W)', appState.profile.ftp)}
-          ${profileFieldRow('hr_max', 'Pulso máximo', appState.profile.hr_max)}
-          ${profileFieldRow('cadence_floor', 'Piso de cadencia', appState.profile.cadence_floor)}
-          ${profileFieldRow('hr_ceiling', 'Techo de pulso', appState.profile.hr_ceiling)}
+          ${profileFieldRow('hr_max', 'Pulso máximo (HRmax real)', appState.profile.hr_max, 'Tu máximo fisiológico, no el límite de una sesión — se usa para calcular tus zonas de pulso (Z1-Z5).')}
+          ${profileFieldRow('cadence_floor', 'Piso de cadencia', appState.profile.cadence_floor, 'rpm mínimas en todo momento, en cualquier workout.')}
+          ${profileFieldRow('hr_ceiling', 'Techo de pulso (alerta)', appState.profile.hr_ceiling, 'Límite general que dispara la alerta roja si lo pasas. Puede ser menor que tu HRmax.')}
         </div>
       </div>
 
