@@ -51,6 +51,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         <button id="btnRules" type="button">Reglas</button>
         <div class="clock num"><span id="elapsed">00:00</span> <span>/ <span id="total">00:00</span></span></div>
         <button id="btnMain" type="button">Empezar</button>
+        <button id="btnEnd" type="button">Terminar</button>
       </div>
 
       <div class="stage idle" id="stage">
@@ -229,7 +230,11 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         $('elapsed').textContent = fmt(event.t);
         $('pw').textContent = String(event.sample.power);
         $('tgt').textContent = String(event.sample.target);
-        $('cad').textContent = String(event.sample.cadence);
+        // promedio móvil de 10 s, no la lectura instantánea: el sensor de
+        // cadencia tiene picos falsos (p.ej. "40" pedaleando estable a 70)
+        // que con el número crudo se ven como si la cadencia se hubiera
+        // caído de verdad.
+        $('cad').textContent = String(Math.round(event.metrics.cadence_10s ?? event.sample.cadence));
         $('cadMin').textContent = String(workout.intervals[currentIndex0]?.cadence_min ?? '—');
         $('hr').textContent = String(event.sample.hr);
         const hrPct = event.metrics.hr_pct_max ?? 0;
@@ -373,8 +378,28 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     if (engine.currentState === 'running') showStage('info', `Intensidad ${pct}%`, 'se guarda en el registro', 'ajuste manual', 1600);
   }
 
+  let resistancePercent = 30;
+
+  function paintResistance(): void {
+    const b = $('bias');
+    b.textContent = `R ${Math.round(resistancePercent)}%`;
+    b.className = 'num';
+  }
+
+  /** Con ERG activo, +/- ajustan la intensidad del objetivo en watts. Con
+   * ERG apagado, ajustan directamente el nivel de resistencia fija —
+   * dejar de mandar setTarget no basta para "soltar" el rodillo (se queda
+   * pegado al último objetivo para siempre), así que sin esto no había
+   * ninguna forma de hacerlo más fácil/difícil una vez apagado el ERG. */
   function adjustIntensity(deltaPct: number): void {
-    paintBias(engine.adjustIntensityPct(deltaPct));
+    if (ergEnabled) {
+      paintBias(engine.adjustIntensityPct(deltaPct));
+      return;
+    }
+    resistancePercent = Math.min(100, Math.max(0, resistancePercent + deltaPct));
+    trainer.setResistance(resistancePercent);
+    paintResistance();
+    beeper.play('tick');
   }
 
   $('bMinus').addEventListener('click', () => adjustIntensity(-5));
@@ -387,8 +412,26 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       // al reactivarlo, vuelve a mandar el objetivo actual de inmediato en
       // vez de esperar al próximo tick para que el rodillo enganche ya
       trainer.setTarget(lastTargetWatts);
+      // repinta el % de intensidad sin pasar por paintBias: esa función
+      // también registra un ajuste de intensidad y no queremos un renglón
+      // falso en el historial solo por haber prendido el ERG de nuevo
+      const pct = engine.intensityPct;
+      const b = $('bias');
+      b.textContent = `${pct}%`;
+      b.className = `num${pct < 100 ? ' down' : ''}`;
+    } else {
+      // sin esto el rodillo se queda pegado al último objetivo en watts
+      // para siempre — no basta con dejar de mandarle setTarget.
+      trainer.setResistance(resistancePercent);
+      paintResistance();
     }
-    showStage('info', `ERG ${ergEnabled ? 'activado' : 'desactivado'}`, ergEnabled ? '' : 'el rodillo deja de recibir el objetivo en watts', '', 1800);
+    showStage(
+      'info',
+      `ERG ${ergEnabled ? 'activado' : 'desactivado'}`,
+      ergEnabled ? '' : `resistencia fija ${resistancePercent}% · ajusta con +/- (no verificado en hardware real)`,
+      '',
+      2200,
+    );
   });
 
   function toggleRun(): void {
@@ -407,6 +450,11 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   }
 
   $('btnMain').addEventListener('click', toggleRun);
+
+  $('btnEnd').addEventListener('click', () => {
+    if (engine.currentState === 'idle' || engine.currentState === 'finished') return;
+    finish();
+  });
 
   /** Como en Rouvy: si pedaleas unos segundos antes de tocar nada, arranca
    * solo. Deja de vigilar en cuanto la sesión empieza (por acá o por el

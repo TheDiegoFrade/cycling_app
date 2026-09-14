@@ -15,6 +15,11 @@ export interface TrainerAdapter {
   /** Manda el objetivo ERG en watts. Se debe llamar en cada cambio de
    * bloque y en cada cambio de intensidad. */
   setTarget(watts: number): void;
+  /** Saca al rodillo de modo ERG y lo deja en resistencia fija (0–100):
+   * dejar de llamar a `setTarget` no alcanza, el rodillo se queda pegado
+   * al último objetivo para siempre hasta que se le pida explícitamente
+   * otro modo de control. */
+  setResistance(percent: number): void;
   onReading(cb: (reading: TrainerReading) => void): () => void;
   onStateChange(cb: (state: ConnectionState) => void): () => void;
 }

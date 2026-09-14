@@ -45,8 +45,9 @@ export function parseIndoorBikeData(data: DataView): IndoorBikeReading {
 
 export const CONTROL_POINT_OPCODE = {
   requestControl: 0x00,
-  start: 0x07,
   setTargetPower: 0x05,
+  start: 0x07,
+  setResistanceLevel: 0x04,
 } as const;
 
 export function buildRequestControl(): Uint8Array {
@@ -62,6 +63,20 @@ export function buildSetTargetPower(watts: number): Uint8Array {
   const dv = new DataView(buf);
   dv.setUint8(0, CONTROL_POINT_OPCODE.setTargetPower);
   dv.setInt16(1, Math.round(watts), true);
+  return new Uint8Array(buf);
+}
+
+/** Saca al rodillo de modo ERG (potencia fija) y lo pasa a resistencia fija
+ * — deja de perseguir un objetivo en watts, así que el esfuerzo vuelve a
+ * depender de qué tan rápido pedaleas. `percent` es 0–100 y se manda con
+ * la resolución de 0.1 que pide el estándar FTMS. Sin verificar contra
+ * hardware real: el mapeo de "nivel de resistencia" a sensación física es
+ * específico de cada fabricante. */
+export function buildSetResistanceLevel(percent: number): Uint8Array {
+  const buf = new ArrayBuffer(3);
+  const dv = new DataView(buf);
+  dv.setUint8(0, CONTROL_POINT_OPCODE.setResistanceLevel);
+  dv.setInt16(1, Math.round(percent * 10), true);
   return new Uint8Array(buf);
 }
 

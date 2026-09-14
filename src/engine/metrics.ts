@@ -14,6 +14,13 @@ export interface MetricsContext {
   intensityPct: number;
 }
 
+const POWER_WINDOW_S = 10;
+// cadence_10s conserva el nombre del catálogo (SPEC.md), pero la ventana
+// real se acortó a propósito: 10 s se sentía demasiado lento para notar un
+// cambio de ritmo real (sobre todo con ERG apagado), y una ventana corta
+// ya alcanza para filtrar los picos falsos del sensor de cadencia.
+const CADENCE_WINDOW_S = 3;
+
 function average(history: readonly Sample[], windowS: number, pick: (s: Sample) => number): number {
   const slice = history.slice(-windowS);
   const sum = slice.reduce((acc, s) => acc + pick(s), 0);
@@ -24,8 +31,8 @@ function average(history: readonly Sample[], windowS: number, pick: (s: Sample) 
  * segundo, con la muestra actual al final. */
 export function computeMetrics(history: readonly Sample[], ctx: MetricsContext): MetricsSnapshot {
   const now = history[history.length - 1];
-  const power10s = average(history, 10, (s) => s.power);
-  const cadence10s = average(history, 10, (s) => s.cadence);
+  const power10s = average(history, POWER_WINDOW_S, (s) => s.power);
+  const cadence10s = average(history, CADENCE_WINDOW_S, (s) => s.cadence);
 
   return {
     power: now.power,

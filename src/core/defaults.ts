@@ -13,13 +13,17 @@ export function buildFactoryRules(profile: Profile): Rule[] {
   return [
     {
       id: 'factory-cadence-floor',
-      when: { metric: 'cadence', op: '<', value: profile.cadence_floor },
+      // cadence_10s (promedio móvil) en vez de la lectura instantánea: la
+      // cadencia cruda tiene ruido real del sensor (picos falsos tipo "40
+      // rpm" con el pedaleo estable en 70) que disparaba esta regla decenas
+      // de veces por sesión sin que la cadencia real hubiera bajado.
+      when: { metric: 'cadence_10s', op: '<', value: profile.cadence_floor },
       scope: 'all',
       tolerance_s: 0,
       repeat_s: CADENCE_FLOOR_REPEAT_S,
       level: 'adjust',
       message: `No bajes de ${profile.cadence_floor}`,
-      detail: '{cadence} rpm',
+      detail: '{cadence_10s} rpm',
       sound: 'alarm_low',
     },
     {
@@ -59,13 +63,13 @@ export function buildCadenceMinRules(intervals: Interval[]): Rule[] {
     if (interval.cadence_min === undefined) return;
     rules.push({
       id: `cadence-min-${i + 1}`,
-      when: { metric: 'cadence', op: '<', value: interval.cadence_min },
+      when: { metric: 'cadence_10s', op: '<', value: interval.cadence_min },
       scope: { intervals: [i + 1] },
       tolerance_s: CADENCE_MIN_TOLERANCE_S,
       repeat_s: null,
       level: 'adjust',
       message: 'Sube la cadencia',
-      detail: `{cadence} rpm · mínimo ${interval.cadence_min}`,
+      detail: `{cadence_10s} rpm · mínimo ${interval.cadence_min}`,
       sound: 'alarm_low',
     });
   });

@@ -7,6 +7,8 @@ export class SimulatedTrainerAdapter implements TrainerAdapter {
   state: ConnectionState = 'disconnected';
   private target = 100;
   private cadence = 90;
+  private ergMode = true;
+  private resistancePercent = 30;
   private readingCbs = new Set<(r: TrainerReading) => void>();
   private stateCbs = new Set<(s: ConnectionState) => void>();
   private timer: ReturnType<typeof setInterval> | null = null;
@@ -26,6 +28,15 @@ export class SimulatedTrainerAdapter implements TrainerAdapter {
 
   setTarget(watts: number): void {
     this.target = watts;
+    this.ergMode = true;
+  }
+
+  /** Simula salir de ERG: la potencia deja de perseguir `target` y pasa a
+   * moverse alrededor de lo que "implicaría" el nivel de resistencia, con
+   * más variación (ya no hay un objetivo fijo tirando de ella). */
+  setResistance(percent: number): void {
+    this.resistancePercent = percent;
+    this.ergMode = false;
   }
 
   onReading(cb: (r: TrainerReading) => void): () => void {
@@ -44,7 +55,9 @@ export class SimulatedTrainerAdapter implements TrainerAdapter {
   }
 
   private emitReading(): void {
-    const power = Math.max(0, Math.round(this.target + (Math.random() * 16 - 8)));
+    const base = this.ergMode ? this.target : this.resistancePercent * 2.5;
+    const noise = this.ergMode ? 16 : 30;
+    const power = Math.max(0, Math.round(base + (Math.random() * noise - noise / 2)));
     this.cadence = Math.max(0, Math.round(this.cadence + (Math.random() * 4 - 2)));
     if (this.cadence < 60) this.cadence = 85; // vuelve a un valor razonable en vez de quedarse en 0
     this.readingCbs.forEach((cb) => cb({ power, cadence: this.cadence }));

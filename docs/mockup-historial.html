@@ -1,0 +1,174 @@
+<title>Rodillo — Historial</title>
+<style>
+  /* Tokens y estilos calcados de src/ui/styles.css — la app real es
+     únicamente oscura (sin modo claro todavía), así que este mockup
+     también se queda en un solo tema, igual que el producto. */
+  :root {
+    --bg: #000;
+    --panel: #0e1013;
+    --line: #232830;
+    --text: #dde1e6;
+    --muted: #7a838e;
+    --yellow: #ffd400;
+    --z1: #7c8a96;
+    --z2: #4f9bd9;
+    --z3: #58b368;
+    --z4: #e4b63c;
+    --z5: #ef7f3a;
+    --z6: #e14b4b;
+    --ok: #58b368;
+    --warn: #ffd400;
+    --bad: #e5322d;
+    --info: #4f9bd9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: Barlow, system-ui, sans-serif; }
+  .num { font-family: 'Barlow Condensed', Barlow, sans-serif; font-weight: 600; font-variant-numeric: tabular-nums; }
+  button { background: transparent; border: 1px solid var(--line); color: var(--text); padding: 7px 14px; border-radius: 6px; font: inherit; font-weight: 500; cursor: pointer; }
+  button:hover { border-color: var(--muted); }
+  button:focus-visible { outline: 2px solid var(--z2); outline-offset: 2px; }
+  a { color: var(--z2); text-decoration: none; }
+
+  .screen { min-height: 100%; padding: 24px 32px 48px; max-width: 960px; margin: 0 auto; }
+  .screen h1 { font-size: 28px; font-weight: 600; margin-bottom: 4px; text-wrap: balance; }
+  .screen h2 { font-size: 17px; font-weight: 600; color: var(--text); margin: 28px 0 12px; }
+  .screen p.hint { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+  .nav { display: flex; gap: 16px; margin-bottom: 24px; font-size: 14px; }
+  .nav a.active { color: var(--text); font-weight: 600; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; }
+  .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; }
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .list-item { display: flex; align-items: center; justify-content: space-between; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; gap: 12px; }
+  .list-item .meta { color: var(--muted); font-size: 13px; }
+  .legend-row { display: flex; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+  .legend-row i { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 6px; }
+  .pmc-canvas-wrap { position: relative; }
+  canvas { display: block; width: 100%; height: 190px; }
+</style>
+
+<div class="screen">
+  <nav class="nav">
+    <a href="#">Inicio</a>
+    <a href="#">Conectar</a>
+    <a href="#">Resumen</a>
+    <a href="#" class="active">Historial</a>
+  </nav>
+
+  <h1>Historial</h1>
+  <p class="hint" id="session-count">Cargando…</p>
+
+  <h2>Fitness / Fatigue / Form</h2>
+  <div class="panel">
+    <div class="legend-row">
+      <span><i style="background:#4f9bd9"></i>CTL (fitness)</span>
+      <span><i style="background:#e5322d"></i>ATL (fatigue)</span>
+      <span><i style="background:rgba(255,255,255,.5)"></i>TSB (form)</span>
+    </div>
+    <div class="pmc-canvas-wrap"><canvas id="pmc"></canvas></div>
+    <div class="grid-form" style="margin-top:12px" id="pmc-latest"></div>
+  </div>
+
+  <h2>Sesiones</h2>
+  <div class="list" id="session-list"></div>
+</div>
+
+<script>
+  // --- réplica fiel de engine/pmc.ts, para que la curva sea la real ---
+  const CTL_DAYS = 42, ATL_DAYS = 7;
+  function emaFactor(days) { return 1 - Math.exp(-1 / days); }
+  function parseDateKey(key) { const [y, m, d] = key.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); }
+  function toDateKey(date) { return date.toISOString().slice(0, 10); }
+  function computePmc(entries) {
+    if (entries.length === 0) return [];
+    const byDate = new Map();
+    for (const e of entries) byDate.set(e.dateKey, (byDate.get(e.dateKey) ?? 0) + e.tss);
+    const dates = Array.from(byDate.keys()).sort();
+    const start = parseDateKey(dates[0]), end = parseDateKey(dates[dates.length - 1]);
+    const ctlFactor = emaFactor(CTL_DAYS), atlFactor = emaFactor(ATL_DAYS);
+    const points = [];
+    let ctl = 0, atl = 0;
+    for (const d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+      const dateKey = toDateKey(d);
+      const tsb = ctl - atl;
+      const tss = byDate.get(dateKey) ?? 0;
+      ctl = ctl + (tss - ctl) * ctlFactor;
+      atl = atl + (tss - atl) * atlFactor;
+      points.push({ dateKey, ctl, atl, tsb });
+    }
+    return points;
+  }
+
+  // --- datos de ejemplo: una semana y media de entrenamiento típica ---
+  function daysAgo(n) { const d = new Date(); d.setUTCHours(9, 0, 0, 0); d.setUTCDate(d.getUTCDate() - n); return d; }
+  const SESSIONS = [
+    { daysAgo: 0, name: 'VO2 4×4 con cadencia alta', minutes: 52, tss: 78 },
+    { daysAgo: 2, name: 'Fondo Z2', minutes: 90, tss: 85 },
+    { daysAgo: 3, name: 'Recuperación activa', minutes: 35, tss: 22 },
+    { daysAgo: 5, name: 'Sweet Spot 2×20', minutes: 64, tss: 68 },
+    { daysAgo: 7, name: 'PC Ajuste FTP', minutes: 74, tss: 69 },
+    { daysAgo: 9, name: 'VO2 3×5min', minutes: 58, tss: 72 },
+  ].map((s) => ({ ...s, date: daysAgo(s.daysAgo) }));
+
+  const pmc = computePmc(SESSIONS.map((s) => ({ dateKey: toDateKey(s.date), tss: s.tss })));
+  const latest = pmc[pmc.length - 1];
+
+  document.getElementById('session-count').textContent = `${SESSIONS.length} sesión(es) grabada(s) en esta pestaña.`;
+
+  document.getElementById('pmc-latest').innerHTML = `
+    <div><span class="hint" style="margin:0">Fitness (CTL)</span><div class="num" style="font-size:28px">${Math.round(latest.ctl)}</div></div>
+    <div><span class="hint" style="margin:0">Fatigue (ATL)</span><div class="num" style="font-size:28px">${Math.round(latest.atl)}</div></div>
+    <div><span class="hint" style="margin:0">Form (TSB)</span><div class="num" style="font-size:28px;color:${latest.tsb < -10 ? 'var(--bad)' : latest.tsb > 5 ? 'var(--ok)' : 'var(--text)'}">${Math.round(latest.tsb)}</div></div>
+  `;
+
+  document.getElementById('session-list').innerHTML = [...SESSIONS]
+    .sort((a, b) => b.date - a.date)
+    .map((s) => {
+      const m = Math.floor(s.minutes), sec = Math.round((s.minutes - m) * 60);
+      return `
+      <div class="list-item">
+        <div>
+          <div>${s.name}</div>
+          <div class="meta">${s.date.toLocaleDateString()} · ${m}:${String(sec).padStart(2, '0')} · TSS ${s.tss}</div>
+        </div>
+        <button>Ver</button>
+      </div>`;
+    })
+    .join('');
+
+  // --- dibuja la gráfica exactamente como history.ts::drawPmcChart ---
+  function drawPmcChart(canvas, points) {
+    if (points.length < 2) return;
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    const g = canvas.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const w = rect.width, h = rect.height, pad = 10, topPad = 10;
+    const allValues = points.flatMap((p) => [p.ctl, p.atl, p.tsb]);
+    const min = Math.min(0, ...allValues), max = Math.max(1, ...allValues);
+    const X = (i) => pad + (i / (points.length - 1)) * (w - 2 * pad);
+    const Y = (v) => h - pad - ((v - min) / (max - min)) * (h - topPad - pad);
+    g.clearRect(0, 0, w, h);
+    g.strokeStyle = '#232830';
+    g.lineWidth = 1;
+    g.beginPath();
+    g.moveTo(pad, Y(0));
+    g.lineTo(w - pad, Y(0));
+    g.stroke();
+    const line = (key, color, lw) => {
+      g.beginPath();
+      g.strokeStyle = color;
+      g.lineWidth = lw;
+      g.lineJoin = 'round';
+      points.forEach((p, i) => { const x = X(i), y = Y(p[key]); i ? g.lineTo(x, y) : g.moveTo(x, y); });
+      g.stroke();
+    };
+    line('tsb', 'rgba(255,255,255,.35)', 1.5);
+    line('atl', '#e5322d', 2);
+    line('ctl', '#4f9bd9', 2.5);
+  }
+  const canvas = document.getElementById('pmc');
+  drawPmcChart(canvas, pmc);
+  addEventListener('resize', () => drawPmcChart(canvas, pmc));
+</script>

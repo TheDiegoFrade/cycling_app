@@ -9,7 +9,7 @@ describe('buildFactoryRules', () => {
   it('genera piso de cadencia, techo de pulso y ERG desenganchado desde el perfil', () => {
     const rules = buildFactoryRules(profile);
     expect(rules.map((r) => r.id)).toEqual(['factory-cadence-floor', 'factory-hr-ceiling', 'factory-erg-detached']);
-    expect(rules[0].when).toEqual({ metric: 'cadence', op: '<', value: 70 });
+    expect(rules[0].when).toEqual({ metric: 'cadence_10s', op: '<', value: 70 });
     expect(rules[1].when).toEqual({ metric: 'hr', op: '>', value: 176 });
     expect(rules[1].level).toBe('danger');
   });
@@ -35,8 +35,8 @@ describe('buildCadenceMinRules', () => {
       { name: 'C', type: 'recovery', duration_s: 60, power_pct: 50, cadence_min: 85 },
     ]);
     expect(rules).toHaveLength(2);
-    expect(rules[0]).toMatchObject({ id: 'cadence-min-2', scope: { intervals: [2] }, when: { metric: 'cadence', op: '<', value: 95 } });
-    expect(rules[1]).toMatchObject({ id: 'cadence-min-3', scope: { intervals: [3] }, when: { metric: 'cadence', op: '<', value: 85 } });
+    expect(rules[0]).toMatchObject({ id: 'cadence-min-2', scope: { intervals: [2] }, when: { metric: 'cadence_10s', op: '<', value: 95 } });
+    expect(rules[1]).toMatchObject({ id: 'cadence-min-3', scope: { intervals: [3] }, when: { metric: 'cadence_10s', op: '<', value: 85 } });
   });
 
   it('no genera nada si ningún bloque trae cadence_min', () => {

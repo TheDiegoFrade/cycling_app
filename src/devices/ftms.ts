@@ -1,5 +1,6 @@
 import {
   buildRequestControl,
+  buildSetResistanceLevel,
   buildSetTargetPower,
   buildStart,
   CONTROL_POINT_RESULT,
@@ -28,6 +29,8 @@ export class BleTrainerAdapter implements TrainerAdapter {
   private lastCadence = 0;
   private pendingWrite = false;
   private lastSentTarget: number | null = null;
+  private lastSentResistance: number | null = null;
+  private pendingResistanceWrite = false;
   private recoveringErg = false;
 
   async connect(): Promise<void> {
@@ -62,12 +65,35 @@ export class BleTrainerAdapter implements TrainerAdapter {
       .writeValueWithResponse(buildSetTargetPower(watts))
       .then(() => {
         this.lastSentTarget = watts;
+        this.lastSentResistance = null; // ya no estamos en modo resistencia
       })
       .catch(() => {
         /* si falla, el próximo tick lo vuelve a intentar */
       })
       .finally(() => {
         this.pendingWrite = false;
+      });
+  }
+
+  /** Saca al rodillo de modo ERG (deja de perseguir watts) y lo pasa a
+   * resistencia fija — mismo patrón de "descartar si hay un envío en el
+   * aire" que `setTarget`. Sin verificar en hardware real: el mapeo de
+   * "nivel 0-100" a sensación física depende del fabricante. */
+  setResistance(percent: number): void {
+    if (this.state !== 'connected' || !this.controlCharacteristic) return;
+    if (this.pendingResistanceWrite || this.lastSentResistance === percent) return;
+    this.pendingResistanceWrite = true;
+    this.controlCharacteristic
+      .writeValueWithResponse(buildSetResistanceLevel(percent))
+      .then(() => {
+        this.lastSentResistance = percent;
+        this.lastSentTarget = null; // ya no estamos en modo ERG
+      })
+      .catch(() => {
+        /* si falla, la próxima llamada lo reintenta */
+      })
+      .finally(() => {
+        this.pendingResistanceWrite = false;
       });
   }
 

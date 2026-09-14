@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildRequestControl,
+  buildSetResistanceLevel,
   buildSetTargetPower,
   buildStart,
   CONTROL_POINT_RESULT,
@@ -78,6 +79,14 @@ describe('mensajes del control point', () => {
 
   it('set target power redondea watts fraccionarios', () => {
     expect(Array.from(buildSetTargetPower(199.6))).toEqual([0x05, 0xc8, 0x00]);
+  });
+
+  it('set resistance level es 0x04 + int16 little-endian con resolución 0.1', () => {
+    expect(Array.from(buildSetResistanceLevel(50))).toEqual([0x04, 0xf4, 0x01]); // 50 * 10 = 500 = 0x01F4
+  });
+
+  it('set resistance level en 0 manda 0', () => {
+    expect(Array.from(buildSetResistanceLevel(0))).toEqual([0x04, 0x00, 0x00]);
   });
 });
 

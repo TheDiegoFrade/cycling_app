@@ -99,7 +99,7 @@ interface Sample {
 | `power_10s` | promedio móvil 10 s |
 | `power_pct_target` | `power_10s / target * 100` |
 | `cadence` | última lectura |
-| `cadence_10s` | promedio móvil 10 s |
+| `cadence_10s` | promedio móvil corto (3 s desde uso real en rodillo — el nombre quedó del catálogo original pero la ventana se acortó a propósito, ver `engine/metrics.ts`) |
 | `cadence_stability` | desviación estándar de cadencia en 30 s |
 | `hr` | última lectura |
 | `hr_pct_max` | `hr / profile.hr_max * 100` |
