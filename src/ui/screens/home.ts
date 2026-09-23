@@ -30,6 +30,7 @@ function workoutListItem(w: Workout): string {
       </div>
       <div class="row-actions">
         <button data-action="apply-rules" data-workout-id="${w.id}">+ reglas</button>
+        <button data-action="limits" data-workout-id="${w.id}">Límites</button>
         <button data-action="delete" data-workout-id="${w.id}">Borrar</button>
         <button class="primary" data-action="train" data-workout-id="${w.id}">Entrenar</button>
       </div>
@@ -112,15 +113,20 @@ export function renderHome(container: HTMLElement): void {
           ${profileFieldRow('ftp', 'FTP (W)', appState.profile.ftp)}
           ${profileFieldRow('hr_max', 'Pulso máximo (HRmax real)', appState.profile.hr_max, 'Tu máximo fisiológico, no el límite de una sesión — se usa para calcular tus zonas de pulso (Z1-Z5).')}
           ${profileFieldRow('cadence_floor', 'Piso de cadencia', appState.profile.cadence_floor, 'rpm mínimas en todo momento, en cualquier workout.')}
+          ${profileFieldRow('cadence_max', 'Techo de cadencia', appState.profile.cadence_max, 'rpm máximas en todo momento. Ponlo alto (p. ej. 999) si no quieres límite.')}
           ${profileFieldRow('hr_ceiling', 'Techo de pulso (alerta)', appState.profile.hr_ceiling, 'Límite general que dispara la alerta roja si lo pasas. Puede ser menor que tu HRmax.')}
+          ${profileFieldRow('hr_min', 'Piso de pulso', appState.profile.hr_min, 'Pulso mínimo esperado. Ponlo en 0 si no quieres límite — útil solo si te interesa saber que estás pedaleando muy suave.')}
         </div>
       </div>
 
       <h2>Alertas de fábrica</h2>
       <div class="panel">
         <div class="toggle-row"><span>Piso de cadencia (todo el workout)</span><input type="checkbox" data-toggle="cadenceFloor" ${appState.settings.factoryRulesEnabled.cadenceFloor ? 'checked' : ''}></div>
+        <div class="toggle-row"><span>Techo de cadencia (todo el workout)</span><input type="checkbox" data-toggle="cadenceCeiling" ${appState.settings.factoryRulesEnabled.cadenceCeiling ? 'checked' : ''}></div>
         <div class="toggle-row"><span>Techo de pulso (todo el workout)</span><input type="checkbox" data-toggle="hrCeiling" ${appState.settings.factoryRulesEnabled.hrCeiling ? 'checked' : ''}></div>
+        <div class="toggle-row"><span>Piso de pulso (todo el workout)</span><input type="checkbox" data-toggle="hrFloor" ${appState.settings.factoryRulesEnabled.hrFloor ? 'checked' : ''}></div>
         <div class="toggle-row"><span>Aviso de ERG desenganchado</span><input type="checkbox" data-toggle="ergDetached" ${appState.settings.factoryRulesEnabled.ergDetached ? 'checked' : ''}></div>
+        <p class="hint">Si un bloque de un workout ya trae su propio límite (ver botón "Límites"), ese manda y el de aquí se apaga solo para ese bloque — no compiten entre sí.</p>
       </div>
 
       <h2>Sonidos</h2>
@@ -197,6 +203,12 @@ export function renderHome(container: HTMLElement): void {
       btn.addEventListener('click', () => {
         appState.selectedWorkoutId = btn.dataset.workoutId ?? null;
         navigate('connect');
+      });
+    });
+    container.querySelectorAll<HTMLButtonElement>('[data-action="limits"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        appState.selectedWorkoutId = btn.dataset.workoutId ?? null;
+        navigate('limits');
       });
     });
     container.querySelectorAll<HTMLButtonElement>('[data-action="delete"]').forEach((btn) => {

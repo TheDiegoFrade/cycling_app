@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { computeMetrics } from './metrics';
 import type { Profile, Sample } from '../core/types';
 
-const profile: Profile = { ftp: 250, hr_max: 190, cadence_floor: 70, hr_ceiling: 176 };
+const profile: Profile = { ftp: 250, hr_max: 190, cadence_floor: 70, hr_ceiling: 176, hr_min: 0, cadence_max: 999 };
 
 function sample(t: number, power: number, cadence: number, hr: number): Sample {
   return { t, power, cadence, hr, target: 200, intensity: 100, interval_index: 0 };

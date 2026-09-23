@@ -58,9 +58,17 @@ function rank(n: RuleNotification): number {
  * resto se descarta, no se encola). */
 export class RuleEngine {
   private readonly tracking = new Map<string, RuleTrackingState>();
-  private readonly rules: readonly Rule[];
+  private rules: readonly Rule[];
 
   constructor(rules: readonly Rule[]) {
+    this.rules = rules;
+  }
+
+  /** Reemplaza el set de reglas en caliente (p. ej. al editar un límite a
+   * mitad de sesión). El tracking (desde cuándo se sostiene, última vez que
+   * disparó) sigue vivo por `rule.id` — mientras los ids no cambien entre
+   * llamadas, una regla que ya estaba "sostenida" no pierde su progreso. */
+  setRules(rules: readonly Rule[]): void {
     this.rules = rules;
   }
 

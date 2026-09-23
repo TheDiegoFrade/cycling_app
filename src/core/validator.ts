@@ -61,6 +61,15 @@ function validateInterval(raw: unknown, index: number): string[] {
   ) {
     errors.push(`${label} tiene \`cadence_min\` (${raw.cadence_min}) mayor que \`cadence_max\` (${raw.cadence_max})`);
   }
+  if (raw.hr_min !== undefined && (!isFiniteNumber(raw.hr_min) || raw.hr_min <= 0)) {
+    errors.push(`${label} tiene \`hr_min\` inválido; debe ser un número mayor que 0`);
+  }
+  if (raw.hr_ceiling !== undefined && (!isFiniteNumber(raw.hr_ceiling) || raw.hr_ceiling <= 0)) {
+    errors.push(`${label} tiene \`hr_ceiling\` inválido; debe ser un número mayor que 0`);
+  }
+  if (isFiniteNumber(raw.hr_min) && isFiniteNumber(raw.hr_ceiling) && raw.hr_min > raw.hr_ceiling) {
+    errors.push(`${label} tiene \`hr_min\` (${raw.hr_min}) mayor que \`hr_ceiling\` (${raw.hr_ceiling})`);
+  }
 
   return errors;
 }

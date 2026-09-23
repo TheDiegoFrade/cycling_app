@@ -32,6 +32,11 @@ export interface Interval {
   ramp_to_pct?: number; // rampa lineal hasta este %
   cadence_min?: number;
   cadence_max?: number;
+  hr_min?: number;
+  // mismo nombre que el límite global de perfil (`Profile.hr_ceiling`), a
+  // propósito: nunca `hr_max`, ese término queda exclusivo para "tu máximo
+  // fisiológico" y ya causó confusión una vez al mezclarse con un límite de sesión.
+  hr_ceiling?: number;
 }
 
 export interface Comment {
@@ -97,6 +102,11 @@ export interface Profile {
   hr_max: number;
   cadence_floor: number;
   hr_ceiling: number;
+  // límites globales opcionales de facto: siempre tienen un número, pero solo
+  // se aplican como regla si su interruptor está activo en "Alertas de fábrica"
+  // (ver AppSettings.factoryRulesEnabled) — mismo patrón que los dos de arriba.
+  hr_min: number;
+  cadence_max: number;
 }
 
 export interface Sample {

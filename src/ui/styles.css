@@ -537,6 +537,11 @@ a {
   margin-bottom: 4px;
   font-size: 14px;
 }
+/* si "Reglas" y "Límites" se abren juntos, no deben sobreponerse */
+#limits.rules {
+  width: 360px;
+  right: 330px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   * {

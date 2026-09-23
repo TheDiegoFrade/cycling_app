@@ -106,6 +106,12 @@ export class SessionEngine {
     return this.setIntensityPct(this.intensityPct + deltaPct);
   }
 
+  /** Reemplaza las reglas activas sin reiniciar la sesión — para editar un
+   * límite de pulso/cadencia (de perfil o de bloque) a mitad de entrenamiento. */
+  updateRules(rules: Rule[]): void {
+    this.ruleEngine.setRules(rules);
+  }
+
   private blockStartEvent(index0: number): EngineEvent[] {
     const index1 = index0 + 1;
     if (index1 === this.lastIntervalIndex1) return [];

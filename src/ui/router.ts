@@ -1,6 +1,6 @@
-export type Screen = 'home' | 'connect' | 'train' | 'summary' | 'history';
+export type Screen = 'home' | 'connect' | 'train' | 'summary' | 'history' | 'limits';
 
-const SCREENS: readonly Screen[] = ['home', 'connect', 'train', 'summary', 'history'];
+const SCREENS: readonly Screen[] = ['home', 'connect', 'train', 'summary', 'history', 'limits'];
 
 type RenderFn = (container: HTMLElement) => (() => void) | void;
 

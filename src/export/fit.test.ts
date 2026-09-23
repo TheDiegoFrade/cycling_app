@@ -3,7 +3,7 @@ import { encodeFitActivity } from './fit';
 import { fitCrc16 } from './fit-crc';
 import type { Profile, Sample } from '../core/types';
 
-const profile: Profile = { ftp: 250, hr_max: 190, cadence_floor: 70, hr_ceiling: 176 };
+const profile: Profile = { ftp: 250, hr_max: 190, cadence_floor: 70, hr_ceiling: 176, hr_min: 0, cadence_max: 999 };
 
 function sample(t: number, interval_index: number, power = 150, cadence = 90, hr = 130): Sample {
   return { t, power, cadence, hr, target: 150, intensity: 100, interval_index };

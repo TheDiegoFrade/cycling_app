@@ -4,14 +4,28 @@ import { uploadActivityFit } from '../../export/intervals-icu';
 import { renderNav } from '../nav';
 import { navigate } from '../router';
 import { appState } from '../state';
+import { saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
+
+const RPE_LABELS: Record<number, string> = {
+  1: 'muy, muy fácil',
+  2: 'fácil',
+  3: 'moderado',
+  4: 'algo duro',
+  5: 'duro',
+  6: 'duro+',
+  7: 'muy duro',
+  8: 'muy duro+',
+  9: 'extremo',
+  10: 'máximo',
+};
 
 function fmt1(n: number): string {
   return n.toFixed(1);
 }
 
 function profileForSession(session: SessionRecord) {
-  return { ftp: session.ftp, hr_max: appState.profile.hr_max, cadence_floor: appState.profile.cadence_floor, hr_ceiling: appState.profile.hr_ceiling };
+  return { ...appState.profile, ftp: session.ftp };
 }
 
 const ZONE_COLOR_VARS = ['--z1', '--z2', '--z3', '--z4', '--z5', '--z6'];
@@ -118,13 +132,15 @@ export function renderSummary(container: HTMLElement): void {
       <div class="panel"><canvas id="g" style="width:100%;height:160px;display:block"></canvas></div>
 
       <h2>Métricas</h2>
-      <div class="nums" style="grid-template-columns:repeat(5,1fr)">
+      <div class="nums" style="grid-template-columns:repeat(6,1fr)">
         ${metricCard('Potencia normalizada', `${Math.round(analytics.normalizedPower)}`, 'W')}
         ${metricCard('Intensity Factor', analytics.intensityFactor !== null ? fmt1(analytics.intensityFactor) : '—')}
         ${metricCard('TSS', analytics.trainingStressScore !== null ? String(Math.round(analytics.trainingStressScore)) : '—')}
         ${metricCard('Variability Index', fmt1(analytics.variabilityIndex))}
         ${metricCard('Efficiency Factor', analytics.efficiencyFactor !== null ? fmt1(analytics.efficiencyFactor) : '—')}
+        ${metricCard('Desacople Pw:HR', analytics.hrDriftPct !== null ? `${analytics.hrDriftPct > 0 ? '+' : ''}${fmt1(analytics.hrDriftPct)}%` : '—')}
       </div>
+      <p class="hint">Desacople Pw:HR: compara potencia/pulso entre la 1ª y 2ª mitad de la rodada. Menor a 5% suele indicar buena base aeróbica; solo aplica a sesiones largas y parejas (10+ min). Requiere pulso en ambas mitades.</p>
       <div class="panel" style="margin-top:10px">
         <div class="grid-form">
           <div><span class="label">Potencia</span><div>avg <b class="num">${Math.round(analytics.avgPower)}</b> W · máx <b class="num">${Math.round(analytics.maxPower)}</b> W</div></div>
@@ -173,6 +189,23 @@ export function renderSummary(container: HTMLElement): void {
         }
       </div>
 
+      <h2>¿Cómo te sentiste?</h2>
+      <div class="panel">
+        <div class="grid-form">
+          <label>RPE (esfuerzo percibido)
+            <select id="rpe-select">
+              <option value="">—</option>
+              ${Array.from({ length: 10 }, (_, i) => i + 1)
+                .map((v) => `<option value="${v}" ${session.rpe === v ? 'selected' : ''}>${v} — ${RPE_LABELS[v]}</option>`)
+                .join('')}
+            </select>
+          </label>
+        </div>
+        <label style="display:block;margin-top:10px">Notas<textarea id="session-note" rows="3" style="width:100%" placeholder="¿Cómo lo sentiste? ¿Algo que el coach debería saber?">${session.note ?? ''}</textarea></label>
+        <div class="row-actions" style="margin-top:10px"><button id="save-feedback">Guardar</button></div>
+        <div id="feedback-result"></div>
+      </div>
+
       <h2>Exportar</h2>
       <div class="panel">
         <div class="row-actions">
@@ -201,6 +234,17 @@ export function renderSummary(container: HTMLElement): void {
 
   container.querySelector('#download-fit')?.addEventListener('click', downloadFit);
   container.querySelector('#go-home')?.addEventListener('click', () => navigate('home'));
+
+  const feedbackResult = container.querySelector<HTMLElement>('#feedback-result')!;
+  container.querySelector('#save-feedback')?.addEventListener('click', async () => {
+    const rpeRaw = container.querySelector<HTMLSelectElement>('#rpe-select')!.value;
+    const note = container.querySelector<HTMLTextAreaElement>('#session-note')!.value.trim();
+    session.rpe = rpeRaw ? Number(rpeRaw) : undefined;
+    session.note = note || undefined;
+    await saveSession(session);
+    appState.lastSession = session;
+    feedbackResult.innerHTML = '<p class="hint">Guardado.</p>';
+  });
 
   const resultEl = container.querySelector<HTMLElement>('#icu-result')!;
   container.querySelector('#icu-upload')?.addEventListener('click', async () => {

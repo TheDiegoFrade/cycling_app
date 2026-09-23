@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { computeSessionAnalytics } from './analytics';
 import type { Profile, Sample } from '../core/types';
 
-const profile: Profile = { ftp: 250, hr_max: 190, cadence_floor: 70, hr_ceiling: 176 };
+const profile: Profile = { ftp: 250, hr_max: 190, cadence_floor: 70, hr_ceiling: 176, hr_min: 0, cadence_max: 999 };
 
 function samplesOf(count: number, power: number, cadence: number, hr: number, startT = 0): Sample[] {
   return Array.from({ length: count }, (_, i) => ({
@@ -92,6 +92,32 @@ describe('computeSessionAnalytics: curva de potencia', () => {
     const a = computeSessionAnalytics(samples, profile);
     const peak5s = a.powerCurve.find((p) => p.windowS === 5);
     expect(peak5s?.watts).toBe(400);
+  });
+});
+
+describe('computeSessionAnalytics: desacople aeróbico (Pw:HR)', () => {
+  it('null en sesiones cortas (< 10 min)', () => {
+    const a = computeSessionAnalytics(samplesOf(300, 200, 90, 150), profile);
+    expect(a.hrDriftPct).toBeNull();
+  });
+
+  it('~0% cuando potencia y pulso se mantienen parejos toda la sesión', () => {
+    const samples = samplesOf(1200, 200, 90, 150);
+    const a = computeSessionAnalytics(samples, profile);
+    expect(a.hrDriftPct).toBeCloseTo(0, 5);
+  });
+
+  it('positivo cuando el pulso sube para la misma potencia en la 2ª mitad', () => {
+    const samples = [...samplesOf(600, 200, 90, 150), ...samplesOf(600, 200, 90, 165, 600)];
+    const a = computeSessionAnalytics(samples, profile);
+    expect(a.hrDriftPct).not.toBeNull();
+    expect(a.hrDriftPct as number).toBeGreaterThan(0);
+  });
+
+  it('null si falta pulso en alguna mitad', () => {
+    const samples = [...samplesOf(600, 200, 90, 150), ...samplesOf(600, 200, 90, 0, 600)];
+    const a = computeSessionAnalytics(samples, profile);
+    expect(a.hrDriftPct).toBeNull();
   });
 });
 

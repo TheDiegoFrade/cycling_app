@@ -17,9 +17,48 @@ function dateKeyOf(session: SessionRecord): string {
   return session.startedAt.slice(0, 10);
 }
 
-function tssOf(session: SessionRecord): number {
-  const profile = { ftp: session.ftp, hr_max: 190, cadence_floor: 70, hr_ceiling: 180 };
-  return computeSessionAnalytics(session.samples, profile).trainingStressScore ?? 0;
+function analyticsOf(session: SessionRecord) {
+  const profile = { ftp: session.ftp, hr_max: 190, cadence_floor: 70, hr_ceiling: 180, hr_min: 0, cadence_max: 999 };
+  return computeSessionAnalytics(session.samples, profile);
+}
+
+function drawEfChart(canvas: HTMLCanvasElement, points: { dateKey: string; ef: number }[]): void {
+  if (points.length < 2) return;
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const g = canvas.getContext('2d');
+  if (!g) return;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = rect.width;
+  const h = rect.height;
+  const pad = 10;
+
+  const values = points.map((p) => p.ef);
+  const min = Math.min(...values) * 0.95;
+  const max = Math.max(...values) * 1.05;
+  const X = (i: number) => pad + (i / (points.length - 1)) * (w - 2 * pad);
+  const Y = (v: number) => h - pad - ((v - min) / (max - min || 1)) * (h - 2 * pad);
+
+  g.clearRect(0, 0, w, h);
+  g.strokeStyle = '#6fcf97';
+  g.lineWidth = 2.5;
+  g.lineJoin = 'round';
+  g.beginPath();
+  points.forEach((p, i) => {
+    const x = X(i);
+    const y = Y(p.ef);
+    i ? g.lineTo(x, y) : g.moveTo(x, y);
+  });
+  g.stroke();
+
+  points.forEach((p, i) => {
+    g.beginPath();
+    g.fillStyle = '#6fcf97';
+    g.arc(X(i), Y(p.ef), 2.5, 0, Math.PI * 2);
+    g.fill();
+  });
 }
 
 function drawPmcChart(canvas: HTMLCanvasElement, points: ReturnType<typeof computePmc>): void {
@@ -91,8 +130,15 @@ export function renderHistory(container: HTMLElement): void {
     }
 
     const sorted = [...sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
-    const pmc = computePmc(sorted.map((s) => ({ dateKey: dateKeyOf(s), tss: tssOf(s) })));
+    const analyticsBySessionId = new Map(sorted.map((s) => [s.id, analyticsOf(s)]));
+    const pmc = computePmc(sorted.map((s) => ({ dateKey: dateKeyOf(s), tss: analyticsBySessionId.get(s.id)!.trainingStressScore ?? 0 })));
     const latest = pmc[pmc.length - 1];
+
+    // tendencia de EF: cronológico (más viejo primero), solo sesiones con pulso válido
+    const efPoints = [...sorted]
+      .reverse()
+      .map((s) => ({ dateKey: dateKeyOf(s), ef: analyticsBySessionId.get(s.id)!.efficiencyFactor }))
+      .filter((p): p is { dateKey: string; ef: number } => p.ef !== null);
 
     container.innerHTML = `
       <div class="screen">
@@ -119,25 +165,41 @@ export function renderHistory(container: HTMLElement): void {
           }
         </div>
 
+        ${
+          efPoints.length >= 2
+            ? `<h2>Eficiencia aeróbica (EF)</h2>
+        <div class="panel">
+          <p class="hint">NP / pulso promedio de cada sesión. Una tendencia al alza es la señal más directa de que tu base aeróbica está mejorando, aparte del FTP.</p>
+          <canvas id="ef" style="width:100%;height:120px;display:block"></canvas>
+        </div>`
+            : ''
+        }
+
         <h2>Sesiones</h2>
         <div class="list">
           ${sorted
-            .map(
-              (s) => `
+            .map((s) => {
+              const a = analyticsBySessionId.get(s.id)!;
+              const parts = [`TSS ${Math.round(a.trainingStressScore ?? 0)}`];
+              if (a.efficiencyFactor !== null) parts.push(`EF ${a.efficiencyFactor.toFixed(2)}`);
+              if (s.rpe) parts.push(`RPE ${s.rpe}`);
+              return `
             <div class="list-item" data-session-id="${s.id}">
               <div>
                 <div>${s.workoutName}</div>
-                <div class="meta">${new Date(s.startedAt).toLocaleDateString()} · ${fmt(s.samples.length)} · TSS ${Math.round(tssOf(s))}</div>
+                <div class="meta">${new Date(s.startedAt).toLocaleDateString()} · ${fmt(s.samples.length)} · ${parts.join(' · ')}</div>
               </div>
               <button data-action="view" data-session-id="${s.id}">Ver</button>
-            </div>`,
-            )
+            </div>`;
+            })
             .join('')}
         </div>
       </div>
     `;
 
     drawPmcChart(container.querySelector('#pmc')!, pmc);
+    const efCanvas = container.querySelector<HTMLCanvasElement>('#ef');
+    if (efCanvas) drawEfChart(efCanvas, efPoints);
 
     container.querySelectorAll<HTMLButtonElement>('[data-action="view"]').forEach((btn) => {
       btn.addEventListener('click', () => {

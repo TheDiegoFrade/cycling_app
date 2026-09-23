@@ -11,6 +11,10 @@ export interface SessionRecord {
   samples: Sample[];
   alerts: { t: number; level: RuleLevel; message: string }[];
   intensityChanges: { t: number; pct: number }[];
+  /** Feedback subjetivo capturado después de terminar, en Resumen — no se
+   * pide al cortar el entrenamiento para no interrumpir ese flujo. */
+  rpe?: number;
+  note?: string;
 }
 
 export function listSessions(): Promise<SessionRecord[]> {

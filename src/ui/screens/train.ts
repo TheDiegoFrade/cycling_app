@@ -1,6 +1,6 @@
-import { buildCadenceMinRules, buildFactoryRules } from '../../core/defaults';
+import { buildFactoryRules, buildIntervalLimitRules } from '../../core/defaults';
 import { powerZone } from '../../core/zones';
-import type { Interval, Rule, Sample, Workout } from '../../core/types';
+import type { Interval, Profile, Rule, Sample, Workout } from '../../core/types';
 import { Clock } from '../../engine/clock';
 import { buildPlan } from '../../engine/plan';
 import { SessionEngine } from '../../engine/session';
@@ -20,11 +20,13 @@ function fmt(totalS: number): string {
   return `${m}:${r < 10 ? '0' : ''}${r}`;
 }
 
-function factoryRulesForSettings(): Rule[] {
+function factoryRulesForSettings(workout: Workout): Rule[] {
   const enabled = appState.settings.factoryRulesEnabled;
-  return buildFactoryRules(appState.profile).filter((r) => {
+  return buildFactoryRules(appState.profile, workout).filter((r) => {
     if (r.id === 'factory-cadence-floor') return enabled.cadenceFloor;
     if (r.id === 'factory-hr-ceiling') return enabled.hrCeiling;
+    if (r.id === 'factory-hr-floor') return enabled.hrFloor;
+    if (r.id === 'factory-cadence-ceiling') return enabled.cadenceCeiling;
     if (r.id === 'factory-erg-detached') return enabled.ergDetached;
     return true;
   });
@@ -49,6 +51,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         <div class="sensor bias"><button id="bMinus" type="button">−</button><b class="num" id="bias">100%</b><button id="bPlus" type="button">+</button></div>
         <button id="btnErg" type="button" title="al apagarlo, la app deja de mandarle el objetivo en watts al rodillo">ERG: ON</button>
         <button id="btnRules" type="button">Reglas</button>
+        <button id="btnLimits" type="button">Límites</button>
         <div class="clock num"><span id="elapsed">00:00</span> <span>/ <span id="total">00:00</span></span></div>
         <button id="btnMain" type="button">Empezar</button>
         <button id="btnEnd" type="button">Terminar</button>
@@ -87,18 +90,28 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     </div>
     <div class="count" id="count"><div class="ring" id="ring"></div><div class="n num" id="countN">5</div><div class="what" id="countWhat"></div></div>
     <div class="rules" id="rules"><h4>Reglas activas</h4><div id="rulesList"></div></div>
+    <div class="rules" id="limits"><h4>Límites de pulso/cadencia</h4><div id="limitsPanel"></div></div>
   `;
 
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
-  const rules: Rule[] = [...factoryRulesForSettings(), ...buildCadenceMinRules(workout.intervals), ...(workout.rules ?? [])];
-  $('rulesList').innerHTML = rules.map((r) => `<div>· <code>${r.level}</code> ${r.message}</div>`).join('') || '<div>Sin reglas activas.</div>';
+  // se reconstruye completa cada vez que cambia un límite (perfil o bloque)
+  // para no tener que llevar un diff a mano — el motor la puede recibir
+  // completa en caliente vía engine.updateRules().
+  function buildRules(): Rule[] {
+    return [...factoryRulesForSettings(workout), ...buildIntervalLimitRules(workout.intervals), ...(workout.rules ?? [])];
+  }
+
+  function paintRulesList(): void {
+    $('rulesList').innerHTML = buildRules().map((r) => `<div>· <code>${r.level}</code> ${r.message}</div>`).join('') || '<div>Sin reglas activas.</div>';
+  }
+  paintRulesList();
   $('btnRules').addEventListener('click', () => $('rules').classList.toggle('on'));
 
   const plan = buildPlan(workout.intervals);
   $('total').textContent = fmt(plan.totalDuration);
 
-  const engine = new SessionEngine({ workout, profile: appState.profile, rules, autoPauseAfterS: 5 });
+  const engine = new SessionEngine({ workout, profile: appState.profile, rules: buildRules(), autoPauseAfterS: 5 });
   const clock = new Clock();
   const wakeLock = new WakeLockGuard();
 
@@ -145,6 +158,67 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const intensityChanges: SessionRecord['intensityChanges'] = [];
   const startedAt = new Date();
   let lastElapsedS = 0;
+
+  type LimitField = 'hr_min' | 'hr_ceiling' | 'cadence_min' | 'cadence_max';
+  const LIMIT_ROWS: { label: string; blockKey: LimitField; globalKey: keyof Profile }[] = [
+    { label: 'Pulso mín', blockKey: 'hr_min', globalKey: 'hr_min' },
+    { label: 'Pulso techo', blockKey: 'hr_ceiling', globalKey: 'hr_ceiling' },
+    { label: 'Cadencia mín', blockKey: 'cadence_min', globalKey: 'cadence_floor' },
+    { label: 'Cadencia máx', blockKey: 'cadence_max', globalKey: 'cadence_max' },
+  ];
+
+  /** Reconstruye y aplica las reglas sin reiniciar la sesión — se llama tras
+   * cualquier edición en vivo de límites (bloque o global). */
+  function applyLiveRules(): void {
+    engine.updateRules(buildRules());
+    paintRulesList();
+  }
+
+  function paintLimitsPanel(): void {
+    const iv = workout.intervals[currentIndex0];
+    $('limitsPanel').innerHTML = `
+      <div>Bloque actual: <b>${iv?.name ?? '—'}</b></div>
+      <div class="grid-form" style="margin-top:8px">
+        ${LIMIT_ROWS.map(
+          (r) =>
+            `<label>${r.label} (bloque)<input type="number" data-limit-block="${r.blockKey}" value="${iv?.[r.blockKey] ?? ''}" placeholder="sin límite"></label>`,
+        ).join('')}
+      </div>
+      <div style="margin-top:12px">Global (perfil) — aplica donde el bloque no define lo suyo</div>
+      <div class="grid-form" style="margin-top:8px">
+        ${LIMIT_ROWS.map(
+          (r) => `<label>${r.label} (global)<input type="number" data-limit-global="${r.globalKey}" value="${appState.profile[r.globalKey]}"></label>`,
+        ).join('')}
+      </div>
+    `;
+    $('limitsPanel').querySelectorAll<HTMLInputElement>('[data-limit-block]').forEach((input) => {
+      input.addEventListener('change', () => {
+        const key = input.dataset.limitBlock as LimitField;
+        const target = workout.intervals[currentIndex0];
+        const raw = input.value.trim();
+        if (raw === '') {
+          delete target[key];
+        } else {
+          const v = Number(raw);
+          if (Number.isFinite(v) && v > 0) target[key] = v;
+        }
+        applyLiveRules();
+      });
+    });
+    $('limitsPanel').querySelectorAll<HTMLInputElement>('[data-limit-global]').forEach((input) => {
+      input.addEventListener('change', () => {
+        const key = input.dataset.limitGlobal as keyof Profile;
+        const v = Number(input.value);
+        if (Number.isFinite(v)) {
+          appState.profile = { ...appState.profile, [key]: v };
+          appState.persistProfile();
+          applyLiveRules();
+        }
+      });
+    });
+  }
+  paintLimitsPanel();
+  $('btnLimits').addEventListener('click', () => $('limits').classList.toggle('on'));
 
   function zoneColor(z: number): string {
     return getComputedStyle(document.documentElement).getPropertyValue(`--z${z}`).trim();
@@ -259,6 +333,11 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         cdShown = -1;
         beeper.play('go');
         showStage('go', event.interval.name, `${event.targetWatts} W · ${event.interval.cadence_min ?? '—'}+ rpm`, '', 1800);
+        // el evento 'tick' que actualiza currentIndex0 llega justo después de
+        // este en el mismo lote — se adelanta acá para que el panel de
+        // límites muestre el bloque nuevo desde ya, no el anterior.
+        currentIndex0 = event.index1 - 1;
+        paintLimitsPanel();
         return;
       }
       case 'countdown': {

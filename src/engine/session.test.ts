@@ -3,7 +3,7 @@ import { SessionEngine } from './session';
 import type { EngineEvent } from './session';
 import type { Interval, Profile, Rule, Workout } from '../core/types';
 
-const profile: Profile = { ftp: 200, hr_max: 190, cadence_floor: 70, hr_ceiling: 176 };
+const profile: Profile = { ftp: 200, hr_max: 190, cadence_floor: 70, hr_ceiling: 176, hr_min: 0, cadence_max: 999 };
 
 const intervals: Interval[] = [
   { name: 'Calentamiento', type: 'warmup', duration_s: 10, power_pct: 50 },

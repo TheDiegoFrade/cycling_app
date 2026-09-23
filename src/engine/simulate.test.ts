@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildCadenceMinRules, buildFactoryRules } from '../core/defaults';
+import { buildFactoryRules, buildIntervalLimitRules } from '../core/defaults';
 import type { Profile, Workout } from '../core/types';
 import { makeFakeSampleGenerator } from './simulate';
 import { SessionEngine } from './session';
@@ -18,7 +18,7 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-const profile: Profile = { ftp: 250, hr_max: 190, cadence_floor: 80, hr_ceiling: 165 };
+const profile: Profile = { ftp: 250, hr_max: 190, cadence_floor: 80, hr_ceiling: 165, hr_min: 0, cadence_max: 999 };
 
 const workout: Workout = {
   format_version: 1,
@@ -58,7 +58,7 @@ function describeEvent(e: EngineEvent): string | null {
 
 describe('simulación de una sesión completa (motor + generador de muestras falsas)', () => {
   it('corre de punta a punta con datos simulados y termina, sin browser ni hardware', () => {
-    const rules = [...buildFactoryRules(profile), ...buildCadenceMinRules(workout.intervals)];
+    const rules = [...buildFactoryRules(profile, workout), ...buildIntervalLimitRules(workout.intervals)];
     const engine = new SessionEngine({ workout, profile, rules });
     const sampleAt = makeFakeSampleGenerator(workout, profile, mulberry32(42));
     const totalDuration = workout.intervals.reduce((acc, i) => acc + i.duration_s, 0);
@@ -98,8 +98,11 @@ describe('simulación de una sesión completa (motor + generador de muestras fal
   });
 
   it('con una caída de cadencia, la regla de piso de fábrica dispara de inmediato (tolerance_s=0)', () => {
-    const rules = buildFactoryRules(profile);
-    const engine = new SessionEngine({ workout, profile, rules });
+    // bloque sin cadence_min propio: así se prueba el piso global aislado,
+    // sin que la exclusión por override (ver buildFactoryRules) lo apague.
+    const soloWorkout: Workout = { ...workout, intervals: [{ name: 'A', type: 'steady', duration_s: 60, power_pct: 70 }] };
+    const rules = buildFactoryRules(profile, soloWorkout);
+    const engine = new SessionEngine({ workout: soloWorkout, profile, rules });
     engine.start();
     const events = engine.tick({ power: 130, cadence: 60, hr: 120 }); // por debajo de cadence_floor=80
     const rule = events.find((e) => e.type === 'rule');

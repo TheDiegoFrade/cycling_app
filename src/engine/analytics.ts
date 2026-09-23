@@ -33,6 +33,16 @@ export interface SessionAnalytics {
   /** NP / pulso promedio: eficiencia aeróbica, se compara entre sesiones
    * similares a lo largo del tiempo. `null` si no hubo lecturas de pulso. */
   efficiencyFactor: number | null;
+  /** Desacople aeróbico (Pw:HR): compara potencia/pulso entre la primera y
+   * segunda mitad de la sesión. Positivo = el pulso subió respecto a la
+   * potencia en la segunda mitad (fatiga / base aeróbica incompleta); cerca
+   * de 0 o negativo = esfuerzo sostenido de forma estable. Referencia común
+   * (rodadas largas y parejas): <5% se considera buena base aeróbica.
+   * `null` si la sesión es muy corta o falta pulso en alguna mitad. No debe
+   * confundirse con el `hr_drift` del catálogo de reglas en vivo (core/metrics.ts) —
+   * ese es un metric id reservado para el motor de reglas tick-a-tick, que
+   * sigue sin implementarse; este es un cálculo de sesión completa a posteriori. */
+  hrDriftPct: number | null;
   /** Mejor promedio sostenido para cada ventana estándar; se omiten las
    * ventanas más largas que la sesión. */
   powerCurve: PowerCurvePoint[];
@@ -85,6 +95,30 @@ function powerCurve(powers: readonly number[]): PowerCurvePoint[] {
     .map((p) => ({ windowS: p.windowS, watts: Math.round(p.watts) }));
 }
 
+/** Relación potencia:pulso de una mitad de la sesión. `null` si no hay
+ * lecturas de pulso válidas en esa mitad (banda desconectada, etc.). */
+function powerHrRatio(samples: readonly Sample[]): number | null {
+  const hrs = samples.map((s) => s.hr).filter((hr) => hr > 0);
+  if (hrs.length === 0) return null;
+  const avgP = average(samples.map((s) => s.power));
+  const avgH = average(hrs);
+  return avgH > 0 ? avgP / avgH : null;
+}
+
+/** Desacople aeróbico entre la primera y segunda mitad de la sesión. Se
+ * necesita un mínimo de muestras para que "primera mitad" / "segunda mitad"
+ * signifique algo (sesiones muy cortas o series de intervalos no aplican). */
+const HR_DRIFT_MIN_SAMPLES = 600; // 10 min
+
+function hrDriftPct(samples: readonly Sample[]): number | null {
+  if (samples.length < HR_DRIFT_MIN_SAMPLES) return null;
+  const mid = Math.floor(samples.length / 2);
+  const r1 = powerHrRatio(samples.slice(0, mid));
+  const r2 = powerHrRatio(samples.slice(mid));
+  if (r1 === null || r2 === null || r1 === 0) return null;
+  return ((r1 - r2) / r1) * 100;
+}
+
 function zoneSecondsFrom(zones: readonly number[], zoneCount: number): ZoneSeconds[] {
   const counts = new Map<number, number>();
   for (const z of zones) counts.set(z, (counts.get(z) ?? 0) + 1);
@@ -121,6 +155,7 @@ export function computeSessionAnalytics(samples: readonly Sample[], profile: Pro
     trainingStressScore,
     variabilityIndex: avgPower > 0 ? np / avgPower : 1,
     efficiencyFactor: avgHr > 0 ? np / avgHr : null,
+    hrDriftPct: hrDriftPct(samples),
     powerCurve: powerCurve(powers),
     powerZoneSeconds: zoneSecondsFrom(
       powers.map((w) => powerZone((w / profile.ftp) * 100)),
