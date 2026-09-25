@@ -9,6 +9,7 @@ import { SimulatedHrAdapter, SimulatedTrainerAdapter } from '../../devices/simul
 import { WakeLockGuard } from '../../devices/wake-lock';
 import { saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
+import { pushSessionToCloud } from '../../sync/cloud-sync';
 import { beeper } from '../audio';
 import { navigate } from '../router';
 import { appState } from '../state';
@@ -417,6 +418,9 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     };
     await saveSession(record);
     appState.lastSession = record;
+    // en segundo plano: la sesión ya quedó guardada local, no hay que
+    // esperar a la nube (ni bloquear si no hay internet) para navegar.
+    if (appState.user) void pushSessionToCloud(record, appState.profile, appState.user.id);
     navigate('summary');
   }
 

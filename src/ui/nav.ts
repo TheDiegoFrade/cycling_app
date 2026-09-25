@@ -5,6 +5,7 @@ const ITEMS: { screen: Screen; label: string }[] = [
   { screen: 'connect', label: 'Conectar' },
   { screen: 'summary', label: 'Resumen' },
   { screen: 'history', label: 'Historial' },
+  { screen: 'login', label: 'Cuenta' },
 ];
 
 export function renderNav(active: Screen): string {

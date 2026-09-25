@@ -6,6 +6,20 @@ import { renderNav } from '../nav';
 import { navigate } from '../router';
 import { appState } from '../state';
 
+/** Una fila de la lista/tendencias: local (con samples, "Ver" funciona) o
+ * solo-nube (grabada en otro dispositivo, resumen nada más — ver
+ * sync/cloud-sync.ts sobre por qué no hay samples ahí). */
+interface HistoryRow {
+  id: string;
+  workoutName: string;
+  startedAt: string;
+  durationS: number;
+  tss: number;
+  ef: number | null;
+  rpe: number | null;
+  origin: 'local' | 'cloud';
+}
+
 function fmt(totalS: number): string {
   const s = Math.max(0, Math.round(totalS));
   const m = Math.floor(s / 60);
@@ -13,13 +27,38 @@ function fmt(totalS: number): string {
   return `${m}:${r < 10 ? '0' : ''}${r}`;
 }
 
-function dateKeyOf(session: SessionRecord): string {
-  return session.startedAt.slice(0, 10);
-}
-
 function analyticsOf(session: SessionRecord) {
   const profile = { ftp: session.ftp, hr_max: 190, cadence_floor: 70, hr_ceiling: 180, hr_min: 0, cadence_max: 999 };
   return computeSessionAnalytics(session.samples, profile);
+}
+
+function localRow(session: SessionRecord): HistoryRow {
+  const a = analyticsOf(session);
+  return {
+    id: session.id,
+    workoutName: session.workoutName,
+    startedAt: session.startedAt,
+    durationS: session.samples.length,
+    tss: a.trainingStressScore ?? 0,
+    ef: a.efficiencyFactor,
+    rpe: session.rpe ?? null,
+    origin: 'local',
+  };
+}
+
+function cloudRow(s: (typeof appState.cloudSessions)[number]): HistoryRow {
+  return {
+    id: s.id,
+    workoutName: s.workoutName,
+    startedAt: s.startedAt,
+    // aproximado (fin - inicio de reloj): la nube no guarda samples, así que
+    // no sabemos el tiempo "corriendo" exacto si hubo pausas largas.
+    durationS: Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000),
+    tss: s.trainingStressScore ?? 0,
+    ef: s.efficiencyFactor,
+    rpe: s.rpe,
+    origin: 'cloud',
+  };
 }
 
 function drawEfChart(canvas: HTMLCanvasElement, points: { dateKey: string; ef: number }[]): void {
@@ -117,8 +156,14 @@ export function renderHistory(container: HTMLElement): void {
     </div>
   `;
 
-  listSessions().then((sessions) => {
-    if (sessions.length === 0) {
+  listSessions().then((localSessions) => {
+    const localById = new Map(localSessions.map((s) => [s.id, s]));
+    const rows: HistoryRow[] = [
+      ...localSessions.map(localRow),
+      ...appState.cloudSessions.filter((s) => !localById.has(s.id)).map(cloudRow),
+    ];
+
+    if (rows.length === 0) {
       container.innerHTML = `
         <div class="screen">
           ${renderNav('history')}
@@ -129,22 +174,23 @@ export function renderHistory(container: HTMLElement): void {
       return;
     }
 
-    const sorted = [...sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
-    const analyticsBySessionId = new Map(sorted.map((s) => [s.id, analyticsOf(s)]));
-    const pmc = computePmc(sorted.map((s) => ({ dateKey: dateKeyOf(s), tss: analyticsBySessionId.get(s.id)!.trainingStressScore ?? 0 })));
+    const sorted = [...rows].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+    const pmc = computePmc(sorted.map((r) => ({ dateKey: r.startedAt.slice(0, 10), tss: r.tss })));
     const latest = pmc[pmc.length - 1];
 
-    // tendencia de EF: cronológico (más viejo primero), solo sesiones con pulso válido
+    // tendencia de EF: cronológico (más viejo primero)
     const efPoints = [...sorted]
       .reverse()
-      .map((s) => ({ dateKey: dateKeyOf(s), ef: analyticsBySessionId.get(s.id)!.efficiencyFactor }))
+      .map((r) => ({ dateKey: r.startedAt.slice(0, 10), ef: r.ef }))
       .filter((p): p is { dateKey: string; ef: number } => p.ef !== null);
+
+    const cloudCount = rows.filter((r) => r.origin === 'cloud').length;
 
     container.innerHTML = `
       <div class="screen">
         ${renderNav('history')}
         <h1>Historial</h1>
-        <p class="hint">${sessions.length} sesión(es) grabada(s) en esta pestaña.</p>
+        <p class="hint">${rows.length} sesión(es)${cloudCount ? ` · ${cloudCount} sincronizada(s) desde otro dispositivo` : ' grabada(s) en esta pestaña'}.</p>
 
         <h2>Fitness / Fatigue / Form</h2>
         <div class="panel">
@@ -178,18 +224,18 @@ export function renderHistory(container: HTMLElement): void {
         <h2>Sesiones</h2>
         <div class="list">
           ${sorted
-            .map((s) => {
-              const a = analyticsBySessionId.get(s.id)!;
-              const parts = [`TSS ${Math.round(a.trainingStressScore ?? 0)}`];
-              if (a.efficiencyFactor !== null) parts.push(`EF ${a.efficiencyFactor.toFixed(2)}`);
-              if (s.rpe) parts.push(`RPE ${s.rpe}`);
+            .map((r) => {
+              const parts = [`TSS ${Math.round(r.tss)}`];
+              if (r.ef !== null) parts.push(`EF ${r.ef.toFixed(2)}`);
+              if (r.rpe) parts.push(`RPE ${r.rpe}`);
+              if (r.origin === 'cloud') parts.push('☁ solo en la nube');
               return `
-            <div class="list-item" data-session-id="${s.id}">
+            <div class="list-item" data-session-id="${r.id}">
               <div>
-                <div>${s.workoutName}</div>
-                <div class="meta">${new Date(s.startedAt).toLocaleDateString()} · ${fmt(s.samples.length)} · ${parts.join(' · ')}</div>
+                <div>${r.workoutName}</div>
+                <div class="meta">${new Date(r.startedAt).toLocaleDateString()} · ${fmt(r.durationS)} · ${parts.join(' · ')}</div>
               </div>
-              <button data-action="view" data-session-id="${s.id}">Ver</button>
+              ${r.origin === 'local' ? `<button data-action="view" data-session-id="${r.id}">Ver</button>` : ''}
             </div>`;
             })
             .join('')}
@@ -203,7 +249,7 @@ export function renderHistory(container: HTMLElement): void {
 
     container.querySelectorAll<HTMLButtonElement>('[data-action="view"]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const session = sorted.find((s) => s.id === btn.dataset.sessionId);
+        const session = localById.get(btn.dataset.sessionId!);
         if (!session) return;
         appState.lastSession = session;
         navigate('summary');
