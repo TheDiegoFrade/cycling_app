@@ -31,7 +31,7 @@ export function renderLogin(container: HTMLElement): (() => void) | void {
           </div>
 
           <h2>Contraseña</h2>
-          <p class="hint">Créala (o cámbiala) para entrar directo la próxima vez, sin depender del correo.</p>
+          <p class="hint">Créala (o cámbiala) cuando quieras.</p>
           <div class="panel">
             <label>Nueva contraseña<input type="password" id="set-password" placeholder="mínimo 6 caracteres"></label>
             <div class="row-actions" style="margin-top:10px">
@@ -40,14 +40,12 @@ export function renderLogin(container: HTMLElement): (() => void) | void {
             <div id="password-result"></div>
           </div>`
             : `
-          <p class="hint">Inicia sesión con tu correo. Si ya tienes contraseña, úsala; si no, te mandamos un link.</p>
+          <p class="hint">Solo entran correos invitados por el administrador. Si olvidaste tu contraseña, pídele que te la restablezca.</p>
           <div class="panel">
             <label>Correo<input type="email" id="login-email" placeholder="tucorreo@ejemplo.com"></label>
-            <label>Contraseña (si ya la creaste)<input type="password" id="login-password" placeholder="opcional"></label>
-            <p class="hint">¿Olvidaste tu contraseña? Dale a "Enviar link mágico" y haz click en el link que te llega al correo para iniciar sesión en Torq sin ella.</p>
+            <label>Contraseña<input type="password" id="login-password"></label>
             <div class="row-actions" style="margin-top:10px">
-              <button class="primary" id="login-password-btn">Entrar con contraseña</button>
-              <button id="login-send">Enviar link mágico</button>
+              <button class="primary" id="login-password-btn">Entrar</button>
             </div>
             <div id="login-result"></div>
           </div>`
@@ -71,9 +69,7 @@ export function renderLogin(container: HTMLElement): (() => void) | void {
       }
       resultEl.innerHTML = '<p class="hint">Guardando…</p>';
       const { error } = await client.auth.updateUser({ password });
-      resultEl.innerHTML = error
-        ? `<div class="error-box">${error.message}</div>`
-        : '<p class="hint">Listo — la próxima vez puedes entrar directo con correo y contraseña.</p>';
+      resultEl.innerHTML = error ? `<div class="error-box">${error.message}</div>` : '<p class="hint">Listo.</p>';
       if (!error) passwordInput.value = '';
     });
 
@@ -84,7 +80,7 @@ export function renderLogin(container: HTMLElement): (() => void) | void {
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       if (!email || !password) {
-        resultEl.innerHTML = '<div class="error-box">Escribe correo y contraseña, o usa el link mágico si no tienes una todavía.</div>';
+        resultEl.innerHTML = '<div class="error-box">Escribe correo y contraseña.</div>';
         return;
       }
       resultEl.innerHTML = '<p class="hint">Entrando…</p>';
@@ -92,24 +88,6 @@ export function renderLogin(container: HTMLElement): (() => void) | void {
       if (error) resultEl.innerHTML = `<div class="error-box">${error.message}</div>`;
       // si no hay error, el refresh global (appState.onAuthChange) ya se
       // encarga de mostrar la app — no hace falta repintar acá.
-    });
-
-    container.querySelector('#login-send')?.addEventListener('click', async () => {
-      const emailInput = container.querySelector<HTMLInputElement>('#login-email')!;
-      const resultEl = container.querySelector<HTMLElement>('#login-result')!;
-      const email = emailInput.value.trim();
-      if (!email) {
-        resultEl.innerHTML = '<div class="error-box">Escribe tu correo.</div>';
-        return;
-      }
-      resultEl.innerHTML = '<p class="hint">Enviando…</p>';
-      const { error } = await client.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: location.origin + location.pathname },
-      });
-      resultEl.innerHTML = error
-        ? `<div class="error-box">${error.message}</div>`
-        : '<p class="hint">Revisa tu correo y toca el link para entrar — vas a volver aquí ya conectado. Si dice que expiró, pide uno nuevo y tócalo rápido.</p>';
     });
   }
 
