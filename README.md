@@ -2,7 +2,7 @@
 
 App web de entrenamiento indoor en rodillo. Corre en Chrome; todo vive local en tu navegador, y con login (opcional según el despliegue) tu historial también se sincroniza en la nube entre dispositivos. Pensada para entrenar **sin mirar la pantalla**: avisa por sonido y con mensajes grandes cuando hay que corregir algo.
 
-Deploy en producción: **https://cycling-app.dpcfrade.workers.dev**
+Deploy en producción: **https://ridetorq.app**
 
 La especificación completa del proyecto (modelo de datos, motor de reglas, protocolo Bluetooth, milestones) está en [`SPEC.md`](./SPEC.md).
 
@@ -32,6 +32,11 @@ La especificación completa del proyecto (modelo de datos, motor de reglas, prot
 - **Historial**: todas tus sesiones guardadas, navegables, cada una con su resumen completo.
 - **Fitness / Fatigue / Form (PMC)**: la gráfica de CTL/ATL/TSB de TrainingPeaks, calculada a partir del TSS diario de tu historial completo.
 
+**Cuenta y nube (opcional)**
+- Login privado (correo + contraseña) — solo entran correos invitados por el administrador, no hay registro abierto.
+- Con sesión iniciada, tu historial se sincroniza solo entre dispositivos (Supabase).
+- **Strava**: cada usuario conecta su propia cuenta — sube tus sesiones grabadas en Torq a Strava, e importa tus rodadas de afuera (con potencia/pulso/cadencia) para verlas con las mismas métricas.
+
 ## Cómo usarla
 
 1. **Inicio** — configura tu perfil (FTP, pulso máximo, piso de cadencia, techo de pulso), prueba los sonidos y ajusta el volumen, e importa un workout (`.zwo` o `.workout.json`).
@@ -56,7 +61,7 @@ npm run build      # type-check + build de producción
 npm run simulate   # corre una sesión simulada completa y la imprime en consola
 ```
 
-161 tests en Vitest cubren `core/`, `engine/`, `devices/` (parseo de protocolo BLE) y `export/`. La UI y la conexión Bluetooth real se prueban a mano — no hay forma de automatizar hardware real en CI.
+175 tests en Vitest cubren `core/`, `engine/`, `devices/` (parseo de protocolo BLE) y `export/`. La UI y la conexión Bluetooth real se prueban a mano — no hay forma de automatizar hardware real en CI.
 
 ## Estructura del proyecto
 
