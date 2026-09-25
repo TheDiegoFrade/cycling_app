@@ -105,7 +105,7 @@ export function renderHome(container: HTMLElement): void {
   container.innerHTML = `
     <div class="screen">
       ${renderNav('home')}
-      <h1>Rodillo</h1>
+      <h1>Torq</h1>
       <p class="hint">Entrena sin mirar la pantalla — la app avisa por sonido cuando hay que corregir algo.</p>
 
       <h2>Perfil</h2>

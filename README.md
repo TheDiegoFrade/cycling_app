@@ -1,6 +1,6 @@
-# Rodillo
+# Torq
 
-App web de entrenamiento indoor en rodillo. Corre en Chrome, sin backend, sin login, sin cuentas — todo vive en tu navegador. Pensada para entrenar **sin mirar la pantalla**: avisa por sonido y con mensajes grandes cuando hay que corregir algo.
+App web de entrenamiento indoor en rodillo. Corre en Chrome; todo vive local en tu navegador, y con login (opcional según el despliegue) tu historial también se sincroniza en la nube entre dispositivos. Pensada para entrenar **sin mirar la pantalla**: avisa por sonido y con mensajes grandes cuando hay que corregir algo.
 
 Deploy en producción: **https://cycling-app.dpcfrade.workers.dev**
 
