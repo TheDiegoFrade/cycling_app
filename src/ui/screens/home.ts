@@ -4,7 +4,6 @@ import { parseZwo } from '../../core/zwo-parser';
 import type { Profile, RulesFile, Workout } from '../../core/types';
 import { deleteWorkout, saveWorkout } from '../../storage/workout-store';
 import { beeper } from '../audio';
-import { HERO_SILHOUETTE } from '../hero';
 import { renderNav } from '../nav';
 import { navigate } from '../router';
 import { appState } from '../state';
@@ -107,7 +106,6 @@ export function renderHome(container: HTMLElement): void {
     <div class="screen">
       ${renderNav('home')}
       <div class="hero" style="border-radius:20px;padding:36px 32px;margin-bottom:28px">
-        ${HERO_SILHOUETTE}
         <div class="hero-content">
           <img src="/favicon.svg" width="32" height="32" alt="">
           <div style="font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:700;letter-spacing:1px;margin-top:8px">TORQ</div>

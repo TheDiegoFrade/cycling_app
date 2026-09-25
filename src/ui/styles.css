@@ -137,9 +137,9 @@ a {
 .hero {
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(120% 55% at 50% 100%, rgba(71, 191, 255, 0.35), rgba(134, 59, 255, 0.28) 42%, transparent 72%),
-    linear-gradient(180deg, #05030d 0%, #140a30 35%, #2b1354 58%, #4a1f7a 80%, #2a1348 100%);
+  background-image: linear-gradient(180deg, rgba(5, 3, 13, 0.55) 0%, rgba(5, 3, 13, 0.08) 30%, transparent 55%), url('/hero-login.jpg');
+  background-size: cover;
+  background-position: center;
 }
 .hero::before {
   content: '';
@@ -149,16 +149,6 @@ a {
   opacity: 0.05;
   mix-blend-mode: overlay;
   pointer-events: none;
-}
-.hero-silhouette {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  width: 100%;
-  height: 22%;
-  color: #0a0612;
-  z-index: 0;
 }
 .hero-content {
   position: relative;
@@ -171,6 +161,121 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- Pill de entrada (Login zen) ---------- */
+.entry-pill {
+  position: absolute;
+  top: 7%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 26px;
+  border-radius: 22px;
+  background: transparent;
+  border: 1px solid transparent;
+  min-width: 220px;
+  max-width: 320px;
+  text-align: center;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.65);
+  z-index: 2;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.entry-pill.active {
+  background: rgba(10, 8, 20, 0.4);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  text-shadow: none;
+}
+.entry-pill .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  justify-content: center;
+}
+.entry-pill .tag {
+  font-size: 11.5px;
+  opacity: 0.55;
+  margin-top: 2px;
+}
+.entry-pill label {
+  display: block;
+  text-align: left;
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 10px;
+}
+.entry-pill input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 4px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.28);
+  color: #eee;
+  font-size: 13px;
+}
+.entry-pill input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+.ghost-btn {
+  margin-top: 14px;
+  padding: 4px 0;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+.ghost-btn:hover {
+  text-decoration-color: #fff;
+}
+.entry-fields {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  width: 100%;
+  transition: max-height 0.35s ease, opacity 0.3s ease, margin-top 0.35s ease;
+}
+.entry-fields.open {
+  max-height: 320px;
+  opacity: 1;
+  margin-top: 4px;
+}
+.entry-fields button.primary {
+  width: 100%;
+  margin-top: 14px;
+}
+.music-toggle {
+  position: absolute;
+  top: 7%;
+  right: 5%;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(10, 8, 20, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 2;
+}
+.music-toggle[hidden] {
+  display: none;
 }
 .panel {
   background: var(--panel);

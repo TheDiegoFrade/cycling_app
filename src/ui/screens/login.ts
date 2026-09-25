@@ -1,32 +1,52 @@
 import { isSupabaseConfigured, supabase } from '../../supabase/client';
 import { disconnectStrava, getStravaConnection, isStravaConfigured, redirectToStravaAuthorize } from '../../sync/strava';
 import type { StravaConnection } from '../../sync/strava';
-import { HERO_SILHOUETTE } from '../hero';
+import { startAmbientTrack, toggleAmbientTrack } from '../ambient-audio';
 import { renderNav } from '../nav';
 import { appState } from '../state';
 
 function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supabase>): void {
   container.innerHTML = `
-    <div class="hero" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
-      ${HERO_SILHOUETTE}
-      <div class="hero-content" style="width:100%;max-width:380px">
-        <div style="text-align:center;margin-bottom:28px">
-          <img src="/favicon.svg" width="40" height="40" alt="">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:700;letter-spacing:1px;margin-top:8px">TORQ</div>
-          <p class="hint" style="margin:4px 0 0">Entrena sin mirar la pantalla.</p>
-        </div>
-        <div class="glass-card" style="padding:28px">
-          <p class="hint" style="margin-bottom:16px">Solo entran correos invitados por el administrador. Si olvidaste tu contraseña, pídele que te la restablezca.</p>
+    <div class="hero" style="min-height:100vh">
+      <div class="entry-pill">
+        <div class="brand">🚴 <span>TORQ</span></div>
+        <div class="tag">Entrena sin mirar la pantalla.</div>
+        <button type="button" class="ghost-btn" id="entry-toggle">Entrar</button>
+        <div class="entry-fields" id="entry-fields">
           <label>Correo<input type="email" id="login-email" placeholder="tucorreo@ejemplo.com"></label>
-          <label style="display:block;margin-top:12px">Contraseña<input type="password" id="login-password"></label>
-          <div class="row-actions" style="margin-top:18px">
-            <button class="primary" id="login-password-btn" style="width:100%">Entrar</button>
-          </div>
-          <div id="login-result" style="margin-top:10px"></div>
+          <label>Contraseña<input type="password" id="login-password"></label>
+          <button class="primary" id="login-password-btn">Entrar</button>
+          <div id="login-result"></div>
         </div>
       </div>
+      <button type="button" class="music-toggle" id="music-toggle" title="Still Corners – The Trip" hidden>🔈</button>
     </div>
   `;
+
+  const pill = container.querySelector<HTMLElement>('.entry-pill')!;
+  const toggleBtn = container.querySelector<HTMLButtonElement>('#entry-toggle')!;
+  const fields = container.querySelector<HTMLElement>('#entry-fields')!;
+  const musicToggle = container.querySelector<HTMLButtonElement>('#music-toggle')!;
+
+  toggleBtn.addEventListener('click', () => {
+    pill.classList.add('active');
+    fields.classList.add('open');
+    toggleBtn.hidden = true;
+    container.querySelector<HTMLInputElement>('#login-email')?.focus();
+    void startAmbientTrack()
+      .then(() => {
+        musicToggle.hidden = false;
+      })
+      .catch(() => {
+        // si el navegador bloquea el autoplay, el usuario igual puede
+        // entrar sin música — no es una función crítica.
+      });
+  });
+
+  musicToggle.addEventListener('click', async () => {
+    const playing = await toggleAmbientTrack();
+    musicToggle.textContent = playing ? '🔈' : '🔇';
+  });
 
   container.querySelector('#login-password-btn')?.addEventListener('click', async () => {
     const emailInput = container.querySelector<HTMLInputElement>('#login-email')!;
