@@ -9,6 +9,7 @@ import { renderLogin } from './ui/screens/login';
 import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
 import { appState } from './ui/state';
+import { handleStravaRedirect } from './sync/strava';
 
 type RenderFn = (container: HTMLElement) => (() => void) | void;
 
@@ -34,10 +35,16 @@ registerScreen('login', renderLogin); // nunca bloqueada: si no, nadie podría i
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = '<div class="screen"><p class="hint">Cargando…</p></div>';
 
-appState.boot().then(() => {
+appState.boot().then(async () => {
   startRouter(app);
   // recalcula qué pantalla mostrar en cuanto cambia el login (entrar, salir,
   // sesión restaurada) — sin esto, tras iniciar sesión seguiríamos viendo el
   // formulario de login hasta el siguiente cambio de hash.
   appState.onAuthChange(() => refresh());
+
+  // si venimos de que Strava nos mandó de vuelta con ?code=..., ya hay
+  // sesión de Supabase (boot() terminó) para poder llamar a la Edge
+  // Function que hace el intercambio de tokens.
+  await handleStravaRedirect();
+  refresh();
 });

@@ -15,6 +15,9 @@ export interface SessionRecord {
    * pide al cortar el entrenamiento para no interrumpir ese flujo. */
   rpe?: number;
   note?: string;
+  /** Si esta sesión vino de importar una actividad de Strava, su id ahí —
+   * evita importar la misma dos veces. Ver sync/strava.ts. */
+  stravaActivityId?: number;
 }
 
 export function listSessions(): Promise<SessionRecord[]> {

@@ -1,4 +1,6 @@
 import { isSupabaseConfigured, supabase } from '../../supabase/client';
+import { disconnectStrava, getStravaConnection, isStravaConfigured, redirectToStravaAuthorize } from '../../sync/strava';
+import type { StravaConnection } from '../../sync/strava';
 import { renderNav } from '../nav';
 import { appState } from '../state';
 
@@ -15,6 +17,7 @@ export function renderLogin(container: HTMLElement): (() => void) | void {
   }
 
   const client = supabase;
+  let stravaConnection: StravaConnection | null | 'loading' = appState.user ? 'loading' : null;
 
   function paint(): void {
     const user = appState.user;
@@ -38,7 +41,28 @@ export function renderLogin(container: HTMLElement): (() => void) | void {
               <button id="set-password-btn">Guardar contraseña</button>
             </div>
             <div id="password-result"></div>
+          </div>
+
+          ${
+            isStravaConfigured()
+              ? `
+          <h2>Strava</h2>
+          <div class="panel">
+            ${
+              stravaConnection === 'loading'
+                ? '<p class="hint">Verificando…</p>'
+                : stravaConnection
+                  ? `
+                <p class="hint">Conectado como <b>${stravaConnection.athleteName ?? `atleta #${stravaConnection.athleteId}`}</b>. Puedes subir tus sesiones de Torq e importar tus rodadas de afuera.</p>
+                <div class="row-actions"><button id="strava-disconnect">Desconectar Strava</button></div>`
+                  : `
+                <p class="hint">Conecta tu cuenta de Strava para subir tus sesiones e importar tus rodadas grabadas con otro dispositivo.</p>
+                <div class="row-actions"><button class="primary" id="strava-connect">Conectar con Strava</button></div>`
+            }
+            <div id="strava-result"></div>
           </div>`
+              : ''
+          }`
             : `
           <p class="hint">Solo entran correos invitados por el administrador. Si olvidaste tu contraseña, pídele que te la restablezca.</p>
           <div class="panel">
@@ -89,10 +113,33 @@ export function renderLogin(container: HTMLElement): (() => void) | void {
       // si no hay error, el refresh global (appState.onAuthChange) ya se
       // encarga de mostrar la app — no hace falta repintar acá.
     });
+
+    container.querySelector('#strava-connect')?.addEventListener('click', () => {
+      redirectToStravaAuthorize();
+    });
+
+    container.querySelector('#strava-disconnect')?.addEventListener('click', async () => {
+      const resultEl = container.querySelector<HTMLElement>('#strava-result')!;
+      resultEl.innerHTML = '<p class="hint">Desconectando…</p>';
+      try {
+        await disconnectStrava();
+        stravaConnection = null;
+        paint();
+      } catch (err) {
+        resultEl.innerHTML = `<div class="error-box">${err instanceof Error ? err.message : String(err)}</div>`;
+      }
+    });
+  }
+
+  async function loadStravaConnection(): Promise<void> {
+    if (!appState.user || !isStravaConfigured()) return;
+    stravaConnection = await getStravaConnection(appState.user.id);
+    paint();
   }
 
   // sin suscripción propia a onAuthStateChange: el refresh global (ver
   // main.ts / appState.onAuthChange) ya vuelve a montar esta pantalla
   // completa cuando cambia el login, evitando una doble suscripción/repintado.
   paint();
+  void loadStravaConnection();
 }

@@ -87,6 +87,44 @@ create policy "sessions: borrar lo propio" on sessions for delete
 
 create index if not exists sessions_user_started_idx on sessions (user_id, started_at desc);
 
+-- id de la actividad de Strava de la que se importó esta sesión (si aplica)
+-- — evita importar la misma actividad dos veces.
+alter table sessions add column if not exists strava_activity_id bigint;
+create unique index if not exists sessions_user_strava_activity_idx
+  on sessions (user_id, strava_activity_id) where strava_activity_id is not null;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Strava: cada usuario conecta SU PROPIA cuenta (OAuth). Los tokens nunca
+-- los toca el navegador directo — solo las Edge Functions (con la
+-- service role key, que ignora RLS) los leen/escriben. Por eso esta tabla
+-- no tiene policy de insert/update/select para el cliente: si no hay
+-- policy, RLS lo bloquea por default para cualquiera que no sea service role.
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists strava_tokens (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  access_token text not null,
+  refresh_token text not null,
+  expires_at bigint not null, -- unix timestamp (segundos), tal como lo da Strava
+  updated_at timestamptz not null default now()
+);
+
+alter table strava_tokens enable row level security;
+
+-- Tabla aparte, SIN tokens, que el cliente sí puede leer — solo para
+-- mostrar "conectado como fulano" en la UI sin exponer credenciales.
+create table if not exists strava_connections (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  strava_athlete_id bigint not null,
+  strava_athlete_name text,
+  connected_at timestamptz not null default now()
+);
+
+alter table strava_connections enable row level security;
+
+drop policy if exists "strava_connections: leer lo propio" on strava_connections;
+create policy "strava_connections: leer lo propio" on strava_connections for select
+  using (auth.uid() = user_id);
+
 -- ─────────────────────────────────────────────────────────────────────────
 -- Storage: bucket privado para los .fit, un archivo por sesión en
 -- "{user_id}/{session_id}.fit" — el primer segmento de la ruta ES el

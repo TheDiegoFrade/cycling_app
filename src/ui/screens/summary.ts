@@ -6,6 +6,7 @@ import { navigate } from '../router';
 import { appState } from '../state';
 import { saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
+import { isStravaConfigured, uploadSessionToStrava } from '../../sync/strava';
 
 const RPE_LABELS: Record<number, string> = {
   1: 'muy, muy fácil',
@@ -210,7 +211,9 @@ export function renderSummary(container: HTMLElement): void {
       <div class="panel">
         <div class="row-actions">
           <button class="primary" id="download-fit">Descargar .fit</button>
+          ${isStravaConfigured() ? '<button id="strava-upload">Subir a Strava</button>' : ''}
         </div>
+        ${isStravaConfigured() ? '<div id="strava-upload-result"></div>' : ''}
         <div class="callout" style="margin-top:14px">
           Subida a intervals.icu: mecanismo sin verificar contra la API real (necesita tu Athlete ID y API key).
         </div>
@@ -234,6 +237,18 @@ export function renderSummary(container: HTMLElement): void {
 
   container.querySelector('#download-fit')?.addEventListener('click', downloadFit);
   container.querySelector('#go-home')?.addEventListener('click', () => navigate('home'));
+
+  const stravaResultEl = container.querySelector<HTMLElement>('#strava-upload-result');
+  container.querySelector('#strava-upload')?.addEventListener('click', async () => {
+    if (!stravaResultEl) return;
+    stravaResultEl.innerHTML = '<p class="hint">Subiendo…</p>';
+    try {
+      await uploadSessionToStrava(session, profileForSession(session));
+      stravaResultEl.innerHTML = '<p class="hint">Enviado — Strava tarda un momento en procesarla, revisa tu perfil ahí.</p>';
+    } catch (err) {
+      stravaResultEl.innerHTML = `<div class="error-box">${err instanceof Error ? err.message : String(err)}</div>`;
+    }
+  });
 
   const feedbackResult = container.querySelector<HTMLElement>('#feedback-result')!;
   container.querySelector('#save-feedback')?.addEventListener('click', async () => {

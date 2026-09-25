@@ -21,6 +21,7 @@ export interface CloudSessionSummary {
   hrDriftPct: number | null;
   rpe: number | null;
   note: string | null;
+  stravaActivityId: number | null;
 }
 
 /** Sube el .fit a Storage y el resumen a la tabla `sessions`. Best-effort:
@@ -62,6 +63,7 @@ export async function pushSessionToCloud(session: SessionRecord, profile: Profil
       rpe: session.rpe ?? null,
       note: session.note ?? null,
       fit_path: fitPath,
+      strava_activity_id: session.stravaActivityId ?? null,
     });
     if (insertError) throw insertError;
   } catch (err) {
@@ -73,7 +75,9 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
   if (!supabase) return [];
   const { data, error } = await supabase
     .from('sessions')
-    .select('id, workout_name, started_at, finished_at, ftp, avg_power, training_stress_score, efficiency_factor, hr_drift_pct, rpe, note')
+    .select(
+      'id, workout_name, started_at, finished_at, ftp, avg_power, training_stress_score, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id',
+    )
     .eq('user_id', userId)
     .order('started_at', { ascending: false });
   if (error || !data) {
@@ -92,5 +96,6 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
     hrDriftPct: row.hr_drift_pct,
     rpe: row.rpe,
     note: row.note,
+    stravaActivityId: row.strava_activity_id,
   }));
 }
