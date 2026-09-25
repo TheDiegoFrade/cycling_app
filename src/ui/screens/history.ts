@@ -1,10 +1,11 @@
 import { computeSessionAnalytics } from '../../engine/analytics';
 import { computePmc } from '../../engine/pmc';
 import type { SessionRecord } from '../../storage/session-store';
-import { listSessions } from '../../storage/session-store';
+import { deleteSession, listSessions } from '../../storage/session-store';
 import { renderNav } from '../nav';
 import { navigate, refresh } from '../router';
 import { appState } from '../state';
+import { deleteSessionFromCloud } from '../../sync/cloud-sync';
 import { importStravaActivity, isStravaConfigured, listStravaActivities } from '../../sync/strava';
 
 const STRAVA_IMPORT_WINDOW_DAYS = 60;
@@ -247,7 +248,10 @@ export function renderHistory(container: HTMLElement): void {
                 <div>${r.workoutName}</div>
                 <div class="meta">${new Date(r.startedAt).toLocaleDateString()} · ${fmt(r.durationS)} · ${parts.join(' · ')}</div>
               </div>
-              ${r.origin === 'local' ? `<button data-action="view" data-session-id="${r.id}">Ver</button>` : ''}
+              <div class="row-actions">
+                ${r.origin === 'local' ? `<button data-action="view" data-session-id="${r.id}">Ver</button>` : ''}
+                <button data-action="delete" data-session-id="${r.id}" data-origin="${r.origin}">Borrar</button>
+              </div>
             </div>`;
             })
             .join('')}
@@ -265,6 +269,25 @@ export function renderHistory(container: HTMLElement): void {
         if (!session) return;
         appState.lastSession = session;
         navigate('summary');
+      });
+    });
+
+    container.querySelectorAll<HTMLButtonElement>('[data-action="delete"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.sessionId!;
+        const origin = btn.dataset.origin as 'local' | 'cloud';
+        if (!confirm('¿Borrar esta sesión? No se puede deshacer.')) return;
+
+        if (origin === 'local') {
+          await deleteSession(id);
+          // best-effort: si también estaba sincronizada, la quita de la nube
+          // para que no reaparezca como "solo en la nube" después.
+          if (appState.user) await deleteSessionFromCloud(id, appState.user.id);
+        } else if (appState.user) {
+          await deleteSessionFromCloud(id, appState.user.id);
+          appState.cloudSessions = appState.cloudSessions.filter((s) => s.id !== id);
+        }
+        refresh();
       });
     });
 

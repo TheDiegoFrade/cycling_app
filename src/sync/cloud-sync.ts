@@ -71,6 +71,20 @@ export async function pushSessionToCloud(session: SessionRecord, profile: Profil
   }
 }
 
+/** Borra una sesión de la nube (fila + .fit en Storage). Best-effort: si
+ * falla, se deja registro en consola — el llamador decide si igual quita la
+ * fila local o del estado en memoria. */
+export async function deleteSessionFromCloud(id: string, userId: string): Promise<void> {
+  if (!supabase) return;
+  try {
+    const { error } = await supabase.from('sessions').delete().eq('id', id).eq('user_id', userId);
+    if (error) throw error;
+    await supabase.storage.from('fit-files').remove([`${userId}/${id}.fit`]);
+  } catch (err) {
+    console.error('[cloud-sync] no se pudo borrar la sesión de la nube', err);
+  }
+}
+
 export async function listCloudSessions(userId: string): Promise<CloudSessionSummary[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
