@@ -43,8 +43,9 @@ export function renderLogin(container: HTMLElement): (() => void) | void {
     `;
 
     container.querySelector('#signout')?.addEventListener('click', async () => {
+      // sin repintar acá: appState.signOut() dispara el refresh global (ver
+      // main.ts), que vuelve a montar esta misma pantalla ya desconectada.
       await appState.signOut();
-      paint();
     });
 
     container.querySelector('#login-send')?.addEventListener('click', async () => {
@@ -66,10 +67,8 @@ export function renderLogin(container: HTMLElement): (() => void) | void {
     });
   }
 
+  // sin suscripción propia a onAuthStateChange: el refresh global (ver
+  // main.ts / appState.onAuthChange) ya vuelve a montar esta pantalla
+  // completa cuando cambia el login, evitando una doble suscripción/repintado.
   paint();
-  const {
-    data: { subscription },
-  } = client.auth.onAuthStateChange(() => paint());
-
-  return () => subscription.unsubscribe();
 }

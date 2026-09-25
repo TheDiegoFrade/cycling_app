@@ -34,3 +34,10 @@ export function startRouter(root: HTMLElement): void {
   window.addEventListener('hashchange', renderCurrent);
   renderCurrent();
 }
+
+/** Vuelve a renderizar la pantalla actual sin cambiar el hash — para cuando
+ * algo fuera de la navegación normal cambia lo que debería verse (p. ej. el
+ * estado de login, ver main.ts). */
+export function refresh(): void {
+  renderCurrent();
+}

@@ -36,9 +36,23 @@ class AppState {
    * para las locales (con samples completos) y sync/cloud-sync para el porqué
    * de la separación. */
   cloudSessions: CloudSessionSummary[] = [];
+  private readonly authListeners = new Set<() => void>();
 
   get selectedWorkout(): Workout | null {
     return this.workouts.find((w) => w.id === this.selectedWorkoutId) ?? null;
+  }
+
+  /** Se llama cada vez que `user` cambia (login, logout, sesión restaurada
+   * de otra pestaña) — usado por main.ts para re-renderizar la pantalla
+   * actual sin que router.ts tenga que saber nada de autenticación. */
+  onAuthChange(cb: () => void): () => void {
+    this.authListeners.add(cb);
+    return () => this.authListeners.delete(cb);
+  }
+
+  private setUser(user: AuthUser | null): void {
+    this.user = user;
+    this.authListeners.forEach((cb) => cb());
   }
 
   async boot(): Promise<void> {
@@ -49,19 +63,20 @@ class AppState {
 
     if (supabase) {
       const { data } = await supabase.auth.getSession();
-      this.user = toAuthUser(data.session);
+      this.user = toAuthUser(data.session); // set directo: todavía no hay listeners ni pantalla montada
       if (this.user) this.cloudSessions = await listCloudSessions(this.user.id);
       supabase.auth.onAuthStateChange(async (_event, session) => {
-        this.user = toAuthUser(session);
-        this.cloudSessions = this.user ? await listCloudSessions(this.user.id) : [];
+        const user = toAuthUser(session);
+        this.cloudSessions = user ? await listCloudSessions(user.id) : [];
+        this.setUser(user);
       });
     }
   }
 
   async signOut(): Promise<void> {
     if (supabase) await supabase.auth.signOut();
-    this.user = null;
     this.cloudSessions = [];
+    this.setUser(null);
   }
 
   async persistProfile(): Promise<void> {

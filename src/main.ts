@@ -1,5 +1,6 @@
 import './ui/styles.css';
-import { registerScreen, startRouter } from './ui/router';
+import type { Screen } from './ui/router';
+import { refresh, registerScreen, startRouter } from './ui/router';
 import { renderConnect } from './ui/screens/connect';
 import { renderHistory } from './ui/screens/history';
 import { renderHome } from './ui/screens/home';
@@ -9,17 +10,34 @@ import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
 import { appState } from './ui/state';
 
-registerScreen('home', renderHome);
-registerScreen('connect', renderConnect);
-registerScreen('train', renderTrain);
-registerScreen('summary', renderSummary);
-registerScreen('history', renderHistory);
-registerScreen('limits', renderLimits);
-registerScreen('login', renderLogin);
+type RenderFn = (container: HTMLElement) => (() => void) | void;
+
+/** Si hay Supabase configurado y nadie inició sesión, cualquier pantalla
+ * (menos "Cuenta") se reemplaza por el login — la app es privada, no un
+ * sitio público que cualquiera puede usar sin cuenta. */
+function guarded(render: RenderFn): RenderFn {
+  return (container) => (appState.cloudEnabled && !appState.user ? renderLogin(container) : render(container));
+}
+
+const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
+  ['home', renderHome],
+  ['connect', renderConnect],
+  ['train', renderTrain],
+  ['summary', renderSummary],
+  ['history', renderHistory],
+  ['limits', renderLimits],
+];
+
+SCREENS_TO_GUARD.forEach(([screen, render]) => registerScreen(screen, guarded(render)));
+registerScreen('login', renderLogin); // nunca bloqueada: si no, nadie podría iniciar sesión
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = '<div class="screen"><p class="hint">Cargando…</p></div>';
 
 appState.boot().then(() => {
   startRouter(app);
+  // recalcula qué pantalla mostrar en cuanto cambia el login (entrar, salir,
+  // sesión restaurada) — sin esto, tras iniciar sesión seguiríamos viendo el
+  // formulario de login hasta el siguiente cambio de hash.
+  appState.onAuthChange(() => refresh());
 });
