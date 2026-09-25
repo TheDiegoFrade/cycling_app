@@ -274,8 +274,17 @@ a {
   cursor: pointer;
   z-index: 2;
 }
-.music-toggle[hidden] {
-  display: none;
+.track-credit {
+  position: absolute;
+  left: 50%;
+  bottom: 3%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  opacity: 0.4;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+  z-index: 2;
 }
 .panel {
   background: var(--panel);

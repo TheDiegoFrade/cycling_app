@@ -7,11 +7,19 @@ const CONTAINER_ID = 'ambient-yt-player';
 
 let player: YTPlayer | null = null;
 let apiReadyPromise: Promise<void> | null = null;
+const stateListeners = new Set<(isPlaying: boolean) => void>();
 
 interface YTPlayer {
   playVideo(): void;
   pauseVideo(): void;
   getPlayerState(): number;
+}
+
+/** Avisa cuando el estado real (no el que asumimos) cambia — así el ícono
+ * nunca miente si YouTube se queda pegado en buffering. */
+export function subscribeAmbientState(cb: (isPlaying: boolean) => void): void {
+  stateListeners.add(cb);
+  if (player) cb(player.getPlayerState() === 1);
 }
 
 declare global {
@@ -55,17 +63,16 @@ async function ensurePlayer(): Promise<YTPlayer> {
   player = await new Promise<YTPlayer>((resolve) => {
     const instance = new window.YT!.Player(CONTAINER_ID, {
       videoId: VIDEO_ID,
-      playerVars: { autoplay: 1, controls: 0, disablekb: 1, modestbranding: 1 },
-      events: { onReady: () => resolve(instance) },
+      playerVars: { autoplay: 0, controls: 0, disablekb: 1, modestbranding: 1 },
+      events: {
+        onReady: () => resolve(instance),
+        onStateChange: (e: { data: number }) => {
+          stateListeners.forEach((cb) => cb(e.data === 1));
+        },
+      },
     });
   });
   return player;
-}
-
-/** Arranca la pista — pensado para llamarse dentro de un click del usuario. */
-export async function startAmbientTrack(): Promise<void> {
-  const p = await ensurePlayer();
-  p.playVideo();
 }
 
 /** Alterna play/pausa. Devuelve true si quedó sonando. */

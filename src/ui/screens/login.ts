@@ -1,7 +1,7 @@
 import { isSupabaseConfigured, supabase } from '../../supabase/client';
 import { disconnectStrava, getStravaConnection, isStravaConfigured, redirectToStravaAuthorize } from '../../sync/strava';
 import type { StravaConnection } from '../../sync/strava';
-import { startAmbientTrack, toggleAmbientTrack } from '../ambient-audio';
+import { subscribeAmbientState, toggleAmbientTrack } from '../ambient-audio';
 import { renderNav } from '../nav';
 import { appState } from '../state';
 
@@ -19,7 +19,8 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
           <div id="login-result"></div>
         </div>
       </div>
-      <button type="button" class="music-toggle" id="music-toggle" title="Still Corners – The Trip" hidden>🔈</button>
+      <button type="button" class="music-toggle" id="music-toggle" title="Still Corners – The Trip (click para reproducir)">🔇</button>
+      <div class="track-credit">🎵 "The Trip" — Still Corners</div>
     </div>
   `;
 
@@ -33,19 +34,17 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
     fields.classList.add('open');
     toggleBtn.hidden = true;
     container.querySelector<HTMLInputElement>('#login-email')?.focus();
-    void startAmbientTrack()
-      .then(() => {
-        musicToggle.hidden = false;
-      })
-      .catch(() => {
-        // si el navegador bloquea el autoplay, el usuario igual puede
-        // entrar sin música — no es una función crítica.
-      });
   });
 
-  musicToggle.addEventListener('click', async () => {
-    const playing = await toggleAmbientTrack();
-    musicToggle.textContent = playing ? '🔈' : '🔇';
+  // control de música totalmente aparte del login: nadie debería tener que
+  // escucharla si no quiere, así que arranca solo si tocas este ícono. El
+  // texto del ícono sigue el estado real del player (no lo que asumimos),
+  // para no decir "sonando" si YouTube se quedó pegado en buffering.
+  subscribeAmbientState((isPlaying) => {
+    musicToggle.textContent = isPlaying ? '🔈' : '🔇';
+  });
+  musicToggle.addEventListener('click', () => {
+    void toggleAmbientTrack();
   });
 
   container.querySelector('#login-password-btn')?.addEventListener('click', async () => {
