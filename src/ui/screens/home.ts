@@ -4,6 +4,7 @@ import { parseZwo } from '../../core/zwo-parser';
 import type { Profile, RulesFile, Workout } from '../../core/types';
 import { deleteWorkout, saveWorkout } from '../../storage/workout-store';
 import { beeper } from '../audio';
+import { HERO_SILHOUETTE } from '../hero';
 import { renderNav } from '../nav';
 import { navigate } from '../router';
 import { appState } from '../state';
@@ -105,8 +106,14 @@ export function renderHome(container: HTMLElement): void {
   container.innerHTML = `
     <div class="screen">
       ${renderNav('home')}
-      <h1>Torq</h1>
-      <p class="hint">Entrena sin mirar la pantalla — la app avisa por sonido cuando hay que corregir algo.</p>
+      <div class="hero" style="border-radius:20px;padding:36px 32px;margin-bottom:28px">
+        ${HERO_SILHOUETTE}
+        <div class="hero-content">
+          <img src="/favicon.svg" width="32" height="32" alt="">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:700;letter-spacing:1px;margin-top:8px">TORQ</div>
+          <p class="hint" style="margin-top:4px;max-width:440px">Entrena sin mirar la pantalla — la app avisa por sonido cuando hay que corregir algo.</p>
+        </div>
+      </div>
 
       <h2>Perfil</h2>
       <div class="panel">
