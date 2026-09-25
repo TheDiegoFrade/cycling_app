@@ -1,4 +1,5 @@
 import { validateRulesFile, validateWorkout } from '../../core/validator';
+import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import { parseZwo } from '../../core/zwo-parser';
 import type { Profile, RulesFile, Workout } from '../../core/types';
 import { deleteWorkout, saveWorkout } from '../../storage/workout-store';
@@ -137,6 +138,24 @@ export function renderHome(container: HTMLElement): void {
         </div>
       </div>
 
+      <h2>Generar workout</h2>
+      <p class="hint">Elige un tipo y cuántos minutos quieres — se arma solo y se ajusta a tu FTP al entrenarlo.</p>
+      <div class="panel">
+        <div class="grid-form">
+          <label>Tipo
+            <select id="gen-template">
+              ${WORKOUT_TEMPLATES.map((t) => `<option value="${t.id}">${t.name}</option>`).join('')}
+            </select>
+          </label>
+          <label>Minutos<input type="number" id="gen-minutes" value="${WORKOUT_TEMPLATES[0].defaultMinutes}" min="${WORKOUT_TEMPLATES[0].minMinutes}" max="${WORKOUT_TEMPLATES[0].maxMinutes}"></label>
+        </div>
+        <p class="hint" id="gen-description" style="margin-top:8px">${WORKOUT_TEMPLATES[0].description}</p>
+        <div class="row-actions" style="margin-top:10px">
+          <button class="primary" id="gen-create">Generar</button>
+        </div>
+        <div id="gen-errors"></div>
+      </div>
+
       <h2>Biblioteca de workouts</h2>
       <div class="row-actions">
         <label class="callout" style="cursor:pointer">Importar .zwo / .workout.json<input type="file" id="import-workout" accept=".zwo,.json" style="display:none"></label>
@@ -197,6 +216,44 @@ export function renderHome(container: HTMLElement): void {
       : '<p class="hint">Todavía no importas ningún workout.</p>';
     wireListButtons();
   }
+
+  const genTemplateSelect = container.querySelector<HTMLSelectElement>('#gen-template')!;
+  const genMinutesInput = container.querySelector<HTMLInputElement>('#gen-minutes')!;
+  const genDescription = container.querySelector<HTMLElement>('#gen-description')!;
+  const genErrors = container.querySelector<HTMLElement>('#gen-errors')!;
+
+  genTemplateSelect.addEventListener('change', () => {
+    const t = findTemplate(genTemplateSelect.value);
+    if (!t) return;
+    genMinutesInput.min = String(t.minMinutes);
+    genMinutesInput.max = String(t.maxMinutes);
+    genMinutesInput.value = String(t.defaultMinutes);
+    genDescription.textContent = t.description;
+  });
+
+  container.querySelector('#gen-create')?.addEventListener('click', async () => {
+    const t = findTemplate(genTemplateSelect.value);
+    if (!t) return;
+    const minutes = Math.round(Number(genMinutesInput.value));
+    if (!Number.isFinite(minutes) || minutes < t.minMinutes || minutes > t.maxMinutes) {
+      genErrors.innerHTML = errorsHtml([`Minutos fuera de rango para "${t.name}": entre ${t.minMinutes} y ${t.maxMinutes}.`]);
+      return;
+    }
+    const workout: Workout = {
+      format_version: 1,
+      id: crypto.randomUUID(),
+      name: `${t.name} · ${minutes} min`,
+      intervals: t.build(minutes),
+      created_at: new Date().toISOString(),
+    };
+    const result = validateWorkout(workout);
+    genErrors.innerHTML = errorsHtml(result.errors);
+    if (result.valid) {
+      await saveWorkout(workout);
+      appState.workouts = [...appState.workouts, workout];
+      refreshList();
+    }
+  });
 
   function wireListButtons(): void {
     container.querySelectorAll<HTMLButtonElement>('[data-action="train"]').forEach((btn) => {
