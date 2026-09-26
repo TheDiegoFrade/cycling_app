@@ -85,3 +85,9 @@ export async function toggleAmbientTrack(): Promise<boolean> {
   p.playVideo();
   return true;
 }
+
+/** Corta la música (p.ej. al iniciar sesión) — no hace nada si nunca se
+ * llegó a tocar el ícono, así que no crea un player de la nada. */
+export function stopAmbientTrack(): void {
+  player?.pauseVideo();
+}

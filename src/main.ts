@@ -9,6 +9,7 @@ import { renderLogin } from './ui/screens/login';
 import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
 import { appState } from './ui/state';
+import { stopAmbientTrack } from './ui/ambient-audio';
 import { handleStravaRedirect } from './sync/strava';
 
 type RenderFn = (container: HTMLElement) => (() => void) | void;
@@ -40,7 +41,10 @@ appState.boot().then(async () => {
   // recalcula qué pantalla mostrar en cuanto cambia el login (entrar, salir,
   // sesión restaurada) — sin esto, tras iniciar sesión seguiríamos viendo el
   // formulario de login hasta el siguiente cambio de hash.
-  appState.onAuthChange(() => refresh());
+  appState.onAuthChange(() => {
+    if (appState.user) stopAmbientTrack(); // la música es solo del login, no de la app
+    refresh();
+  });
 
   // si venimos de que Strava nos mandó de vuelta con ?code=..., ya hay
   // sesión de Supabase (boot() terminó) para poder llamar a la Edge
