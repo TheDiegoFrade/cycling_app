@@ -2,11 +2,22 @@ import { validateRulesFile, validateWorkout } from '../../core/validator';
 import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import { parseZwo } from '../../core/zwo-parser';
 import type { Profile, RulesFile, Workout } from '../../core/types';
+import { clearDraft, listDrafts } from '../../storage/session-draft';
+import { saveSession } from '../../storage/session-store';
+import type { SessionRecord } from '../../storage/session-store';
 import { deleteWorkout, saveWorkout } from '../../storage/workout-store';
+import { pushSessionToCloud } from '../../sync/cloud-sync';
 import { beeper } from '../audio';
 import { renderNav } from '../nav';
 import { navigate } from '../router';
 import { appState } from '../state';
+
+function fmtDuration(totalS: number): string {
+  const s = Math.max(0, Math.round(totalS));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${r < 10 ? '0' : ''}${r}`;
+}
 
 const SOUNDS = [
   { id: 'tick', label: 'Tick (cuenta regresiva)' },
@@ -105,6 +116,7 @@ export function renderHome(container: HTMLElement): void {
   container.innerHTML = `
     <div class="screen">
       ${renderNav('home')}
+      <div id="draft-recovery"></div>
       <div class="hero" style="border-radius:20px;padding:36px 32px;margin-bottom:28px">
         <div class="hero-content">
           <img src="/favicon.svg" width="32" height="32" alt="">
@@ -321,4 +333,67 @@ export function renderHome(container: HTMLElement): void {
   });
 
   wireListButtons();
+
+  /** Si un entrenamiento se cortó a medias (la pestaña se cerró sola, un
+   * crash, etc.), lo ofrece recuperar en vez de perderlo en silencio — ver
+   * el autosave en train.ts. */
+  async function checkDraftRecovery(): Promise<void> {
+    const slot = container.querySelector<HTMLElement>('#draft-recovery');
+    if (!slot) return;
+    const drafts = await listDrafts();
+    if (drafts.length === 0) {
+      slot.innerHTML = '';
+      return;
+    }
+    slot.innerHTML = drafts
+      .map((d) => {
+        const duration = d.samples.length ? d.samples[d.samples.length - 1].t : 0;
+        const canResume = appState.workouts.some((w) => w.id === d.workoutId);
+        return `
+          <div class="recovery-banner" data-draft-id="${d.id}">
+            <p><strong>Se cortó un entrenamiento sin guardar:</strong> "${d.workoutName}" — ${fmtDuration(duration)} grabados.</p>
+            <div class="row-actions">
+              ${canResume ? `<button class="primary" data-action="continue-draft" data-draft-id="${d.id}">Continuar entrenamiento</button>` : ''}
+              <button data-action="recover" data-draft-id="${d.id}">Guardar como sesión</button>
+              <button data-action="discard-draft" data-draft-id="${d.id}">Descartar</button>
+            </div>
+          </div>`;
+      })
+      .join('');
+    slot.querySelectorAll<HTMLButtonElement>('[data-action="continue-draft"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const draft = drafts.find((d) => d.id === btn.dataset.draftId);
+        if (!draft) return;
+        appState.selectedWorkoutId = draft.workoutId;
+        appState.resumeDraftId = draft.id;
+        navigate('connect');
+      });
+    });
+    slot.querySelectorAll<HTMLButtonElement>('[data-action="recover"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const draft = drafts.find((d) => d.id === btn.dataset.draftId);
+        if (!draft) return;
+        btn.disabled = true;
+        btn.textContent = 'Guardando…';
+        const record: SessionRecord = {
+          ...draft,
+          finishedAt: new Date().toISOString(),
+        };
+        await saveSession(record);
+        await clearDraft(draft.id);
+        if (appState.user) void pushSessionToCloud(record, appState.profile, appState.user.id);
+        checkDraftRecovery();
+      });
+    });
+    slot.querySelectorAll<HTMLButtonElement>('[data-action="discard-draft"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.draftId!;
+        if (!confirm('¿Descartar este entrenamiento sin guardar? No se puede deshacer.')) return;
+        await clearDraft(id);
+        checkDraftRecovery();
+      });
+    });
+  }
+
+  void checkDraftRecovery();
 }

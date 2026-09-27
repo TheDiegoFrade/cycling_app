@@ -26,6 +26,9 @@ class AppState {
   settings: AppSettings = DEFAULT_SETTINGS;
   workouts: Workout[] = [];
   selectedWorkoutId: string | null = null;
+  /** Id de un borrador de sesión (ver storage/session-draft) a retomar en
+   * Entrenar en vez de arrancar desde 0 — lo consume train.ts y lo limpia. */
+  resumeDraftId: string | null = null;
   trainer: TrainerAdapter | null = null;
   hr: HrAdapter | null = null;
   lastSession: SessionRecord | null = null;

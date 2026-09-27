@@ -38,6 +38,15 @@ describe('SessionEngine: arranque y avance por bloques', () => {
     expect(engine.currentState).toBe('running');
   });
 
+  it('start(resumeAtS) retoma en el bloque y segundo correctos, no desde 0 — para recuperar una sesión cortada', () => {
+    const engine = new SessionEngine({ workout: workoutWith(), profile, rules: [] });
+    // t=12 cae en el bloque 2 (Interval: segStart 10..18)
+    const events = engine.start(12);
+    expect(events).toEqual([{ type: 'block-start', index1: 2, interval: intervals[1], targetWatts: 200 }]);
+    const tickEvent = engine.tick(good(200)).find((e) => e.type === 'tick');
+    expect(tickEvent && tickEvent.type === 'tick' ? tickEvent.t : undefined).toBe(12);
+  });
+
   it('recorre los 3 bloques, dispara block-start en cada transición, countdown antes de cada cambio y termina al final', () => {
     const engine = new SessionEngine({ workout: workoutWith(), profile, rules: [] });
     const all: EngineEvent[] = [...engine.start()];
@@ -91,6 +100,23 @@ describe('SessionEngine: comentarios', () => {
       if (events.some((e) => e.type === 'comment')) seenAt.push(t);
     }
     expect(seenAt).toEqual([2, 11]); // at_s=2, y segStart[1]=10 + offset_s=1
+  });
+
+  it('al reanudar con resumeAtS después de su ancla, un comentario ya pasado no se dispara de nuevo', () => {
+    const workout = workoutWith({
+      comments: [
+        { at_s: 2, message: 'Hoy el foco es cadencia' },
+        { interval: 2, offset_s: 1, message: 'Primer VO2' },
+      ],
+    });
+    const engine = new SessionEngine({ workout, profile, rules: [] });
+    engine.start(12); // ya pasó at_s=2 y el ancla del bloque 2 (t=11)
+    const seenAt: number[] = [];
+    for (let t = 12; t < 24; t++) {
+      const events = engine.tick(good(80));
+      if (events.some((e) => e.type === 'comment')) seenAt.push(t);
+    }
+    expect(seenAt).toEqual([]);
   });
 });
 

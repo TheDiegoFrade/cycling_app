@@ -1,10 +1,11 @@
 const DB_NAME = 'rodillo';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const STORES = {
   profile: 'profile',
   workouts: 'workouts',
   sessions: 'sessions',
+  drafts: 'drafts',
 } as const;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -18,6 +19,7 @@ function openDb(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORES.profile)) db.createObjectStore(STORES.profile);
       if (!db.objectStoreNames.contains(STORES.workouts)) db.createObjectStore(STORES.workouts, { keyPath: 'id' });
       if (!db.objectStoreNames.contains(STORES.sessions)) db.createObjectStore(STORES.sessions, { keyPath: 'id' });
+      if (!db.objectStoreNames.contains(STORES.drafts)) db.createObjectStore(STORES.drafts, { keyPath: 'id' });
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);

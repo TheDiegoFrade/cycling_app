@@ -367,6 +367,16 @@ a {
   font-size: 13px;
   margin-top: 12px;
 }
+.recovery-banner {
+  background: #2a2110;
+  border: 1px solid var(--warn);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+.recovery-banner p {
+  margin: 0 0 10px;
+}
 
 /* ---- pantalla de entrenar ---- */
 .app {

@@ -74,11 +74,26 @@ export class SessionEngine {
     return Math.round(this.bias * 100);
   }
 
-  start(): EngineEvent[] {
+  /** `resumeAtS` retoma la sesión en ese segundo (p. ej. tras recuperar un
+   * entrenamiento cortado por un cierre inesperado) en vez de arrancar en 0.
+   * Los comentarios cuyo disparo ya quedó atrás se marcan como ya emitidos
+   * para no lanzarlos todos de golpe al reanudar. */
+  start(resumeAtS = 0): EngineEvent[] {
     if (this.state !== 'idle') return [];
     this.state = 'running';
-    this.elapsedS = 0;
-    return this.blockStartEvent(0);
+    this.elapsedS = resumeAtS;
+    if (resumeAtS > 0) {
+      (this.opts.workout.comments ?? []).forEach((comment, i) => {
+        const triggerS =
+          comment.at_s !== undefined
+            ? comment.at_s
+            : comment.interval !== undefined
+              ? this.plan.segStart[comment.interval - 1] + (comment.offset_s ?? 0)
+              : undefined;
+        if (triggerS !== undefined && triggerS < resumeAtS) this.commentsFired.add(i);
+      });
+    }
+    return this.blockStartEvent(intervalIndexAt(this.plan, resumeAtS));
   }
 
   pause(): EngineEvent[] {

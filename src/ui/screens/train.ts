@@ -2,11 +2,12 @@ import { buildFactoryRules, buildIntervalLimitRules } from '../../core/defaults'
 import { powerZone } from '../../core/zones';
 import type { Interval, Profile, Rule, Sample, Workout } from '../../core/types';
 import { Clock } from '../../engine/clock';
-import { buildPlan } from '../../engine/plan';
+import { buildPlan, intervalIndexAt } from '../../engine/plan';
 import { SessionEngine } from '../../engine/session';
 import type { EngineEvent } from '../../engine/session';
 import { SimulatedHrAdapter, SimulatedTrainerAdapter } from '../../devices/simulated';
 import { WakeLockGuard } from '../../devices/wake-lock';
+import { clearDraft, getDraft, saveDraft } from '../../storage/session-draft';
 import { saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
 import { pushSessionToCloud } from '../../sync/cloud-sync';
@@ -157,8 +158,56 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const history: Sample[] = [];
   const alerts: SessionRecord['alerts'] = [];
   const intensityChanges: SessionRecord['intensityChanges'] = [];
-  const startedAt = new Date();
+  let startedAt = new Date();
+  let sessionId: string = crypto.randomUUID();
   let lastElapsedS = 0;
+  let sessionFinished = false;
+
+  // "Continuar entrenamiento" desde Inicio: retoma un borrador en vez de
+  // arrancar de 0. Se consume una sola vez (si esta pantalla se desmonta sin
+  // llegar a pedalear, el borrador original sigue intacto en disco).
+  let resumeAtS = 0;
+  const resumeDraftId = appState.resumeDraftId;
+  appState.resumeDraftId = null;
+  if (resumeDraftId) {
+    void getDraft(resumeDraftId).then((draft) => {
+      if (!draft || draft.workoutId !== workout.id || draft.samples.length === 0) return;
+      sessionId = draft.id;
+      startedAt = new Date(draft.startedAt);
+      history.push(...draft.samples);
+      alerts.push(...draft.alerts);
+      intensityChanges.push(...draft.intensityChanges);
+      resumeAtS = draft.samples[draft.samples.length - 1].t + 1;
+      currentIndex0 = intervalIndexAt(plan, resumeAtS);
+      currentTimeLeft = workout.intervals[currentIndex0].duration_s - (resumeAtS - plan.segStart[currentIndex0]);
+      $('elapsed').textContent = fmt(resumeAtS);
+      paintIdle();
+      paintLimitsPanel();
+      draw();
+    });
+  }
+
+  // autosave: si la pestaña se cierra sola (el navegador la descarta por
+  // memoria, se cae, etc.) esto es lo único que sobrevive — sin esto se
+  // pierde el entrenamiento completo en vez de, como mucho, unos segundos.
+  const DRAFT_SAVE_EVERY_TICKS = 5;
+  let ticksSinceDraftSave = 0;
+  function flushDraft(): void {
+    void saveDraft({
+      id: sessionId,
+      workoutId: workout.id,
+      workoutName: workout.name,
+      startedAt: startedAt.toISOString(),
+      ftp: appState.profile.ftp,
+      samples: history,
+      alerts,
+      intensityChanges,
+    });
+  }
+  function onVisibilityChange(): void {
+    if (document.visibilityState === 'hidden' && !sessionFinished && history.length > 0) flushDraft();
+  }
+  document.addEventListener('visibilitychange', onVisibilityChange);
 
   type LimitField = 'hr_min' | 'hr_ceiling' | 'cadence_min' | 'cadence_max';
   const LIMIT_ROWS: { label: string; blockKey: LimitField; globalKey: keyof Profile }[] = [
@@ -327,6 +376,11 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         lastTargetWatts = event.sample.target;
         if (ergEnabled) trainer.setTarget(lastTargetWatts);
         draw();
+        ticksSinceDraftSave++;
+        if (ticksSinceDraftSave >= DRAFT_SAVE_EVERY_TICKS) {
+          ticksSinceDraftSave = 0;
+          flushDraft();
+        }
         return;
       }
       case 'block-start': {
@@ -402,11 +456,12 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   }
 
   async function finish(): Promise<void> {
+    sessionFinished = true;
     stopPollLoop();
     wakeLock.release();
     showStage('info', 'Terminado', 'Guardando sesión…', '', 999999);
     const record: SessionRecord = {
-      id: crypto.randomUUID(),
+      id: sessionId,
       workoutId: workout.id,
       workoutName: workout.name,
       startedAt: startedAt.toISOString(),
@@ -417,6 +472,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       intensityChanges,
     };
     await saveSession(record);
+    void clearDraft(sessionId);
     appState.lastSession = record;
     // en segundo plano: la sesión ya quedó guardada local, no hay que
     // esperar a la nube (ni bloquear si no hay internet) para navegar.
@@ -523,7 +579,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       beeper.unlock();
       wakeLock.acquire();
       $('btnMain').textContent = 'Pausar';
-      engine.start().forEach(handleEvent);
+      engine.start(resumeAtS).forEach(handleEvent);
       driveEngineTicks();
     } else if (engine.currentState === 'running') {
       engine.pause().forEach(handleEvent);
@@ -584,9 +640,14 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   draw();
 
   return () => {
+    // si se navega fuera de Entrenar sin terminar (o sin haber llegado a
+    // pedalear), el draft que haya en disco queda como está — Inicio lo
+    // ofrece recuperar la próxima vez que se cargue la app.
+    if (!sessionFinished && history.length > 0) flushDraft();
     stopPollLoop();
     stopAutoStartWatcher();
     wakeLock.release();
+    document.removeEventListener('visibilitychange', onVisibilityChange);
     window.removeEventListener('keydown', onKeydown);
     window.removeEventListener('resize', draw);
     unsubTrainerState();
