@@ -117,7 +117,7 @@ export function renderHome(container: HTMLElement): void {
     <div class="screen">
       ${renderNav('home')}
       <div id="draft-recovery"></div>
-      <div class="hero" style="border-radius:20px;padding:36px 32px;margin-bottom:28px">
+      <div class="hero${appState.settings.heroCharacter === 'woman' ? ' hero-woman' : ''}" style="border-radius:20px;padding:36px 32px;margin-bottom:28px">
         <div class="hero-content">
           <img src="/favicon.svg" width="32" height="32" alt="">
           <div style="font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:700;letter-spacing:1px;margin-top:8px">TORQ</div>

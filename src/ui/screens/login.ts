@@ -7,7 +7,7 @@ import { appState } from '../state';
 
 function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supabase>): void {
   container.innerHTML = `
-    <div class="hero" style="min-height:100vh">
+    <div class="hero${appState.settings.heroCharacter === 'woman' ? ' hero-woman' : ''}" style="min-height:100vh">
       <div class="entry-pill">
         <div class="brand">🚴 <span>TORQ</span></div>
         <div class="tag">Entrena sin mirar la pantalla.</div>
@@ -97,6 +97,13 @@ export function renderLogin(container: HTMLElement): (() => void) | void {
           <button id="signout">Cerrar sesión</button>
         </div>
 
+        <h2>Apariencia</h2>
+        <p class="hint">Quién aparece en el fondo de Login e Inicio.</p>
+        <div class="panel row-actions">
+          <button data-hero="man" class="${appState.settings.heroCharacter === 'man' ? 'primary' : ''}">Hombre</button>
+          <button data-hero="woman" class="${appState.settings.heroCharacter === 'woman' ? 'primary' : ''}">Mujer</button>
+        </div>
+
         <h2>Contraseña</h2>
         <p class="hint">Créala (o cámbiala) cuando quieras.</p>
         <div class="panel">
@@ -129,6 +136,16 @@ export function renderLogin(container: HTMLElement): (() => void) | void {
         }
       </div>
     `;
+
+    container.querySelectorAll<HTMLButtonElement>('[data-hero]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const heroCharacter = btn.dataset.hero as 'man' | 'woman';
+        if (heroCharacter === appState.settings.heroCharacter) return;
+        appState.settings = { ...appState.settings, heroCharacter };
+        appState.persistSettings();
+        paint();
+      });
+    });
 
     container.querySelector('#signout')?.addEventListener('click', async () => {
       // sin repintar acá: appState.signOut() dispara el refresh global (ver

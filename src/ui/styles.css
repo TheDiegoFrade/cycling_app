@@ -141,6 +141,9 @@ a {
   background-size: cover;
   background-position: center;
 }
+.hero.hero-woman {
+  background-image: linear-gradient(180deg, rgba(5, 3, 13, 0.55) 0%, rgba(5, 3, 13, 0.08) 30%, transparent 55%), url('/hero-login-woman.jpg');
+}
 .hero::before {
   content: '';
   position: absolute;

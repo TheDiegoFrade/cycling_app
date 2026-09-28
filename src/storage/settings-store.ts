@@ -10,11 +10,14 @@ export interface AppSettings {
   };
   soundVolume: number; // 0..1
   intervalsIcu?: { athleteId: string; apiKey: string };
+  /** Quién aparece en la ilustración de fondo de Login e Inicio. */
+  heroCharacter: 'man' | 'woman';
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
   factoryRulesEnabled: { cadenceFloor: true, hrCeiling: true, ergDetached: true, hrFloor: false, cadenceCeiling: false },
   soundVolume: 0.6,
+  heroCharacter: 'man',
 };
 
 const SETTINGS_KEY = 'settings';
