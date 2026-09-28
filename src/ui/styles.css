@@ -261,10 +261,10 @@ a {
   width: 100%;
   margin-top: 14px;
 }
-.music-toggle {
+.music-toggle,
+.hero-toggle {
   position: absolute;
   top: 7%;
-  right: 5%;
   width: 34px;
   height: 34px;
   border-radius: 999px;
@@ -276,6 +276,12 @@ a {
   font-size: 14px;
   cursor: pointer;
   z-index: 2;
+}
+.music-toggle {
+  right: 5%;
+}
+.hero-toggle {
+  left: 5%;
 }
 .track-credit {
   position: absolute;

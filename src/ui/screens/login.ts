@@ -20,9 +20,16 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
         </div>
       </div>
       <button type="button" class="music-toggle" id="music-toggle" title="Still Corners – The Trip (click para reproducir)">🔇</button>
+      <button type="button" class="hero-toggle" id="hero-toggle" title="Cambiar apariencia">${appState.settings.heroCharacter === 'woman' ? '🚴‍♀️' : '🚴‍♂️'}</button>
       <div class="track-credit">🎵 "The Trip" — Still Corners</div>
     </div>
   `;
+
+  container.querySelector('#hero-toggle')?.addEventListener('click', () => {
+    appState.settings = { ...appState.settings, heroCharacter: appState.settings.heroCharacter === 'woman' ? 'man' : 'woman' };
+    appState.persistSettings();
+    renderLoginGate(container, client);
+  });
 
   const pill = container.querySelector<HTMLElement>('.entry-pill')!;
   const toggleBtn = container.querySelector<HTMLButtonElement>('#entry-toggle')!;
