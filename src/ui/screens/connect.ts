@@ -47,7 +47,7 @@ export function renderConnect(container: HTMLElement): void {
 
       ${!hasBluetooth ? '<div class="callout">Este navegador no expone Web Bluetooth (necesitas Chrome de escritorio sobre HTTPS o localhost). Puedes seguir con el simulador.</div>' : ''}
 
-      <div class="callout">Para que el entrenamiento corra sin interrupciones, abre esta página en su propia ventana, aislada, sin otras pestañas.</div>
+      <div class="callout-warn">⚠️ Para que el entrenamiento corra sin interrupciones, abre esta página en su propia ventana, aislada, sin otras pestañas.</div>
 
       <div class="row-actions" style="margin-top:24px">
         <button class="primary" id="continue" ${appState.selectedWorkout ? '' : 'disabled'}>Continuar a Entrenar</button>

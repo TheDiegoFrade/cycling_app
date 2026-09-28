@@ -367,6 +367,16 @@ a {
   font-size: 13px;
   margin-top: 12px;
 }
+.callout-warn {
+  background: #2a2110;
+  border: 1px solid var(--warn);
+  color: #f0d090;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 16px;
+}
 .recovery-banner {
   background: #2a2110;
   border: 1px solid var(--warn);
