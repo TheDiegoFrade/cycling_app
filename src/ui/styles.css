@@ -330,6 +330,89 @@ a {
   color: var(--muted);
   font-size: 13px;
 }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.cal-cell {
+  min-height: 90px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cal-cell.head {
+  min-height: auto;
+  background: transparent;
+  border: none;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 0 0 4px;
+}
+.cal-cell.empty {
+  background: transparent;
+  border: none;
+}
+.cal-cell.today {
+  border-color: var(--accent, #7e14ff);
+}
+.cal-daynum {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+}
+.cal-add {
+  width: 18px;
+  height: 18px;
+  line-height: 1;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.cal-add:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+.cal-chip-wrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.cal-chip {
+  flex: 1;
+  text-align: left;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: #14121c;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.cal-chip-remove {
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
 .toggle-row {
   display: flex;
   align-items: center;

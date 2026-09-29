@@ -1,6 +1,7 @@
 import './ui/styles.css';
 import type { Screen } from './ui/router';
 import { refresh, registerScreen, startRouter } from './ui/router';
+import { renderCalendar } from './ui/screens/calendar';
 import { renderConnect } from './ui/screens/connect';
 import { renderHistory } from './ui/screens/history';
 import { renderHome } from './ui/screens/home';
@@ -23,6 +24,7 @@ function guarded(render: RenderFn): RenderFn {
 
 const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['home', renderHome],
+  ['calendar', renderCalendar],
   ['connect', renderConnect],
   ['train', renderTrain],
   ['summary', renderSummary],

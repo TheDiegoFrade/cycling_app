@@ -84,6 +84,9 @@ export interface Workout {
   comments?: Comment[];
   rules?: Rule[];
   created_at: string;
+  /** Fecha (YYYY-MM-DD) en la que se agendó este workout — la usa Calendario.
+   * Sin fecha, el workout solo vive en la biblioteca de Inicio. */
+  scheduledDate?: string;
 }
 
 /** Archivo de solo reglas (modo A del prompt de importación): mismas reglas,

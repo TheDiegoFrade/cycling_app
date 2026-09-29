@@ -3,6 +3,7 @@ import { appState } from './state';
 
 const ITEMS: { screen: Screen; label: string }[] = [
   { screen: 'home', label: 'Inicio' },
+  { screen: 'calendar', label: 'Calendario' },
   { screen: 'connect', label: 'Conectar' },
   { screen: 'summary', label: 'Resumen' },
   { screen: 'history', label: 'Historial' },

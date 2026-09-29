@@ -1,6 +1,6 @@
 import { validateRulesFile, validateWorkout } from '../../core/validator';
 import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
-import { parseZwo } from '../../core/zwo-parser';
+import { importWorkoutFile } from '../../core/workout-file-import';
 import type { Profile, RulesFile, Workout } from '../../core/types';
 import { clearDraft, listDrafts } from '../../storage/session-draft';
 import { saveSession } from '../../storage/session-store';
@@ -52,43 +52,6 @@ function workoutListItem(w: Workout): string {
 function errorsHtml(errors: string[]): string {
   if (errors.length === 0) return '';
   return `<div class="error-box"><strong>${errors.length} error(es):</strong><ul>${errors.map((e) => `<li>${e}</li>`).join('')}</ul></div>`;
-}
-
-async function importWorkoutFile(file: File): Promise<{ workout?: Workout; errors: string[] }> {
-  const text = await file.text();
-  if (file.name.endsWith('.zwo')) {
-    const parsed = parseZwo(text);
-    if (parsed.errors.length > 0) return { errors: parsed.errors };
-    const workout: Workout = {
-      format_version: 1,
-      id: crypto.randomUUID(),
-      name: parsed.name,
-      description: parsed.description,
-      intervals: parsed.intervals,
-      comments: parsed.comments.length ? parsed.comments : undefined,
-      created_at: new Date().toISOString(),
-    };
-    const result = validateWorkout(workout);
-    return result.valid ? { workout, errors: [] } : { errors: result.errors };
-  }
-
-  let raw: unknown;
-  try {
-    raw = JSON.parse(text);
-  } catch {
-    return { errors: [`"${file.name}" no es JSON válido.`] };
-  }
-  const record = raw as Record<string, unknown>;
-  if (!Array.isArray(record.intervals)) {
-    return { errors: [`"${file.name}" no tiene \`intervals\`; si es un archivo de solo reglas, usa el botón "+ reglas" sobre un workout ya importado.`] };
-  }
-  const workout: Workout = {
-    ...(record as unknown as Workout),
-    id: typeof record.id === 'string' && record.id ? record.id : crypto.randomUUID(),
-    created_at: typeof record.created_at === 'string' && record.created_at ? record.created_at : new Date().toISOString(),
-  };
-  const result = validateWorkout(workout);
-  return result.valid ? { workout, errors: [] } : { errors: result.errors };
 }
 
 async function importRulesFile(file: File, target: Workout): Promise<{ workout?: Workout; errors: string[] }> {
@@ -175,7 +138,7 @@ export function renderHome(container: HTMLElement): void {
 
       <h2>Biblioteca de workouts</h2>
       <div class="row-actions">
-        <label class="callout" style="cursor:pointer">Importar .zwo / .workout.json<input type="file" id="import-workout" accept=".zwo,.json" style="display:none"></label>
+        <label class="callout" style="cursor:pointer">Importar .zwo / .mrc / .erg / .workout.json<input type="file" id="import-workout" accept=".zwo,.mrc,.erg,.json" style="display:none"></label>
       </div>
       <div id="import-errors"></div>
       <div class="list" id="workout-list" style="margin-top:12px">
@@ -323,7 +286,7 @@ export function renderHome(container: HTMLElement): void {
     const file = workoutInput.files?.[0];
     workoutInput.value = '';
     if (!file) return;
-    const { workout, errors } = await importWorkoutFile(file);
+    const { workout, errors } = await importWorkoutFile(file, appState.profile.ftp);
     importErrors.innerHTML = errorsHtml(errors);
     if (workout) {
       await saveWorkout(workout);
