@@ -70,6 +70,14 @@ class AppState {
       if (this.user) this.cloudSessions = await listCloudSessions(this.user.id);
       supabase.auth.onAuthStateChange(async (_event, session) => {
         const user = toAuthUser(session);
+        // Supabase dispara este callback también en TOKEN_REFRESHED (renovación
+        // silenciosa en segundo plano, sin que el usuario haga nada) — si
+        // notificáramos a los listeners en cada uno de esos eventos, cualquier
+        // pantalla activa (p. ej. Entrenar, a mitad de una sesión) se
+        // re-renderiza entera vía refresh() y pierde su estado en memoria sin
+        // ningún error visible ni recarga de página. Solo importa cuando el
+        // usuario realmente cambia (login, logout, o cambio de cuenta).
+        if (user?.id === this.user?.id) return;
         this.cloudSessions = user ? await listCloudSessions(user.id) : [];
         this.setUser(user);
       });
