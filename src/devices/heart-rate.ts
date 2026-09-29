@@ -76,9 +76,14 @@ export class BleHrAdapter implements HrAdapter {
   }
 
   private handleValueChanged = (): void => {
-    if (!this.characteristic?.value) return;
-    const hr = parseHeartRateMeasurement(this.characteristic.value);
-    this.readingCbs.forEach((cb) => cb(hr));
+    try {
+      if (!this.characteristic?.value) return;
+      const hr = parseHeartRateMeasurement(this.characteristic.value);
+      if (hr === null) return; // paquete más corto de lo esperado — se ignora esta lectura, no toda la conexión
+      this.readingCbs.forEach((cb) => cb(hr));
+    } catch (err) {
+      console.error('[heart-rate] no se pudo leer heart_rate_measurement', err);
+    }
   };
 
   private handleDisconnected = (): void => {

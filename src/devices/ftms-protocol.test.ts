@@ -62,6 +62,18 @@ describe('parseIndoorBikeData', () => {
     const { power } = parseIndoorBikeData(dv(bytes));
     expect(power).toBe(150);
   });
+
+  it('no lanza si el paquete es más corto de lo que anuncian sus propias banderas — deja esos campos en null', () => {
+    const flags = (1 << 2) | (1 << 6); // dice que trae cadencia y potencia...
+    const bytes = [flags & 0xff, (flags >> 8) & 0xff]; // ...pero el paquete termina justo después de las banderas
+    const { power, cadence } = parseIndoorBikeData(dv(bytes));
+    expect(power).toBeNull();
+    expect(cadence).toBeNull();
+  });
+
+  it('devuelve null/null en vez de lanzar si el paquete no trae ni las banderas completas', () => {
+    expect(parseIndoorBikeData(dv([0x01]))).toEqual({ power: null, cadence: null });
+  });
 });
 
 describe('mensajes del control point', () => {

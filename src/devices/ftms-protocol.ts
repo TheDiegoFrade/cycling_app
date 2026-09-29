@@ -17,26 +17,37 @@ const FLAG_INST_POWER = 1 << 6;
 /** `indoor_bike_data`: banderas de 16 bits, luego los campos presentes en
  * orden fijo. Solo nos interesan cadencia (0.5 rpm/unidad) y potencia
  * (W, int16), pero hay que consumir los campos anteriores para no
- * desalinear el offset. */
+ * desalinear el offset.
+ *
+ * Antes de cada lectura se verifica que el paquete tenga suficientes bytes:
+ * un rodillo real puede mandar, sobre todo justo al conectar/reenganchar
+ * ERG, un paquete más corto de lo que anuncian sus propias banderas (BLE
+ * truncado, firmware con un bug, interferencia). Sin este chequeo
+ * `DataView.getUint16/getInt16` lanza un `RangeError` sin capturar dentro
+ * del callback nativo de `characteristicvaluechanged` — varias veces por
+ * segundo si el rodillo sigue mandando el mismo paquete malformado — que es
+ * justo el tipo de excepción que puede desestabilizar la pestaña. */
 export function parseIndoorBikeData(data: DataView): IndoorBikeReading {
+  if (data.byteLength < 2) return { power: null, cadence: null };
   const flags = data.getUint16(0, true);
   let offset = 2;
   let cadence: number | null = null;
   let power: number | null = null;
+  const canRead = (bytes: number) => offset + bytes <= data.byteLength;
 
   if ((flags & FLAG_MORE_DATA) === 0) {
     offset += 2; // instantaneous speed, no la usamos
   }
   if (flags & FLAG_AVG_SPEED) offset += 2;
   if (flags & FLAG_INST_CADENCE) {
-    cadence = data.getUint16(offset, true) / 2;
+    if (canRead(2)) cadence = data.getUint16(offset, true) / 2;
     offset += 2;
   }
   if (flags & FLAG_AVG_CADENCE) offset += 2;
   if (flags & FLAG_TOTAL_DISTANCE) offset += 3;
   if (flags & FLAG_RESISTANCE) offset += 2;
   if (flags & FLAG_INST_POWER) {
-    power = data.getInt16(offset, true);
+    if (canRead(2)) power = data.getInt16(offset, true);
     offset += 2;
   }
 

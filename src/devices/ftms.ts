@@ -145,11 +145,20 @@ export class BleTrainerAdapter implements TrainerAdapter {
     this.setState('connected');
   }
 
+  // envuelto en try/catch: esto corre dentro del callback nativo de
+  // `characteristicvaluechanged` — una excepción sin capturar ahí (p. ej.
+  // por un paquete más corto de lo esperado) no tiene nada que la atrape
+  // río arriba, y puede repetirse varias veces por segundo mientras el
+  // rodillo siga mandando el mismo dato.
   private handleDataChanged = (): void => {
-    if (!this.dataCharacteristic?.value) return;
-    const { power, cadence } = parseIndoorBikeData(this.dataCharacteristic.value);
-    if (cadence !== null) this.lastCadence = cadence;
-    this.readingCbs.forEach((cb) => cb({ power: power ?? 0, cadence: cadence ?? this.lastCadence }));
+    try {
+      if (!this.dataCharacteristic?.value) return;
+      const { power, cadence } = parseIndoorBikeData(this.dataCharacteristic.value);
+      if (cadence !== null) this.lastCadence = cadence;
+      this.readingCbs.forEach((cb) => cb({ power: power ?? 0, cadence: cadence ?? this.lastCadence }));
+    } catch (err) {
+      console.error('[ftms] no se pudo leer indoor_bike_data', err);
+    }
   };
 
   /** Cada comando al control point (incluido cada set target power) trae
@@ -158,10 +167,14 @@ export class BleTrainerAdapter implements TrainerAdapter {
    * caiga, `writeValueWithResponse` igual resuelve — el rechazo solo se ve
    * acá. Reaccionamos repitiendo la secuencia completa de enganche. */
   private handleControlResponse = (): void => {
-    if (!this.controlCharacteristic?.value) return;
-    const response = parseControlPointResponse(this.controlCharacteristic.value);
-    if (response && response.resultCode !== CONTROL_POINT_RESULT.success) {
-      this.recoverErgControl();
+    try {
+      if (!this.controlCharacteristic?.value) return;
+      const response = parseControlPointResponse(this.controlCharacteristic.value);
+      if (response && response.resultCode !== CONTROL_POINT_RESULT.success) {
+        this.recoverErgControl();
+      }
+    } catch (err) {
+      console.error('[ftms] no se pudo leer la respuesta del control point', err);
     }
   };
 
