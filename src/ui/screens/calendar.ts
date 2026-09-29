@@ -1,12 +1,23 @@
+import { buildCompletedSessionFromFit } from '../../core/completed-session-import';
 import { importWorkoutFile } from '../../core/workout-file-import';
 import type { Workout } from '../../core/types';
 import { saveWorkout } from '../../storage/workout-store';
+import { listSessions, saveSession } from '../../storage/session-store';
+import type { SessionRecord } from '../../storage/session-store';
+import { pushSessionToCloud } from '../../sync/cloud-sync';
 import { renderNav } from '../nav';
 import { navigate } from '../router';
 import { appState } from '../state';
 
 const MONTH_NAMES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+interface CompletedEntry {
+  id: string;
+  name: string;
+  startedAt: string;
+  origin: 'local' | 'cloud';
+}
 
 function toDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -22,6 +33,9 @@ export function renderCalendar(container: HTMLElement): void {
   let viewYear = today.getFullYear();
   let viewMonth = today.getMonth();
   let pendingScheduleDate: string | null = null;
+  let pendingDoneDate: string | null = null;
+  let localSessions: SessionRecord[] = [];
+  const localSessionById = new Map<string, SessionRecord>();
 
   function paint(): void {
     const firstOfMonth = new Date(viewYear, viewMonth, 1);
@@ -37,14 +51,36 @@ export function renderCalendar(container: HTMLElement): void {
       byDate.set(w.scheduledDate, list);
     });
 
+    const localIds = new Set(localSessions.map((s) => s.id));
+    const completedEntries: CompletedEntry[] = [
+      ...localSessions.map((s): CompletedEntry => ({ id: s.id, name: s.workoutName, startedAt: s.startedAt, origin: 'local' })),
+      ...appState.cloudSessions
+        .filter((s) => !localIds.has(s.id))
+        .map((s): CompletedEntry => ({ id: s.id, name: s.workoutName, startedAt: s.startedAt, origin: 'cloud' })),
+    ];
+    const completedByDate = new Map<string, CompletedEntry[]>();
+    completedEntries.forEach((e) => {
+      const key = e.startedAt.slice(0, 10);
+      const list = completedByDate.get(key) ?? [];
+      list.push(e);
+      completedByDate.set(key, list);
+    });
+
     const cells: string[] = [];
     for (let i = 0; i < startWeekday; i++) cells.push('<div class="cal-cell empty"></div>');
     for (let day = 1; day <= daysInMonth; day++) {
       const dateKey = toDateKey(new Date(viewYear, viewMonth, day));
       const dayWorkouts = byDate.get(dateKey) ?? [];
+      const dayCompleted = completedByDate.get(dateKey) ?? [];
       cells.push(`
         <div class="cal-cell${dateKey === todayKey ? ' today' : ''}">
-          <div class="cal-daynum"><span>${day}</span><button class="cal-add" data-add-date="${dateKey}" title="Agregar workout este día">+</button></div>
+          <div class="cal-daynum">
+            <span>${day}</span>
+            <span class="cal-add-group">
+              <button class="cal-add" data-add-pending-date="${dateKey}" title="Agregar pendiente (.zwo/.mrc/.erg/.workout.json)">+</button>
+              <button class="cal-add cal-add-done" data-add-done-date="${dateKey}" title="Agregar completado (.fit)">✓</button>
+            </span>
+          </div>
           ${dayWorkouts
             .map(
               (w) => `
@@ -52,6 +88,13 @@ export function renderCalendar(container: HTMLElement): void {
               <button class="cal-chip" data-workout-id="${w.id}" title="Entrenar">${w.name}</button>
               <button class="cal-chip-remove" data-unschedule-id="${w.id}" title="Quitar del calendario">×</button>
             </div>`,
+            )
+            .join('')}
+          ${dayCompleted
+            .map((e) =>
+              e.origin === 'local'
+                ? `<button class="cal-chip cal-chip-done" data-view-session-id="${e.id}" title="Ver sesión">✅ ${e.name}</button>`
+                : `<div class="cal-chip cal-chip-done cal-chip-readonly" title="Grabada en otro dispositivo — solo resumen en Historial">✅ ${e.name}</div>`,
             )
             .join('')}
         </div>
@@ -64,7 +107,7 @@ export function renderCalendar(container: HTMLElement): void {
       <div class="screen">
         ${renderNav('calendar')}
         <h1>Calendario</h1>
-        <p class="hint">Toca el "+" de un día para importar un workout (.zwo/.mrc/.erg/.workout.json) directo a esa fecha.</p>
+        <p class="hint">"+" agrega un workout pendiente para entrenar; "✓" registra uno ya completado (.fit) en esa fecha.</p>
         <div class="row-actions" style="align-items:center;margin:16px 0">
           <button id="cal-prev">← Anterior</button>
           <h2 style="margin:0">${MONTH_NAMES[viewMonth]} ${viewYear}</h2>
@@ -95,7 +138,8 @@ export function renderCalendar(container: HTMLElement): void {
                 .join('')}
             </div>`
         }
-        <input type="file" id="cal-import-file" accept=".zwo,.mrc,.erg,.json" style="display:none">
+        <input type="file" id="cal-import-pending-file" accept=".zwo,.mrc,.erg,.json" style="display:none">
+        <input type="file" id="cal-import-done-file" accept=".fit" style="display:none">
       </div>
     `;
 
@@ -116,10 +160,19 @@ export function renderCalendar(container: HTMLElement): void {
       paint();
     });
 
-    container.querySelectorAll<HTMLButtonElement>('.cal-chip').forEach((btn) => {
+    container.querySelectorAll<HTMLButtonElement>('.cal-chip[data-workout-id]').forEach((btn) => {
       btn.addEventListener('click', () => {
         appState.selectedWorkoutId = btn.dataset.workoutId ?? null;
         navigate('connect');
+      });
+    });
+
+    container.querySelectorAll<HTMLButtonElement>('[data-view-session-id]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const session = localSessionById.get(btn.dataset.viewSessionId!);
+        if (!session) return;
+        appState.lastSession = session;
+        navigate('summary');
       });
     });
 
@@ -149,20 +202,29 @@ export function renderCalendar(container: HTMLElement): void {
       });
     });
 
-    const fileInput = container.querySelector<HTMLInputElement>('#cal-import-file')!;
+    const pendingFileInput = container.querySelector<HTMLInputElement>('#cal-import-pending-file')!;
+    const doneFileInput = container.querySelector<HTMLInputElement>('#cal-import-done-file')!;
     const importErrors = container.querySelector<HTMLElement>('#cal-import-errors')!;
 
-    container.querySelectorAll<HTMLButtonElement>('[data-add-date]').forEach((btn) => {
+    container.querySelectorAll<HTMLButtonElement>('[data-add-pending-date]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        pendingScheduleDate = btn.dataset.addDate ?? null;
+        pendingScheduleDate = btn.dataset.addPendingDate ?? null;
         importErrors.innerHTML = '';
-        fileInput.click();
+        pendingFileInput.click();
       });
     });
 
-    fileInput.addEventListener('change', async () => {
-      const file = fileInput.files?.[0];
-      fileInput.value = '';
+    container.querySelectorAll<HTMLButtonElement>('[data-add-done-date]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        pendingDoneDate = btn.dataset.addDoneDate ?? null;
+        importErrors.innerHTML = '';
+        doneFileInput.click();
+      });
+    });
+
+    pendingFileInput.addEventListener('change', async () => {
+      const file = pendingFileInput.files?.[0];
+      pendingFileInput.value = '';
       const scheduledDate = pendingScheduleDate;
       pendingScheduleDate = null;
       if (!file || !scheduledDate) return;
@@ -175,7 +237,29 @@ export function renderCalendar(container: HTMLElement): void {
         paint();
       }
     });
+
+    doneFileInput.addEventListener('change', async () => {
+      const file = doneFileInput.files?.[0];
+      doneFileInput.value = '';
+      const dateKey = pendingDoneDate;
+      pendingDoneDate = null;
+      if (!file || !dateKey) return;
+      const { session, errors } = await buildCompletedSessionFromFit(file, appState.profile, dateKey);
+      importErrors.innerHTML = errorsHtml(errors);
+      if (session) {
+        await saveSession(session);
+        if (appState.user) void pushSessionToCloud(session, appState.profile, appState.user.id);
+        localSessions = [...localSessions, session];
+        localSessionById.set(session.id, session);
+        paint();
+      }
+    });
   }
 
   paint();
+  void listSessions().then((sessions) => {
+    localSessions = sessions;
+    sessions.forEach((s) => localSessionById.set(s.id, s));
+    paint();
+  });
 }

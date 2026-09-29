@@ -1,11 +1,12 @@
+import { buildCompletedSessionFromFit } from '../../core/completed-session-import';
 import { computeSessionAnalytics } from '../../engine/analytics';
 import { computePmc } from '../../engine/pmc';
 import type { SessionRecord } from '../../storage/session-store';
-import { deleteSession, listSessions } from '../../storage/session-store';
+import { deleteSession, listSessions, saveSession } from '../../storage/session-store';
 import { renderNav } from '../nav';
 import { navigate, refresh } from '../router';
 import { appState } from '../state';
-import { deleteSessionFromCloud } from '../../sync/cloud-sync';
+import { deleteSessionFromCloud, pushSessionToCloud } from '../../sync/cloud-sync';
 import { importStravaActivity, isStravaConfigured, listStravaActivities } from '../../sync/strava';
 
 const STRAVA_IMPORT_WINDOW_DAYS = 60;
@@ -151,6 +152,78 @@ function drawPmcChart(canvas: HTMLCanvasElement, points: ReturnType<typeof compu
   line('ctl', '#4f9bd9', 2.5);
 }
 
+function importSectionHtml(): string {
+  return `
+    ${
+      isStravaConfigured()
+        ? `<div class="row-actions">
+            <button id="strava-import">Importar de Strava</button>
+          </div>
+          <p class="hint" id="strava-import-result">Trae tus rodadas de los últimos ${STRAVA_IMPORT_WINDOW_DAYS} días (necesitas tener Strava conectado en Cuenta).</p>`
+        : ''
+    }
+
+    <h2>Importar entrenamiento completado</h2>
+    <p class="hint">Sube un .fit grabado en otro dispositivo/app — puedes ponerle la fecha que quieras, también aparece en Calendario ese día.</p>
+    <div class="panel row-actions">
+      <label>Fecha<input type="date" id="fit-import-date" value="${new Date().toISOString().slice(0, 10)}"></label>
+      <button id="fit-import-btn">Elegir archivo .fit</button>
+      <input type="file" id="fit-import-file" accept=".fit" style="display:none">
+    </div>
+    <div id="fit-import-result"></div>
+  `;
+}
+
+function wireImportSection(container: HTMLElement, localSessions: SessionRecord[]): void {
+  const stravaResultEl = container.querySelector<HTMLElement>('#strava-import-result');
+  container.querySelector('#strava-import')?.addEventListener('click', async () => {
+    if (!stravaResultEl) return;
+    stravaResultEl.textContent = 'Buscando actividades nuevas…';
+    try {
+      const known = new Set<number>();
+      localSessions.forEach((s) => s.stravaActivityId !== undefined && known.add(s.stravaActivityId));
+      appState.cloudSessions.forEach((s) => s.stravaActivityId !== null && known.add(s.stravaActivityId!));
+
+      const afterUnixS = Math.floor(Date.now() / 1000) - STRAVA_IMPORT_WINDOW_DAYS * 24 * 3600;
+      const activities = await listStravaActivities(afterUnixS);
+      const pending = activities.filter((a) => !known.has(a.id));
+
+      if (pending.length === 0) {
+        stravaResultEl.textContent = 'No hay rodadas nuevas que importar.';
+        return;
+      }
+      for (let i = 0; i < pending.length; i++) {
+        stravaResultEl.textContent = `Importando ${i + 1} de ${pending.length}: ${pending[i].name}…`;
+        await importStravaActivity(pending[i], appState.profile, appState.user?.id ?? null);
+      }
+      refresh();
+    } catch (err) {
+      stravaResultEl.textContent = `Error: ${err instanceof Error ? err.message : String(err)}`;
+    }
+  });
+
+  const fitResultEl = container.querySelector<HTMLElement>('#fit-import-result')!;
+  const fitDateInput = container.querySelector<HTMLInputElement>('#fit-import-date')!;
+  const fitFileInput = container.querySelector<HTMLInputElement>('#fit-import-file')!;
+  container.querySelector('#fit-import-btn')?.addEventListener('click', () => fitFileInput.click());
+  fitFileInput.addEventListener('change', async () => {
+    const file = fitFileInput.files?.[0];
+    fitFileInput.value = '';
+    if (!file) return;
+    fitResultEl.innerHTML = '<p class="hint">Leyendo archivo…</p>';
+    const { session, errors } = await buildCompletedSessionFromFit(file, appState.profile, fitDateInput.value || undefined);
+    if (errors.length > 0) {
+      fitResultEl.innerHTML = `<div class="error-box"><strong>${errors.length} error(es):</strong><ul>${errors.map((e) => `<li>${e}</li>`).join('')}</ul></div>`;
+      return;
+    }
+    if (session) {
+      await saveSession(session);
+      if (appState.user) void pushSessionToCloud(session, appState.profile, appState.user.id);
+      refresh();
+    }
+  });
+}
+
 export function renderHistory(container: HTMLElement): void {
   container.innerHTML = `
     <div class="screen">
@@ -173,8 +246,10 @@ export function renderHistory(container: HTMLElement): void {
           ${renderNav('history')}
           <h1>Historial</h1>
           <p class="hint">Todavía no hay sesiones guardadas.</p>
+          ${importSectionHtml()}
         </div>
       `;
+      wireImportSection(container, localSessions);
       return;
     }
 
@@ -196,14 +271,7 @@ export function renderHistory(container: HTMLElement): void {
         <h1>Historial</h1>
         <p class="hint">${rows.length} sesión(es)${cloudCount ? ` · ${cloudCount} sincronizada(s) desde otro dispositivo` : ' grabada(s) en esta pestaña'}.</p>
 
-        ${
-          isStravaConfigured()
-            ? `<div class="row-actions">
-                <button id="strava-import">Importar de Strava</button>
-              </div>
-              <p class="hint" id="strava-import-result">Trae tus rodadas de los últimos ${STRAVA_IMPORT_WINDOW_DAYS} días (necesitas tener Strava conectado en Cuenta).</p>`
-            : ''
-        }
+        ${importSectionHtml()}
 
         <h2>Fitness / Fatigue / Form</h2>
         <div class="panel">
@@ -291,31 +359,6 @@ export function renderHistory(container: HTMLElement): void {
       });
     });
 
-    const stravaResultEl = container.querySelector<HTMLElement>('#strava-import-result');
-    container.querySelector('#strava-import')?.addEventListener('click', async () => {
-      if (!stravaResultEl) return;
-      stravaResultEl.textContent = 'Buscando actividades nuevas…';
-      try {
-        const known = new Set<number>();
-        localSessions.forEach((s) => s.stravaActivityId !== undefined && known.add(s.stravaActivityId));
-        appState.cloudSessions.forEach((s) => s.stravaActivityId !== null && known.add(s.stravaActivityId!));
-
-        const afterUnixS = Math.floor(Date.now() / 1000) - STRAVA_IMPORT_WINDOW_DAYS * 24 * 3600;
-        const activities = await listStravaActivities(afterUnixS);
-        const pending = activities.filter((a) => !known.has(a.id));
-
-        if (pending.length === 0) {
-          stravaResultEl.textContent = 'No hay rodadas nuevas que importar.';
-          return;
-        }
-        for (let i = 0; i < pending.length; i++) {
-          stravaResultEl.textContent = `Importando ${i + 1} de ${pending.length}: ${pending[i].name}…`;
-          await importStravaActivity(pending[i], appState.profile, appState.user?.id ?? null);
-        }
-        refresh();
-      } catch (err) {
-        stravaResultEl.textContent = `Error: ${err instanceof Error ? err.message : String(err)}`;
-      }
-    });
+    wireImportSection(container, localSessions);
   });
 }

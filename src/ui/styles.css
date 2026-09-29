@@ -384,6 +384,24 @@ a {
   color: var(--text);
   border-color: var(--muted);
 }
+.cal-add-group {
+  display: flex;
+  gap: 3px;
+}
+.cal-add-done:hover {
+  color: var(--ok);
+  border-color: var(--ok);
+}
+.cal-chip-done {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(88, 179, 104, 0.12);
+  border-color: rgba(88, 179, 104, 0.4);
+}
+.cal-chip-readonly {
+  cursor: default;
+}
 .cal-chip-wrap {
   display: flex;
   align-items: center;
