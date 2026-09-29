@@ -23,6 +23,14 @@ function toDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+/** Recorta el texto que se muestra en un chip del calendario — un nombre
+ * largo (típico en archivos .fit con nombres crípticos del dispositivo) no
+ * debe estirar la fila entera del mes; el nombre completo sigue disponible
+ * en el `title` (tooltip) de cada chip. */
+function truncateChipLabel(name: string, max = 22): string {
+  return name.length > max ? `${name.slice(0, max - 1)}…` : name;
+}
+
 function errorsHtml(errors: string[]): string {
   if (errors.length === 0) return '';
   return `<div class="error-box"><strong>${errors.length} error(es):</strong><ul>${errors.map((e) => `<li>${e}</li>`).join('')}</ul></div>`;
@@ -85,7 +93,7 @@ export function renderCalendar(container: HTMLElement): void {
             .map(
               (w) => `
             <div class="cal-chip-wrap">
-              <button class="cal-chip" data-workout-id="${w.id}" title="Entrenar">${w.name}</button>
+              <button class="cal-chip" data-workout-id="${w.id}" title="${w.name} — Entrenar">${truncateChipLabel(w.name)}</button>
               <button class="cal-chip-remove" data-unschedule-id="${w.id}" title="Quitar del calendario">×</button>
             </div>`,
             )
@@ -93,8 +101,8 @@ export function renderCalendar(container: HTMLElement): void {
           ${dayCompleted
             .map((e) =>
               e.origin === 'local'
-                ? `<button class="cal-chip cal-chip-done" data-view-session-id="${e.id}" title="Ver sesión">✅ ${e.name}</button>`
-                : `<div class="cal-chip cal-chip-done cal-chip-readonly" title="Grabada en otro dispositivo — solo resumen en Historial">✅ ${e.name}</div>`,
+                ? `<button class="cal-chip cal-chip-done" data-view-session-id="${e.id}" title="${e.name} — Ver sesión">✅ ${truncateChipLabel(e.name)}</button>`
+                : `<div class="cal-chip cal-chip-done cal-chip-readonly" title="${e.name} — grabada en otro dispositivo, solo resumen en Historial">✅ ${truncateChipLabel(e.name)}</div>`,
             )
             .join('')}
         </div>

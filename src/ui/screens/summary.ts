@@ -130,7 +130,14 @@ export function renderSummary(container: HTMLElement): void {
       <h1>${session.workoutName}</h1>
       <p class="hint">${new Date(session.startedAt).toLocaleString()} · duración ${fmt(duration)}</p>
 
-      <div class="panel"><canvas id="g" style="width:100%;height:160px;display:block"></canvas></div>
+      <div class="panel">
+        <div class="legend" style="position:static;display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px;font-size:13px">
+          <span><i style="background:rgba(255,255,255,.5);display:inline-block;width:18px;height:3px;margin-right:6px"></i>Potencia avg <b class="num">${Math.round(analytics.avgPower)}</b> · máx <b class="num">${Math.round(analytics.maxPower)}</b> W</span>
+          <span><i style="background:#4f9bd9;display:inline-block;width:18px;height:3px;margin-right:6px"></i>Cadencia avg <b class="num">${Math.round(analytics.avgCadence)}</b> · máx <b class="num">${Math.round(analytics.maxCadence)}</b> rpm</span>
+          <span><i style="background:#e5322d;display:inline-block;width:18px;height:3px;margin-right:6px"></i>Pulso avg <b class="num">${Math.round(analytics.avgHr)}</b> · máx <b class="num">${Math.round(analytics.maxHr)}</b> lpm</span>
+        </div>
+        <canvas id="g" style="width:100%;height:160px;display:block"></canvas>
+      </div>
 
       <h2>Métricas</h2>
       <div class="nums" style="grid-template-columns:repeat(6,1fr)">
@@ -142,13 +149,6 @@ export function renderSummary(container: HTMLElement): void {
         ${metricCard('Desacople Pw:HR', analytics.hrDriftPct !== null ? `${analytics.hrDriftPct > 0 ? '+' : ''}${fmt1(analytics.hrDriftPct)}%` : '—')}
       </div>
       <p class="hint">Desacople Pw:HR: compara potencia/pulso entre la 1ª y 2ª mitad de la rodada. Menor a 5% suele indicar buena base aeróbica; solo aplica a sesiones largas y parejas (10+ min). Requiere pulso en ambas mitades.</p>
-      <div class="panel" style="margin-top:10px">
-        <div class="grid-form">
-          <div><span class="label">Potencia</span><div>avg <b class="num">${Math.round(analytics.avgPower)}</b> W · máx <b class="num">${Math.round(analytics.maxPower)}</b> W</div></div>
-          <div><span class="label">Cadencia</span><div>avg <b class="num">${Math.round(analytics.avgCadence)}</b> · máx <b class="num">${Math.round(analytics.maxCadence)}</b> rpm</div></div>
-          <div><span class="label">Pulso</span><div>avg <b class="num">${Math.round(analytics.avgHr)}</b> · máx <b class="num">${Math.round(analytics.maxHr)}</b> lpm</div></div>
-        </div>
-      </div>
 
       <h2>Curva de potencia</h2>
       <div class="panel">
