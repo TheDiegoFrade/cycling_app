@@ -596,6 +596,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     await saveSession(record);
     void clearDraft(sessionId);
     appState.lastSession = record;
+    appState.lastCloudSession = null;
     // en segundo plano: la sesión ya quedó guardada local, no hay que
     // esperar a la nube (ni bloquear si no hay internet) para navegar.
     if (appState.user) void pushSessionToCloud(record, appState.profile, appState.user.id);

@@ -7,7 +7,9 @@ import type { RulesFile, Workout } from '../../core/types';
 import { saveWorkout, deleteWorkout } from '../../storage/workout-store';
 import { listSessions, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
+import { computeSessionAnalytics } from '../../engine/analytics';
 import { pushSessionToCloud } from '../../sync/cloud-sync';
+import type { CloudSessionSummary } from '../../sync/cloud-sync';
 import { navigate } from '../router';
 import { appState } from '../state';
 import { renderWorkoutCover } from '../workout-cover';
@@ -28,7 +30,7 @@ function startOfWeek(d: Date): Date {
 }
 
 function fmtDayShort(d: Date): string {
-  return `${DAY_NAMES[d.getDay() === 0 ? 6 : d.getDay() - 1]} ${d.getDate()}`;
+  return `${DAY_NAMES[d.getDay()]} ${d.getDate()}`;
 }
 
 function fmtRange(start: Date, end: Date): string {
@@ -40,6 +42,25 @@ function fmtHours(totalS: number): string {
   const h = Math.floor(s / 3600);
   const m = Math.round((s % 3600) / 60);
   return `${h}:${m < 10 ? '0' : ''}${m}`;
+}
+
+/** Lo mínimo para marcar un día como "Hecho" en la semana — sirve tanto
+ * para una sesión local completa (con samples) como para un resumen que
+ * solo vive en la nube (grabado en otro dispositivo, ver sync/cloud-sync). */
+interface CalendarDone {
+  workoutName: string;
+  durationS: number;
+  tss: number;
+}
+
+function localToCalendarDone(s: SessionRecord): CalendarDone {
+  const a = computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp });
+  return { workoutName: s.workoutName, durationS: s.samples.length, tss: a.trainingStressScore ?? 0 };
+}
+
+function cloudToCalendarDone(s: CloudSessionSummary): CalendarDone {
+  const durationS = Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000);
+  return { workoutName: s.workoutName, durationS, tss: s.trainingStressScore ?? 0 };
 }
 
 function errorsHtml(errors: string[]): string {
@@ -72,7 +93,7 @@ export function renderCalendar(container: HTMLElement): () => void {
   const today = new Date();
   const todayKey = toDateKey(today);
   let weekStart = startOfWeek(today);
-  let completedByDate = new Map<string, SessionRecord>();
+  let completedByDate = new Map<string, CalendarDone>();
   let pendingScheduleDate: string | null = null;
   let pendingDoneDate: string | null = null;
   let rulesTargetWorkout: Workout | null = null;
@@ -98,7 +119,8 @@ export function renderCalendar(container: HTMLElement): () => void {
         plannedTss += est.tss ?? 0;
       }
       if (completed) {
-        doneS += completed.samples.length;
+        doneS += completed.durationS;
+        doneTss += completed.tss;
       }
 
       days.push(`
@@ -273,7 +295,7 @@ export function renderCalendar(container: HTMLElement): () => void {
       if (session) {
         await saveSession(session);
         if (appState.user) void pushSessionToCloud(session, appState.profile, appState.user.id);
-        completedByDate.set(dateKey, session);
+        completedByDate.set(dateKey, localToCalendarDone(session));
         paint();
       }
     });
@@ -407,7 +429,16 @@ export function renderCalendar(container: HTMLElement): () => void {
   document.addEventListener('click', closeAllMenus);
   paint();
   void listSessions().then((sessions) => {
-    completedByDate = new Map(sessions.map((s) => [s.startedAt.slice(0, 10), s]));
+    completedByDate = new Map(sessions.map((s) => [s.startedAt.slice(0, 10), localToCalendarDone(s)]));
+    // sesiones que solo viven en la nube (grabadas en otro dispositivo) —
+    // sin esto, esos días nunca se marcan "Hecho" aunque sí aparezcan en Forma.
+    const localIds = new Set(sessions.map((s) => s.id));
+    appState.cloudSessions
+      .filter((s) => !localIds.has(s.id))
+      .forEach((s) => {
+        const key = s.startedAt.slice(0, 10);
+        if (!completedByDate.has(key)) completedByDate.set(key, cloudToCalendarDone(s));
+      });
     paint();
   });
 

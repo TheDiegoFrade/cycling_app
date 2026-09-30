@@ -8,6 +8,7 @@ import { appState } from '../state';
 import { saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
 import { isStravaConfigured, uploadSessionToStrava } from '../../sync/strava';
+import type { CloudSessionSummary } from '../../sync/cloud-sync';
 
 const RPE_LABELS: Record<number, string> = {
   1: 'muy, muy fácil',
@@ -164,8 +165,58 @@ function intensityChangesHtml(session: SessionRecord): string {
   return session.intensityChanges.map((c) => `<div class="summary-block-row"><span>${fmt(c.t)}</span><span>${c.pct}%</span></div>`).join('');
 }
 
+/** Resumen reducido para una sesión que solo vive en la nube (grabada en
+ * otro dispositivo) — la tabla `sessions` de Supabase solo guarda agregados,
+ * no los samples segundo a segundo, así que no hay gráfica, curva de
+ * potencia, zonas, avisos ni ajustes de intensidad que mostrar aquí. */
+function renderCloudOnlySummary(container: HTMLElement, s: CloudSessionSummary): void {
+  container.innerHTML = `
+    <div class="screen summary-screen">
+      <div class="summary-head">
+        <div>
+          <div class="hint">${fmtDateEsMx(s.startedAt)}</div>
+          <h1 style="margin:4px 0 0">${s.workoutName}, completo</h1>
+          <p class="hint" style="margin-top:4px">☁ Sincronizada desde otro dispositivo — solo hay resumen, no el detalle segundo a segundo.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="legend" style="position:static;display:flex;gap:20px;flex-wrap:wrap;font-size:13px">
+          <span>Potencia avg <b class="num">${s.avgPower !== null ? Math.round(s.avgPower) : '—'}</b> · máx <b class="num">${s.maxPower !== null ? Math.round(s.maxPower) : '—'}</b> W</span>
+          <span>Cadencia avg <b class="num">${s.avgCadence !== null ? Math.round(s.avgCadence) : '—'}</b> · máx <b class="num">${s.maxCadence !== null ? Math.round(s.maxCadence) : '—'}</b> rpm</span>
+          <span>Pulso avg <b class="num">${s.avgHr !== null ? Math.round(s.avgHr) : '—'}</b> · máx <b class="num">${s.maxHr !== null ? Math.round(s.maxHr) : '—'}</b> lpm</span>
+        </div>
+      </div>
+
+      <div class="summary-metrics-grid">
+        ${metricCard('Potencia normalizada', s.normalizedPower !== null ? `${Math.round(s.normalizedPower)} W` : '—', '')}
+        ${metricCard('Carga (TSS)', s.trainingStressScore !== null ? String(Math.round(s.trainingStressScore)) : '—', '')}
+        ${metricCard('Intensidad (IF)', s.intensityFactor !== null ? fmt1(s.intensityFactor) : '—', 'de tu FTP')}
+        ${metricCard('Variability Index', s.variabilityIndex !== null ? fmt1(s.variabilityIndex) : '—', '')}
+        ${metricCard('Efficiency Factor', s.efficiencyFactor !== null ? s.efficiencyFactor.toFixed(2) : '—', '')}
+        ${metricCard('Desacople', s.hrDriftPct !== null ? `${s.hrDriftPct > 0 ? '+' : ''}${fmt1(s.hrDriftPct)}%` : '—', '')}
+      </div>
+
+      ${
+        s.rpe || s.note
+          ? `<div class="panel summary-rpe-card">
+              ${s.rpe ? `<div class="perfil-h2" style="font-size:22px">¿Qué tan duro se sintió? <span class="num">${s.rpe}/10</span></div>` : ''}
+              ${s.note ? `<p class="hint" style="margin-top:8px">${s.note}</p>` : ''}
+            </div>`
+          : ''
+      }
+    </div>
+  `;
+}
+
 export function renderSummary(container: HTMLElement): void {
   const session = appState.lastSession;
+  const cloudSession = appState.lastCloudSession;
+
+  if (!session && cloudSession) {
+    renderCloudOnlySummary(container, cloudSession);
+    return;
+  }
 
   if (!session) {
     container.innerHTML = `

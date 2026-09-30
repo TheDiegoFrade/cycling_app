@@ -351,10 +351,17 @@ export function renderForma(container: HTMLElement): void {
     container.querySelectorAll<HTMLElement>('[data-action="view"]').forEach((el) => {
       const openSession = (): void => {
         const origin = el.dataset.origin as 'local' | 'cloud';
-        if (origin !== 'local') return;
-        const session = localById.get(el.dataset.sessionId!);
-        if (!session) return;
-        appState.lastSession = session;
+        if (origin === 'local') {
+          const session = localById.get(el.dataset.sessionId!);
+          if (!session) return;
+          appState.lastSession = session;
+          appState.lastCloudSession = null;
+        } else {
+          const cloud = appState.cloudSessions.find((s) => s.id === el.dataset.sessionId);
+          if (!cloud) return;
+          appState.lastSession = null;
+          appState.lastCloudSession = cloud;
+        }
         navigate('session');
       };
       el.addEventListener('click', (e) => {

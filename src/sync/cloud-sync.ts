@@ -16,7 +16,15 @@ export interface CloudSessionSummary {
   finishedAt: string;
   ftp: number;
   avgPower: number | null;
+  maxPower: number | null;
+  avgCadence: number | null;
+  maxCadence: number | null;
+  avgHr: number | null;
+  maxHr: number | null;
+  normalizedPower: number | null;
+  intensityFactor: number | null;
   trainingStressScore: number | null;
+  variabilityIndex: number | null;
   efficiencyFactor: number | null;
   hrDriftPct: number | null;
   rpe: number | null;
@@ -90,7 +98,7 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
   const { data, error } = await supabase
     .from('sessions')
     .select(
-      'id, workout_name, started_at, finished_at, ftp, avg_power, training_stress_score, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id',
+      'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id',
     )
     .eq('user_id', userId)
     .order('started_at', { ascending: false });
@@ -105,7 +113,15 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
     finishedAt: row.finished_at,
     ftp: row.ftp,
     avgPower: row.avg_power,
+    maxPower: row.max_power,
+    avgCadence: row.avg_cadence,
+    maxCadence: row.max_cadence,
+    avgHr: row.avg_hr,
+    maxHr: row.max_hr,
+    normalizedPower: row.normalized_power,
+    intensityFactor: row.intensity_factor,
     trainingStressScore: row.training_stress_score,
+    variabilityIndex: row.variability_index,
     efficiencyFactor: row.efficiency_factor,
     hrDriftPct: row.hr_drift_pct,
     rpe: row.rpe,

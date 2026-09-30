@@ -37,6 +37,10 @@ class AppState {
    * TORQ_DESIGN.md, bug #1). Se resetea al entrar de nuevo a Antes de empezar. */
   demoSession = false;
   lastSession: SessionRecord | null = null;
+  /** Resumen (sin samples) de una sesión que solo existe en la nube — ver
+   * Resumen, que renderiza una vista reducida cuando esto está poblado en
+   * vez de lastSession. */
+  lastCloudSession: CloudSessionSummary | null = null;
   user: AuthUser | null = null;
   readonly cloudEnabled: boolean = isSupabaseConfigured();
   /** Resúmenes desde Supabase — incluye sesiones grabadas en OTRO
