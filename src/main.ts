@@ -1,12 +1,14 @@
 import './ui/styles.css';
 import type { Screen } from './ui/router';
 import { refresh, registerScreen, startRouter } from './ui/router';
+import { withSidebar } from './ui/sidebar';
 import { renderCalendar } from './ui/screens/calendar';
 import { renderConnect } from './ui/screens/connect';
-import { renderHistory } from './ui/screens/history';
+import { renderForma } from './ui/screens/history';
 import { renderHome } from './ui/screens/home';
 import { renderLimits } from './ui/screens/limits';
 import { renderLogin } from './ui/screens/login';
+import { renderPerfil } from './ui/screens/perfil';
 import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
 import { appState } from './ui/state';
@@ -22,13 +24,16 @@ function guarded(render: RenderFn): RenderFn {
   return (container) => (appState.cloudEnabled && !appState.user ? renderLogin(container) : render(container));
 }
 
+// Home, Plan, Forma y Perfil viven detrás de la barra lateral fija (ver
+// TORQ_DESIGN.md, "Navegación"); Prepare/Sesión en vivo/Login no la usan.
 const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
-  ['home', renderHome],
-  ['calendar', renderCalendar],
-  ['connect', renderConnect],
+  ['home', withSidebar('home', renderHome)],
+  ['plan', withSidebar('plan', renderCalendar)],
+  ['prepare', renderConnect],
   ['train', renderTrain],
-  ['summary', renderSummary],
-  ['history', renderHistory],
+  ['session', withSidebar(null, renderSummary)],
+  ['form', withSidebar('form', renderForma)],
+  ['profile', withSidebar('profile', renderPerfil)],
   ['limits', renderLimits],
 ];
 

@@ -77,7 +77,7 @@ function rollingAverages(values: readonly number[], windowS: number): number[] {
   return out;
 }
 
-function normalizedPower(powers: readonly number[]): number {
+export function normalizedPower(powers: readonly number[]): number {
   const rolling = rollingAverages(powers, Math.min(NP_WINDOW_S, powers.length || 1));
   if (rolling.length === 0) return average(powers);
   const meanFourthPower = average(rolling.map((p) => p ** 4));

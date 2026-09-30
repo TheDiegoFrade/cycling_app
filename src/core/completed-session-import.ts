@@ -35,7 +35,14 @@ export async function buildCompletedSessionFromFit(
   const startedAt = dateOverride ? overrideDateKeepingTime(parsed.startedAt, dateOverride) : parsed.startedAt;
   const finishedAt = dateOverride ? overrideDateKeepingTime(parsed.finishedAt, dateOverride) : parsed.finishedAt;
 
-  const nameFromFile = file.name.replace(/\.fit$/i, '').replace(/[_-]+/g, ' ').trim();
+  // nombres de archivo tipo "260928212319_gsh42bpj" (exports crípticos de
+  // algunos dispositivos: puro número de serie/timestamp) no son un nombre
+  // legible aunque se le quiten los guiones — si ninguna racha de letras
+  // tiene al menos una vocal (una palabra real), mejor el genérico de abajo.
+  const rawName = file.name.replace(/\.fit$/i, '').replace(/[_-]+/g, ' ').trim();
+  const letterRuns = rawName.match(/[a-záéíóúñ]+/gi) ?? [];
+  const hasReadableWord = letterRuns.some((run) => run.length >= 3 && /[aeiouáéíóú]/i.test(run));
+  const nameFromFile = hasReadableWord ? rawName : '';
   const session: SessionRecord = {
     id: crypto.randomUUID(),
     workoutId: 'fit-import',

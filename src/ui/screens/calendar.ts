@@ -1,34 +1,45 @@
 import { buildCompletedSessionFromFit } from '../../core/completed-session-import';
 import { importWorkoutFile } from '../../core/workout-file-import';
-import type { Workout } from '../../core/types';
-import { saveWorkout } from '../../storage/workout-store';
+import { validateRulesFile, validateWorkout } from '../../core/validator';
+import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
+import { estimateWorkout } from '../../core/workout-estimate';
+import type { RulesFile, Workout } from '../../core/types';
+import { saveWorkout, deleteWorkout } from '../../storage/workout-store';
 import { listSessions, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
 import { pushSessionToCloud } from '../../sync/cloud-sync';
-import { renderNav } from '../nav';
 import { navigate } from '../router';
 import { appState } from '../state';
+import { renderWorkoutCover } from '../workout-cover';
 
-const MONTH_NAMES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
-interface CompletedEntry {
-  id: string;
-  name: string;
-  startedAt: string;
-  origin: 'local' | 'cloud';
-}
+const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MONTH_NAMES_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 function toDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-/** Recorta el texto que se muestra en un chip del calendario — un nombre
- * largo (típico en archivos .fit con nombres crípticos del dispositivo) no
- * debe estirar la fila entera del mes; el nombre completo sigue disponible
- * en el `title` (tooltip) de cada chip. */
-function truncateChipLabel(name: string, max = 22): string {
-  return name.length > max ? `${name.slice(0, max - 1)}…` : name;
+function startOfWeek(d: Date): Date {
+  const s = new Date(d);
+  s.setHours(0, 0, 0, 0);
+  const mondayOffset = (s.getDay() + 6) % 7;
+  s.setDate(s.getDate() - mondayOffset);
+  return s;
+}
+
+function fmtDayShort(d: Date): string {
+  return `${DAY_NAMES[d.getDay() === 0 ? 6 : d.getDay() - 1]} ${d.getDate()}`;
+}
+
+function fmtRange(start: Date, end: Date): string {
+  return `${start.getDate()} ${MONTH_NAMES_SHORT[start.getMonth()]} – ${end.getDate()} ${MONTH_NAMES_SHORT[end.getMonth()]}`;
+}
+
+function fmtHours(totalS: number): string {
+  const s = Math.max(0, Math.round(totalS));
+  const h = Math.floor(s / 3600);
+  const m = Math.round((s % 3600) / 60);
+  return `${h}:${m < 10 ? '0' : ''}${m}`;
 }
 
 function errorsHtml(errors: string[]): string {
@@ -36,183 +47,189 @@ function errorsHtml(errors: string[]): string {
   return `<div class="error-box"><strong>${errors.length} error(es):</strong><ul>${errors.map((e) => `<li>${e}</li>`).join('')}</ul></div>`;
 }
 
-export function renderCalendar(container: HTMLElement): void {
+async function importRulesFile(file: File, target: Workout): Promise<{ workout?: Workout; errors: string[] }> {
+  const text = await file.text();
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    return { errors: [`"${file.name}" no es JSON válido.`] };
+  }
+  const result = validateRulesFile(raw);
+  if (!result.valid) return { errors: result.errors };
+  const rulesFile = raw as RulesFile;
+  const merged: Workout = {
+    ...target,
+    countdown: rulesFile.countdown ?? target.countdown,
+    comments: [...(target.comments ?? []), ...(rulesFile.comments ?? [])],
+    rules: [...(target.rules ?? []), ...(rulesFile.rules ?? [])],
+  };
+  const workoutResult = validateWorkout(merged);
+  return workoutResult.valid ? { workout: merged, errors: [] } : { errors: workoutResult.errors };
+}
+
+export function renderCalendar(container: HTMLElement): () => void {
   const today = new Date();
-  let viewYear = today.getFullYear();
-  let viewMonth = today.getMonth();
+  const todayKey = toDateKey(today);
+  let weekStart = startOfWeek(today);
+  let completedByDate = new Map<string, SessionRecord>();
   let pendingScheduleDate: string | null = null;
   let pendingDoneDate: string | null = null;
-  let localSessions: SessionRecord[] = [];
-  const localSessionById = new Map<string, SessionRecord>();
+  let rulesTargetWorkout: Workout | null = null;
 
   function paint(): void {
-    const firstOfMonth = new Date(viewYear, viewMonth, 1);
-    const startWeekday = firstOfMonth.getDay();
-    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-    const todayKey = toDateKey(today);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    const days: string[] = [];
+    let plannedS = 0;
+    let plannedTss = 0;
+    let doneS = 0;
+    let doneTss = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(weekStart);
+      d.setDate(d.getDate() + i);
+      const key = toDateKey(d);
+      const isToday = key === todayKey;
+      const scheduled = appState.workouts.find((w) => w.scheduledDate === key);
+      const completed = completedByDate.get(key);
+      const est = scheduled ? estimateWorkout(scheduled.intervals, appState.profile.ftp) : null;
+      if (est) {
+        plannedS += est.durationS;
+        plannedTss += est.tss ?? 0;
+      }
+      if (completed) {
+        doneS += completed.samples.length;
+      }
 
-    const byDate = new Map<string, Workout[]>();
-    appState.workouts.forEach((w) => {
-      if (!w.scheduledDate) return;
-      const list = byDate.get(w.scheduledDate) ?? [];
-      list.push(w);
-      byDate.set(w.scheduledDate, list);
-    });
-
-    const localIds = new Set(localSessions.map((s) => s.id));
-    const completedEntries: CompletedEntry[] = [
-      ...localSessions.map((s): CompletedEntry => ({ id: s.id, name: s.workoutName, startedAt: s.startedAt, origin: 'local' })),
-      ...appState.cloudSessions
-        .filter((s) => !localIds.has(s.id))
-        .map((s): CompletedEntry => ({ id: s.id, name: s.workoutName, startedAt: s.startedAt, origin: 'cloud' })),
-    ];
-    const completedByDate = new Map<string, CompletedEntry[]>();
-    completedEntries.forEach((e) => {
-      const key = e.startedAt.slice(0, 10);
-      const list = completedByDate.get(key) ?? [];
-      list.push(e);
-      completedByDate.set(key, list);
-    });
-
-    const cells: string[] = [];
-    for (let i = 0; i < startWeekday; i++) cells.push('<div class="cal-cell empty"></div>');
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dateKey = toDateKey(new Date(viewYear, viewMonth, day));
-      const dayWorkouts = byDate.get(dateKey) ?? [];
-      const dayCompleted = completedByDate.get(dateKey) ?? [];
-      cells.push(`
-        <div class="cal-cell${dateKey === todayKey ? ' today' : ''}">
-          <div class="cal-daynum">
-            <span>${day}</span>
-            <span class="cal-add-group">
-              <button class="cal-add" data-add-pending-date="${dateKey}" title="Agregar pendiente (.zwo/.mrc/.erg/.workout.json)">+</button>
-              <button class="cal-add cal-add-done" data-add-done-date="${dateKey}" title="Agregar completado (.fit)">✓</button>
-            </span>
+      days.push(`
+        <div class="plan-day${isToday ? ' today' : ''}${completed ? ' done' : ''}">
+          <div class="plan-day-head"><span class="${isToday ? 'plan-day-today-label' : ''}">${fmtDayShort(d)}</span><span class="live-col-label">${completed ? 'Hecho' : isToday ? 'Hoy' : ''}</span></div>
+          ${
+            scheduled
+              ? `
+            <button class="plan-day-cover" data-workout-id="${scheduled.id}" title="${scheduled.name} — Editar en biblioteca">${renderWorkoutCover(scheduled.intervals, 'sm')}</button>
+            <div class="plan-day-name">${scheduled.name}</div>
+            <div class="live-col-label">${est ? `${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS` : ''}</div>
+          `
+              : completed
+                ? `
+            <div class="plan-day-name">${completed.workoutName}</div>
+            <div class="live-col-label">completado</div>
+          `
+                : `<button class="plan-day-add" data-add-pending-date="${key}">+ Agregar</button>`
+          }
+          <div class="plan-day-actions">
+            <button class="plan-day-mini-add" data-add-pending-date="${key}" title="Agregar pendiente">+</button>
+            <button class="plan-day-mini-add" data-add-done-date="${key}" title="Agregar completado (.fit)">✓</button>
           </div>
-          ${dayWorkouts
-            .map(
-              (w) => `
-            <div class="cal-chip-wrap">
-              <button class="cal-chip" data-workout-id="${w.id}" title="${w.name} — Entrenar">${truncateChipLabel(w.name)}</button>
-              <button class="cal-chip-remove" data-unschedule-id="${w.id}" title="Quitar del calendario">×</button>
-            </div>`,
-            )
-            .join('')}
-          ${dayCompleted
-            .map((e) =>
-              e.origin === 'local'
-                ? `<button class="cal-chip cal-chip-done" data-view-session-id="${e.id}" title="${e.name} — Ver sesión">✅ ${truncateChipLabel(e.name)}</button>`
-                : `<div class="cal-chip cal-chip-done cal-chip-readonly" title="${e.name} — grabada en otro dispositivo, solo resumen en Historial">✅ ${truncateChipLabel(e.name)}</div>`,
-            )
-            .join('')}
-        </div>
-      `);
+        </div>`);
     }
 
     const unscheduled = appState.workouts.filter((w) => !w.scheduledDate);
+    const scheduled = appState.workouts.filter((w) => w.scheduledDate);
 
     container.innerHTML = `
-      <div class="screen">
-        ${renderNav('calendar')}
-        <h1>Calendario</h1>
-        <p class="hint">"+" agrega un workout pendiente para entrenar; "✓" registra uno ya completado (.fit) en esa fecha.</p>
-        <div class="row-actions" style="align-items:center;margin:16px 0">
-          <button id="cal-prev">← Anterior</button>
-          <h2 style="margin:0">${MONTH_NAMES[viewMonth]} ${viewYear}</h2>
-          <button id="cal-next">Siguiente →</button>
+      <div class="screen plan-screen">
+        <div class="plan-head">
+          <h1>Plan</h1>
+          <div class="row-actions" style="align-items:center;margin:0">
+            <button id="plan-today">Hoy</button>
+            <button id="plan-prev" aria-label="Semana anterior">‹</button>
+            <span class="live-col-label" style="width:150px;text-align:center;display:inline-block">${fmtRange(weekStart, weekEnd)}</span>
+            <button id="plan-next" aria-label="Semana siguiente">›</button>
+          </div>
         </div>
-        <div id="cal-import-errors"></div>
-        <div class="cal-grid">
-          ${DAY_LABELS.map((d) => `<div class="cal-cell head">${d}</div>`).join('')}
-          ${cells.join('')}
+        <div id="plan-import-errors"></div>
+        <div class="plan-week-grid">${days.join('')}</div>
+        <div class="plan-totals">
+          <span>Semana: <b>${fmtHours(doneS)}</b> de ${fmtHours(plannedS)} h</span>
+          <span>TSS: <b>${Math.round(doneTss)}</b> de ${Math.round(plannedTss)}</span>
         </div>
 
-        <h2 style="margin-top:28px">Sin fecha</h2>
-        <p class="hint">Workouts en tu biblioteca que todavía no agendaste.</p>
-        ${
-          unscheduled.length === 0
-            ? '<p class="hint">Todos tus workouts ya tienen fecha.</p>'
-            : `<div class="list">
-              ${unscheduled
-                .map(
-                  (w) => `
-                <div class="list-item" data-workout-id="${w.id}">
-                  <div>${w.name}</div>
-                  <div class="row-actions">
-                    <input type="date" data-schedule-id="${w.id}">
-                  </div>
-                </div>`,
-                )
-                .join('')}
-            </div>`
-        }
-        <input type="file" id="cal-import-pending-file" accept=".zwo,.mrc,.erg,.json" style="display:none">
-        <input type="file" id="cal-import-done-file" accept=".fit" style="display:none">
+        <div class="plan-bottom">
+          <div class="plan-library">
+            <div class="plan-library-head"><h2 class="perfil-h2" style="margin:0">Biblioteca</h2><label class="plan-import-link">Importar archivo<input type="file" id="import-workout" accept=".zwo,.mrc,.erg,.json" style="display:none"></label></div>
+            <div id="library-list">${[...scheduled, ...unscheduled].map(libraryRow).join('') || '<p class="hint">Todavía no importas ningún workout.</p>'}</div>
+          </div>
+
+          <div class="panel plan-generate">
+            <h2 class="perfil-h2" style="margin:0">Generar workout</h2>
+            <div class="plan-chip-row" id="gen-chips">
+              ${WORKOUT_TEMPLATES.map((t, i) => `<button class="plan-chip${i === 0 ? ' on' : ''}" data-template="${t.id}">${t.name}</button>`).join('')}
+            </div>
+            <label class="live-col-label">Duración<input type="number" id="gen-minutes" value="${WORKOUT_TEMPLATES[0].defaultMinutes}" min="${WORKOUT_TEMPLATES[0].minMinutes}" max="${WORKOUT_TEMPLATES[0].maxMinutes}"></label>
+            <p class="hint" id="gen-description">${WORKOUT_TEMPLATES[0].description}</p>
+            <button class="btn-light" id="gen-create">Generar y guardar</button>
+            <div id="gen-errors"></div>
+          </div>
+        </div>
+
+        <input type="file" id="import-done-file" accept=".fit" style="display:none">
+        <input type="file" id="import-rules" accept=".json" style="display:none">
       </div>
     `;
 
-    container.querySelector('#cal-prev')?.addEventListener('click', () => {
-      viewMonth--;
-      if (viewMonth < 0) {
-        viewMonth = 11;
-        viewYear--;
-      }
+    wireDayButtons();
+    wireLibrary();
+    wireGenerate();
+    wireRulesInput();
+
+    container.querySelector('#plan-today')?.addEventListener('click', () => {
+      weekStart = startOfWeek(new Date());
       paint();
     });
-    container.querySelector('#cal-next')?.addEventListener('click', () => {
-      viewMonth++;
-      if (viewMonth > 11) {
-        viewMonth = 0;
-        viewYear++;
-      }
+    container.querySelector('#plan-prev')?.addEventListener('click', () => {
+      weekStart.setDate(weekStart.getDate() - 7);
+      paint();
+    });
+    container.querySelector('#plan-next')?.addEventListener('click', () => {
+      weekStart.setDate(weekStart.getDate() + 7);
       paint();
     });
 
-    container.querySelectorAll<HTMLButtonElement>('.cal-chip[data-workout-id]').forEach((btn) => {
+    container.querySelectorAll<HTMLButtonElement>('[data-workout-id].plan-day-cover').forEach((btn) => {
       btn.addEventListener('click', () => {
-        appState.selectedWorkoutId = btn.dataset.workoutId ?? null;
-        navigate('connect');
+        document.getElementById(`lib-row-${btn.dataset.workoutId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
     });
+  }
 
-    container.querySelectorAll<HTMLButtonElement>('[data-view-session-id]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const session = localSessionById.get(btn.dataset.viewSessionId!);
-        if (!session) return;
-        appState.lastSession = session;
-        navigate('summary');
-      });
-    });
+  function libraryRow(w: Workout): string {
+    const est = estimateWorkout(w.intervals, appState.profile.ftp);
+    const meta = `${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS · ${w.scheduledDate ? `agendado ${w.scheduledDate}` : 'sin fecha'}`;
+    return `
+      <div class="plan-lib-row" id="lib-row-${w.id}" data-workout-id="${w.id}">
+        ${renderWorkoutCover(w.intervals, 'sm')}
+        <div class="plan-lib-info">
+          <div style="font-weight:500">${w.name}</div>
+          <div class="live-col-label">${meta}</div>
+        </div>
+        <input type="date" class="plan-lib-date" data-schedule-id="${w.id}" value="${w.scheduledDate ?? ''}" title="Agendar">
+        <a href="#/prepare" class="prepare-link plan-lib-train" data-train-id="${w.id}">Entrenar</a>
+        <div class="plan-lib-menu-wrap">
+          <button class="live-menu-btn plan-lib-menu-btn" data-menu-for="${w.id}" aria-label="Más opciones">⋯</button>
+          <div class="live-menu" id="menu-${w.id}">
+            <button class="live-menu-item" data-action="limits" data-workout-id="${w.id}">Editar límites</button>
+            <button class="live-menu-item" data-action="apply-rules" data-workout-id="${w.id}">+ reglas</button>
+            <div class="live-menu-divider"></div>
+            <button class="live-menu-item danger" data-action="delete" data-workout-id="${w.id}">Borrar</button>
+          </div>
+        </div>
+      </div>`;
+  }
 
-    container.querySelectorAll<HTMLButtonElement>('[data-unschedule-id]').forEach((btn) => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const id = btn.dataset.unscheduleId!;
-        const workout = appState.workouts.find((w) => w.id === id);
-        if (!workout) return;
-        const updated: Workout = { ...workout };
-        delete updated.scheduledDate;
-        await saveWorkout(updated);
-        appState.workouts = appState.workouts.map((w) => (w.id === id ? updated : w));
-        paint();
-      });
-    });
+  function refreshLibrary(): void {
+    const scheduled = appState.workouts.filter((w) => w.scheduledDate);
+    const unscheduled = appState.workouts.filter((w) => !w.scheduledDate);
+    const list = container.querySelector<HTMLElement>('#library-list')!;
+    list.innerHTML = [...scheduled, ...unscheduled].map(libraryRow).join('') || '<p class="hint">Todavía no importas ningún workout.</p>';
+    wireLibrary();
+  }
 
-    container.querySelectorAll<HTMLInputElement>('[data-schedule-id]').forEach((input) => {
-      input.addEventListener('change', async () => {
-        const id = input.dataset.scheduleId!;
-        const workout = appState.workouts.find((w) => w.id === id);
-        if (!workout || !input.value) return;
-        const updated: Workout = { ...workout, scheduledDate: input.value };
-        await saveWorkout(updated);
-        appState.workouts = appState.workouts.map((w) => (w.id === id ? updated : w));
-        paint();
-      });
-    });
-
-    const pendingFileInput = container.querySelector<HTMLInputElement>('#cal-import-pending-file')!;
-    const doneFileInput = container.querySelector<HTMLInputElement>('#cal-import-done-file')!;
-    const importErrors = container.querySelector<HTMLElement>('#cal-import-errors')!;
+  function wireDayButtons(): void {
+    const pendingFileInput = container.querySelector<HTMLInputElement>('#import-workout')!;
+    const doneFileInput = container.querySelector<HTMLInputElement>('#import-done-file')!;
+    const importErrors = container.querySelector<HTMLElement>('#plan-import-errors')!;
 
     container.querySelectorAll<HTMLButtonElement>('[data-add-pending-date]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -221,7 +238,6 @@ export function renderCalendar(container: HTMLElement): void {
         pendingFileInput.click();
       });
     });
-
     container.querySelectorAll<HTMLButtonElement>('[data-add-done-date]').forEach((btn) => {
       btn.addEventListener('click', () => {
         pendingDoneDate = btn.dataset.addDoneDate ?? null;
@@ -235,11 +251,11 @@ export function renderCalendar(container: HTMLElement): void {
       pendingFileInput.value = '';
       const scheduledDate = pendingScheduleDate;
       pendingScheduleDate = null;
-      if (!file || !scheduledDate) return;
+      if (!file) return;
       const { workout, errors } = await importWorkoutFile(file, appState.profile.ftp);
       importErrors.innerHTML = errorsHtml(errors);
       if (workout) {
-        workout.scheduledDate = scheduledDate;
+        if (scheduledDate) workout.scheduledDate = scheduledDate;
         await saveWorkout(workout);
         appState.workouts = [...appState.workouts, workout];
         paint();
@@ -257,17 +273,145 @@ export function renderCalendar(container: HTMLElement): void {
       if (session) {
         await saveSession(session);
         if (appState.user) void pushSessionToCloud(session, appState.profile, appState.user.id);
-        localSessions = [...localSessions, session];
-        localSessionById.set(session.id, session);
+        completedByDate.set(dateKey, session);
         paint();
       }
     });
   }
 
+  function wireLibrary(): void {
+    container.querySelectorAll<HTMLInputElement>('[data-schedule-id]').forEach((input) => {
+      input.addEventListener('change', async () => {
+        const id = input.dataset.scheduleId!;
+        const workout = appState.workouts.find((w) => w.id === id);
+        if (!workout) return;
+        const updated: Workout = { ...workout };
+        if (input.value) updated.scheduledDate = input.value;
+        else delete updated.scheduledDate;
+        await saveWorkout(updated);
+        appState.workouts = appState.workouts.map((w) => (w.id === id ? updated : w));
+        paint();
+      });
+    });
+
+    container.querySelectorAll<HTMLAnchorElement>('[data-train-id]').forEach((a) => {
+      a.addEventListener('click', () => {
+        appState.selectedWorkoutId = a.dataset.trainId ?? null;
+      });
+    });
+
+    container.querySelectorAll<HTMLButtonElement>('[data-menu-for]').forEach((btn) => {
+      const menu = container.querySelector<HTMLElement>(`#menu-${btn.dataset.menuFor}`)!;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const wasOpen = menu.classList.contains('on');
+        container.querySelectorAll('.live-menu.on').forEach((m) => m.classList.remove('on'));
+        if (!wasOpen) menu.classList.add('on');
+      });
+    });
+
+    container.querySelectorAll<HTMLButtonElement>('[data-action="limits"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        appState.selectedWorkoutId = btn.dataset.workoutId ?? null;
+        navigate('limits');
+      });
+    });
+    container.querySelectorAll<HTMLButtonElement>('[data-action="delete"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.workoutId!;
+        const w = appState.workouts.find((x) => x.id === id);
+        if (!w) return;
+        if (!window.confirm(`¿Borrar "${w.name}"? No se puede deshacer.`)) return;
+        await deleteWorkout(id);
+        appState.workouts = appState.workouts.filter((x) => x.id !== id);
+        paint();
+      });
+    });
+    container.querySelectorAll<HTMLButtonElement>('[data-action="apply-rules"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = appState.workouts.find((w) => w.id === btn.dataset.workoutId);
+        if (!target) return;
+        rulesTargetWorkout = target;
+        container.querySelector<HTMLInputElement>('#import-rules')?.click();
+      });
+    });
+  }
+
+  function closeAllMenus(): void {
+    container.querySelectorAll('.live-menu.on').forEach((m) => m.classList.remove('on'));
+  }
+
+  function wireGenerate(): void {
+    const chips = container.querySelectorAll<HTMLButtonElement>('.plan-chip');
+    const minutesInput = container.querySelector<HTMLInputElement>('#gen-minutes')!;
+    const description = container.querySelector<HTMLElement>('#gen-description')!;
+    const genErrors = container.querySelector<HTMLElement>('#gen-errors')!;
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        chips.forEach((c) => c.classList.remove('on'));
+        chip.classList.add('on');
+        const t = findTemplate(chip.dataset.template!);
+        if (!t) return;
+        minutesInput.min = String(t.minMinutes);
+        minutesInput.max = String(t.maxMinutes);
+        minutesInput.value = String(t.defaultMinutes);
+        description.textContent = t.description;
+      });
+    });
+
+    container.querySelector('#gen-create')?.addEventListener('click', async () => {
+      const activeChip = container.querySelector<HTMLButtonElement>('.plan-chip.on');
+      const t = findTemplate(activeChip?.dataset.template ?? WORKOUT_TEMPLATES[0].id);
+      if (!t) return;
+      const minutes = Math.round(Number(minutesInput.value));
+      if (!Number.isFinite(minutes) || minutes < t.minMinutes || minutes > t.maxMinutes) {
+        genErrors.innerHTML = errorsHtml([`Minutos fuera de rango para "${t.name}": entre ${t.minMinutes} y ${t.maxMinutes}.`]);
+        return;
+      }
+      const now = new Date();
+      const workout: Workout = {
+        format_version: 1,
+        id: crypto.randomUUID(),
+        name: `${t.name} · ${minutes} min · ${now.getDate()} ${MONTH_NAMES_SHORT[now.getMonth()]}`,
+        intervals: t.build(minutes),
+        created_at: now.toISOString(),
+      };
+      const result = validateWorkout(workout);
+      genErrors.innerHTML = errorsHtml(result.errors);
+      if (result.valid) {
+        await saveWorkout(workout);
+        appState.workouts = [...appState.workouts, workout];
+        refreshLibrary();
+      }
+    });
+  }
+
+  const rulesInput = () => container.querySelector<HTMLInputElement>('#import-rules');
+  function wireRulesInput(): void {
+    rulesInput()?.addEventListener('change', async () => {
+      const input = rulesInput()!;
+      const file = input.files?.[0];
+      input.value = '';
+      if (!file || !rulesTargetWorkout) return;
+      const { workout, errors } = await importRulesFile(file, rulesTargetWorkout);
+      container.querySelector('#plan-import-errors')!.innerHTML = errorsHtml(errors);
+      if (workout) {
+        await saveWorkout(workout);
+        appState.workouts = appState.workouts.map((w) => (w.id === workout.id ? workout : w));
+        refreshLibrary();
+      }
+    });
+  }
+
+  document.addEventListener('click', closeAllMenus);
   paint();
   void listSessions().then((sessions) => {
-    localSessions = sessions;
-    sessions.forEach((s) => localSessionById.set(s.id, s));
+    completedByDate = new Map(sessions.map((s) => [s.startedAt.slice(0, 10), s]));
     paint();
   });
+
+  return () => {
+    document.removeEventListener('click', closeAllMenus);
+  };
 }

@@ -1,11 +1,10 @@
 import { buildFactoryRules, buildIntervalLimitRules } from '../../core/defaults';
-import { powerZone } from '../../core/zones';
-import type { Interval, Profile, Rule, Sample, Workout } from '../../core/types';
+import { powerZone, ZONE_HEIGHT_PCT, ZONE_NAMES } from '../../core/zones';
+import type { Profile, Rule, Sample, Workout } from '../../core/types';
 import { Clock } from '../../engine/clock';
-import { buildPlan, intervalIndexAt } from '../../engine/plan';
+import { buildPlan, intervalIndexAt, targetWattsAt } from '../../engine/plan';
 import { SessionEngine } from '../../engine/session';
 import type { EngineEvent } from '../../engine/session';
-import { SimulatedHrAdapter, SimulatedTrainerAdapter } from '../../devices/simulated';
 import { WakeLockGuard } from '../../devices/wake-lock';
 import { clearDraft, getDraft, saveDraft } from '../../storage/session-draft';
 import { saveSession } from '../../storage/session-store';
@@ -34,6 +33,8 @@ function factoryRulesForSettings(workout: Workout): Rule[] {
   });
 }
 
+type BannerKind = 'info' | 'adjust' | 'danger' | 'pause';
+
 export function renderTrain(container: HTMLElement): (() => void) | void {
   const maybeWorkout = appState.selectedWorkout;
   if (!maybeWorkout) {
@@ -41,54 +42,94 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     container.querySelector('#back')?.addEventListener('click', () => navigate('home'));
     return;
   }
+  // nunca se conecta un simulador por su cuenta acá (bug #1 de TORQ_DESIGN.md):
+  // si no hay rodillo, se vuelve a Antes de empezar — ahí el único lugar
+  // donde se puede elegir explícitamente "modo demo".
+  if (!appState.trainer) {
+    navigate('prepare');
+    return;
+  }
   const workout: Workout = maybeWorkout;
+  const isDemo = appState.demoSession;
 
   container.innerHTML = `
-    <div class="app">
-      <div class="top">
-        <div class="title">${workout.name}</div>
-        <div class="sensor"><span class="status-dot" id="trainer-dot"></span><span id="trainer-name">Rodillo</span></div>
-        <div class="sensor"><span class="status-dot" id="hr-dot"></span><span id="hr-name">Banda</span></div>
-        <div class="sensor">FTP <b class="num">${appState.profile.ftp}</b></div>
-        <div class="sensor bias"><button id="bMinus" type="button">−</button><b class="num" id="bias">100%</b><button id="bPlus" type="button">+</button></div>
-        <button id="btnErg" type="button" title="al apagarlo, la app deja de mandarle el objetivo en watts al rodillo">ERG: ON</button>
-        <button id="btnRules" type="button">Reglas</button>
-        <button id="btnLimits" type="button">Límites</button>
-        <div class="clock num"><span id="elapsed">00:00</span> <span>/ <span id="total">00:00</span></span></div>
-        <button id="btnMain" type="button">Empezar</button>
-        <button id="btnEnd" type="button">Terminar</button>
+    <div class="live">
+      <div class="live-zonestrip" id="zoneStrip"></div>
+      <div class="live-topbar">
+        <span class="live-zonepill" id="zonePill">—</span>
+        <span class="live-blockinfo" id="blockInfo"></span>
+        <div class="live-topbar-right">
+          <span class="status-dot" id="trainer-dot" title="Rodillo"></span>
+          <span class="status-dot" id="hr-dot" title="Banda de pulso"></span>
+          <span class="live-clock num"><span id="elapsed">00:00</span> / <span id="total">00:00</span></span>
+          <div class="live-intensity">
+            <button id="bMinus" type="button" aria-label="Bajar intensidad">−</button>
+            <span class="live-intensity-value num" id="bias">100%</span>
+            <button id="bPlus" type="button" aria-label="Subir intensidad">+</button>
+          </div>
+          <button class="live-pause-btn" id="btnMain" type="button">Empezar</button>
+          <div class="live-menu-wrap" id="menuWrap">
+            <button class="live-menu-btn" id="menuBtn" type="button" aria-label="Más opciones">⋯</button>
+            <div class="live-menu" id="menu">
+              <button class="live-menu-item" id="menuErg" type="button">ERG: activado</button>
+              <button class="live-menu-item" id="menuFtp" type="button">FTP: ${appState.profile.ftp} W</button>
+              <button class="live-menu-item" id="menuRules" type="button">Reglas</button>
+              <button class="live-menu-item" id="menuLimits" type="button">Límites</button>
+              <div class="live-menu-divider"></div>
+              <button class="live-menu-item" id="menuFinish" type="button">Terminar y guardar</button>
+              <button class="live-menu-item danger" id="menuDiscard" type="button">Salir sin guardar</button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="stage idle" id="stage">
-        <div class="headline" id="hl">Listo</div>
-        <div class="detail" id="dt">Empieza a pedalear para arrancar, o presiona Empezar · espacio para pausar/continuar luego.</div>
-        <div class="why" id="why"></div>
+      <div class="live-center">
+        <div class="live-power-col">
+          <div class="live-col-label">Potencia</div>
+          <div class="live-power-row">
+            <span class="live-power-num num empty" id="pw">—</span>
+            <span class="live-target-wrap">
+              <span class="live-target-num num" id="tgt">—</span>
+              <span class="live-target-label">objetivo W</span>
+            </span>
+          </div>
+          <div class="live-power-rangebar">
+            <div class="band" id="rangeBand"></div>
+            <div class="marker" id="rangeMarker"></div>
+          </div>
+        </div>
+        <div class="live-block-col">
+          <div class="live-col-label">Quedan del bloque</div>
+          <span class="live-timeleft-num num empty" id="ivLeft">—</span>
+          <div class="live-next" id="ivNext"></div>
+        </div>
+        <div class="live-message-overlay" id="banner">
+          <div class="live-message-title" id="bannerTitle"></div>
+          <div class="live-message-detail" id="bannerDetail"></div>
+        </div>
       </div>
 
-      <div class="graph">
-        <div class="legend"><span><i style="background:var(--bad)"></i>Pulso</span><span><i style="background:var(--z2)"></i>Cadencia</span><span><i style="background:#fff;opacity:.6"></i>Potencia</span></div>
+      <div class="live-graph">
+        <div class="live-graph-legend">
+          <span><i style="background:#fff"></i>Potencia</span>
+          <span><i style="background:var(--z2)"></i>Cadencia</span>
+          <span><i style="background:var(--danger)"></i>Pulso</span>
+        </div>
         <canvas id="g"></canvas>
       </div>
 
-      <div class="nums">
-        <div class="card">
-          <div class="label">Potencia</div>
-          <div class="row"><div class="v num" id="pw">—</div><div class="sub">objetivo <b class="num" id="tgt">—</b> W</div><span class="erg">ERG</span></div>
+      <div class="live-bottom-row">
+        <div>
+          <div class="live-metric-label">Cadencia</div>
+          <div class="live-metric-row"><span class="live-metric-num num empty" id="cad">—</span><span class="live-metric-sub" id="cadSub">rpm</span></div>
         </div>
-        <div class="card">
-          <div class="label">Cadencia</div>
-          <div class="row"><div class="v num" id="cad">—</div><div class="sub">mín <b class="num" id="cadMin">—</b></div></div>
-        </div>
-        <div class="card">
-          <div class="label">Pulso</div>
-          <div class="row"><div class="v num" id="hr">—</div><span class="zone" id="hrZone" style="background:var(--z1)">—</span></div>
-        </div>
-        <div class="card iv">
-          <div class="label">Intervalo <span id="ivIdx"></span></div>
-          <div class="row"><div class="v num" id="ivLeft">—</div><span class="zone" id="ivZone" style="background:var(--z1)">—</span></div>
-          <div class="next" id="ivNext"></div>
+        <div>
+          <div class="live-metric-label">Pulso</div>
+          <div class="live-metric-row"><span class="live-metric-num num empty" id="hr">—</span><span class="live-metric-sub" id="hrSub">—</span></div>
         </div>
       </div>
+
+      <div class="live-timeline" id="timeline"></div>
     </div>
     <div class="count" id="count"><div class="ring" id="ring"></div><div class="n num" id="countN">5</div><div class="what" id="countWhat"></div></div>
     <div class="rules" id="rules"><h4>Reglas activas</h4><div id="rulesList"></div></div>
@@ -96,6 +137,10 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   `;
 
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+
+  function zoneColor(z: number): string {
+    return getComputedStyle(document.documentElement).getPropertyValue(`--z${z}`).trim();
+  }
 
   // se reconstruye completa cada vez que cambia un límite (perfil o bloque)
   // para no tener que llevar un diff a mano — el motor la puede recibir
@@ -108,7 +153,6 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     $('rulesList').innerHTML = buildRules().map((r) => `<div>· <code>${r.level}</code> ${r.message}</div>`).join('') || '<div>Sin reglas activas.</div>';
   }
   paintRulesList();
-  $('btnRules').addEventListener('click', () => $('rules').classList.toggle('on'));
 
   const plan = buildPlan(workout.intervals);
   $('total').textContent = fmt(plan.totalDuration);
@@ -117,29 +161,29 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const clock = new Clock();
   const wakeLock = new WakeLockGuard();
 
-  const trainer = appState.trainer ?? new SimulatedTrainerAdapter();
-  const hr = appState.hr ?? new SimulatedHrAdapter();
-  appState.trainer = trainer;
-  appState.hr = hr;
+  // el rodillo ya está garantizado (ver guard arriba); la banda de pulso es
+  // opcional — sin ella, el pulso se graba en 0 (igual que un sensor que se
+  // cae a mitad de sesión), nunca se inventa uno simulado.
+  const trainer = appState.trainer!;
+  const hr = appState.hr;
   if (trainer.state === 'disconnected') trainer.connect();
-  if (hr.state === 'disconnected') hr.connect();
   $('trainer-dot').className = `status-dot ${trainer.state}`;
-  $('hr-dot').className = `status-dot ${hr.state}`;
+  $('hr-dot').className = `status-dot ${hr?.state ?? 'disconnected'}`;
   const unsubTrainerState = trainer.onStateChange((s) => ($('trainer-dot').className = `status-dot ${s}`));
-  const unsubHrState = hr.onStateChange((s) => ($('hr-dot').className = `status-dot ${s}`));
+  const unsubHrState = hr?.onStateChange((s) => ($('hr-dot').className = `status-dot ${s}`));
 
   const SENSOR_STALE_MS = 4000;
   let latestPower = 0;
   let latestCadence = 0;
   let latestHr = 0;
   let lastPowerReadingAt = performance.now();
-  let lastHrReadingAt = performance.now();
+  let lastHrReadingAt = performance.now() - SENSOR_STALE_MS - 1; // sin banda, "stale" desde el inicio
   const unsubTrainerReading = trainer.onReading((r) => {
     latestPower = r.power;
     latestCadence = r.cadence;
     lastPowerReadingAt = performance.now();
   });
-  const unsubHrReading = hr.onReading((v) => {
+  const unsubHrReading = hr?.onReading((v) => {
     latestHr = v;
     lastHrReadingAt = performance.now();
   });
@@ -148,7 +192,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   let autoStartTimer: ReturnType<typeof setInterval> | null = null;
   let autoStartStreak = 0;
   const AUTO_START_PEDAL_S = 3;
-  let stageTimer: ReturnType<typeof setTimeout> | null = null;
+  let bannerTimer: ReturnType<typeof setTimeout> | null = null;
   let cdShown = -1;
   let currentIndex0 = 0;
   let currentTimeLeft = workout.intervals[0]?.duration_s ?? 0;
@@ -162,6 +206,49 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   let sessionId: string = crypto.randomUUID();
   let lastElapsedS = 0;
   let sessionFinished = false;
+
+  /** Líneas de potencia/cadencia/pulso avanzando en vivo — igual que antes
+   * del rediseño, el usuario prefiere verlas mientras entrena. */
+  function draw(): void {
+    const canvas = $<HTMLCanvasElement>('g');
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    const g = canvas.getContext('2d');
+    if (!g) return;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const w = rect.width;
+    const h = rect.height;
+    const pad = 10;
+    g.clearRect(0, 0, w, h);
+    const X = (t: number) => pad + (t / plan.totalDuration) * (w - 2 * pad);
+
+    if (history.length > 1) {
+      const line = (key: 'power' | 'cadence' | 'hr', min: number, max: number, color: string, lw: number) => {
+        g.beginPath();
+        g.strokeStyle = color;
+        g.lineWidth = lw;
+        g.lineJoin = 'round';
+        history.forEach((p, j) => {
+          const x = X(p.t);
+          const y = h - pad - ((p[key] - min) / (max - min)) * (h - 2 * pad);
+          j ? g.lineTo(x, y) : g.moveTo(x, y);
+        });
+        g.stroke();
+      };
+      const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
+      line('power', 0, appState.profile.ftp * 1.3, 'rgba(255,255,255,.85)', 1.5);
+      line('cadence', 60, 110, zoneColor(2), 2);
+      line('hr', 80, 190, dangerColor, 2);
+    }
+
+    const last = history[history.length - 1];
+    if (last) {
+      g.fillStyle = 'rgba(255,255,255,.6)';
+      g.fillRect(X(last.t) - 1, pad, 2, h - 2 * pad);
+    }
+  }
 
   // "Continuar entrenamiento" desde Inicio: retoma un borrador en vez de
   // arrancar de 0. Se consume una sola vez (si esta pantalla se desmonta sin
@@ -181,9 +268,9 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       currentIndex0 = intervalIndexAt(plan, resumeAtS);
       currentTimeLeft = workout.intervals[currentIndex0].duration_s - (resumeAtS - plan.segStart[currentIndex0]);
       $('elapsed').textContent = fmt(resumeAtS);
-      paintIdle();
+      paintBlockHeader();
+      paintTimeline();
       paintLimitsPanel();
-      draw();
     });
   }
 
@@ -193,6 +280,10 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const DRAFT_SAVE_EVERY_TICKS = 5;
   let ticksSinceDraftSave = 0;
   function flushDraft(): void {
+    // modo demo: "no se graba" tiene que ser cierto también para el
+    // borrador — si no, Inicio ofrece "recuperar" una sesión demo que en
+    // realidad nunca se quiso guardar.
+    if (isDemo) return;
     void saveDraft({
       id: sessionId,
       workoutId: workout.id,
@@ -262,86 +353,79 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         if (Number.isFinite(v)) {
           appState.profile = { ...appState.profile, [key]: v };
           appState.persistProfile();
+          engine.updateProfile(appState.profile);
           applyLiveRules();
         }
       });
     });
   }
   paintLimitsPanel();
-  $('btnLimits').addEventListener('click', () => $('limits').classList.toggle('on'));
 
-  function zoneColor(z: number): string {
-    return getComputedStyle(document.documentElement).getPropertyValue(`--z${z}`).trim();
-  }
-
-  function paintIdle(): void {
+  /** Cabecera de zona + info de bloque — solo cambia al empezar un bloque
+   * nuevo, no en cada tick. */
+  function paintBlockHeader(): void {
     const iv = workout.intervals[currentIndex0];
     if (!iv) return;
-    $('stage').className = 'stage idle';
-    $('hl').textContent = iv.name;
-    $('dt').textContent = `cadencia ${iv.cadence_min ?? '—'}+ · ${fmt(currentTimeLeft)} restante`;
-    $('why').textContent = '';
+    const z = powerZone(iv.power_pct);
+    const color = zoneColor(z);
+    $('zonePill').textContent = `Z${z} · ${ZONE_NAMES[z]}`;
+    $('zonePill').style.background = color;
+    $('zoneStrip').style.background = color;
+    $('blockInfo').textContent = `Bloque ${currentIndex0 + 1} de ${workout.intervals.length} · ${iv.name}`;
   }
 
-  function showStage(kind: string, headline: string, detail: string, why: string, holdMs = 8000): void {
-    if (stageTimer) clearTimeout(stageTimer);
-    const st = $('stage');
-    st.className = 'stage';
-    void st.offsetWidth;
-    st.className = `stage ${kind}`;
-    $('hl').textContent = headline;
-    $('dt').textContent = detail;
-    $('why').textContent = why;
-    stageTimer = setTimeout(paintIdle, holdMs);
+  /** Línea de tiempo del workout completo por zonas — hecho atenuado, bloque
+   * actual al 100% con contorno, pendiente muy tenue. Ver TORQ_DESIGN.md. */
+  function paintTimeline(): void {
+    $('timeline').innerHTML = workout.intervals
+      .map((iv, i) => {
+        const z = powerZone(iv.power_pct);
+        const opacity = i < currentIndex0 ? 0.45 : i === currentIndex0 ? 1 : 0.18;
+        const outline = i === currentIndex0 ? 'outline:2px solid var(--text);outline-offset:2px;' : '';
+        return `<div class="live-timeline-bar" style="height:${ZONE_HEIGHT_PCT[z]}%;background:${zoneColor(z)};opacity:${opacity};${outline}"></div>`;
+      })
+      .join('');
   }
 
-  function draw(): void {
-    const canvas = $<HTMLCanvasElement>('g');
-    const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    const g = canvas.getContext('2d');
-    if (!g) return;
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const w = rect.width;
-    const h = rect.height;
-    const pad = 10;
-    const top = 26;
-    g.clearRect(0, 0, w, h);
-    const X = (t: number) => pad + (t / plan.totalDuration) * (w - 2 * pad);
-
-    workout.intervals.forEach((iv: Interval, i: number) => {
-      const bh = (iv.power_pct / 130) * (h - top - pad);
-      g.fillStyle = zoneColor(powerZone(iv.power_pct));
-      g.globalAlpha = i < currentIndex0 ? 0.3 : i === currentIndex0 ? 0.9 : 0.55;
-      g.fillRect(X(plan.segStart[i]) + 1, h - pad - bh, X(plan.segStart[i] + iv.duration_s) - X(plan.segStart[i]) - 2, bh);
-    });
-    g.globalAlpha = 1;
-
-    if (history.length > 1) {
-      const line = (key: 'power' | 'cadence' | 'hr', min: number, max: number, color: string, lw: number) => {
-        g.beginPath();
-        g.strokeStyle = color;
-        g.lineWidth = lw;
-        g.lineJoin = 'round';
-        history.forEach((p, j) => {
-          const x = X(p.t);
-          const y = h - pad - ((p[key] - min) / (max - min)) * (h - top - pad);
-          j ? g.lineTo(x, y) : g.moveTo(x, y);
-        });
-        g.stroke();
-      };
-      line('power', 0, appState.profile.ftp * 1.3, 'rgba(255,255,255,.35)', 1.5);
-      line('cadence', 60, 110, zoneColor(2), 2);
-      line('hr', 80, 190, zoneColor(6), 2.5);
+  /** Banda de rango alrededor del objetivo con el marcador de potencia
+   * actual — puramente visual (no dispara ninguna regla), ±8% del objetivo. */
+  function paintRangeBar(power: number, target: number, color: string): void {
+    const band = $('rangeBand');
+    const marker = $('rangeMarker');
+    if (target <= 0) {
+      band.style.width = '0';
+      marker.style.left = '0';
+      return;
     }
+    const domainMax = target * 1.5;
+    const pct = (v: number) => Math.max(0, Math.min(100, (v / domainMax) * 100));
+    const lowPct = pct(target * 0.92);
+    const highPct = pct(target * 1.08);
+    band.style.left = `${lowPct}%`;
+    band.style.width = `${highPct - lowPct}%`;
+    band.style.background = color;
+    band.style.opacity = '0.35';
+    marker.style.left = `${pct(power)}%`;
+    marker.style.background = color;
+  }
 
-    const last = history[history.length - 1];
-    if (last) {
-      g.fillStyle = '#fff';
-      g.fillRect(X(last.t) - 1, top, 2, h - top - pad);
+  function showBanner(kind: BannerKind, title: string, detail: string, holdMs: number | null): void {
+    if (bannerTimer) {
+      clearTimeout(bannerTimer);
+      bannerTimer = null;
     }
+    $('banner').className = `live-message-overlay live-message-${kind} on`;
+    $('bannerTitle').textContent = title;
+    $('bannerDetail').textContent = detail;
+    if (holdMs !== null) bannerTimer = setTimeout(clearBanner, holdMs);
+  }
+
+  function clearBanner(): void {
+    if (bannerTimer) {
+      clearTimeout(bannerTimer);
+      bannerTimer = null;
+    }
+    $('banner').classList.remove('on');
   }
 
   function handleEvent(event: EngineEvent): void {
@@ -352,27 +436,47 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         currentTimeLeft = event.metrics.time_left_interval ?? 0;
         history.push(event.sample);
         $('elapsed').textContent = fmt(event.t);
-        $('pw').textContent = String(event.sample.power);
+
+        const pwEl = $('pw');
+        pwEl.textContent = String(event.sample.power);
+        pwEl.classList.remove('empty');
+        const z = powerZone(workout.intervals[currentIndex0]?.power_pct ?? 0);
+        const zColor = zoneColor(z);
         $('tgt').textContent = String(event.sample.target);
+        $('tgt').style.color = zColor;
+        paintRangeBar(event.sample.power, event.sample.target, zColor);
+
         // promedio móvil de 10 s, no la lectura instantánea: el sensor de
         // cadencia tiene picos falsos (p.ej. "40" pedaleando estable a 70)
         // que con el número crudo se ven como si la cadencia se hubiera
         // caído de verdad.
-        $('cad').textContent = String(Math.round(event.metrics.cadence_10s ?? event.sample.cadence));
-        $('cadMin').textContent = String(workout.intervals[currentIndex0]?.cadence_min ?? '—');
-        $('hr').textContent = String(event.sample.hr);
+        const cadEl = $('cad');
+        cadEl.textContent = String(Math.round(event.metrics.cadence_10s ?? event.sample.cadence));
+        cadEl.classList.remove('empty');
+        const cadenceMin = workout.intervals[currentIndex0]?.cadence_min;
+        // si el bloque no trae piso de cadencia, no se muestra esa parte —
+        // nunca "· piso —".
+        $('cadSub').textContent = cadenceMin !== undefined ? `rpm · piso ${cadenceMin}` : 'rpm';
+
+        const hrEl = $('hr');
+        hrEl.textContent = String(event.sample.hr);
+        hrEl.classList.remove('empty');
         const hrPct = event.metrics.hr_pct_max ?? 0;
         const hz = hrPct < 60 ? 1 : hrPct < 70 ? 2 : hrPct < 80 ? 3 : hrPct < 90 ? 4 : 5;
-        $('hrZone').textContent = `Z${hz}`;
-        $('hrZone').style.background = zoneColor(hz);
-        const z = powerZone(workout.intervals[currentIndex0]?.power_pct ?? 0);
-        $('ivZone').textContent = `Z${z}`;
-        $('ivZone').style.background = zoneColor(z);
-        $('ivIdx').textContent = `${currentIndex0 + 1} / ${workout.intervals.length}`;
-        $('ivLeft').textContent = fmt(currentTimeLeft);
+        $('hrSub').textContent = `zona ${hz}`;
+        $('hrSub').style.color = zoneColor(hz);
+
+        const ivLeftEl = $('ivLeft');
+        ivLeftEl.textContent = fmt(currentTimeLeft);
+        ivLeftEl.classList.remove('empty');
         const next = workout.intervals[currentIndex0 + 1];
-        $('ivNext').innerHTML = next ? `siguiente: <b>${next.name}</b> · ${next.cadence_min ?? '—'}+ rpm` : 'siguiente: fin';
-        if ($('stage').classList.contains('idle')) paintIdle();
+        if (next) {
+          const nextTargetWatts = targetWattsAt(plan, plan.segStart[currentIndex0 + 1], appState.profile.ftp, engine.intensityPct / 100);
+          $('ivNext').innerHTML = `Sigue: <b>${next.name}</b> · ${nextTargetWatts} W`;
+        } else {
+          $('ivNext').textContent = 'Sigue: fin del workout';
+        }
+
         lastTargetWatts = event.sample.target;
         if (ergEnabled) trainer.setTarget(lastTargetWatts);
         draw();
@@ -387,12 +491,14 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         $('count').classList.remove('on');
         cdShown = -1;
         beeper.play('go');
-        showStage('go', event.interval.name, `${event.targetWatts} W · ${event.interval.cadence_min ?? '—'}+ rpm`, '', 1800);
         // el evento 'tick' que actualiza currentIndex0 llega justo después de
-        // este en el mismo lote — se adelanta acá para que el panel de
-        // límites muestre el bloque nuevo desde ya, no el anterior.
+        // este en el mismo lote — se adelanta acá para que la cabecera y el
+        // panel de límites muestren el bloque nuevo desde ya, no el anterior.
         currentIndex0 = event.index1 - 1;
+        paintBlockHeader();
+        paintTimeline();
         paintLimitsPanel();
+        showBanner('info', event.interval.name, `${event.targetWatts} W · ${event.interval.cadence_min ?? '—'}+ rpm`, 1800);
         return;
       }
       case 'countdown': {
@@ -417,7 +523,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         $('count').classList.remove('on');
         cdShown = -1;
         beeper.play(event.comment.sound ?? 'chime');
-        showStage('info', event.comment.message, event.comment.detail ?? '', 'comentario del coach', 6000);
+        showBanner('info', event.comment.message, event.comment.detail ?? '', 6000);
         return;
       }
       case 'rule': {
@@ -426,12 +532,16 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         const n = event.notification;
         if (n.kind === 'fire') {
           beeper.play(n.sound);
-          const kind = n.level === 'danger' ? 'bad' : n.level === 'adjust' ? 'warn' : 'info';
-          showStage(kind, n.message, n.detail ?? '', `regla: ${n.rule.id}`, n.level === 'danger' ? 4000 : 2600);
+          const kind: BannerKind = n.level === 'danger' ? 'danger' : n.level === 'adjust' ? 'adjust' : 'info';
+          // el banner de ajuste/peligro se queda hasta que se corrija (evento
+          // 'recover' más abajo), no un tiempo fijo — así no desaparece solo
+          // porque pasaron unos segundos aunque el problema siga.
+          const holdMs = n.level === 'danger' || n.level === 'adjust' ? null : 2600;
+          showBanner(kind, n.message, n.detail ?? '', holdMs);
           alerts.push({ t: lastElapsedS, level: n.level, message: n.message });
         } else {
           beeper.play('tick');
-          showStage('info', n.message, '', '', 2200);
+          showBanner('info', n.message, '', 2200);
         }
         return;
       }
@@ -439,13 +549,13 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         // el loop de 1 Hz sigue corriendo: tick() es quien detecta que
         // volviste a pedalear y reanuda solo, aunque la pausa haya sido manual.
         $('btnMain').textContent = 'Continuar';
-        showStage('pause', 'Pausa', `ERG en reposo (${event.targetWatts} W) · espacio para continuar`, '', 999999);
+        showBanner('pause', 'Pausa', `ERG en reposo (${event.targetWatts} W) · espacio para continuar`, null);
         trainer.setTarget(event.targetWatts);
         return;
       }
       case 'resumed': {
         $('btnMain').textContent = 'Pausar';
-        showStage('info', 'Reanuda', '', '', 1200);
+        showBanner('info', 'Reanuda', '', 1200);
         return;
       }
       case 'finished': {
@@ -458,8 +568,20 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   async function finish(): Promise<void> {
     sessionFinished = true;
     stopPollLoop();
+    stopAutoStartWatcher();
     wakeLock.release();
-    showStage('info', 'Terminado', 'Guardando sesión…', '', 999999);
+
+    // modo demo ("Probar sin rodillo" en Antes de empezar): nunca se graba,
+    // ni local ni en la nube — ver TORQ_DESIGN.md, bug #1.
+    if (isDemo) {
+      appState.demoSession = false;
+      void clearDraft(sessionId);
+      showBanner('info', 'Terminado', 'Modo demo: no se guardó nada.', 1800);
+      navigate('home');
+      return;
+    }
+
+    showBanner('info', 'Terminado', 'Guardando sesión…', null);
     const record: SessionRecord = {
       id: sessionId,
       workoutId: workout.id,
@@ -477,7 +599,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     // en segundo plano: la sesión ya quedó guardada local, no hay que
     // esperar a la nube (ni bloquear si no hay internet) para navegar.
     if (appState.user) void pushSessionToCloud(record, appState.profile, appState.user.id);
-    navigate('summary');
+    navigate('session');
   }
 
   function stopPollLoop(): void {
@@ -511,10 +633,10 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   function paintBias(pct: number): void {
     const b = $('bias');
     b.textContent = `${pct}%`;
-    b.className = `num${pct < 100 ? ' down' : ''}`;
+    b.className = `live-intensity-value num${pct < 100 ? ' down' : ''}`;
     beeper.play('tick');
     intensityChanges.push({ t: lastElapsedS, pct });
-    if (engine.currentState === 'running') showStage('info', `Intensidad ${pct}%`, 'se guarda en el registro', 'ajuste manual', 1600);
+    if (engine.currentState === 'running') showBanner('info', `Intensidad ${pct}%`, 'se guarda en el registro', 1600);
   }
 
   let resistancePercent = 30;
@@ -522,7 +644,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   function paintResistance(): void {
     const b = $('bias');
     b.textContent = `R ${Math.round(resistancePercent)}%`;
-    b.className = 'num';
+    b.className = 'live-intensity-value num';
   }
 
   /** Con ERG activo, +/- ajustan la intensidad del objetivo en watts. Con
@@ -544,9 +666,21 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   $('bMinus').addEventListener('click', () => adjustIntensity(-5));
   $('bPlus').addEventListener('click', () => adjustIntensity(5));
 
-  $('btnErg').addEventListener('click', () => {
+  function closeMenu(): void {
+    $('menu').classList.remove('on');
+  }
+
+  $('menuBtn').addEventListener('click', () => $('menu').classList.toggle('on'));
+
+  function onDocClick(e: MouseEvent): void {
+    if (!$('menuWrap').contains(e.target as Node)) closeMenu();
+  }
+  document.addEventListener('click', onDocClick);
+
+  $('menuErg').addEventListener('click', () => {
+    closeMenu();
     ergEnabled = !ergEnabled;
-    $('btnErg').textContent = `ERG: ${ergEnabled ? 'ON' : 'OFF'}`;
+    $('menuErg').textContent = `ERG: ${ergEnabled ? 'activado' : 'desactivado'}`;
     if (ergEnabled) {
       // al reactivarlo, vuelve a mandar el objetivo actual de inmediato en
       // vez de esperar al próximo tick para que el rodillo enganche ya
@@ -557,20 +691,64 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       const pct = engine.intensityPct;
       const b = $('bias');
       b.textContent = `${pct}%`;
-      b.className = `num${pct < 100 ? ' down' : ''}`;
+      b.className = `live-intensity-value num${pct < 100 ? ' down' : ''}`;
     } else {
       // sin esto el rodillo se queda pegado al último objetivo en watts
       // para siempre — no basta con dejar de mandarle setTarget.
       trainer.setResistance(resistancePercent);
       paintResistance();
     }
-    showStage(
+    showBanner(
       'info',
       `ERG ${ergEnabled ? 'activado' : 'desactivado'}`,
       ergEnabled ? '' : `resistencia fija ${resistancePercent}% · ajusta con +/- (no verificado en hardware real)`,
-      '',
       2200,
     );
+  });
+
+  $('menuFtp').addEventListener('click', () => {
+    closeMenu();
+    const raw = window.prompt('Nuevo FTP (W):', String(appState.profile.ftp));
+    if (raw === null) return;
+    const v = Number(raw);
+    if (!Number.isFinite(v) || v <= 0) return;
+    appState.profile = { ...appState.profile, ftp: v };
+    appState.persistProfile();
+    engine.updateProfile(appState.profile);
+    $('menuFtp').textContent = `FTP: ${v} W`;
+    showBanner('info', 'FTP actualizado', `${v} W`, 1600);
+  });
+
+  $('menuRules').addEventListener('click', () => {
+    closeMenu();
+    $('rules').classList.toggle('on');
+  });
+
+  $('menuLimits').addEventListener('click', () => {
+    closeMenu();
+    $('limits').classList.toggle('on');
+  });
+
+  $('menuFinish').addEventListener('click', () => {
+    closeMenu();
+    if (engine.currentState === 'idle' || engine.currentState === 'finished') return;
+    if (!window.confirm('¿Terminar el entrenamiento y guardar la sesión?')) return;
+    finish();
+  });
+
+  $('menuDiscard').addEventListener('click', () => {
+    closeMenu();
+    if (engine.currentState === 'idle') {
+      navigate('home');
+      return;
+    }
+    if (!window.confirm('¿Salir sin guardar? Vas a perder todo el progreso de esta sesión.')) return;
+    sessionFinished = true; // evita que el cleanup del desmontaje autoguarde un draft
+    stopPollLoop();
+    stopAutoStartWatcher();
+    wakeLock.release();
+    void clearDraft(sessionId);
+    navigate('home');
   });
 
   function toggleRun(): void {
@@ -589,11 +767,6 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   }
 
   $('btnMain').addEventListener('click', toggleRun);
-
-  $('btnEnd').addEventListener('click', () => {
-    if (engine.currentState === 'idle' || engine.currentState === 'finished') return;
-    finish();
-  });
 
   /** Como en Rouvy: si pedaleas unos segundos antes de tocar nada, arranca
    * solo. Deja de vigilar en cuanto la sesión empieza (por acá o por el
@@ -636,7 +809,8 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   window.addEventListener('keydown', onKeydown);
   window.addEventListener('resize', draw);
 
-  paintIdle();
+  paintBlockHeader();
+  paintTimeline();
   draw();
 
   return () => {
@@ -648,12 +822,13 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     stopAutoStartWatcher();
     wakeLock.release();
     document.removeEventListener('visibilitychange', onVisibilityChange);
+    document.removeEventListener('click', onDocClick);
     window.removeEventListener('keydown', onKeydown);
     window.removeEventListener('resize', draw);
     unsubTrainerState();
-    unsubHrState();
+    unsubHrState?.();
     unsubTrainerReading();
-    unsubHrReading();
-    if (stageTimer) clearTimeout(stageTimer);
+    unsubHrReading?.();
+    if (bannerTimer) clearTimeout(bannerTimer);
   };
 }

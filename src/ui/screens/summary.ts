@@ -1,7 +1,8 @@
 import { computeSessionAnalytics } from '../../engine/analytics';
+import { buildPlan, targetWattsAt } from '../../engine/plan';
+import { powerZone } from '../../core/zones';
 import { encodeFitActivity } from '../../export/fit';
 import { uploadActivityFit } from '../../export/intervals-icu';
-import { renderNav } from '../nav';
 import { navigate } from '../router';
 import { appState } from '../state';
 import { saveSession } from '../../storage/session-store';
@@ -25,38 +26,32 @@ function fmt1(n: number): string {
   return n.toFixed(1);
 }
 
-function profileForSession(session: SessionRecord) {
-  return { ...appState.profile, ftp: session.ftp };
-}
-
-const ZONE_COLOR_VARS = ['--z1', '--z2', '--z3', '--z4', '--z5', '--z6'];
-
-function metricCard(label: string, value: string, sub?: string): string {
-  return `<div class="card"><div class="label">${label}</div><div class="row"><div class="v num" style="font-size:44px">${value}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div></div>`;
-}
-
-function zoneBars(zones: { zone: number; seconds: number }[]): string {
-  const total = zones.reduce((a, z) => a + z.seconds, 0) || 1;
-  return zones
-    .map((z) => {
-      const pct = Math.round((z.seconds / total) * 100);
-      return `
-        <div class="toggle-row">
-          <span>Z${z.zone}</span>
-          <div style="flex:1;margin:0 12px;background:#1b2027;border-radius:4px;overflow:hidden;height:18px">
-            <div style="width:${pct}%;height:100%;background:var(${ZONE_COLOR_VARS[z.zone - 1] ?? '--z1'})"></div>
-          </div>
-          <span class="meta">${fmt(z.seconds)} · ${pct}%</span>
-        </div>`;
-    })
-    .join('');
-}
-
 function fmt(totalS: number): string {
   const s = Math.max(0, Math.round(totalS));
   const m = Math.floor(s / 60);
   const r = s % 60;
   return `${m}:${r < 10 ? '0' : ''}${r}`;
+}
+
+function profileForSession(session: SessionRecord) {
+  return { ...appState.profile, ftp: session.ftp };
+}
+
+/** Fecha local en español (es-MX) — nunca el formato estadounidense del
+ * navegador. Ver TORQ_DESIGN.md, bug de formato de fecha. */
+function fmtDateEsMx(iso: string): string {
+  const d = new Date(iso);
+  const weekday = d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+  const time = d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} · ${time}`;
+}
+
+function zoneBars(zones: { zone: number; seconds: number }[]): string {
+  const total = zones.reduce((a, z) => a + z.seconds, 0) || 1;
+  return `<div class="home-week-zonebar" style="height:12px">${zones
+    .filter((z) => z.seconds > 0)
+    .map((z) => `<div style="width:${(z.seconds / total) * 100}%;background:var(--z${z.zone})"></div>`)
+    .join('')}</div>`;
 }
 
 function downloadFit(): void {
@@ -74,9 +69,11 @@ function downloadFit(): void {
   URL.revokeObjectURL(url);
 }
 
-function drawSummaryGraph(canvas: HTMLCanvasElement): void {
-  const session = appState.lastSession;
-  if (!session || session.samples.length < 2) return;
+/** Dibuja potencia + pulso (nunca cadencia, ver TORQ_DESIGN.md) con los
+ * bloques planeados de fondo en color de zona — solo si el workout original
+ * sigue en la biblioteca (una sesión importada de Strava/.fit no tiene uno). */
+function drawSummaryGraph(canvas: HTMLCanvasElement, session: SessionRecord): void {
+  if (session.samples.length < 2) return;
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
   canvas.width = rect.width * dpr;
@@ -89,7 +86,21 @@ function drawSummaryGraph(canvas: HTMLCanvasElement): void {
   const pad = 10;
   const total = session.samples[session.samples.length - 1].t || 1;
   const X = (t: number) => pad + (t / total) * (w - 2 * pad);
-  const line = (key: 'power' | 'cadence' | 'hr', min: number, max: number, color: string) => {
+  g.clearRect(0, 0, w, h);
+
+  const originalWorkout = appState.workouts.find((wo) => wo.id === session.workoutId);
+  if (originalWorkout) {
+    const plan = buildPlan(originalWorkout.intervals);
+    originalWorkout.intervals.forEach((iv, i) => {
+      const zone = powerZone(iv.power_pct);
+      g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(`--z${zone}`).trim();
+      g.globalAlpha = 0.22;
+      g.fillRect(X(plan.segStart[i]), pad, X(plan.segStart[i] + iv.duration_s) - X(plan.segStart[i]), h - 2 * pad);
+    });
+    g.globalAlpha = 1;
+  }
+
+  const line = (key: 'power' | 'hr', min: number, max: number, color: string) => {
     g.beginPath();
     g.strokeStyle = color;
     g.lineWidth = 2;
@@ -100,10 +111,57 @@ function drawSummaryGraph(canvas: HTMLCanvasElement): void {
     });
     g.stroke();
   };
-  g.clearRect(0, 0, w, h);
-  line('power', 0, session.ftp * 1.3, 'rgba(255,255,255,.5)');
-  line('cadence', 60, 110, '#4f9bd9');
-  line('hr', 80, 190, '#e5322d');
+  line('power', 0, session.ftp * 1.3, 'rgba(242,244,247,.9)');
+  line('hr', 80, 190, '#ff4d4d');
+
+  g.strokeStyle = 'rgba(242,244,247,.15)';
+  g.beginPath();
+  g.moveTo(pad, h - pad);
+  g.lineTo(w - pad, h - pad);
+  g.stroke();
+}
+
+function metricCard(label: string, value: string, sub: string): string {
+  return `<div class="panel summary-metric"><div class="live-col-label">${label}</div><div class="prepare-stat-num num">${value}</div><div class="summary-metric-sub">${sub}</div></div>`;
+}
+
+/** Plan contra real por bloque — solo si el workout original sigue en la
+ * biblioteca (útil para saber qué tan cerca del objetivo fue cada bloque). */
+function planVsRealHtml(session: SessionRecord): string {
+  const originalWorkout = appState.workouts.find((w) => w.id === session.workoutId);
+  if (!originalWorkout) return '<p class="hint">El workout original ya no está en tu biblioteca.</p>';
+  const plan = buildPlan(originalWorkout.intervals);
+  return originalWorkout.intervals
+    .map((iv, i) => {
+      const segStart = plan.segStart[i];
+      const segSamples = session.samples.filter((s) => s.t >= segStart && s.t < segStart + iv.duration_s);
+      if (segSamples.length === 0) return '';
+      const avgActual = segSamples.reduce((a, s) => a + s.power, 0) / segSamples.length;
+      const avgTarget =
+        segSamples.reduce((a, s) => a + targetWattsAt(plan, s.t, session.ftp, 1), 0) / segSamples.length;
+      const pct = avgTarget > 0 ? Math.round((avgActual / avgTarget) * 100) : 0;
+      const pctColor = pct >= 97 && pct <= 103 ? 'var(--success)' : pct >= 90 ? 'var(--z4)' : 'var(--danger-text)';
+      return `<div class="summary-block-row"><span>Bloque ${i + 1} — ${iv.name}</span><span>${Math.round(avgActual)} W · <span style="color:${pctColor}">${pct}%</span></span></div>`;
+    })
+    .join('');
+}
+
+function groupedAlertsHtml(session: SessionRecord): string {
+  if (session.alerts.length === 0) return '<p class="hint">Ninguna — todo dentro de los límites.</p>';
+  const counts = new Map<string, number>();
+  session.alerts.forEach((a) => counts.set(a.message, (counts.get(a.message) ?? 0) + 1));
+  const summaryRows = Array.from(counts.entries())
+    .map(([message, count]) => `<div class="summary-block-row"><span>${message}</span><span>${count} ${count === 1 ? 'vez' : 'veces'}</span></div>`)
+    .join('');
+  const detailRows = session.alerts
+    .map((a) => `<div class="summary-block-row"><span>${fmt(a.t)} · ${a.message}</span><span class="hint">${a.level}</span></div>`)
+    .join('');
+  return `${summaryRows}<div class="hint" style="margin:10px 0 4px">Detalle</div>${detailRows}`;
+}
+
+function intensityChangesHtml(session: SessionRecord): string {
+  if (session.intensityChanges.length === 0) return '<p class="hint">Ninguno — corriste al 100% todo el tiempo.</p>';
+  return session.intensityChanges.map((c) => `<div class="summary-block-row"><span>${fmt(c.t)}</span><span>${c.pct}%</span></div>`).join('');
 }
 
 export function renderSummary(container: HTMLElement): void {
@@ -112,131 +170,118 @@ export function renderSummary(container: HTMLElement): void {
   if (!session) {
     container.innerHTML = `
       <div class="screen">
-        ${renderNav('summary')}
         <h1>Resumen</h1>
-        <p class="hint">Todavía no hay ninguna sesión grabada en esta pestaña.</p>
+        <p class="hint">Todavía no hay ninguna sesión para mostrar.</p>
         <button id="go-home">Ir a Inicio</button>
       </div>`;
     container.querySelector('#go-home')?.addEventListener('click', () => navigate('home'));
     return;
   }
 
-  const duration = session.samples.length;
   const analytics = computeSessionAnalytics(session.samples, profileForSession(session));
 
   container.innerHTML = `
-    <div class="screen">
-      ${renderNav('summary')}
-      <h1>${session.workoutName}</h1>
-      <p class="hint">${new Date(session.startedAt).toLocaleString()} · duración ${fmt(duration)}</p>
-
-      <div class="panel">
-        <div class="legend" style="position:static;display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px;font-size:13px">
-          <span><i style="background:rgba(255,255,255,.5);display:inline-block;width:18px;height:3px;margin-right:6px"></i>Potencia avg <b class="num">${Math.round(analytics.avgPower)}</b> · máx <b class="num">${Math.round(analytics.maxPower)}</b> W</span>
-          <span><i style="background:#4f9bd9;display:inline-block;width:18px;height:3px;margin-right:6px"></i>Cadencia avg <b class="num">${Math.round(analytics.avgCadence)}</b> · máx <b class="num">${Math.round(analytics.maxCadence)}</b> rpm</span>
-          <span><i style="background:#e5322d;display:inline-block;width:18px;height:3px;margin-right:6px"></i>Pulso avg <b class="num">${Math.round(analytics.avgHr)}</b> · máx <b class="num">${Math.round(analytics.maxHr)}</b> lpm</span>
+    <div class="screen summary-screen">
+      <div class="summary-head">
+        <div>
+          <div class="hint">${fmtDateEsMx(session.startedAt)}</div>
+          <h1 style="margin:4px 0 0">${session.workoutName}, completo</h1>
         </div>
-        <canvas id="g" style="width:100%;height:160px;display:block"></canvas>
+        <div class="row-actions" style="margin:0">
+          ${isStravaConfigured() ? '<button class="btn-light" id="strava-upload">Subir a Strava</button>' : ''}
+          <button id="download-fit">Descargar .fit</button>
+        </div>
+      </div>
+      ${isStravaConfigured() ? '<div id="strava-upload-result"></div>' : ''}
+
+      <div class="panel summary-rpe-card">
+        <div class="perfil-h2" style="font-size:22px">¿Qué tan duro se sintió?</div>
+        <div class="summary-rpe-scale" id="rpe-scale">
+          ${Array.from({ length: 10 }, (_, i) => i + 1)
+            .map((v) => `<button class="summary-rpe-btn${session.rpe === v ? ' on' : ''}" data-rpe="${v}" title="${RPE_LABELS[v]}">${v}</button>`)
+            .join('')}
+        </div>
+        <input id="session-note" placeholder="Notas para ti o tu coach" value="${session.note ?? ''}">
       </div>
 
-      <h2>Métricas</h2>
-      <div class="nums" style="grid-template-columns:repeat(6,1fr)">
-        ${metricCard('Potencia normalizada', `${Math.round(analytics.normalizedPower)}`, 'W')}
-        ${metricCard('Intensity Factor', analytics.intensityFactor !== null ? fmt1(analytics.intensityFactor) : '—')}
-        ${metricCard('TSS', analytics.trainingStressScore !== null ? String(Math.round(analytics.trainingStressScore)) : '—')}
-        ${metricCard('Variability Index', fmt1(analytics.variabilityIndex))}
-        ${metricCard('Efficiency Factor', analytics.efficiencyFactor !== null ? fmt1(analytics.efficiencyFactor) : '—')}
-        ${metricCard('Desacople Pw:HR', analytics.hrDriftPct !== null ? `${analytics.hrDriftPct > 0 ? '+' : ''}${fmt1(analytics.hrDriftPct)}%` : '—')}
-      </div>
-      <p class="hint">Desacople Pw:HR: compara potencia/pulso entre la 1ª y 2ª mitad de la rodada. Menor a 5% suele indicar buena base aeróbica; solo aplica a sesiones largas y parejas (10+ min). Requiere pulso en ambas mitades.</p>
-
-      <h2>Curva de potencia</h2>
       <div class="panel">
-        ${
-          analytics.powerCurve.length
-            ? `<div class="row-actions">${analytics.powerCurve.map((p) => `<div class="card" style="min-width:90px"><div class="label">${p.windowS < 60 ? `${p.windowS}s` : `${p.windowS / 60}min`}</div><div class="v num" style="font-size:32px">${p.watts}<span style="font-size:16px;color:var(--muted)"> W</span></div></div>`).join('')}</div>`
-            : '<p class="hint">Sesión muy corta para calcular la curva de potencia.</p>'
-        }
-      </div>
-
-      <h2>Tiempo en zona</h2>
-      <div class="panel">
-        <div class="label" style="margin-bottom:6px">Potencia</div>
-        ${zoneBars(analytics.powerZoneSeconds)}
+        <div class="legend" style="position:static;display:flex;gap:20px;flex-wrap:wrap;margin-bottom:8px;font-size:13px">
+          <span><i style="background:rgba(242,244,247,.9);display:inline-block;width:18px;height:3px;margin-right:6px"></i>Potencia avg <b class="num">${Math.round(analytics.avgPower)}</b> · máx <b class="num">${Math.round(analytics.maxPower)}</b> W</span>
+          <span><i style="background:var(--z2);display:inline-block;width:18px;height:3px;margin-right:6px"></i>Cadencia avg <b class="num">${Math.round(analytics.avgCadence)}</b> · máx <b class="num">${Math.round(analytics.maxCadence)}</b> rpm</span>
+          <span><i style="background:#ff4d4d;display:inline-block;width:18px;height:3px;margin-right:6px"></i>Pulso avg <b class="num">${Math.round(analytics.avgHr)}</b> · máx <b class="num">${Math.round(analytics.maxHr)}</b> lpm</span>
+        </div>
+        <canvas id="g" style="width:100%;height:220px;display:block"></canvas>
+        <div class="hint" style="margin-top:4px">Fondo: bloques planeados</div>
+        <div style="margin-top:14px">
+          <div class="live-col-label" style="margin-bottom:6px">Tiempo por zona — Potencia</div>
+          ${zoneBars(analytics.powerZoneSeconds)}
+        </div>
         ${
           analytics.hrZoneSeconds.length
-            ? `<div class="label" style="margin:14px 0 6px">Pulso</div>${zoneBars(analytics.hrZoneSeconds)}`
+            ? `<div style="margin-top:14px">
+                <div class="live-col-label" style="margin-bottom:6px">Tiempo por zona — Pulso</div>
+                ${zoneBars(analytics.hrZoneSeconds)}
+              </div>`
             : ''
         }
       </div>
 
-      <h2>Alertas disparadas (${session.alerts.length})</h2>
+      <div class="summary-metrics-grid">
+        ${metricCard('Potencia normalizada', `${Math.round(analytics.normalizedPower)} W`, '')}
+        ${metricCard('Carga (TSS)', analytics.trainingStressScore !== null ? String(Math.round(analytics.trainingStressScore)) : '—', '')}
+        ${metricCard('Intensidad (IF)', analytics.intensityFactor !== null ? fmt1(analytics.intensityFactor) : '—', 'de tu FTP')}
+        ${metricCard('Variability Index', fmt1(analytics.variabilityIndex), '')}
+        ${metricCard('Efficiency Factor', analytics.efficiencyFactor !== null ? analytics.efficiencyFactor.toFixed(2) : '—', '')}
+        ${metricCard(
+          'Desacople',
+          analytics.hrDriftPct !== null ? `${analytics.hrDriftPct > 0 ? '+' : ''}${fmt1(analytics.hrDriftPct)}%` : '—',
+          analytics.hrDriftPct !== null && analytics.hrDriftPct < 5 ? 'Buena base aeróbica' : '',
+        )}
+      </div>
+
       <div class="panel">
+        <div class="perfil-h2" style="font-size:22px;margin-bottom:10px">Curva de potencia</div>
         ${
-          session.alerts.length
-            ? `<div class="list">${session.alerts
-                .map((a) => `<div class="list-item"><span>${fmt(a.t)} · ${a.message}</span><span class="meta">${a.level}</span></div>`)
+          analytics.powerCurve.length
+            ? `<div class="row-actions" style="margin:0">${analytics.powerCurve
+                .map(
+                  (p) =>
+                    `<div class="panel summary-metric" style="min-width:90px"><div class="live-col-label">${p.windowS < 60 ? `${p.windowS}s` : `${p.windowS / 60}min`}</div><div class="prepare-stat-num num" style="font-size:28px">${p.watts}<span style="font-size:14px;color:var(--text-muted)"> W</span></div></div>`,
+                )
                 .join('')}</div>`
-            : '<p class="hint">Ninguna — todo dentro de los límites.</p>'
+            : '<p class="hint">Sesión muy corta para calcular la curva de potencia.</p>'
         }
       </div>
 
-      <h2>Ajustes de intensidad (${session.intensityChanges.length})</h2>
       <div class="panel">
+        <div class="perfil-h2" style="font-size:22px;margin-bottom:10px">Plan contra real</div>
+        ${planVsRealHtml(session)}
+      </div>
+
+      <div class="panel" style="margin-top:16px">
+        <div class="perfil-h2" style="font-size:22px;margin-bottom:10px">Avisos (${session.alerts.length})</div>
+        ${groupedAlertsHtml(session)}
+      </div>
+
+      <div class="panel" style="margin-top:16px">
+        <div class="perfil-h2" style="font-size:22px;margin-bottom:10px">Ajustes de intensidad (${session.intensityChanges.length})</div>
+        ${intensityChangesHtml(session)}
+      </div>
+
+      <div class="panel" style="margin-top:16px">
+        <div class="perfil-h2" style="font-size:22px;margin-bottom:10px">Subir a intervals.icu</div>
         ${
-          session.intensityChanges.length
-            ? `<div class="list">${session.intensityChanges.map((c) => `<div class="list-item"><span>${fmt(c.t)}</span><span class="meta">${c.pct}%</span></div>`).join('')}</div>`
-            : '<p class="hint">Ninguno — corriste al 100% todo el tiempo.</p>'
+          appState.settings.intervalsIcu
+            ? `<div class="row-actions"><button id="icu-upload">Subir</button></div><div id="icu-result"></div>`
+            : `<p class="hint">Conecta tu Athlete ID y API key en <a href="#/profile">Perfil</a> primero.</p>`
         }
-      </div>
-
-      <h2>¿Cómo te sentiste?</h2>
-      <div class="panel">
-        <div class="grid-form">
-          <label>RPE (esfuerzo percibido)
-            <select id="rpe-select">
-              <option value="">—</option>
-              ${Array.from({ length: 10 }, (_, i) => i + 1)
-                .map((v) => `<option value="${v}" ${session.rpe === v ? 'selected' : ''}>${v} — ${RPE_LABELS[v]}</option>`)
-                .join('')}
-            </select>
-          </label>
-        </div>
-        <label style="display:block;margin-top:10px">Notas<textarea id="session-note" rows="3" style="width:100%" placeholder="¿Cómo lo sentiste? ¿Algo que el coach debería saber?">${session.note ?? ''}</textarea></label>
-        <div class="row-actions" style="margin-top:10px"><button id="save-feedback">Guardar</button></div>
-        <div id="feedback-result"></div>
-      </div>
-
-      <h2>Exportar</h2>
-      <div class="panel">
-        <div class="row-actions">
-          <button class="primary" id="download-fit">Descargar .fit</button>
-          ${isStravaConfigured() ? '<button id="strava-upload">Subir a Strava</button>' : ''}
-        </div>
-        ${isStravaConfigured() ? '<div id="strava-upload-result"></div>' : ''}
-        <div class="callout" style="margin-top:14px">
-          Subida a intervals.icu: mecanismo sin verificar contra la API real (necesita tu Athlete ID y API key).
-        </div>
-        <div class="grid-form" style="margin-top:10px">
-          <label>Athlete ID<input id="icu-athlete" value="${appState.settings.intervalsIcu?.athleteId ?? ''}" placeholder="i12345"></label>
-          <label>API key<input id="icu-key" type="password" value="${appState.settings.intervalsIcu?.apiKey ?? ''}"></label>
-        </div>
-        <div class="row-actions">
-          <button id="icu-upload">Subir a intervals.icu</button>
-        </div>
-        <div id="icu-result"></div>
-      </div>
-
-      <div class="row-actions" style="margin-top:20px">
-        <button id="go-home">Volver a Inicio</button>
       </div>
     </div>
   `;
 
-  drawSummaryGraph(container.querySelector('#g')!);
+  drawSummaryGraph(container.querySelector('#g')!, session);
 
   container.querySelector('#download-fit')?.addEventListener('click', downloadFit);
-  container.querySelector('#go-home')?.addEventListener('click', () => navigate('home'));
 
   const stravaResultEl = container.querySelector<HTMLElement>('#strava-upload-result');
   container.querySelector('#strava-upload')?.addEventListener('click', async () => {
@@ -250,34 +295,34 @@ export function renderSummary(container: HTMLElement): void {
     }
   });
 
-  const feedbackResult = container.querySelector<HTMLElement>('#feedback-result')!;
-  container.querySelector('#save-feedback')?.addEventListener('click', async () => {
-    const rpeRaw = container.querySelector<HTMLSelectElement>('#rpe-select')!.value;
-    const note = container.querySelector<HTMLTextAreaElement>('#session-note')!.value.trim();
-    session.rpe = rpeRaw ? Number(rpeRaw) : undefined;
-    session.note = note || undefined;
-    await saveSession(session);
+  async function saveFeedback(): Promise<void> {
+    const note = container.querySelector<HTMLInputElement>('#session-note')!.value.trim();
+    session!.note = note || undefined;
+    await saveSession(session!);
     appState.lastSession = session;
-    feedbackResult.innerHTML = '<p class="hint">Guardado.</p>';
-  });
+  }
 
-  const resultEl = container.querySelector<HTMLElement>('#icu-result')!;
+  container.querySelectorAll<HTMLButtonElement>('[data-rpe]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      session.rpe = Number(btn.dataset.rpe);
+      container.querySelectorAll('[data-rpe]').forEach((b) => b.classList.remove('on'));
+      btn.classList.add('on');
+      await saveFeedback();
+    });
+  });
+  container.querySelector('#session-note')?.addEventListener('change', saveFeedback);
+
+  const icuResultEl = container.querySelector<HTMLElement>('#icu-result');
   container.querySelector('#icu-upload')?.addEventListener('click', async () => {
-    const athleteId = container.querySelector<HTMLInputElement>('#icu-athlete')!.value.trim();
-    const apiKey = container.querySelector<HTMLInputElement>('#icu-key')!.value.trim();
-    if (!athleteId || !apiKey) {
-      resultEl.innerHTML = '<div class="error-box">Falta Athlete ID o API key.</div>';
-      return;
-    }
-    appState.settings = { ...appState.settings, intervalsIcu: { athleteId, apiKey } };
-    appState.persistSettings();
-    resultEl.innerHTML = '<p class="hint">Subiendo…</p>';
+    const creds = appState.settings.intervalsIcu;
+    if (!creds || !icuResultEl) return;
+    icuResultEl.innerHTML = '<p class="hint">Subiendo…</p>';
     try {
       const bytes = encodeFitActivity(new Date(session.startedAt), session.samples, profileForSession(session));
-      await uploadActivityFit({ athleteId, apiKey }, bytes, `${session.workoutName}.fit`);
-      resultEl.innerHTML = '<p class="hint">Subido. Revisa tu cuenta de intervals.icu para confirmar.</p>';
+      await uploadActivityFit(creds, bytes, `${session.workoutName}.fit`);
+      icuResultEl.innerHTML = '<p class="hint">Subido. Revisa tu cuenta de intervals.icu para confirmar.</p>';
     } catch (err) {
-      resultEl.innerHTML = `<div class="error-box">Falló la subida: ${err instanceof Error ? err.message : String(err)}</div>`;
+      icuResultEl.innerHTML = `<div class="error-box">Falló la subida: ${err instanceof Error ? err.message : String(err)}</div>`;
     }
   });
 }

@@ -1,20 +1,46 @@
 :root {
-  --bg: #000;
-  --panel: #0e1013;
-  --line: #232830;
-  --text: #dde1e6;
-  --muted: #7a838e;
-  --yellow: #ffd400;
-  --z1: #7c8a96;
-  --z2: #4f9bd9;
-  --z3: #58b368;
-  --z4: #e4b63c;
-  --z5: #ef7f3a;
-  --z6: #e14b4b;
-  --ok: #58b368;
-  --warn: #ffd400;
-  --bad: #e5322d;
-  --info: #4f9bd9;
+  /* TORQ_DESIGN.md — tokens tal cual el doc, fuente de verdad del rediseño. */
+  /* Superficies */
+  --bg: #000000;
+  --surface-nav: #0e0f12;
+  --surface: #15171b;
+  --surface-sunken: #0b0c0f;
+  --surface-active: #1a1d23;
+  --border: #1c1f25;
+  --border-control: #2f343d;
+
+  /* Texto */
+  --text: #f2f4f7;
+  --text-soft: #c5cad3;
+  --text-muted: #8b93a1;
+
+  /* Acento (acciones) */
+  --accent: #3d8bff;
+  --accent-light: #8fbfff;
+  --on-accent: #000000;
+
+  /* Estados */
+  --success: #22c58b;
+  --danger: #ff4d4d;
+  --danger-text: #ff6b6b;
+
+  /* Zonas de potencia */
+  --z1: #6b7280;
+  --z2: #3d8bff;
+  --z3: #22c58b;
+  --z4: #f5c518;
+  --z5: #ff8a3d;
+  --z6: #ff4d4d;
+
+  /* Tipografía */
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Archivo', sans-serif;
+
+  /* Radios */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
 }
 * {
   box-sizing: border-box;
@@ -26,46 +52,56 @@ body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: Barlow, system-ui, sans-serif;
+  font-family: var(--font-body);
 }
 #app {
   height: 100%;
 }
 .num {
-  font-family: 'Barlow Condensed', Barlow, sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 button {
   background: transparent;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border-control);
   color: var(--text);
   padding: 7px 14px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font: inherit;
+  font-family: var(--font-body);
   font-weight: 500;
   cursor: pointer;
 }
 button:hover {
-  border-color: var(--muted);
+  border-color: var(--text-muted);
 }
 button:focus-visible {
-  outline: 2px solid var(--z2);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 button.primary {
-  background: var(--z2);
-  border-color: var(--z2);
-  color: #06121c;
-  font-weight: 600;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 500;
+}
+/* "Botón claro" (ver TORQ_DESIGN.md, Componentes): para la acción principal
+   en pantallas donde el azul se confundiría con Z2 (Pausa, Subir a Strava,
+   Generar). */
+.btn-light {
+  background: var(--text);
+  border-color: var(--text);
+  color: #000;
+  font-weight: 500;
 }
 input,
 select {
-  background: #05070a;
-  border: 1px solid var(--line);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-control);
   color: var(--text);
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font: inherit;
 }
 label {
@@ -73,11 +109,131 @@ label {
   flex-direction: column;
   gap: 4px;
   font-size: 14px;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 a {
-  color: var(--z2);
+  color: var(--accent);
   text-decoration: none;
+}
+
+/* ---------- Barra lateral fija (ver TORQ_DESIGN.md, "Navegación") ---------- */
+.app-shell {
+  height: 100%;
+  display: flex;
+}
+.sidebar {
+  width: 248px;
+  flex-shrink: 0;
+  background: var(--surface-nav);
+  border-right: 1px solid var(--border);
+  padding: 32px 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.sidebar-brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 34px;
+  letter-spacing: 2px;
+  padding-left: 12px;
+}
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 15px;
+}
+.sidebar-link:hover {
+  color: var(--text);
+}
+.sidebar-link.active {
+  background: var(--surface-active);
+  color: var(--text);
+  font-weight: 500;
+}
+.sidebar-link svg {
+  flex-shrink: 0;
+}
+.sidebar-sensors {
+  margin-top: auto;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sidebar-sensors-title {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.sidebar-sensor-row {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text);
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+.sidebar-sensor-row:hover {
+  color: var(--accent-light);
+}
+.sidebar-sensor-state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.main-content {
+  flex-grow: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+/* ---------- WorkoutCover (ver TORQ_DESIGN.md, "Componente clave") ---------- */
+.workout-cover {
+  display: flex;
+  align-items: flex-end;
+  background: var(--surface-sunken);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.workout-cover-bar {
+  flex: 1;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+.workout-cover-lg {
+  height: 220px;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  gap: 5px;
+  padding: 28px 28px 0;
+}
+.workout-cover-md {
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  gap: 3px;
+  padding: 18px 14px 0;
+}
+.workout-cover-sm {
+  height: 44px;
+  border-radius: var(--radius-sm);
+  gap: 2px;
+  padding: 6px 6px 0;
 }
 
 /* ---- pantallas simples (inicio / conectar / resumen) ---- */
@@ -89,21 +245,147 @@ a {
   margin: 0 auto;
 }
 .screen h1 {
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 600;
   margin-bottom: 4px;
 }
 .screen h2 {
+  font-family: var(--font-display);
   font-size: 17px;
   font-weight: 600;
   color: var(--text);
   margin: 28px 0 12px;
 }
 .screen p.hint {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 14px;
   margin-bottom: 20px;
 }
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.back-link:hover {
+  color: var(--text);
+}
+
+/* ---------- Antes de empezar (ver TORQ_DESIGN.md) ---------- */
+.prepare {
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 40px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.prepare-grid {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 56px;
+}
+.prepare-left {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.prepare-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.prepare-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 60px;
+  line-height: 1;
+}
+.prepare-stats {
+  display: flex;
+  gap: 44px;
+}
+.prepare-stat-num {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 34px;
+}
+.prepare-link {
+  font-size: 14px;
+  color: var(--text-muted);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+}
+.prepare-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+.prepare-subtitle {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 32px;
+}
+.prepare-sensor {
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.prepare-sensor-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.prepare-sensor-name {
+  font-weight: 500;
+  font-size: 16px;
+}
+.prepare-sensor-status {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.prepare-sensor-reading {
+  display: flex;
+  gap: 28px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.prepare-start {
+  margin-top: 8px;
+  width: 100%;
+  height: 60px;
+  border: none;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: 500;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.prepare-start:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.prepare-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.prepare-demo-link {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  text-decoration: underline;
+}
+
 .nav {
   display: flex;
   align-items: center;
@@ -122,15 +404,15 @@ a {
   width: 30px;
   height: 30px;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  color: var(--muted);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
   text-decoration: none;
   margin-left: auto;
 }
 .nav-icon:hover,
 .nav-icon.active {
   color: var(--text);
-  border-color: var(--muted);
+  border-color: var(--text-muted);
 }
 
 /* ---------- Hero atmosférico (Login / Inicio) ---------- */
@@ -198,7 +480,8 @@ a {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-weight: 600;
   font-size: 15px;
   letter-spacing: 0.5px;
   justify-content: center;
@@ -296,8 +579,8 @@ a {
   z-index: 2;
 }
 .panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 16px 20px;
 }
@@ -321,13 +604,13 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--panel);
-  border: 1px solid var(--line);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px 14px;
 }
 .list-item .meta {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 13px;
 }
 .cal-grid {
@@ -337,8 +620,8 @@ a {
 }
 .cal-cell {
   min-height: 90px;
-  background: var(--panel);
-  border: 1px solid var(--line);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px;
   display: flex;
@@ -350,7 +633,7 @@ a {
   background: transparent;
   border: none;
   text-align: center;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 13px;
   padding: 0 0 4px;
 }
@@ -359,14 +642,14 @@ a {
   border: none;
 }
 .cal-cell.today {
-  border-color: var(--accent, #7e14ff);
+  border-color: var(--accent);
 }
 .cal-daynum {
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .cal-add {
   width: 18px;
@@ -374,23 +657,23 @@ a {
   line-height: 1;
   padding: 0;
   border-radius: 999px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   background: transparent;
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 13px;
   cursor: pointer;
 }
 .cal-add:hover {
   color: var(--text);
-  border-color: var(--muted);
+  border-color: var(--text-muted);
 }
 .cal-add-group {
   display: flex;
   gap: 3px;
 }
 .cal-add-done:hover {
-  color: var(--ok);
-  border-color: var(--ok);
+  color: var(--success);
+  border-color: var(--success);
 }
 .cal-chip-done {
   display: block;
@@ -410,11 +693,13 @@ a {
 .cal-chip {
   flex: 1;
   text-align: left;
+  font-family: var(--font-body);
   font-size: 11px;
+  font-weight: 500;
   padding: 3px 6px;
   border-radius: 6px;
-  border: 1px solid var(--line);
-  background: #14121c;
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -422,13 +707,14 @@ a {
   cursor: pointer;
 }
 .cal-chip-remove {
+  font-family: var(--font-body);
   font-size: 12px;
   line-height: 1;
   padding: 2px 5px;
   border-radius: 6px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   background: transparent;
-  color: var(--muted);
+  color: var(--text-muted);
   cursor: pointer;
 }
 .toggle-row {
@@ -436,7 +722,7 @@ a {
   align-items: center;
   justify-content: space-between;
   padding: 8px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--border);
 }
 .toggle-row:last-child {
   border-bottom: none;
@@ -445,23 +731,23 @@ a {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--muted);
+  background: var(--text-muted);
   display: inline-block;
   margin-right: 7px;
 }
 .status-dot.connected {
-  background: var(--ok);
+  background: var(--success);
 }
 .status-dot.error {
-  background: var(--bad);
+  background: var(--danger);
 }
 .status-dot.connecting,
 .status-dot.reconnecting {
-  background: var(--warn);
+  background: var(--z4);
 }
 .error-box {
   background: #2a1414;
-  border: 1px solid var(--bad);
+  border: 1px solid var(--danger);
   color: #ffb4b0;
   border-radius: 8px;
   padding: 10px 14px;
@@ -469,9 +755,9 @@ a {
   margin-top: 12px;
 }
 .callout {
-  background: #0e1013;
-  border: 1px dashed var(--line);
-  color: var(--muted);
+  background: var(--surface-sunken);
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
   border-radius: 8px;
   padding: 10px 14px;
   font-size: 13px;
@@ -479,7 +765,7 @@ a {
 }
 .callout-warn {
   background: #2a2110;
-  border: 1px solid var(--warn);
+  border: 1px solid var(--z4);
   color: #f0d090;
   border-radius: 8px;
   padding: 12px 16px;
@@ -489,7 +775,7 @@ a {
 }
 .recovery-banner {
   background: #2a2110;
-  border: 1px solid var(--warn);
+  border: 1px solid var(--z4);
   border-radius: 10px;
   padding: 14px 18px;
   margin-bottom: 20px;
@@ -498,147 +784,167 @@ a {
   margin: 0 0 10px;
 }
 
-/* ---- pantalla de entrenar ---- */
-.app {
+/* ---- Sesión en vivo (ver TORQ_DESIGN.md) ---- */
+.live {
   height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr 26vh auto;
-  gap: 10px;
-  padding: 12px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
 }
-.top {
+.live-zonestrip {
+  height: 8px;
+  flex-shrink: 0;
+}
+.live-topbar {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+  padding: 20px 32px 0;
+  flex-shrink: 0;
+}
+.live-zonepill {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
   font-size: 15px;
-  color: var(--muted);
+  font-weight: 500;
+  color: #1a1226;
 }
-.top .title {
-  color: var(--text);
-  font-weight: 600;
-  font-size: 17px;
+.live-blockinfo {
+  font-size: 16px;
+  color: var(--text-muted);
 }
-.sensor {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.top .clock {
+.live-topbar-right {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.live-clock {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 26px;
+  color: var(--text-muted);
+  margin-right: 8px;
+}
+.live-intensity {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border-radius: 26px;
+  height: 52px;
+}
+.live-intensity button {
+  width: 52px;
+  height: 52px;
+  background: none;
+  border: none;
+  color: var(--text);
   font-size: 22px;
-  color: var(--text);
+  border-radius: 26px;
+  padding: 0;
 }
-.top .clock span {
-  color: var(--muted);
-  font-size: 15px;
-}
-.bias {
-  gap: 4px;
-}
-.bias b {
-  color: var(--text);
-  font-size: 20px;
-  min-width: 52px;
+.live-intensity .live-intensity-value {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  width: 56px;
   text-align: center;
 }
-.bias button {
-  padding: 3px 10px;
-  font-size: 18px;
-  line-height: 1;
+.live-intensity .live-intensity-value.down {
+  color: var(--z4);
 }
-.bias b.down {
-  color: var(--warn);
+.live-pause-btn {
+  height: 52px;
+  padding: 0 26px;
+  border-radius: 26px;
+  background: var(--text);
+  border: none;
+  color: #000;
+  font-weight: 500;
+  font-size: 16px;
+}
+.live-menu-wrap {
+  position: relative;
+}
+.live-menu-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: none;
+  color: var(--text);
+  font-size: 22px;
+}
+.live-menu {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  min-width: 240px;
+  padding: 8px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  z-index: 20;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+}
+.live-menu.on {
+  display: flex;
+}
+.live-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  cursor: pointer;
+}
+.live-menu-item:hover {
+  background: var(--surface-active);
+  border-color: transparent;
+}
+.live-menu-item.danger {
+  color: var(--danger-text);
+}
+.live-menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 4px;
 }
 
-.stage {
-  border-radius: 10px;
-  background: var(--panel);
-  display: flex;
+/* Mensajes centrados en pantalla (bloque nuevo, comentarios, alertas) — el
+ * usuario prefiere esto sobre un banner delgado arriba, como en la versión
+ * anterior. Cubre el área de números (.live-center) mientras está activo. */
+.live-message-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
+  gap: 12px;
   padding: 20px 40px;
-  min-height: 0;
-  transition: background 0.3s;
-  position: relative;
+  display: none;
+  z-index: 5;
+  animation: shake 0.4s;
 }
-.stage .headline {
-  font-size: clamp(48px, 8vw, 120px);
-  line-height: 1;
+.live-message-overlay.on {
+  display: flex;
+}
+.live-message-title {
+  font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: clamp(40px, 7vw, 96px);
+  line-height: 1;
 }
-.stage .detail {
-  font-size: clamp(20px, 2.6vw, 34px);
-  color: var(--muted);
-  margin-top: 16px;
-  font-weight: 500;
-}
-.stage .why {
-  position: absolute;
-  bottom: 14px;
-  right: 20px;
-  font-size: 13px;
-  color: var(--muted);
-  opacity: 0.8;
-}
-.stage.idle .headline {
-  color: var(--muted);
-}
-.stage.idle .detail {
-  color: #4e565f;
-}
-.stage.info {
-  background: #000;
-}
-.stage.info .headline {
-  color: var(--info);
-}
-.stage.info .detail {
-  color: var(--text);
-}
-.stage.warn {
-  background: #000;
-}
-.stage.warn .headline {
-  color: var(--yellow);
-  font-size: clamp(64px, 10vw, 150px);
-}
-.stage.warn .detail {
-  color: var(--text);
-}
-.stage.go {
-  background: var(--yellow);
-}
-.stage.go .headline,
-.stage.go .detail,
-.stage.go .why {
-  color: #000;
-}
-.stage.bad {
-  background: var(--bad);
-}
-.stage.bad .headline,
-.stage.bad .detail,
-.stage.bad .why {
-  color: #fff;
-}
-.stage.warn,
-.stage.bad,
-.stage.go {
-  animation: shake 0.5s;
-}
-.stage.pause {
-  background: #000;
-  outline: 2px dashed var(--line);
-  outline-offset: -8px;
-}
-.stage.pause .headline {
-  color: var(--text);
-}
-.stage.pause .detail {
-  color: var(--muted);
+.live-message-detail {
+  font-size: clamp(18px, 2.2vw, 28px);
 }
 @keyframes shake {
   0%,
@@ -654,96 +960,203 @@ a {
     transform: translateX(6px);
   }
 }
-
-.graph {
-  background: var(--panel);
-  border-radius: 10px;
-  position: relative;
+.live-message-adjust {
+  background: var(--z4);
+  color: #211700;
 }
-.graph canvas {
+.live-message-adjust .live-message-detail {
+  color: #4a3c00;
+}
+.live-message-danger {
+  background: var(--danger);
+  color: #2a0000;
+}
+.live-message-info {
+  background: var(--bg);
+  color: var(--text);
+}
+.live-message-info .live-message-detail {
+  color: var(--text-muted);
+}
+.live-message-pause {
+  background: var(--bg);
+  color: var(--text);
+  outline: 2px dashed var(--border);
+  outline-offset: -8px;
+}
+.live-message-pause .live-message-detail {
+  color: var(--text-muted);
+}
+
+.live-graph {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  margin: 0 56px;
+  padding: 12px 16px;
+  position: relative;
+  height: 140px;
+  flex-shrink: 0;
+}
+.live-graph-legend {
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  z-index: 1;
+}
+.live-graph-legend i {
+  display: inline-block;
+  width: 16px;
+  height: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.live-graph canvas {
   display: block;
   width: 100%;
   height: 100%;
 }
-.graph .legend {
-  position: absolute;
-  top: 8px;
-  left: 14px;
-  font-size: 13px;
-  color: var(--muted);
-  display: flex;
-  gap: 16px;
-}
-.legend i {
-  display: inline-block;
-  width: 18px;
-  height: 3px;
-  vertical-align: middle;
-  margin-right: 6px;
-}
 
-.nums {
+.live-center {
+  position: relative;
+  flex-grow: 1;
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
-  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  padding: 0 56px;
+  min-height: 0;
 }
-.card {
-  background: var(--panel);
-  border-radius: 10px;
-  padding: 12px 20px 10px;
+.live-col-label {
+  font-size: 16px;
+  color: var(--text-muted);
+}
+.live-power-col {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 10px;
 }
-.card .label {
-  font-size: 15px;
-  color: var(--muted);
-}
-.card .row {
+.live-power-row {
   display: flex;
   align-items: baseline;
-  gap: 14px;
+  gap: 24px;
 }
-.card .v {
-  font-size: clamp(64px, 7.5vw, 108px);
-  line-height: 0.95;
-  transition: color 0.3s;
-}
-.card .sub {
-  font-size: 18px;
-  color: var(--muted);
-}
-.card .sub b {
-  color: var(--text);
+.live-power-num {
+  font-family: var(--font-display);
   font-weight: 600;
+  font-size: clamp(96px, 16vw, 230px);
+  line-height: 0.8;
+  letter-spacing: -4px;
 }
-.zone {
-  font-size: 15px;
-  padding: 2px 9px;
-  border-radius: 4px;
-  color: #10181f;
+.live-power-num.empty {
+  font-size: 40px;
+  letter-spacing: normal;
+}
+.live-target-wrap {
+  display: flex;
+  flex-direction: column;
+}
+.live-target-num {
+  font-family: var(--font-display);
   font-weight: 600;
-  align-self: center;
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1;
 }
-.erg {
-  font-size: 12px;
-  padding: 2px 7px;
-  border-radius: 4px;
-  background: #1b2027;
-  color: var(--muted);
-  align-self: center;
-}
-.card.iv .v {
-  font-size: clamp(44px, 5vw, 72px);
-}
-.card.iv .next {
+.live-target-label {
   font-size: 15px;
-  color: var(--muted);
-  margin-top: 4px;
+  color: var(--text-muted);
 }
-.card.iv .next b {
+.live-power-rangebar {
+  width: min(440px, 100%);
+  height: 12px;
+  background: var(--surface);
+  border-radius: 6px;
+  position: relative;
+  margin-top: 14px;
+}
+.live-power-rangebar .band {
+  position: absolute;
+  height: 100%;
+  border-radius: 6px;
+}
+.live-power-rangebar .marker {
+  position: absolute;
+  top: -6px;
+  width: 6px;
+  height: 24px;
+  border-radius: 3px;
+}
+.live-block-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+  text-align: right;
+}
+.live-timeleft-num {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(80px, 13vw, 190px);
+  line-height: 0.8;
+  letter-spacing: -3px;
+}
+.live-timeleft-num.empty {
+  font-size: 40px;
+  letter-spacing: normal;
+}
+.live-next {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+.live-next b {
   color: var(--text);
   font-weight: 500;
+}
+
+.live-bottom-row {
+  display: flex;
+  gap: 72px;
+  padding: 0 56px 22px;
+  flex-shrink: 0;
+}
+.live-metric-label {
+  font-size: 15px;
+  color: var(--text-muted);
+}
+.live-metric-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.live-metric-num {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 84px;
+  line-height: 1;
+}
+.live-metric-num.empty {
+  font-size: 32px;
+}
+.live-metric-sub {
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.live-timeline {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 96px;
+  padding: 0 56px 24px;
+  flex-shrink: 0;
+}
+.live-timeline-bar {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
 }
 
 .count {
@@ -752,7 +1165,7 @@ a {
   display: none;
   align-items: center;
   justify-content: center;
-  background: #000;
+  background: var(--bg);
   overflow: hidden;
 }
 .count.on {
@@ -763,7 +1176,7 @@ a {
   width: min(70vh, 70vw);
   height: min(70vh, 70vw);
   border-radius: 50%;
-  border: 8px solid var(--yellow);
+  border: 8px solid var(--z4);
   opacity: 0;
 }
 .count .ring.go {
@@ -782,7 +1195,7 @@ a {
 .count .n {
   font-size: min(62vh, 52vw);
   line-height: 1;
-  color: var(--yellow);
+  color: var(--z4);
 }
 .count .n.go {
   animation: pop 1s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -804,12 +1217,13 @@ a {
 .count .what {
   position: absolute;
   bottom: 12vh;
+  font-family: var(--font-display);
   font-size: clamp(24px, 3.5vw, 44px);
-  color: var(--muted);
+  color: var(--text-muted);
   text-align: center;
 }
 .count .what b {
-  color: var(--yellow);
+  color: var(--z4);
   display: block;
   font-size: 1.3em;
   margin-top: 6px;
@@ -820,12 +1234,12 @@ a {
   right: 18px;
   top: 60px;
   width: 300px;
-  background: #0e1013;
-  border: 1px solid var(--line);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px 14px;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--text-muted);
   line-height: 1.5;
   display: none;
   z-index: 5;
@@ -834,6 +1248,7 @@ a {
   display: block;
 }
 .rules h4 {
+  font-family: var(--font-display);
   color: var(--text);
   font-weight: 600;
   margin-bottom: 4px;
@@ -843,6 +1258,715 @@ a {
 #limits.rules {
   width: 360px;
   right: 330px;
+}
+
+/* ---------- Interruptor (ver TORQ_DESIGN.md, "Componentes") ---------- */
+.switch {
+  position: relative;
+  width: 44px;
+  height: 25px;
+  min-width: 44px;
+  border-radius: 13px;
+  border: none;
+  background: var(--border-control);
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: left 0.15s ease;
+}
+.switch.on {
+  background: var(--accent);
+}
+.switch.on::after {
+  left: 22px;
+}
+
+/* ---------- Perfil (ver TORQ_DESIGN.md) ---------- */
+.perfil-screen {
+  max-width: 1100px;
+}
+.perfil-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 28px;
+}
+.perfil-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.perfil-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 24px;
+  align-items: start;
+}
+.perfil-col-main,
+.perfil-col-side {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.perfil-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.perfil-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 26px;
+}
+.perfil-numbers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.perfil-numfield {
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.perfil-numfield-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.perfil-numinput {
+  width: 110px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 52px;
+}
+.perfil-numfield-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.perfil-zones {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+.perfil-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.perfil-zone-bar {
+  height: 8px;
+  border-radius: 4px;
+}
+.perfil-zone-name {
+  font-size: 12px;
+  font-weight: 500;
+}
+.perfil-alert-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.perfil-alert-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.perfil-alert-copy {
+  flex-grow: 1;
+  font-size: 15px;
+}
+.perfil-alert-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.perfil-alert-value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.perfil-alert-input {
+  width: 64px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text);
+  font-size: 28px;
+  text-align: right;
+}
+.perfil-alert-value-off {
+  color: #5a6272;
+}
+.perfil-volume {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.perfil-volume input {
+  flex-grow: 1;
+  accent-color: var(--accent);
+}
+.perfil-illustration-toggle {
+  display: flex;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  gap: 4px;
+}
+.perfil-illustration-toggle button {
+  flex: 1;
+  border: none;
+  border-radius: 9px;
+  color: var(--text-muted);
+}
+.perfil-illustration-toggle button.on {
+  background: var(--surface-active);
+  color: var(--text);
+}
+.perfil-account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 15px;
+}
+.perfil-danger-link {
+  border: none;
+  background: none;
+  color: var(--danger-text);
+  padding: 0;
+  text-align: left;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* ---------- Inicio (ver TORQ_DESIGN.md) ---------- */
+.home-screen {
+  max-width: 1200px;
+}
+.home-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+.home-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+.home-hero-card {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+.home-hero-empty {
+  padding: 24px 28px;
+  gap: 8px;
+}
+.home-hero-body {
+  padding: 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.home-hero-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 38px;
+  line-height: 1.05;
+}
+.home-play-btn {
+  width: 72px;
+  height: 72px;
+  min-width: 72px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+.home-week-card {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.home-week-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.home-week-nums {
+  display: flex;
+  gap: 28px;
+}
+.home-week-zonebar {
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  gap: 2px;
+  background: var(--surface-sunken);
+}
+.home-week-days {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 90px;
+  margin-top: auto;
+}
+.home-week-day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.home-week-daybar {
+  width: 100%;
+  border-radius: 4px;
+}
+.home-week-daylabel {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.home-fortu {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.home-fortu-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.home-fortu-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.home-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.home-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.home-fortu-link {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: 12px;
+}
+.home-fortu-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 20px;
+}
+.home-fortu-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: none;
+  border: none;
+  text-align: left;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+.home-fortu-name {
+  font-weight: 500;
+  font-size: 15px;
+}
+
+/* ---------- Límites por bloque (ver TORQ_DESIGN.md, sección Plan) ---------- */
+.limits-head {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.limits-head .workout-cover-sm {
+  width: 140px;
+  flex-shrink: 0;
+}
+.limits-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.limits-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.limits-apply-btn {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.limits-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.limits-fields input {
+  width: 100%;
+}
+
+/* ---------- Plan (ver TORQ_DESIGN.md) ---------- */
+.plan-screen {
+  max-width: 1200px;
+}
+.plan-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.plan-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.plan-day {
+  min-height: 170px;
+  box-sizing: border-box;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-nav);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.plan-day.today {
+  border: 1.5px solid var(--text);
+}
+.plan-day.done {
+  opacity: 0.7;
+}
+.plan-day-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+.plan-day-today-label {
+  color: var(--text);
+  font-weight: 500;
+}
+.plan-day-cover {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.plan-day-cover .workout-cover {
+  height: 56px;
+}
+.plan-day-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+.plan-day-add {
+  margin-top: auto;
+  height: 36px;
+  background: none;
+  border: 1px dashed var(--border-control);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+.plan-day-actions {
+  margin-top: auto;
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+.plan-day-mini-add {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 12px;
+  border-radius: 999px;
+  color: var(--text-muted);
+}
+.plan-totals {
+  display: flex;
+  gap: 32px;
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+.plan-totals b {
+  color: var(--text);
+  font-weight: 600;
+}
+.plan-bottom {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+}
+.plan-library {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.plan-library-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.plan-import-link {
+  background: none;
+  border: none;
+  color: var(--accent-light);
+  font-size: 14px;
+  cursor: pointer;
+}
+.plan-lib-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.plan-lib-row .workout-cover {
+  width: 96px;
+  height: 44px;
+  flex-shrink: 0;
+}
+.plan-lib-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+.plan-lib-date {
+  width: 140px;
+}
+.plan-lib-train {
+  white-space: nowrap;
+}
+.plan-lib-menu-wrap {
+  position: relative;
+}
+.plan-lib-menu-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+}
+.plan-generate {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-self: start;
+}
+.plan-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.plan-chip {
+  border-radius: 18px;
+  padding: 7px 12px;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+.plan-chip.on {
+  border-color: var(--accent);
+  color: var(--accent-light);
+}
+
+/* ---------- Resumen de sesión (ver TORQ_DESIGN.md) ---------- */
+.summary-screen {
+  max-width: 1100px;
+}
+.summary-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+.summary-rpe-card {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.summary-rpe-scale {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.summary-rpe-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+}
+.summary-rpe-btn.on {
+  background: var(--text);
+  color: #000;
+  border-color: var(--text);
+  font-weight: 500;
+}
+.summary-rpe-card input {
+  flex-grow: 1;
+  min-width: 220px;
+  height: 42px;
+}
+.summary-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.summary-metric {
+  gap: 2px;
+}
+.summary-metric-sub {
+  font-size: 12px;
+  color: var(--success);
+  min-height: 14px;
+}
+.summary-block-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.summary-block-row:last-child {
+  border-bottom: none;
+}
+
+/* ---------- Forma (ver TORQ_DESIGN.md) ---------- */
+.forma-screen {
+  max-width: 1000px;
+}
+.forma-numbers {
+  display: flex;
+  gap: 40px;
+  margin: 16px 0;
+}
+.forma-num {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 56px;
+  line-height: 1;
+}
+.forma-phrase {
+  font-size: 16px;
+  color: var(--text-soft);
+  max-width: 520px;
+  margin-bottom: 20px;
+}
+.forma-chart-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.forma-chart-legend {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+.forma-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.forma-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  border-radius: 0;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+}
+.forma-row .workout-cover {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+.forma-row-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+.forma-row-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.forma-row-meta {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.forma-delete {
+  width: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 @media (prefers-reduced-motion: reduce) {

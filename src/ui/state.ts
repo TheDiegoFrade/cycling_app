@@ -31,6 +31,11 @@ class AppState {
   resumeDraftId: string | null = null;
   trainer: TrainerAdapter | null = null;
   hr: HrAdapter | null = null;
+  /** true solo cuando se entró a Entrenar por el link explícito "Probar sin
+   * rodillo (modo demo, no se graba)" de Antes de empezar — evita que Entrenar
+   * conecte simuladores por su cuenta y grabe una sesión falsa (ver
+   * TORQ_DESIGN.md, bug #1). Se resetea al entrar de nuevo a Antes de empezar. */
+  demoSession = false;
   lastSession: SessionRecord | null = null;
   user: AuthUser | null = null;
   readonly cloudEnabled: boolean = isSupabaseConfigured();

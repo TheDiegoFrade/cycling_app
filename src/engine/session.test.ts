@@ -262,3 +262,17 @@ describe('SessionEngine: integración con el motor de reglas', () => {
     expect(belowFloorEvents.find((e) => e.type === 'rule')).toMatchObject({ notification: { rule: { id: 'hr-floor-z2' } } });
   });
 });
+
+describe('SessionEngine: actualizar perfil en caliente', () => {
+  it('updateProfile() cambia el FTP usado para el objetivo en watts, sin reiniciar la sesión', () => {
+    const engine = new SessionEngine({ workout: workoutWith(), profile, rules: [] });
+    engine.start(); // bloque "Calentamiento", power_pct 50
+    const before = engine.tick(good(100)).find((e) => e.type === 'tick');
+    expect(before && before.type === 'tick' ? before.sample.target : undefined).toBe(100); // 50% de FTP 200
+
+    engine.updateProfile({ ...profile, ftp: 300 });
+    const after = engine.tick(good(150)).find((e) => e.type === 'tick');
+    expect(after && after.type === 'tick' ? after.sample.target : undefined).toBe(150); // 50% de FTP 300, mismo bloque
+    expect(engine.currentState).toBe('running');
+  });
+});

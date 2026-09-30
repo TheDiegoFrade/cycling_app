@@ -1,14 +1,13 @@
 import type { Interval } from '../../core/types';
 import { saveWorkout } from '../../storage/workout-store';
-import { renderNav } from '../nav';
-import { navigate } from '../router';
 import { appState } from '../state';
+import { renderWorkoutCover } from '../workout-cover';
 
 type LimitField = 'hr_min' | 'hr_ceiling' | 'cadence_min' | 'cadence_max';
 
 const FIELDS: { key: LimitField; label: string }[] = [
   { key: 'hr_min', label: 'Pulso mín' },
-  { key: 'hr_ceiling', label: 'Pulso techo' },
+  { key: 'hr_ceiling', label: 'Pulso máx' },
   { key: 'cadence_min', label: 'Cadencia mín' },
   { key: 'cadence_max', label: 'Cadencia máx' },
 ];
@@ -22,7 +21,7 @@ function fmt(totalS: number): string {
 
 function inconsistent(iv: Interval): string | null {
   if (iv.hr_min !== undefined && iv.hr_ceiling !== undefined && iv.hr_min > iv.hr_ceiling) {
-    return `pulso mín (${iv.hr_min}) es mayor que el techo (${iv.hr_ceiling})`;
+    return `pulso mín (${iv.hr_min}) es mayor que el máx (${iv.hr_ceiling})`;
   }
   if (iv.cadence_min !== undefined && iv.cadence_max !== undefined && iv.cadence_min > iv.cadence_max) {
     return `cadencia mín (${iv.cadence_min}) es mayor que la máx (${iv.cadence_max})`;
@@ -30,62 +29,57 @@ function inconsistent(iv: Interval): string | null {
   return null;
 }
 
+/** Editor de límites por bloque — ver TORQ_DESIGN.md, sección Plan. */
 export function renderLimits(container: HTMLElement): void {
   const workout = appState.selectedWorkout;
   if (!workout) {
     container.innerHTML = `
       <div class="screen">
-        ${renderNav('limits')}
+        <a href="#/plan" class="back-link">← Volver a Plan</a>
         <h1>Límites</h1>
-        <p class="hint">Elige un workout en Inicio primero.</p>
-        <button id="back">Volver a Inicio</button>
+        <p class="hint">Elige un workout en Plan primero.</p>
       </div>`;
-    container.querySelector('#back')?.addEventListener('click', () => navigate('home'));
     return;
   }
 
   function paint(): void {
     if (!workout) return;
     container.innerHTML = `
-      <div class="screen">
-        ${renderNav('limits')}
-        <h1>Límites — ${workout.name}</h1>
-        <p class="hint">
-          Pulso y cadencia mín/máx por bloque. Vacío = sin límite propio para ese bloque — en ese caso aplica el límite
-          global de tu perfil (Inicio → Perfil / Alertas de fábrica), si lo tienes activado. Un valor aquí siempre gana
-          sobre el global, solo para ese bloque.
-        </p>
-        <div class="panel" style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse" class="num">
-            <thead>
-              <tr>
-                <th style="text-align:left;padding:6px 8px">Bloque</th>
-                ${FIELDS.map((f) => `<th style="text-align:left;padding:6px 8px">${f.label}</th>`).join('')}
-              </tr>
-            </thead>
-            <tbody>
-              ${workout.intervals
-                .map((iv, i) => {
-                  const warn = inconsistent(iv);
-                  return `
-                <tr data-row="${i}" style="border-top:1px solid #232830">
-                  <td style="padding:6px 8px">
-                    <div>${iv.name}</div>
-                    <div class="meta">${fmt(iv.duration_s)} · ${iv.power_pct}% FTP</div>
-                    ${warn ? `<div class="meta" style="color:var(--bad)">${warn}</div>` : ''}
-                  </td>
+      <div class="screen limits-screen">
+        <a href="#/plan" class="back-link">← Volver a Plan</a>
+        <div class="limits-head">
+          ${renderWorkoutCover(workout.intervals, 'sm')}
+          <div>
+            <h1 style="margin:0">Límites — ${workout.name}</h1>
+            <p class="hint" style="margin:4px 0 0">
+              Pulso y cadencia mín/máx por bloque. "Sin límite" = aplica el global de tu perfil (Perfil → Alertas), si lo
+              tienes activado. Un valor aquí siempre gana sobre el global, solo para ese bloque.
+            </p>
+          </div>
+        </div>
+        <div class="limits-rows">
+          ${workout.intervals
+            .map((iv, i) => {
+              const warn = inconsistent(iv);
+              return `
+              <div class="panel limits-row" data-row="${i}">
+                <div class="limits-row-head">
+                  <div>
+                    <div style="font-weight:500">${iv.name}</div>
+                    <div class="hint">${fmt(iv.duration_s)} · ${iv.power_pct}% FTP</div>
+                    ${warn ? `<div class="hint" style="color:var(--danger)">${warn}</div>` : ''}
+                  </div>
+                  <button data-apply-all="${i}" class="limits-apply-btn">Aplicar a todos los intervalos</button>
+                </div>
+                <div class="limits-fields">
                   ${FIELDS.map(
                     (f) =>
-                      `<td style="padding:6px 8px"><input type="number" style="width:80px" data-row="${i}" data-field="${f.key}" value="${iv[f.key] ?? ''}" placeholder="sin límite"></td>`,
+                      `<label>${f.label}<input type="number" data-row="${i}" data-field="${f.key}" value="${iv[f.key] ?? ''}" placeholder="Sin límite"></label>`,
                   ).join('')}
-                </tr>`;
-                })
-                .join('')}
-            </tbody>
-          </table>
-        </div>
-        <div class="row-actions" style="margin-top:20px">
-          <button id="back">Volver a Inicio</button>
+                </div>
+              </div>`;
+            })
+            .join('')}
         </div>
       </div>
     `;
@@ -107,7 +101,20 @@ export function renderLimits(container: HTMLElement): void {
       });
     });
 
-    container.querySelector('#back')?.addEventListener('click', () => navigate('home'));
+    container.querySelectorAll<HTMLButtonElement>('[data-apply-all]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const sourceIndex = Number(btn.dataset.applyAll);
+        const source = workout.intervals[sourceIndex];
+        workout.intervals.forEach((iv) => {
+          FIELDS.forEach((f) => {
+            if (source[f.key] !== undefined) iv[f.key] = source[f.key];
+            else delete iv[f.key];
+          });
+        });
+        await saveWorkout(workout);
+        paint();
+      });
+    });
   }
 
   paint();

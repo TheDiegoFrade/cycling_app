@@ -1,8 +1,6 @@
 import { isSupabaseConfigured, supabase } from '../../supabase/client';
-import { disconnectStrava, getStravaConnection, isStravaConfigured, redirectToStravaAuthorize } from '../../sync/strava';
-import type { StravaConnection } from '../../sync/strava';
 import { subscribeAmbientState, toggleAmbientTrack } from '../ambient-audio';
-import { renderNav } from '../nav';
+import { navigate } from '../router';
 import { appState } from '../state';
 
 function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supabase>): void {
@@ -72,134 +70,18 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
   });
 }
 
+/** `#/login` queda solo para iniciar sesión (ver TORQ_DESIGN.md) — todo lo
+ * demás que antes vivía acá (apariencia, contraseña, Strava) se movió a
+ * Perfil. Si ya hay sesión (o no hay nube configurada, así que no hay nada
+ * que iniciar) esto solo manda a Inicio. */
 export function renderLogin(container: HTMLElement): (() => void) | void {
   if (!isSupabaseConfigured() || !supabase) {
-    container.innerHTML = `
-      <div class="screen">
-        ${renderNav('login')}
-        <h1>Cuenta</h1>
-        <p class="hint">Este despliegue todavía no tiene la sincronización en la nube configurada. La app sigue funcionando 100% local mientras tanto.</p>
-      </div>
-    `;
+    navigate('home');
     return;
   }
-
-  const client = supabase;
-
-  if (!appState.user) {
-    renderLoginGate(container, client);
+  if (appState.user) {
+    navigate('home');
     return;
   }
-
-  let stravaConnection: StravaConnection | null | 'loading' = 'loading';
-
-  function paint(): void {
-    const user = appState.user!;
-    container.innerHTML = `
-      <div class="screen">
-        ${renderNav('login')}
-        <h1>Cuenta</h1>
-        <p class="hint">Conectado como <b>${user.email}</b>. Tu historial se sincroniza solo entre dispositivos.</p>
-        <div class="row-actions">
-          <button id="signout">Cerrar sesión</button>
-        </div>
-
-        <h2>Apariencia</h2>
-        <p class="hint">Quién aparece en el fondo de Login e Inicio.</p>
-        <div class="panel row-actions">
-          <button data-hero="man" class="${appState.settings.heroCharacter === 'man' ? 'primary' : ''}">Hombre</button>
-          <button data-hero="woman" class="${appState.settings.heroCharacter === 'woman' ? 'primary' : ''}">Mujer</button>
-        </div>
-
-        <h2>Contraseña</h2>
-        <p class="hint">Créala (o cámbiala) cuando quieras.</p>
-        <div class="panel">
-          <label>Nueva contraseña<input type="password" id="set-password" placeholder="mínimo 6 caracteres"></label>
-          <div class="row-actions" style="margin-top:10px">
-            <button id="set-password-btn">Guardar contraseña</button>
-          </div>
-          <div id="password-result"></div>
-        </div>
-
-        ${
-          isStravaConfigured()
-            ? `
-        <h2>Strava</h2>
-        <div class="panel">
-          ${
-            stravaConnection === 'loading'
-              ? '<p class="hint">Verificando…</p>'
-              : stravaConnection
-                ? `
-              <p class="hint">Conectado como <b>${stravaConnection.athleteName ?? `atleta #${stravaConnection.athleteId}`}</b>. Puedes subir tus sesiones de Torq e importar tus rodadas de afuera.</p>
-              <div class="row-actions"><button id="strava-disconnect">Desconectar Strava</button></div>`
-                : `
-              <p class="hint">Conecta tu cuenta de Strava para subir tus sesiones e importar tus rodadas grabadas con otro dispositivo.</p>
-              <div class="row-actions"><button class="primary" id="strava-connect">Conectar con Strava</button></div>`
-          }
-          <div id="strava-result"></div>
-        </div>`
-            : ''
-        }
-      </div>
-    `;
-
-    container.querySelectorAll<HTMLButtonElement>('[data-hero]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const heroCharacter = btn.dataset.hero as 'man' | 'woman';
-        if (heroCharacter === appState.settings.heroCharacter) return;
-        appState.settings = { ...appState.settings, heroCharacter };
-        appState.persistSettings();
-        paint();
-      });
-    });
-
-    container.querySelector('#signout')?.addEventListener('click', async () => {
-      // sin repintar acá: appState.signOut() dispara el refresh global (ver
-      // main.ts), que vuelve a montar esta misma pantalla ya desconectada.
-      await appState.signOut();
-    });
-
-    container.querySelector('#set-password-btn')?.addEventListener('click', async () => {
-      const passwordInput = container.querySelector<HTMLInputElement>('#set-password')!;
-      const resultEl = container.querySelector<HTMLElement>('#password-result')!;
-      const password = passwordInput.value;
-      if (!password) {
-        resultEl.innerHTML = '<div class="error-box">Escribe una contraseña.</div>';
-        return;
-      }
-      resultEl.innerHTML = '<p class="hint">Guardando…</p>';
-      const { error } = await client.auth.updateUser({ password });
-      resultEl.innerHTML = error ? `<div class="error-box">${error.message}</div>` : '<p class="hint">Listo.</p>';
-      if (!error) passwordInput.value = '';
-    });
-
-    container.querySelector('#strava-connect')?.addEventListener('click', () => {
-      redirectToStravaAuthorize();
-    });
-
-    container.querySelector('#strava-disconnect')?.addEventListener('click', async () => {
-      const resultEl = container.querySelector<HTMLElement>('#strava-result')!;
-      resultEl.innerHTML = '<p class="hint">Desconectando…</p>';
-      try {
-        await disconnectStrava();
-        stravaConnection = null;
-        paint();
-      } catch (err) {
-        resultEl.innerHTML = `<div class="error-box">${err instanceof Error ? err.message : String(err)}</div>`;
-      }
-    });
-  }
-
-  async function loadStravaConnection(): Promise<void> {
-    if (!appState.user || !isStravaConfigured()) return;
-    stravaConnection = await getStravaConnection(appState.user.id);
-    paint();
-  }
-
-  // sin suscripción propia a onAuthStateChange: el refresh global (ver
-  // main.ts / appState.onAuthChange) ya vuelve a montar esta pantalla
-  // completa cuando cambia el login, evitando una doble suscripción/repintado.
-  paint();
-  void loadStravaConnection();
+  renderLoginGate(container, supabase);
 }

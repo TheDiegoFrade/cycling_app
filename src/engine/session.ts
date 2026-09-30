@@ -127,6 +127,16 @@ export class SessionEngine {
     this.ruleEngine.setRules(rules);
   }
 
+  /** Reemplaza el perfil (hoy: solo se usa para el FTP editable desde el menú
+   * ⋯ de Sesión en vivo, ver TORQ_DESIGN.md) sin reiniciar la sesión — el
+   * cálculo de watts objetivo (`targetWattsAt`) lee `this.opts.profile.ftp`
+   * en cada tick, así que sin este setter un cambio de FTP a mitad de
+   * entrenamiento nunca se reflejaría (appState.profile se reemplaza por un
+   * objeto nuevo, no se muta in place). */
+  updateProfile(profile: Profile): void {
+    this.opts.profile = profile;
+  }
+
   private blockStartEvent(index0: number): EngineEvent[] {
     const index1 = index0 + 1;
     if (index1 === this.lastIntervalIndex1) return [];

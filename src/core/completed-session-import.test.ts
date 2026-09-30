@@ -37,6 +37,13 @@ describe('buildCompletedSessionFromFit', () => {
     expect(session?.startedAt).toBe(new Date((timestamp + FIT_EPOCH_OFFSET_S) * 1000).toISOString());
   });
 
+  it('usa un nombre genérico si el archivo no trae un nombre legible (export críptico de un dispositivo)', async () => {
+    const timestamp = 100000;
+    const file = new File([buildFitBytes(timestamp).buffer as ArrayBuffer], '260928212319_gsh42bpj.fit');
+    const { session } = await buildCompletedSessionFromFit(file, profile);
+    expect(session?.workoutName).toBe('Actividad importada');
+  });
+
   it('con dateOverride cambia el día pero conserva la hora original', async () => {
     const timestamp = 100000; // -> 1990-01-02T03:46:40.000Z
     const file = new File([buildFitBytes(timestamp).buffer as ArrayBuffer], 'ride.fit');
