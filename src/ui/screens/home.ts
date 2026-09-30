@@ -19,6 +19,15 @@ function fmtDuration(totalS: number): string {
   return `${m}:${r < 10 ? '0' : ''}${r}`;
 }
 
+/** h:mm — no confundir con fmtDuration (m:ss), que es para la duración corta
+ * de un borrador recién cortado, no para el total de horas de la semana. */
+function fmtHours(totalS: number): string {
+  const s = Math.max(0, Math.round(totalS));
+  const h = Math.floor(s / 3600);
+  const m = Math.round((s % 3600) / 60);
+  return `${h}:${m < 10 ? '0' : ''}${m}`;
+}
+
 function toDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
@@ -180,7 +189,7 @@ export function renderHome(container: HTMLElement): void {
     const scheduledThisWeek = appState.workouts.filter((w) => w.scheduledDate && w.scheduledDate >= weekStartKey && w.scheduledDate < toDateKey(weekEndExclusive));
     const doneCount = scheduledThisWeek.filter((w) => minutesByDay.has(w.scheduledDate!)).length;
 
-    container.querySelector('#week-hours')!.textContent = fmtDuration(totalSeconds);
+    container.querySelector('#week-hours')!.textContent = fmtHours(totalSeconds);
     container.querySelector('#week-tss')!.textContent = String(Math.round(totalTss));
     container.querySelector('#week-fraction')!.textContent = scheduledThisWeek.length ? `${doneCount} de ${scheduledThisWeek.length}` : '';
 
