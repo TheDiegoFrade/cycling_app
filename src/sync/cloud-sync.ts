@@ -1,6 +1,7 @@
 import { computeSessionAnalytics } from '../engine/analytics';
 import { encodeFitActivity } from '../export/fit';
-import type { Profile } from '../core/types';
+import { parseFitActivity } from '../core/fit-activity-parser';
+import type { Profile, Sample } from '../core/types';
 import type { SessionRecord } from '../storage/session-store';
 import { supabase } from '../supabase/client';
 
@@ -30,6 +31,7 @@ export interface CloudSessionSummary {
   rpe: number | null;
   note: string | null;
   stravaActivityId: number | null;
+  fitPath: string | null;
 }
 
 /** Sube el .fit a Storage y el resumen a la tabla `sessions`. Best-effort:
@@ -98,7 +100,7 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
   const { data, error } = await supabase
     .from('sessions')
     .select(
-      'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id',
+      'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id, fit_path',
     )
     .eq('user_id', userId)
     .order('started_at', { ascending: false });
@@ -127,5 +129,28 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
     rpe: row.rpe,
     note: row.note,
     stravaActivityId: row.strava_activity_id,
+    fitPath: row.fit_path,
   }));
+}
+
+/** Descarga el .fit que ya está en Storage para una sesión de nube y lo
+ * decodifica de vuelta a samples segundo a segundo, usando el mismo parser
+ * genérico que importa actividades de Garmin/Strava/etc. (ver
+ * core/fit-activity-parser.ts) — el archivo lo escribimos nosotros mismos en
+ * pushSessionToCloud, así que trae exactamente los campos que ese parser ya
+ * sabe leer. Devuelve null si no hay .fit, no hay internet, o el archivo no
+ * se puede leer — el llamador decide el resumen reducido como respaldo. */
+export async function downloadSessionSamples(fitPath: string): Promise<Sample[] | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase.storage.from('fit-files').download(fitPath);
+    if (error || !data) throw error ?? new Error('sin datos');
+    const buffer = await data.arrayBuffer();
+    const { samples, errors } = parseFitActivity(buffer);
+    if (samples.length === 0) throw new Error(errors.join('; ') || 'sin samples');
+    return samples;
+  } catch (err) {
+    console.error('[cloud-sync] no se pudo reconstruir la sesión desde su .fit', err);
+    return null;
+  }
 }

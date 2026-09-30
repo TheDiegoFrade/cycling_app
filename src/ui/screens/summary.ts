@@ -8,6 +8,7 @@ import { appState } from '../state';
 import { saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
 import { isStravaConfigured, uploadSessionToStrava } from '../../sync/strava';
+import { downloadSessionSamples } from '../../sync/cloud-sync';
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
 
 const RPE_LABELS: Record<number, string> = {
@@ -209,26 +210,7 @@ function renderCloudOnlySummary(container: HTMLElement, s: CloudSessionSummary):
   `;
 }
 
-export function renderSummary(container: HTMLElement): void {
-  const session = appState.lastSession;
-  const cloudSession = appState.lastCloudSession;
-
-  if (!session && cloudSession) {
-    renderCloudOnlySummary(container, cloudSession);
-    return;
-  }
-
-  if (!session) {
-    container.innerHTML = `
-      <div class="screen">
-        <h1>Resumen</h1>
-        <p class="hint">Todavía no hay ninguna sesión para mostrar.</p>
-        <button id="go-home">Ir a Inicio</button>
-      </div>`;
-    container.querySelector('#go-home')?.addEventListener('click', () => navigate('home'));
-    return;
-  }
-
+function renderFullSummary(container: HTMLElement, session: SessionRecord, cloudNote?: string): void {
   const analytics = computeSessionAnalytics(session.samples, profileForSession(session));
 
   container.innerHTML = `
@@ -237,6 +219,7 @@ export function renderSummary(container: HTMLElement): void {
         <div>
           <div class="hint">${fmtDateEsMx(session.startedAt)}</div>
           <h1 style="margin:4px 0 0">${session.workoutName}, completo</h1>
+          ${cloudNote ? `<p class="hint" style="margin-top:4px">${cloudNote}</p>` : ''}
         </div>
         <div class="row-actions" style="margin:0">
           ${isStravaConfigured() ? '<button class="btn-light" id="strava-upload">Subir a Strava</button>' : ''}
@@ -376,4 +359,64 @@ export function renderSummary(container: HTMLElement): void {
       icuResultEl.innerHTML = `<div class="error-box">Falló la subida: ${err instanceof Error ? err.message : String(err)}</div>`;
     }
   });
+}
+
+/** Arma un SessionRecord "de mentiras" a partir de samples reconstruidos del
+ * .fit en la nube — sirve para reusar toda la vista de detalle tal cual.
+ * alerts/intensityChanges quedan vacíos a propósito: eso solo lo calcula el
+ * motor de reglas en vivo, en el dispositivo que grabó la sesión, y nunca se
+ * sube a la nube (ver sync/cloud-sync.ts). */
+function toSyntheticSession(s: CloudSessionSummary, samples: SessionRecord['samples']): SessionRecord {
+  return {
+    id: s.id,
+    workoutId: '',
+    workoutName: s.workoutName,
+    startedAt: s.startedAt,
+    finishedAt: s.finishedAt,
+    ftp: s.ftp,
+    samples,
+    alerts: [],
+    intensityChanges: [],
+    rpe: s.rpe ?? undefined,
+    note: s.note ?? undefined,
+    stravaActivityId: s.stravaActivityId ?? undefined,
+  };
+}
+
+const CLOUD_RECONSTRUCTED_NOTE =
+  '☁ Reconstruida desde tu copia en la nube — los avisos y ajustes de intensidad de esa sesión no se sincronizan entre dispositivos, así que no aparecen aquí.';
+
+export function renderSummary(container: HTMLElement): void {
+  const session = appState.lastSession;
+  const cloudSession = appState.lastCloudSession;
+
+  if (session) {
+    renderFullSummary(container, session);
+    return;
+  }
+
+  if (cloudSession) {
+    container.innerHTML = `
+      <div class="screen">
+        <h1>Resumen</h1>
+        <p class="hint">Cargando detalle…</p>
+      </div>`;
+    void downloadSessionSamples(cloudSession.fitPath ?? '').then((samples) => {
+      if (appState.lastCloudSession !== cloudSession) return; // navegó a otra sesión mientras cargaba
+      if (samples && samples.length > 1) {
+        renderFullSummary(container, toSyntheticSession(cloudSession, samples), CLOUD_RECONSTRUCTED_NOTE);
+      } else {
+        renderCloudOnlySummary(container, cloudSession);
+      }
+    });
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="screen">
+      <h1>Resumen</h1>
+      <p class="hint">Todavía no hay ninguna sesión para mostrar.</p>
+      <button id="go-home">Ir a Inicio</button>
+    </div>`;
+  container.querySelector('#go-home')?.addEventListener('click', () => navigate('home'));
 }
