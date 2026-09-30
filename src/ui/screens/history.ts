@@ -86,6 +86,15 @@ function formInterpretation(tsb: number): string {
   return 'Carga equilibrada entre esfuerzo y descanso. Sigue como vas.';
 }
 
+/** El color del número debe confirmar la lectura de formInterpretation, no
+ * contradecirla — un -5 en azul "positivo" se ve alarmante junto a un
+ * mensaje tranquilo. Mismos cortes que formInterpretation. */
+function formaColor(tsb: number): string {
+  if (tsb > 5) return 'var(--accent)';
+  if (tsb < -10) return 'var(--danger-text)';
+  return 'var(--text)';
+}
+
 function drawFitnessFatigueChart(canvas: HTMLCanvasElement, points: ReturnType<typeof computePmc>): void {
   if (points.length < 2) return;
   const rect = canvas.getBoundingClientRect();
@@ -293,7 +302,7 @@ export function renderForma(container: HTMLElement): void {
                 ? `<div class="forma-numbers">
                     <div><div class="forma-num num">${Math.round(latest.ctl)}</div><div class="live-col-label">Fitness</div></div>
                     <div><div class="forma-num num" style="color:var(--text-muted)">${Math.round(latest.atl)}</div><div class="live-col-label">Fatiga</div></div>
-                    <div><div class="forma-num num" style="color:var(--accent)">${latest.tsb > 0 ? '+' : ''}${Math.round(latest.tsb)}</div><div class="live-col-label">Forma</div></div>
+                    <div><div class="forma-num num" style="color:${formaColor(latest.tsb)}">${latest.tsb > 0 ? '+' : ''}${Math.round(latest.tsb)}</div><div class="live-col-label">Forma</div></div>
                   </div>
                   <p class="forma-phrase">${formInterpretation(latest.tsb)}</p>`
                 : ''
