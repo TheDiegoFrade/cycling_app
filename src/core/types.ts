@@ -110,6 +110,14 @@ export interface Profile {
   // (ver AppSettings.factoryRulesEnabled) — mismo patrón que los dos de arriba.
   hr_min: number;
   cadence_max: number;
+  // Datos personales, todos opcionales — no afectan ningún cálculo del motor
+  // (FTP/HR max siguen siendo la fuente de verdad de zonas y reglas), solo
+  // identifican al atleta y sirven de referencia (p.ej. peso para W/kg a futuro).
+  name?: string;
+  birth_date?: string; // YYYY-MM-DD
+  height_cm?: number;
+  weight_kg?: number;
+  sex?: 'M' | 'F' | 'other';
 }
 
 export interface Sample {

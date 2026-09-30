@@ -46,6 +46,7 @@ function greeting(): string {
 }
 
 function displayName(): string {
+  if (appState.profile.name) return appState.profile.name.split(' ')[0];
   const email = appState.user?.email;
   if (!email) return '';
   const local = email.split('@')[0];
@@ -185,6 +186,25 @@ export function renderHome(container: HTMLElement): void {
       const key = s.startedAt.slice(0, 10);
       minutesByDay.set(key, (minutesByDay.get(key) ?? 0) + s.samples.length / 60);
     });
+
+    // Sesiones grabadas en OTRO dispositivo que nunca llegaron a este
+    // IndexedDB — solo tenemos el resumen (sin samples), así que no aportan
+    // al desglose por zona, pero sí cuentan para horas/TSS/marca del día;
+    // sin esto "Esta semana" se queda corto tras entrenar desde el celular.
+    const localIds = new Set(sessions.map((s) => s.id));
+    appState.cloudSessions
+      .filter((s) => !localIds.has(s.id))
+      .filter((s) => {
+        const key = s.startedAt.slice(0, 10);
+        return key >= weekStartKey && key < toDateKey(weekEndExclusive);
+      })
+      .forEach((s) => {
+        const durationS = Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000);
+        totalSeconds += durationS;
+        totalTss += s.trainingStressScore ?? 0;
+        const key = s.startedAt.slice(0, 10);
+        minutesByDay.set(key, (minutesByDay.get(key) ?? 0) + durationS / 60);
+      });
 
     const scheduledThisWeek = appState.workouts.filter((w) => w.scheduledDate && w.scheduledDate >= weekStartKey && w.scheduledDate < toDateKey(weekEndExclusive));
     const doneCount = scheduledThisWeek.filter((w) => minutesByDay.has(w.scheduledDate!)).length;

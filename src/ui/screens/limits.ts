@@ -1,5 +1,6 @@
 import type { Interval } from '../../core/types';
 import { saveWorkout } from '../../storage/workout-store';
+import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { appState } from '../state';
 import { renderWorkoutCover } from '../workout-cover';
 
@@ -97,6 +98,7 @@ export function renderLimits(container: HTMLElement): void {
           if (Number.isFinite(value) && value > 0) iv[field] = value;
         }
         await saveWorkout(workout);
+        if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
         paint();
       });
     });
@@ -112,6 +114,7 @@ export function renderLimits(container: HTMLElement): void {
           });
         });
         await saveWorkout(workout);
+        if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
         paint();
       });
     });

@@ -38,6 +38,19 @@ function switchHtml(id: string, checked: boolean): string {
   return `<button class="switch${checked ? ' on' : ''}" role="switch" aria-pressed="${checked}" data-switch="${id}"></button>`;
 }
 
+/** Edad calculada a partir de birth_date, solo como referencia junto al
+ * campo — no se guarda como número aparte para no tener que actualizarla
+ * cada año. */
+function ageFromBirthDate(birthDate: string): number | null {
+  const parsed = new Date(birthDate);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - parsed.getFullYear();
+  const beforeBirthdayThisYear = now.getMonth() < parsed.getMonth() || (now.getMonth() === parsed.getMonth() && now.getDate() < parsed.getDate());
+  if (beforeBirthdayThisYear) age--;
+  return age;
+}
+
 type AlertRow = {
   label: string;
   hint: string;
@@ -76,6 +89,25 @@ export function renderPerfil(container: HTMLElement): void {
 
         <div class="perfil-grid">
           <div class="perfil-col-main">
+            <div class="panel perfil-panel">
+              <h2 class="perfil-h2">Datos personales</h2>
+              <div class="grid-form">
+                <label>Nombre<input type="text" id="profile-name" autocomplete="name" value="${appState.profile.name ?? ''}"></label>
+                <label>Fecha de nacimiento<input type="date" id="profile-birth-date" value="${appState.profile.birth_date ?? ''}"></label>
+                <label>Altura<span class="perfil-numfield-row"><input type="number" id="profile-height" min="0" step="1" value="${appState.profile.height_cm ?? ''}"><span class="live-col-label">cm</span></span></label>
+                <label>Peso<span class="perfil-numfield-row"><input type="number" id="profile-weight" min="0" step="0.1" value="${appState.profile.weight_kg ?? ''}"><span class="live-col-label">kg</span></span></label>
+                <label>Sexo
+                  <select id="profile-sex">
+                    <option value="" ${!appState.profile.sex ? 'selected' : ''}>Prefiero no decir</option>
+                    <option value="M" ${appState.profile.sex === 'M' ? 'selected' : ''}>Hombre</option>
+                    <option value="F" ${appState.profile.sex === 'F' ? 'selected' : ''}>Mujer</option>
+                    <option value="other" ${appState.profile.sex === 'other' ? 'selected' : ''}>Otro</option>
+                  </select>
+                </label>
+              </div>
+              ${appState.profile.birth_date && ageFromBirthDate(appState.profile.birth_date) !== null ? `<p class="hint" style="margin:6px 0 0">${ageFromBirthDate(appState.profile.birth_date)} años</p>` : ''}
+            </div>
+
             <div class="panel perfil-panel">
               <h2 class="perfil-h2">Tus números</h2>
               <div class="perfil-numbers">
@@ -194,6 +226,39 @@ export function renderPerfil(container: HTMLElement): void {
           if (key === 'ftp') paint();
         }
       });
+    });
+
+    container.querySelector<HTMLInputElement>('#profile-name')?.addEventListener('change', (e) => {
+      const name = (e.target as HTMLInputElement).value.trim();
+      appState.profile = { ...appState.profile, name: name || undefined };
+      appState.persistProfile();
+    });
+
+    container.querySelector<HTMLInputElement>('#profile-birth-date')?.addEventListener('change', (e) => {
+      const birthDate = (e.target as HTMLInputElement).value;
+      appState.profile = { ...appState.profile, birth_date: birthDate || undefined };
+      appState.persistProfile();
+      paint(); // refresca la edad calculada junto al campo
+    });
+
+    container.querySelector<HTMLInputElement>('#profile-height')?.addEventListener('change', (e) => {
+      const raw = (e.target as HTMLInputElement).value;
+      const value = Number(raw);
+      appState.profile = { ...appState.profile, height_cm: raw && Number.isFinite(value) ? value : undefined };
+      appState.persistProfile();
+    });
+
+    container.querySelector<HTMLInputElement>('#profile-weight')?.addEventListener('change', (e) => {
+      const raw = (e.target as HTMLInputElement).value;
+      const value = Number(raw);
+      appState.profile = { ...appState.profile, weight_kg: raw && Number.isFinite(value) ? value : undefined };
+      appState.persistProfile();
+    });
+
+    container.querySelector<HTMLSelectElement>('#profile-sex')?.addEventListener('change', (e) => {
+      const value = (e.target as HTMLSelectElement).value as 'M' | 'F' | 'other' | '';
+      appState.profile = { ...appState.profile, sex: value || undefined };
+      appState.persistProfile();
     });
 
     container.querySelectorAll<HTMLButtonElement>('[data-switch]').forEach((btn) => {

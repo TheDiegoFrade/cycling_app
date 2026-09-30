@@ -39,6 +39,15 @@ drop policy if exists "profiles: actualizar lo propio" on profiles;
 create policy "profiles: actualizar lo propio" on profiles for update
   using (auth.uid() = user_id);
 
+-- Datos personales, todos opcionales — no entran en ningún cálculo del
+-- motor (FTP/hr_max siguen mandando en zonas y reglas), solo identifican al
+-- atleta y sirven de referencia.
+alter table profiles add column if not exists name text;
+alter table profiles add column if not exists birth_date date;
+alter table profiles add column if not exists height_cm numeric;
+alter table profiles add column if not exists weight_kg numeric;
+alter table profiles add column if not exists sex text check (sex in ('M', 'F', 'other'));
+
 -- ─────────────────────────────────────────────────────────────────────────
 -- sessions: resumen de cada entrenamiento (sin los samples, ver Storage)
 -- ─────────────────────────────────────────────────────────────────────────
@@ -92,6 +101,64 @@ create index if not exists sessions_user_started_idx on sessions (user_id, start
 alter table sessions add column if not exists strava_activity_id bigint;
 create unique index if not exists sessions_user_strava_activity_idx
   on sessions (user_id, strava_activity_id) where strava_activity_id is not null;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- settings: ajustes de la app (volumen, reglas de fábrica activas,
+-- intervals.icu, personaje). Un renglón por usuario, blob jsonb porque el
+-- shape de AppSettings cambia seguido (nuevos toggles) y no necesita
+-- consultarse por columna — ver storage/settings-store.ts para el tipo.
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists settings (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  data jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+alter table settings enable row level security;
+
+drop policy if exists "settings: leer lo propio" on settings;
+create policy "settings: leer lo propio" on settings for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "settings: insertar lo propio" on settings;
+create policy "settings: insertar lo propio" on settings for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "settings: actualizar lo propio" on settings;
+create policy "settings: actualizar lo propio" on settings for update
+  using (auth.uid() = user_id);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- workouts: entrenos personalizados/importados/agendados. Blob jsonb con el
+-- mismo shape que core/types.ts Workout (incluye su propio "id") — los
+-- intervalos/reglas anidados no necesitan consultarse por columna.
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists workouts (
+  id uuid primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  data jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+alter table workouts enable row level security;
+
+drop policy if exists "workouts: leer lo propio" on workouts;
+create policy "workouts: leer lo propio" on workouts for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "workouts: insertar lo propio" on workouts;
+create policy "workouts: insertar lo propio" on workouts for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "workouts: actualizar lo propio" on workouts;
+create policy "workouts: actualizar lo propio" on workouts for update
+  using (auth.uid() = user_id);
+
+drop policy if exists "workouts: borrar lo propio" on workouts;
+create policy "workouts: borrar lo propio" on workouts for delete
+  using (auth.uid() = user_id);
+
+create index if not exists workouts_user_idx on workouts (user_id);
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- Strava: cada usuario conecta SU PROPIA cuenta (OAuth). Los tokens nunca

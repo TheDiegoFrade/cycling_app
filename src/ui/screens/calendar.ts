@@ -10,6 +10,7 @@ import type { SessionRecord } from '../../storage/session-store';
 import { computeSessionAnalytics } from '../../engine/analytics';
 import { pushSessionToCloud } from '../../sync/cloud-sync';
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
+import { deleteWorkoutFromCloud, pushWorkoutToCloud } from '../../sync/workout-sync';
 import { navigate } from '../router';
 import { appState } from '../state';
 import { renderWorkoutCover } from '../workout-cover';
@@ -279,6 +280,7 @@ export function renderCalendar(container: HTMLElement): () => void {
       if (workout) {
         if (scheduledDate) workout.scheduledDate = scheduledDate;
         await saveWorkout(workout);
+        if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
         appState.workouts = [...appState.workouts, workout];
         paint();
       }
@@ -311,6 +313,7 @@ export function renderCalendar(container: HTMLElement): () => void {
         if (input.value) updated.scheduledDate = input.value;
         else delete updated.scheduledDate;
         await saveWorkout(updated);
+        if (appState.user) void pushWorkoutToCloud(updated, appState.user.id);
         appState.workouts = appState.workouts.map((w) => (w.id === id ? updated : w));
         paint();
       });
@@ -345,6 +348,7 @@ export function renderCalendar(container: HTMLElement): () => void {
         if (!w) return;
         if (!window.confirm(`¿Borrar "${w.name}"? No se puede deshacer.`)) return;
         await deleteWorkout(id);
+        if (appState.user) void deleteWorkoutFromCloud(id, appState.user.id);
         appState.workouts = appState.workouts.filter((x) => x.id !== id);
         paint();
       });
@@ -403,6 +407,7 @@ export function renderCalendar(container: HTMLElement): () => void {
       genErrors.innerHTML = errorsHtml(result.errors);
       if (result.valid) {
         await saveWorkout(workout);
+        if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
         appState.workouts = [...appState.workouts, workout];
         refreshLibrary();
       }
@@ -420,6 +425,7 @@ export function renderCalendar(container: HTMLElement): () => void {
       container.querySelector('#plan-import-errors')!.innerHTML = errorsHtml(errors);
       if (workout) {
         await saveWorkout(workout);
+        if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
         appState.workouts = appState.workouts.map((w) => (w.id === workout.id ? workout : w));
         refreshLibrary();
       }
