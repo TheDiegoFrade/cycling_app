@@ -244,21 +244,21 @@ export function renderHome(container: HTMLElement): void {
       minutesByDay.set(key, (minutesByDay.get(key) ?? 0) + durationS / 60);
     });
 
-    const scheduledThisWeek = appState.workouts.filter((w) => w.scheduledDate && w.scheduledDate >= weekStartKey && w.scheduledDate < toDateKey(weekEndExclusive));
-    const doneCount = scheduledThisWeek.filter((w) => minutesByDay.has(w.scheduledDate!)).length;
-    // Diego no siempre agenda primero — entrena y queda completado directo.
-    // Si no hay nada agendado esta semana, "3/10" no tiene con qué compararse
-    // y mostrar "—" se lee como "no has entrenado" aunque sí lo hiciste; en
-    // ese caso cae a un conteo simple de sesiones completadas.
+    // "Entrenamientos esta semana" = sesiones ya completadas (agendadas o no
+    // — Diego no siempre agenda primero) + lo agendado que todavía no se
+    // entrena. Sumar ambos evita que agendado y completado compitan como dos
+    // números separados: completados 2 + agendado pendiente 2 = "2/4", no
+    // "0/2" (que ignoraría lo ya hecho) ni "2" a secas (que ignoraría lo
+    // agendado pendiente).
     const completedThisWeek = weekSessions.length + cloudOnlyThisWeek.length;
+    const scheduledPendingThisWeek = appState.workouts.filter(
+      (w) => w.scheduledDate && w.scheduledDate >= weekStartKey && w.scheduledDate < toDateKey(weekEndExclusive) && !minutesByDay.has(w.scheduledDate),
+    ).length;
+    const totalThisWeek = completedThisWeek + scheduledPendingThisWeek;
 
     container.querySelector('#week-hours')!.textContent = fmtHours(totalSeconds);
     container.querySelector('#week-tss')!.textContent = String(Math.round(totalTss));
-    container.querySelector('#week-count')!.textContent = scheduledThisWeek.length
-      ? `${doneCount}/${scheduledThisWeek.length}`
-      : completedThisWeek > 0
-        ? String(completedThisWeek)
-        : '—';
+    container.querySelector('#week-count')!.textContent = totalThisWeek > 0 ? `${completedThisWeek}/${totalThisWeek}` : '—';
 
     const zoneTotal = zoneSeconds.reduce((a, b) => a + b, 0) || 1;
     container.querySelector('#week-zonebar')!.innerHTML = zoneSeconds
