@@ -1,7 +1,6 @@
 import { computeSessionAnalytics } from '../engine/analytics';
 import { encodeFitActivity } from '../export/fit';
 import { parseFitActivity } from '../core/fit-activity-parser';
-import { isLiveRecorded } from '../core/session-origin';
 import type { Profile, Sample } from '../core/types';
 import type { SessionRecord } from '../storage/session-store';
 import { supabase } from '../supabase/client';
@@ -33,8 +32,8 @@ export interface CloudSessionSummary {
   note: string | null;
   stravaActivityId: number | null;
   fitPath: string | null;
-  /** 'fit-import' si esta sesión se subió a mano desde un .fit — ver
-   * core/session-origin.ts para por qué importa distinguirlo. */
+  /** 'fit-import' si esta sesión se subió a mano desde un .fit, o el id del
+   * workout original si se grabó en vivo con la app. */
   workoutId: string | null;
 }
 
@@ -186,30 +185,25 @@ const POWER_RECORD_COLUMNS = [
   { key: 'best20min' as const, column: 'best_20min_power' },
 ];
 
-/** Mejor pico histórico de TODA la cuenta por ventana (1/5/20 min), solo
- * contando sesiones grabadas en vivo (ver core/session-origin.ts) — una
- * importada de Strava o un .fit subido a mano no compite por "tu récord en
- * Torq". Trae los ~20 mejores en vez de solo el primero porque el top 1 bruto
- * podría ser justo una importada; filtrar en el cliente evita pelear con la
- * sintaxis OR de Supabase para "workout_id es null O no es 'fit-import'".
- * Sesiones sin estos valores calculados (subidas antes de que existieran, ver
+/** Mejor pico histórico de TODA la cuenta por ventana (1/5/20 min) — cuenta
+ * cualquier sesión (grabada en vivo, importada de Strava o subida a mano),
+ * todas compiten por igual por "tu récord en Torq". Sesiones sin estos
+ * valores calculados (subidas antes de que existieran, ver
  * backfillPowerRecords) simplemente no compiten por el récord. */
 export async function getPowerRecords(userId: string): Promise<PowerRecords> {
   if (!supabase) return { best1min: null, best5min: null, best20min: null };
-  const CANDIDATES = 20;
   const results = await Promise.all(
     POWER_RECORD_COLUMNS.map(async ({ column }) => {
-      const selectCols: string = `${column}, started_at, strava_activity_id, workout_id`;
+      const selectCols: string = `${column}, started_at`;
       const { data, error } = await supabase!
         .from('sessions')
         .select(selectCols)
         .eq('user_id', userId)
         .not(column, 'is', null)
         .order(column, { ascending: false })
-        .limit(CANDIDATES);
+        .limit(1);
       if (error || !data) return null;
-      const rows = data as unknown as Record<string, unknown>[];
-      const best = rows.find((row) => isLiveRecorded({ workoutId: row.workout_id as string | null, stravaActivityId: row.strava_activity_id as number | null }));
+      const best = (data as unknown as Record<string, unknown>[])[0];
       if (!best) return null;
       const watts = best[column] as number | null;
       return watts ? { watts, dateKey: String(best.started_at).slice(0, 10) } : null;

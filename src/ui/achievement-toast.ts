@@ -2,7 +2,6 @@ import { buildAchievementInput, evaluateAchievements } from '../engine/achieveme
 import type { Achievement } from '../engine/achievements';
 import { computeWeeklyStreak } from '../engine/streaks';
 import { computeSessionAnalytics } from '../engine/analytics';
-import { isLiveRecorded } from '../core/session-origin';
 import { listSessions } from '../storage/session-store';
 import type { SessionRecord } from '../storage/session-store';
 import { localPowerBests, bestOf } from './screens/history';
@@ -27,7 +26,8 @@ const POWER_PEAK_WINDOWS: { key: 'best1min' | 'best5min' | 'best20min'; windowS:
 ];
 
 /** Compara la sesión recién terminada contra el mejor histórico de TODAS las
- * demás sesiones en vivo (local + nube) y arma un "logro" sintético por cada
+ * demás sesiones (local + nube, sin importar su origen — grabada en vivo,
+ * importada de Strava o subida a mano) y arma un "logro" sintético por cada
  * ventana (1/5/20 min) que acaba de superarse. A diferencia del catálogo
  * fijo de achievements.ts, esto no tiene estado de "visto": la propia
  * comparación contra el histórico anterior ya garantiza que es nuevo, así
@@ -35,10 +35,7 @@ const POWER_PEAK_WINDOWS: { key: 'best1min' | 'best5min' | 'best20min'; windowS:
 async function detectNewPowerPeaks(justFinished: SessionRecord, otherLocalSessions: SessionRecord[]): Promise<CelebratableAchievement[]> {
   const profile = { ...appState.profile, ftp: justFinished.ftp };
   const analytics = computeSessionAnalytics(justFinished.samples, profile);
-  const priorLocalLive = otherLocalSessions.filter((s) =>
-    isLiveRecorded({ workoutId: s.workoutId, stravaActivityId: s.stravaActivityId ?? null }),
-  );
-  const priorLocalBests = localPowerBests(priorLocalLive);
+  const priorLocalBests = localPowerBests(otherLocalSessions);
   const cloudBests =
     appState.cloudEnabled && appState.user
       ? await getPowerRecords(appState.user.id).catch(() => null)
@@ -143,10 +140,10 @@ interface MinimalRow {
 
 /** Se llama al montar Resumen justo después de terminar un entrenamiento
  * real (ver appState.justFinishedSession en train.ts) — recarga el
- * historial igual que lo hace Forma, evalúa logros solo con sesiones en vivo
- * (ver core/session-origin.ts) y celebra los que sean nuevos desde la
- * última vez. Nunca lanza: si algo falla, simplemente no hay celebración
- * esta vez, no debe romper la pantalla de Resumen. */
+ * historial igual que lo hace Forma, evalúa logros con cualquier sesión
+ * (grabada en vivo, importada de Strava o subida a mano) y celebra los que
+ * sean nuevos desde la última vez. Nunca lanza: si algo falla, simplemente
+ * no hay celebración esta vez, no debe romper la pantalla de Resumen. */
 export async function checkAndCelebrateAchievements(): Promise<void> {
   try {
     const localSessions = await listSessions();
@@ -167,29 +164,27 @@ export async function checkAndCelebrateAchievements(): Promise<void> {
         workoutId: s.workoutId,
         stravaActivityId: s.stravaActivityId,
       }));
-    const liveRows = [...localRows, ...cloudRows].filter(isLiveRecorded);
+    const allRows = [...localRows, ...cloudRows];
     const todayKey = todayKeyLocal();
     const streak = computeWeeklyStreak(
-      liveRows.map((r) => r.startedAt.slice(0, 10)),
+      allRows.map((r) => r.startedAt.slice(0, 10)),
       todayKey,
     );
-    const input = buildAchievementInput(liveRows, streak, appState.profile.ftp);
+    const input = buildAchievementInput(allRows, streak, appState.profile.ftp);
     const earned = evaluateAchievements(input)
       .filter((r) => r.earned)
       .map((r) => r.achievement);
     const newBadges = findNewlyEarnedAchievements(earned);
 
-    // picos de potencia: solo si la sesión recién terminada fue grabada en
-    // vivo (la condición que exige Diego — nada subido a mano ni de Strava
-    // cuenta para esto) y de verdad es la que se acaba de guardar.
+    // picos de potencia: cualquier sesión que se acabe de guardar compite por
+    // el récord, sin importar su origen.
     const justFinished = appState.lastSession;
-    const newPeaks =
-      justFinished && isLiveRecorded({ workoutId: justFinished.workoutId, stravaActivityId: justFinished.stravaActivityId ?? null })
-        ? await detectNewPowerPeaks(
-            justFinished,
-            localSessions.filter((s) => s.id !== justFinished.id),
-          )
-        : [];
+    const newPeaks = justFinished
+      ? await detectNewPowerPeaks(
+          justFinished,
+          localSessions.filter((s) => s.id !== justFinished.id),
+        )
+      : [];
 
     showAchievementCelebration([...newBadges, ...newPeaks]);
   } catch (err) {

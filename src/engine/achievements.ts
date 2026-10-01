@@ -107,10 +107,10 @@ export function evaluateAchievements(input: AchievementInput): { achievement: Ac
   return ACHIEVEMENTS.map((achievement) => ({ achievement, earned: achievement.earned(input) }));
 }
 
-/** Arma el input de logros a partir de filas ya filtradas a "en vivo"
- * (ver core/session-origin.ts) — mismo cálculo lo usan tanto la galería de
- * Forma como el chequeo de celebración al terminar un entrenamiento, para
- * no tener dos formas distintas de decidir qué cuenta. */
+/** Arma el input de logros a partir de todas las sesiones completadas —
+ * mismo cálculo lo usan tanto la galería de Forma como el chequeo de
+ * celebración al terminar un entrenamiento, para no tener dos formas
+ * distintas de decidir qué cuenta. */
 export function buildAchievementInput(
   rows: readonly { startedAt: string; durationS: number; ftp: number }[],
   streak: { currentWeeks: number; bestWeeks: number },

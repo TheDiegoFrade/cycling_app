@@ -3,7 +3,6 @@ import { computeSessionAnalytics } from '../../engine/analytics';
 import { computePmc, futureTssEntries } from '../../engine/pmc';
 import { computeWeeklyStreak, computeWeeklyVolumeTrend } from '../../engine/streaks';
 import { buildAchievementInput, evaluateAchievements } from '../../engine/achievements';
-import { isLiveRecorded } from '../../core/session-origin';
 import { estimateWorkout } from '../../core/workout-estimate';
 import { findTemplate } from '../../core/workout-templates';
 import type { Workout } from '../../core/types';
@@ -32,13 +31,6 @@ interface HistoryRow {
   fromStrava: boolean;
   ftp: number;
   avgCadence: number | null;
-}
-
-/** Si esta sesión cuenta para rachas/récords/logros — ver
- * core/session-origin.ts. `fromStrava` ya es un booleano derivado acá, así
- * que se adapta a lo que isLiveRecorded espera sin guardar el id crudo. */
-function isRowLiveRecorded(r: HistoryRow): boolean {
-  return isLiveRecorded({ workoutId: r.workoutId, stravaActivityId: r.fromStrava ? 0 : null });
 }
 
 export interface PowerBest {
@@ -383,33 +375,29 @@ export function renderForma(container: HTMLElement): () => void {
       const ctlWeekDelta = todayIndexInFull >= 0 && weekAgoIdx >= 0 ? latest.ctl - pmcFull[weekAgoIdx].ctl : null;
       const efTrend = efTrendPct(efPoints, todayKey);
 
-      // rachas, récords, logros y progreso solo cuentan sesiones grabadas en
-      // vivo con la app — una importada de Strava o un .fit subido a mano no
-      // es "tu récord en Torq" (ver core/session-origin.ts). El PMC y la
-      // tendencia de EF de arriba sí siguen usando `sorted` completo: ahí
-      // importa la carga real que absorbió el cuerpo, venga de donde venga.
-      const liveSorted = sorted.filter(isRowLiveRecorded);
-      const streak = computeWeeklyStreak(liveSorted.map((r) => r.startedAt.slice(0, 10)), todayKey);
-      const bestTssRow = liveSorted.reduce<HistoryRow | null>((best, r) => (!best || r.tss > best.tss ? r : best), null);
-      const longestRow = liveSorted.reduce<HistoryRow | null>((best, r) => (!best || r.durationS > best.durationS ? r : best), null);
-      const withEf = liveSorted.filter((r): r is HistoryRow & { ef: number } => r.ef !== null);
+      // rachas, récords, logros y progreso cuentan cualquier sesión completada
+      // — grabada en vivo, importada de Strava o subida a mano desde un .fit.
+      const streak = computeWeeklyStreak(sorted.map((r) => r.startedAt.slice(0, 10)), todayKey);
+      const bestTssRow = sorted.reduce<HistoryRow | null>((best, r) => (!best || r.tss > best.tss ? r : best), null);
+      const longestRow = sorted.reduce<HistoryRow | null>((best, r) => (!best || r.durationS > best.durationS ? r : best), null);
+      const withEf = sorted.filter((r): r is HistoryRow & { ef: number } => r.ef !== null);
       const bestEfRow = withEf.length ? withEf.reduce((best, r) => (r.ef > best.ef ? r : best)) : null;
 
-      const achievementInput = buildAchievementInput(liveSorted, streak, appState.profile.ftp);
+      const achievementInput = buildAchievementInput(sorted, streak, appState.profile.ftp);
       const achievementResults = evaluateAchievements(achievementInput);
 
-      const oldestFtpRow = [...liveSorted].reverse().find((r) => r.ftp > 0) ?? null;
+      const oldestFtpRow = [...sorted].reverse().find((r) => r.ftp > 0) ?? null;
       const ftpDeltaW = oldestFtpRow && oldestFtpRow.ftp !== appState.profile.ftp ? appState.profile.ftp - oldestFtpRow.ftp : null;
-      const cadencePoints = [...liveSorted]
+      const cadencePoints = [...sorted]
         .reverse()
         .map((r) => ({ dateKey: r.startedAt.slice(0, 10), cadence: r.avgCadence }))
         .filter((p): p is { dateKey: string; cadence: number } => p.cadence !== null);
       const cadenceTrend = cadenceTrendPct(cadencePoints, todayKey);
-      const volumeTrend = computeWeeklyVolumeTrend(liveSorted, todayKey);
+      const volumeTrend = computeWeeklyVolumeTrend(sorted, todayKey);
       const volumeDeltaPct =
         volumeTrend.priorHoursPerWeek > 0 ? ((volumeTrend.recentHoursPerWeek - volumeTrend.priorHoursPerWeek) / volumeTrend.priorHoursPerWeek) * 100 : null;
 
-      const local = localPowerBests(localSessions.filter((s) => isLiveRecorded({ workoutId: s.workoutId, stravaActivityId: s.stravaActivityId ?? null })));
+      const local = localPowerBests(localSessions);
       const best1min = bestOf(local.best1min, cloudPowerRecords?.best1min ?? null);
       const best5min = bestOf(local.best5min, cloudPowerRecords?.best5min ?? null);
       const best20min = bestOf(local.best20min, cloudPowerRecords?.best20min ?? null);

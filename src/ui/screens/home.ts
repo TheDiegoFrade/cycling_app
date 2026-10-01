@@ -7,7 +7,7 @@ import { clearDraft, listDrafts } from '../../storage/session-draft';
 import { listSessions, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
 import { saveWorkout } from '../../storage/workout-store';
-import { pushSessionToCloud } from '../../sync/cloud-sync';
+import { downloadSessionSamples, pushSessionToCloud } from '../../sync/cloud-sync';
 import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { navigate, refresh } from '../router';
 import { appState } from '../state';
@@ -261,9 +261,8 @@ export function renderHome(container: HTMLElement): void {
       minutesByDay.set(key, (minutesByDay.get(key) ?? 0) + s.samples.length / 60);
     });
 
-    // Sesiones grabadas en OTRO dispositivo que nunca llegaron a este
-    // IndexedDB — solo tenemos el resumen (sin samples), así que no aportan
-    // al desglose por zona, pero sí cuentan para horas/TSS/marca del día;
+    // Sesiones grabadas en OTRO dispositivo (o importadas ahí) que nunca
+    // llegaron a este IndexedDB — solo tenemos el resumen, no las samples;
     // sin esto "Esta semana" se queda corto tras entrenar desde el celular.
     const localIds = new Set(sessions.map((s) => s.id));
     const cloudOnlyThisWeek = appState.cloudSessions.filter((s) => !localIds.has(s.id)).filter((s) => {
@@ -277,6 +276,21 @@ export function renderHome(container: HTMLElement): void {
       const key = s.startedAt.slice(0, 10);
       minutesByDay.set(key, (minutesByDay.get(key) ?? 0) + durationS / 60);
     });
+
+    // El desglose por zona sí necesita las samples segundo a segundo — para
+    // estas sesiones solo viven en el .fit que se guardó en Storage al subir
+    // la sesión (ver pushSessionToCloud), así que se descarga y decodifica
+    // bajo demanda. Son pocas sesiones (solo las de esta semana), así que
+    // bajarlas al vuelo sale más barato que guardar un agregado nuevo.
+    await Promise.all(
+      cloudOnlyThisWeek.map(async (s) => {
+        if (!s.fitPath) return;
+        const samples = await downloadSessionSamples(s.fitPath).catch(() => null);
+        if (!samples) return;
+        const analytics = computeSessionAnalytics(samples, { ...appState.profile, ftp: s.ftp });
+        analytics.powerZoneSeconds.forEach((z, i) => (zoneSeconds[i] += z.seconds));
+      }),
+    );
 
     // "Entrenamientos esta semana" = sesiones ya completadas (agendadas o no
     // — Diego no siempre agenda primero) + lo agendado que todavía no se
