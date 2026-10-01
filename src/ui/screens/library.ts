@@ -11,6 +11,7 @@ import { deleteWorkoutFromCloud, pushWorkoutToCloud } from '../../sync/workout-s
 import { getRouteParam, navigate } from '../router';
 import { appState } from '../state';
 import { renderWorkoutCover } from '../workout-cover';
+import { wireDatePicker } from '../date-picker';
 
 type LibraryTab = 'library' | 'activity';
 
@@ -210,6 +211,7 @@ export function renderLibrary(container: HTMLElement): () => void {
 
   function wireLibraryList(): void {
     container.querySelectorAll<HTMLInputElement>('[data-schedule-id]').forEach((input) => {
+      wireDatePicker(input);
       input.addEventListener('change', async () => {
         const id = input.dataset.scheduleId!;
         const workout = appState.workouts.find((w) => w.id === id);
@@ -376,11 +378,15 @@ export function renderLibrary(container: HTMLElement): () => void {
       search = (e.target as HTMLInputElement).value;
       renderList();
     });
-    container.querySelector<HTMLInputElement>('#lib-date-from')?.addEventListener('change', (e) => {
+    const dateFromInput = container.querySelector<HTMLInputElement>('#lib-date-from');
+    if (dateFromInput) wireDatePicker(dateFromInput);
+    dateFromInput?.addEventListener('change', (e) => {
       dateFrom = (e.target as HTMLInputElement).value;
       renderList();
     });
-    container.querySelector<HTMLInputElement>('#lib-date-to')?.addEventListener('change', (e) => {
+    const dateToInput = container.querySelector<HTMLInputElement>('#lib-date-to');
+    if (dateToInput) wireDatePicker(dateToInput);
+    dateToInput?.addEventListener('change', (e) => {
       dateTo = (e.target as HTMLInputElement).value;
       renderList();
     });

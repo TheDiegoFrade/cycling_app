@@ -51,6 +51,29 @@ function ageFromBirthDate(birthDate: string): number | null {
   return age;
 }
 
+const BIRTH_MONTH_NAMES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+/** Tres <select> de día/mes/año en vez de un <input type="date"> — el nativo
+ * obliga a navegar año por año desde hoy para llegar a un año de nacimiento
+ * lejano (y en algunos navegadores/SO ni siquiera deja escribirlo directo). */
+function birthDateSelectsHtml(current?: string): string {
+  const match = current ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(current) : null;
+  const parsed = match ? { y: Number(match[1]), m: Number(match[2]), d: Number(match[3]) } : null;
+  const currentYear = new Date().getFullYear();
+  const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1)
+    .map((d) => `<option value="${d}" ${parsed?.d === d ? 'selected' : ''}>${d}</option>`)
+    .join('');
+  const monthOptions = BIRTH_MONTH_NAMES.map((name, i) => `<option value="${i + 1}" ${parsed?.m === i + 1 ? 'selected' : ''}>${name}</option>`).join('');
+  const yearOptions = Array.from({ length: 96 }, (_, i) => currentYear - 5 - i)
+    .map((y) => `<option value="${y}" ${parsed?.y === y ? 'selected' : ''}>${y}</option>`)
+    .join('');
+  return `
+    <select id="profile-birth-day" aria-label="Día de nacimiento"><option value="">Día</option>${dayOptions}</select>
+    <select id="profile-birth-month" aria-label="Mes de nacimiento"><option value="">Mes</option>${monthOptions}</select>
+    <select id="profile-birth-year" aria-label="Año de nacimiento"><option value="">Año</option>${yearOptions}</select>
+  `;
+}
+
 type AlertRow = {
   label: string;
   hint: string;
@@ -93,7 +116,7 @@ export function renderPerfil(container: HTMLElement): void {
               <h2 class="perfil-h2">Datos personales</h2>
               <div class="grid-form">
                 <label>Nombre<input type="text" id="profile-name" autocomplete="name" value="${appState.profile.name ?? ''}"></label>
-                <label>Fecha de nacimiento<input type="date" id="profile-birth-date" value="${appState.profile.birth_date ?? ''}"></label>
+                <label class="perfil-birthdate-field">Fecha de nacimiento<span class="perfil-birthdate-row">${birthDateSelectsHtml(appState.profile.birth_date)}</span></label>
                 <label>Altura<span class="perfil-numfield-row"><input type="number" id="profile-height" min="0" step="1" value="${appState.profile.height_cm ?? ''}"><span class="live-col-label">cm</span></span></label>
                 <label>Peso<span class="perfil-numfield-row"><input type="number" id="profile-weight" min="0" step="0.1" value="${appState.profile.weight_kg ?? ''}"><span class="live-col-label">kg</span></span></label>
                 <label>Sexo
@@ -234,11 +257,19 @@ export function renderPerfil(container: HTMLElement): void {
       appState.persistProfile();
     });
 
-    container.querySelector<HTMLInputElement>('#profile-birth-date')?.addEventListener('change', (e) => {
-      const birthDate = (e.target as HTMLInputElement).value;
-      appState.profile = { ...appState.profile, birth_date: birthDate || undefined };
-      appState.persistProfile();
-      paint(); // refresca la edad calculada junto al campo
+    const birthDayEl = container.querySelector<HTMLSelectElement>('#profile-birth-day');
+    const birthMonthEl = container.querySelector<HTMLSelectElement>('#profile-birth-month');
+    const birthYearEl = container.querySelector<HTMLSelectElement>('#profile-birth-year');
+    [birthDayEl, birthMonthEl, birthYearEl].forEach((el) => {
+      el?.addEventListener('change', () => {
+        const d = birthDayEl?.value;
+        const m = birthMonthEl?.value;
+        const y = birthYearEl?.value;
+        const birthDate = d && m && y ? `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}` : undefined;
+        appState.profile = { ...appState.profile, birth_date: birthDate };
+        appState.persistProfile();
+        paint(); // refresca la edad calculada junto al campo
+      });
     });
 
     container.querySelector<HTMLInputElement>('#profile-height')?.addEventListener('change', (e) => {

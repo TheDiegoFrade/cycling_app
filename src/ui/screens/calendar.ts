@@ -15,6 +15,7 @@ import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { navigate, refresh } from '../router';
 import { appState } from '../state';
 import { renderWorkoutCover } from '../workout-cover';
+import { wireDatePicker } from '../date-picker';
 
 const STRAVA_IMPORT_WINDOW_DAYS = 60;
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -410,6 +411,8 @@ export function renderCalendar(container: HTMLElement): () => void {
   function wireDayButtons(): void {
     const doneFileInput = container.querySelector<HTMLInputElement>('#import-done-file')!;
     const importErrors = container.querySelector<HTMLElement>('#plan-import-errors')!;
+    const manualDoneDate = container.querySelector<HTMLInputElement>('#manual-done-date');
+    if (manualDoneDate) wireDatePicker(manualDoneDate);
 
     container.querySelectorAll<HTMLButtonElement>('[data-create-date]').forEach((btn) => {
       btn.addEventListener('click', () => {
