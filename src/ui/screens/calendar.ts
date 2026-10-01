@@ -3,12 +3,13 @@ import { importWorkoutFile } from '../../core/workout-file-import';
 import { validateRulesFile, validateWorkout } from '../../core/validator';
 import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import { estimateWorkout } from '../../core/workout-estimate';
-import type { RulesFile, Workout } from '../../core/types';
+import type { RulesFile, Sample, Workout } from '../../core/types';
+import { ZONE_HEIGHT_PCT, powerZone } from '../../core/zones';
 import { saveWorkout, deleteWorkout } from '../../storage/workout-store';
 import { listSessions, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
 import { computeSessionAnalytics } from '../../engine/analytics';
-import { pushSessionToCloud } from '../../sync/cloud-sync';
+import { downloadSessionSamples, pushSessionToCloud } from '../../sync/cloud-sync';
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
 import { deleteWorkoutFromCloud, pushWorkoutToCloud } from '../../sync/workout-sync';
 import { navigate } from '../router';
@@ -76,11 +77,39 @@ interface CalendarDone {
   workoutName: string;
   durationS: number;
   tss: number;
+  /** Gráfico tipo workout-cover reconstruido de los samples REALES de la
+   * sesión (no de un plan) — solo disponible para sesiones locales, que son
+   * las que traen samples completos. Sin esto, un día completado (importado
+   * o grabado) se veía como texto plano al lado de los días agendados, que
+   * sí muestran su cover — ver reportHtml en weekCellHtml/monthCellHtml. */
+  coverHtml?: string;
+}
+
+/** Mismo lenguaje visual que renderWorkoutCover (barras por zona), pero a
+ * partir de potencia YA GRABADA en vez de un plan: agrupa los samples en
+ * tramos y colorea cada uno según su zona de potencia promedio. */
+function renderSessionCover(samples: readonly Sample[], ftp: number): string {
+  if (samples.length === 0 || ftp <= 0) return '';
+  const BARS = 10;
+  const chunkSize = Math.max(1, Math.ceil(samples.length / BARS));
+  const bars: string[] = [];
+  for (let i = 0; i < samples.length; i += chunkSize) {
+    const chunk = samples.slice(i, i + chunkSize);
+    const avgPower = chunk.reduce((sum, s) => sum + s.power, 0) / chunk.length;
+    const zone = powerZone((avgPower / ftp) * 100);
+    bars.push(`<div class="workout-cover-bar" style="height:${ZONE_HEIGHT_PCT[zone]}%;background:var(--z${zone})"></div>`);
+  }
+  return `<div class="workout-cover workout-cover-sm">${bars.join('')}</div>`;
 }
 
 function localToCalendarDone(s: SessionRecord): CalendarDone {
   const a = computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp });
-  return { workoutName: s.workoutName, durationS: s.samples.length, tss: a.trainingStressScore ?? 0 };
+  return {
+    workoutName: s.workoutName,
+    durationS: s.samples.length,
+    tss: a.trainingStressScore ?? 0,
+    coverHtml: renderSessionCover(s.samples, s.ftp),
+  };
 }
 
 function cloudToCalendarDone(s: CloudSessionSummary): CalendarDone {
@@ -121,6 +150,15 @@ export function renderCalendar(container: HTMLElement): () => void {
   let weekStart = startOfWeek(today);
   let monthAnchor = new Date(today.getFullYear(), today.getMonth(), 1);
   let completedByDate = new Map<string, CalendarDone>();
+  /** Resumen crudo (con fitPath) de las sesiones que solo viven en la nube,
+   * indexado por fecha — completedByDate ya no trae lo necesario para pedir
+   * el .fit, así que esto es lo que usa loadVisibleCloudCovers para saber
+   * a cuáles pedirles el cover de verdad en vez de dejarlas en texto plano. */
+  let cloudOnlyByDate = new Map<string, CloudSessionSummary>();
+  /** Evita re-pedir el .fit de una fecha ya intentada (con o sin éxito) cada
+   * vez que se repinta — paint() llama a loadVisibleCloudCovers en cada
+   * render, incluido el que dispara la propia descarga al terminar. */
+  const cloudCoverAttempted = new Set<string>();
   /** Fecha para la que se está mostrando el panel "Crear nuevo" (plantillas),
    * null si está cerrado — un solo panel compartido por semana y mes en vez
    * de uno por celda, ver createPanelHtml/wireCreatePanel. */
@@ -156,6 +194,7 @@ export function renderCalendar(container: HTMLElement): () => void {
     `
       : completed
         ? `
+      ${completed.coverHtml ? `<div class="plan-day-cover">${completed.coverHtml}</div>` : ''}
       <div class="plan-day-name">${completed.workoutName}</div>
       <div class="live-col-label">completado</div>
     `
@@ -173,13 +212,36 @@ export function renderCalendar(container: HTMLElement): () => void {
     const body = scheduled
       ? `<button class="plan-month-cover" data-workout-id="${scheduled.id}" title="${scheduled.name} — Editar en biblioteca">${renderWorkoutCover(scheduled.intervals, 'sm')}</button>`
       : completed
-        ? `<div class="plan-month-done-label" title="${completed.workoutName}">${completed.workoutName}</div>`
+        ? completed.coverHtml
+          ? `<div class="plan-month-cover" title="${completed.workoutName}">${completed.coverHtml}</div>`
+          : `<div class="plan-month-done-label" title="${completed.workoutName}">${completed.workoutName}</div>`
         : `<button class="plan-month-add" data-create-date="${key}" title="Crear nuevo" aria-label="Crear nuevo">+</button>`;
     return `
       <div class="plan-month-day${isToday ? ' today' : ''}${completed ? ' done' : ''}${inCurrentMonth ? '' : ' outside'}">
         <div class="plan-month-daynum">${d.getDate()}</div>
         ${body}
       </div>`;
+  }
+
+  /** Pide el .fit de las sesiones cloud-only que se ven en el rango actual
+   * (semana o mes) para reconstruir su cover real — nunca de TODO el
+   * historial, solo lo visible, para no descargar de más. Al resolver cada
+   * una, actualiza completedByDate y vuelve a pintar. */
+  function loadVisibleCloudCovers(days: Date[]): void {
+    days.forEach((d) => {
+      const key = toDateKey(d);
+      if (cloudCoverAttempted.has(key)) return;
+      const summary = cloudOnlyByDate.get(key);
+      if (!summary || !summary.fitPath) return;
+      cloudCoverAttempted.add(key);
+      void downloadSessionSamples(summary.fitPath).then((samples) => {
+        if (!samples || samples.length === 0) return;
+        const existing = completedByDate.get(key);
+        if (!existing) return;
+        completedByDate.set(key, { ...existing, coverHtml: renderSessionCover(samples, summary.ftp) });
+        paint();
+      });
+    });
   }
 
   function paint(): void {
@@ -212,6 +274,8 @@ export function renderCalendar(container: HTMLElement): () => void {
         return isMonth ? monthCellHtml(d, key, isToday, inCurrentMonth, scheduled, completed) : weekCellHtml(d, key, isToday, scheduled, completed);
       })
       .join('');
+
+    loadVisibleCloudCovers(days);
 
     const unscheduled = appState.workouts.filter((w) => !w.scheduledDate);
     const scheduledList = appState.workouts.filter((w) => w.scheduledDate);
@@ -531,7 +595,10 @@ export function renderCalendar(container: HTMLElement): () => void {
       .filter((s) => !localIds.has(s.id))
       .forEach((s) => {
         const key = s.startedAt.slice(0, 10);
-        if (!completedByDate.has(key)) completedByDate.set(key, cloudToCalendarDone(s));
+        if (!completedByDate.has(key)) {
+          completedByDate.set(key, cloudToCalendarDone(s));
+          cloudOnlyByDate.set(key, s);
+        }
       });
     paint();
   });
