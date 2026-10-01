@@ -67,7 +67,7 @@ export function renderConnect(container: HTMLElement): void {
         <div class="prepare-right">
           <div class="prepare-subtitle">Antes de empezar</div>
           <div class="panel prepare-sensor">
-            <div class="prepare-sensor-head"><div class="prepare-sensor-name">Rodillo</div><div id="trainer-state" class="prepare-sensor-status">${STATE_LABEL.disconnected}</div></div>
+            <div class="prepare-sensor-head"><div class="prepare-sensor-name">Rodillo</div><div class="prepare-sensor-status"><span class="status-dot" id="trainer-dot"></span><span id="trainer-state">${STATE_LABEL.disconnected}</span></div></div>
             <div class="prepare-sensor-reading" id="trainer-reading"><span><b class="num">0</b> W</span><span><b class="num">0</b> rpm</span></div>
             <div class="row-actions">
               <button id="trainer-connect" ${hasBluetooth ? '' : 'disabled title="este navegador no soporta Web Bluetooth"'}>Conectar por Bluetooth</button>
@@ -75,7 +75,7 @@ export function renderConnect(container: HTMLElement): void {
             <div id="trainer-error"></div>
           </div>
           <div class="panel prepare-sensor">
-            <div class="prepare-sensor-head"><div class="prepare-sensor-name">Banda de pulso</div><div class="prepare-sensor-status">Opcional · <span id="hr-state">${STATE_LABEL.disconnected}</span></div></div>
+            <div class="prepare-sensor-head"><div class="prepare-sensor-name">Banda de pulso</div><div class="prepare-sensor-status">Opcional · <span class="status-dot" id="hr-dot"></span><span id="hr-state">${STATE_LABEL.disconnected}</span></div></div>
             <button id="hr-connect" ${hasBluetooth ? '' : 'disabled title="este navegador no soporta Web Bluetooth"'}>Buscar banda</button>
             <div id="hr-error"></div>
           </div>
@@ -94,7 +94,7 @@ export function renderConnect(container: HTMLElement): void {
 
   wireSensor<TrainerAdapter, TrainerReading>('trainer', appState.trainer, {
     connectBtn: 'trainer-connect',
-    dot: null,
+    dot: 'trainer-dot',
     stateEl: 'trainer-state',
     readingEl: 'trainer-reading',
     errorEl: 'trainer-error',
@@ -109,7 +109,7 @@ export function renderConnect(container: HTMLElement): void {
 
   wireSensor<HrAdapter, number>('hr', appState.hr, {
     connectBtn: 'hr-connect',
-    dot: null,
+    dot: 'hr-dot',
     stateEl: 'hr-state',
     readingEl: null,
     errorEl: 'hr-error',
