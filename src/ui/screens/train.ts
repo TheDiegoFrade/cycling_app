@@ -234,7 +234,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     const X = (t: number) => pad + (t / plan.totalDuration) * (w - 2 * pad);
 
     if (history.length > 1) {
-      const line = (key: 'power' | 'cadence' | 'hr', min: number, max: number, color: string, lw: number) => {
+      const line = (key: 'cadence' | 'hr', min: number, max: number, color: string, lw: number) => {
         g.beginPath();
         g.strokeStyle = color;
         g.lineWidth = lw;
@@ -246,8 +246,25 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         });
         g.stroke();
       };
+      // potencia: mismo eje que las barras (altura por zona, ver
+      // ZONE_HEIGHT_PCT), no un rango lineal de watts — así en ERG, con la
+      // potencia pegada al objetivo, la línea queda a la misma altura que la
+      // barra del bloque actual, no en una escala aparte. Sin el pad
+      // vertical que sí llevan cadencia/pulso, para que 100% de la escala
+      // toque el borde superior igual que una barra al 100%.
+      g.beginPath();
+      g.strokeStyle = 'rgba(255,255,255,.85)';
+      g.lineWidth = 1.5;
+      g.lineJoin = 'round';
+      history.forEach((p, j) => {
+        const x = X(p.t);
+        const powerPct = appState.profile.ftp > 0 ? (p.power / appState.profile.ftp) * 100 : 0;
+        const heightPct = ZONE_HEIGHT_PCT[powerZone(powerPct)];
+        const y = h - (heightPct / 100) * h;
+        j ? g.lineTo(x, y) : g.moveTo(x, y);
+      });
+      g.stroke();
       const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
-      line('power', 0, appState.profile.ftp * 1.3, 'rgba(255,255,255,.85)', 1.5);
       line('cadence', 60, 110, zoneColor(2), 2);
       line('hr', 80, 190, dangerColor, 2);
     }
