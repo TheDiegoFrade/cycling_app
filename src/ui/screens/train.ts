@@ -460,7 +460,9 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     $('timeline').innerHTML = workout.intervals
       .map((iv, i) => {
         const z = powerZone(iv.power_pct);
-        const opacity = i < currentIndex0 ? 0.45 : i === currentIndex0 ? 1 : 0.18;
+        // antes 0.45/0.18 — con zonas bajas (Z1 gris, Z2 azul) a esa opacidad
+        // contra el fondo oscuro el color prácticamente no se notaba.
+        const opacity = i < currentIndex0 ? 0.6 : i === currentIndex0 ? 1 : 0.35;
         const outline = i === currentIndex0 ? 'outline:2px solid var(--text);outline-offset:2px;' : '';
         return `<div class="live-timeline-bar" style="flex-grow:${iv.duration_s};height:${ZONE_HEIGHT_PCT[z]}%;background:${zoneColor(z)};opacity:${opacity};${outline}"></div>`;
       })
