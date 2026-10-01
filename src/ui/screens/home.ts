@@ -232,26 +232,33 @@ export function renderHome(container: HTMLElement): void {
     // al desglose por zona, pero sí cuentan para horas/TSS/marca del día;
     // sin esto "Esta semana" se queda corto tras entrenar desde el celular.
     const localIds = new Set(sessions.map((s) => s.id));
-    appState.cloudSessions
-      .filter((s) => !localIds.has(s.id))
-      .filter((s) => {
-        const key = s.startedAt.slice(0, 10);
-        return key >= weekStartKey && key < toDateKey(weekEndExclusive);
-      })
-      .forEach((s) => {
-        const durationS = Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000);
-        totalSeconds += durationS;
-        totalTss += s.trainingStressScore ?? 0;
-        const key = s.startedAt.slice(0, 10);
-        minutesByDay.set(key, (minutesByDay.get(key) ?? 0) + durationS / 60);
-      });
+    const cloudOnlyThisWeek = appState.cloudSessions.filter((s) => !localIds.has(s.id)).filter((s) => {
+      const key = s.startedAt.slice(0, 10);
+      return key >= weekStartKey && key < toDateKey(weekEndExclusive);
+    });
+    cloudOnlyThisWeek.forEach((s) => {
+      const durationS = Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000);
+      totalSeconds += durationS;
+      totalTss += s.trainingStressScore ?? 0;
+      const key = s.startedAt.slice(0, 10);
+      minutesByDay.set(key, (minutesByDay.get(key) ?? 0) + durationS / 60);
+    });
 
     const scheduledThisWeek = appState.workouts.filter((w) => w.scheduledDate && w.scheduledDate >= weekStartKey && w.scheduledDate < toDateKey(weekEndExclusive));
     const doneCount = scheduledThisWeek.filter((w) => minutesByDay.has(w.scheduledDate!)).length;
+    // Diego no siempre agenda primero — entrena y queda completado directo.
+    // Si no hay nada agendado esta semana, "3/10" no tiene con qué compararse
+    // y mostrar "—" se lee como "no has entrenado" aunque sí lo hiciste; en
+    // ese caso cae a un conteo simple de sesiones completadas.
+    const completedThisWeek = weekSessions.length + cloudOnlyThisWeek.length;
 
     container.querySelector('#week-hours')!.textContent = fmtHours(totalSeconds);
     container.querySelector('#week-tss')!.textContent = String(Math.round(totalTss));
-    container.querySelector('#week-count')!.textContent = scheduledThisWeek.length ? `${doneCount}/${scheduledThisWeek.length}` : '—';
+    container.querySelector('#week-count')!.textContent = scheduledThisWeek.length
+      ? `${doneCount}/${scheduledThisWeek.length}`
+      : completedThisWeek > 0
+        ? String(completedThisWeek)
+        : '—';
 
     const zoneTotal = zoneSeconds.reduce((a, b) => a + b, 0) || 1;
     container.querySelector('#week-zonebar')!.innerHTML = zoneSeconds
