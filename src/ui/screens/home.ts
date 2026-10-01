@@ -9,7 +9,7 @@ import type { SessionRecord } from '../../storage/session-store';
 import { saveWorkout } from '../../storage/workout-store';
 import { pushSessionToCloud } from '../../sync/cloud-sync';
 import { pushWorkoutToCloud } from '../../sync/workout-sync';
-import { navigate } from '../router';
+import { navigate, refresh } from '../router';
 import { appState } from '../state';
 import { renderWorkoutCover } from '../workout-cover';
 
@@ -136,6 +136,11 @@ export function renderHome(container: HTMLElement): void {
         </div>
         <label class="live-col-label">Duración<input type="number" id="gen-minutes" value="${WORKOUT_TEMPLATES[0].defaultMinutes}" min="${WORKOUT_TEMPLATES[0].minMinutes}" max="${WORKOUT_TEMPLATES[0].maxMinutes}"></label>
         <p class="hint" id="gen-description">${WORKOUT_TEMPLATES[0].description}</p>
+        <div class="home-generate-when">
+          <label class="home-generate-radio"><input type="radio" name="gen-when" value="now" checked> Ahora mismo</label>
+          <label class="home-generate-radio"><input type="radio" name="gen-when" value="later"> Otra fecha</label>
+          <input type="date" id="gen-date" value="${todayKey}" style="display:none">
+        </div>
         <button class="btn-light" id="gen-create">Generar y entrenar</button>
         <div id="gen-errors"></div>
       </div>
@@ -153,6 +158,19 @@ export function renderHome(container: HTMLElement): void {
     const minutesInput = container.querySelector<HTMLInputElement>('#gen-minutes')!;
     const description = container.querySelector<HTMLElement>('#gen-description')!;
     const genErrors = container.querySelector<HTMLElement>('#gen-errors')!;
+    const whenRadios = container.querySelectorAll<HTMLInputElement>('input[name="gen-when"]');
+    const dateInput = container.querySelector<HTMLInputElement>('#gen-date')!;
+    const submitBtn = container.querySelector<HTMLButtonElement>('#gen-create')!;
+
+    function isLater(): boolean {
+      return container.querySelector<HTMLInputElement>('input[name="gen-when"]:checked')?.value === 'later';
+    }
+    function updateWhenUI(): void {
+      const later = isLater();
+      dateInput.style.display = later ? '' : 'none';
+      submitBtn.textContent = later ? 'Generar y agendar' : 'Generar y entrenar';
+    }
+    whenRadios.forEach((r) => r.addEventListener('change', updateWhenUI));
 
     chips.forEach((chip) => {
       chip.addEventListener('click', () => {
@@ -176,16 +194,20 @@ export function renderHome(container: HTMLElement): void {
         genErrors.innerHTML = errorsHtml([`Minutos fuera de rango para "${t.name}": entre ${t.minMinutes} y ${t.maxMinutes}.`]);
         return;
       }
-      const now = new Date();
+      const later = isLater();
+      const scheduledDate = later ? dateInput.value : todayKey;
+      const dateObj = new Date(`${scheduledDate}T00:00:00`);
+      if (later && (!scheduledDate || Number.isNaN(dateObj.getTime()))) {
+        genErrors.innerHTML = errorsHtml(['Elige una fecha válida.']);
+        return;
+      }
       const workout: Workout = {
         format_version: 1,
         id: crypto.randomUUID(),
-        name: `${t.name} · ${minutes} min · ${now.getDate()} ${MONTH_NAMES_SHORT[now.getMonth()]}`,
+        name: `${t.name} · ${minutes} min · ${dateObj.getDate()} ${MONTH_NAMES_SHORT[dateObj.getMonth()]}`,
         intervals: t.build(minutes),
-        created_at: now.toISOString(),
-        // agendado hoy: el punto de generarlo desde Inicio es entrenarlo YA,
-        // no dejarlo sin fecha en la biblioteca de Plan como antes.
-        scheduledDate: todayKey,
+        created_at: new Date().toISOString(),
+        scheduledDate,
       };
       const result = validateWorkout(workout);
       genErrors.innerHTML = errorsHtml(result.errors);
@@ -193,9 +215,18 @@ export function renderHome(container: HTMLElement): void {
       await saveWorkout(workout);
       if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
       appState.workouts = [...appState.workouts, workout];
-      appState.selectedWorkoutId = workout.id;
-      navigate('prepare');
+      if (later) {
+        // se queda en Inicio — ya se agregó a Plan, no hay nada que entrenar
+        // todavía. Refresh completo (no solo paintWeek) por si la fecha
+        // elegida es hoy y debe aparecer en "Hoy toca".
+        refresh();
+      } else {
+        appState.selectedWorkoutId = workout.id;
+        navigate('prepare');
+      }
     });
+
+    updateWhenUI();
   }
   wireGenerate();
 

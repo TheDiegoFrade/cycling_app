@@ -1578,6 +1578,18 @@ a {
   flex-direction: column;
   gap: 16px;
 }
+.home-generate-when {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.home-generate-radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-soft);
+}
 
 /* ---------- Límites por bloque (ver TORQ_DESIGN.md, sección Plan) ---------- */
 .limits-head {
@@ -1645,7 +1657,7 @@ a {
   border: 1.5px solid var(--text);
 }
 .plan-day.done {
-  opacity: 0.7;
+  border: 1.5px solid var(--success);
 }
 .plan-day-head {
   display: flex;
@@ -1762,11 +1774,26 @@ a {
   border: none;
   color: var(--text-muted);
 }
-.plan-generate {
+.plan-create-panel {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  align-self: start;
+  margin: 20px 0;
+}
+.plan-create-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.plan-create-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  padding: 4px;
+}
+.plan-manual-done {
+  margin: 20px 0;
 }
 .plan-chip-row {
   display: flex;
@@ -1782,6 +1809,93 @@ a {
 .plan-chip.on {
   border-color: var(--accent);
   color: var(--accent-light);
+}
+.plan-view-toggle {
+  display: flex;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.plan-view-btn {
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: var(--text-muted);
+  padding: 7px 14px;
+  font-size: 13px;
+}
+.plan-view-btn.on {
+  background: var(--surface-active);
+  color: var(--text);
+}
+.plan-month-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.plan-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin: 8px 0 20px;
+}
+.plan-month-day {
+  min-height: 84px;
+  box-sizing: border-box;
+  padding: 6px;
+  border-radius: var(--radius-md);
+  background: var(--surface-nav);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.plan-month-day.today {
+  border: 1.5px solid var(--text);
+}
+.plan-month-day.done {
+  border: 1.5px solid var(--success);
+}
+.plan-month-day.outside {
+  opacity: 0.4;
+}
+.plan-month-daynum {
+  font-size: 12px;
+  color: var(--text-soft);
+}
+.plan-month-cover {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.plan-month-cover .workout-cover {
+  height: 28px;
+}
+.plan-month-done-label {
+  font-size: 11px;
+  color: var(--text-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.plan-month-add {
+  margin-top: auto;
+  align-self: flex-start;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 12px;
+  border-radius: 999px;
+  color: var(--text-muted);
+  background: none;
+  border: 1px dashed var(--border-control);
 }
 
 /* ---------- Resumen de sesión (ver TORQ_DESIGN.md) ---------- */

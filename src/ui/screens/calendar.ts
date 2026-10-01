@@ -1,6 +1,7 @@
 import { buildCompletedSessionFromFit } from '../../core/completed-session-import';
 import { importWorkoutFile } from '../../core/workout-file-import';
 import { validateRulesFile, validateWorkout } from '../../core/validator';
+import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import { estimateWorkout } from '../../core/workout-estimate';
 import type { RulesFile, Workout } from '../../core/types';
 import { saveWorkout, deleteWorkout } from '../../storage/workout-store';
@@ -15,7 +16,11 @@ import { appState } from '../state';
 import { renderWorkoutCover } from '../workout-cover';
 
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MONTH_WEEKDAY_HEADER = [1, 2, 3, 4, 5, 6, 0].map((i) => DAY_NAMES[i]); // lunes primero, solo para el header de la vista de mes
 const MONTH_NAMES_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const MONTH_NAMES_LONG = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+type ViewMode = 'week' | 'month';
 
 function toDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -29,12 +34,32 @@ function startOfWeek(d: Date): Date {
   return s;
 }
 
+/** Todos los días a dibujar en la vista de mes: semanas completas (lunes a
+ * domingo) que cubren el mes — incluye días de los meses vecinos para no
+ * dejar semanas a medias, mismo criterio que cualquier calendario mensual. */
+function monthGridDays(anchor: Date): Date[] {
+  const firstOfMonth = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+  const lastOfMonth = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0);
+  const gridStart = startOfWeek(firstOfMonth);
+  const gridEndExclusive = startOfWeek(lastOfMonth);
+  gridEndExclusive.setDate(gridEndExclusive.getDate() + 7);
+  const days: Date[] = [];
+  for (let d = new Date(gridStart); d < gridEndExclusive; d.setDate(d.getDate() + 1)) {
+    days.push(new Date(d));
+  }
+  return days;
+}
+
 function fmtDayShort(d: Date): string {
   return `${DAY_NAMES[d.getDay()]} ${d.getDate()}`;
 }
 
 function fmtRange(start: Date, end: Date): string {
   return `${start.getDate()} ${MONTH_NAMES_SHORT[start.getMonth()]} – ${end.getDate()} ${MONTH_NAMES_SHORT[end.getMonth()]}`;
+}
+
+function fmtMonthLabel(d: Date): string {
+  return `${MONTH_NAMES_LONG[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 function fmtHours(totalS: number): string {
@@ -92,86 +117,145 @@ async function importRulesFile(file: File, target: Workout): Promise<{ workout?:
 export function renderCalendar(container: HTMLElement): () => void {
   const today = new Date();
   const todayKey = toDateKey(today);
+  let viewMode: ViewMode = 'week';
   let weekStart = startOfWeek(today);
+  let monthAnchor = new Date(today.getFullYear(), today.getMonth(), 1);
   let completedByDate = new Map<string, CalendarDone>();
-  let pendingScheduleDate: string | null = null;
-  let pendingDoneDate: string | null = null;
+  /** Fecha para la que se está mostrando el panel "Crear nuevo" (plantillas),
+   * null si está cerrado — un solo panel compartido por semana y mes en vez
+   * de uno por celda, ver createPanelHtml/wireCreatePanel. */
+  let createDate: string | null = null;
   let rulesTargetWorkout: Workout | null = null;
 
+  function createPanelHtml(): string {
+    if (!createDate) return '';
+    const d = new Date(`${createDate}T00:00:00`);
+    return `
+      <div class="panel plan-create-panel" id="plan-create-panel">
+        <div class="plan-create-head">
+          <h2 class="perfil-h2" style="margin:0">Crear nuevo — ${fmtDayShort(d)}</h2>
+          <button class="plan-create-close" id="plan-create-close" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="plan-chip-row" id="create-chips">
+          ${WORKOUT_TEMPLATES.map((t, i) => `<button class="plan-chip${i === 0 ? ' on' : ''}" data-template="${t.id}">${t.name}</button>`).join('')}
+        </div>
+        <label class="live-col-label">Duración<input type="number" id="create-minutes" value="${WORKOUT_TEMPLATES[0].defaultMinutes}" min="${WORKOUT_TEMPLATES[0].minMinutes}" max="${WORKOUT_TEMPLATES[0].maxMinutes}"></label>
+        <p class="hint" id="create-description">${WORKOUT_TEMPLATES[0].description}</p>
+        <button class="btn-light" id="create-submit">Crear</button>
+        <div id="create-errors"></div>
+      </div>`;
+  }
+
+  function weekCellHtml(d: Date, key: string, isToday: boolean, scheduled: Workout | undefined, completed: CalendarDone | undefined): string {
+    const est = scheduled ? estimateWorkout(scheduled.intervals, appState.profile.ftp) : null;
+    const body = scheduled
+      ? `
+      <button class="plan-day-cover" data-workout-id="${scheduled.id}" title="${scheduled.name} — Editar en biblioteca">${renderWorkoutCover(scheduled.intervals, 'sm')}</button>
+      <div class="plan-day-name">${scheduled.name}</div>
+      <div class="live-col-label">${est ? `${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS` : ''}</div>
+    `
+      : completed
+        ? `
+      <div class="plan-day-name">${completed.workoutName}</div>
+      <div class="live-col-label">completado</div>
+    `
+        : `<button class="plan-day-add" data-create-date="${key}">+ Crear nuevo</button>`;
+    const miniActions = scheduled || completed ? `<div class="plan-day-actions"><button class="plan-day-mini-add" data-create-date="${key}" title="Crear nuevo">+</button></div>` : '';
+    return `
+      <div class="plan-day${isToday ? ' today' : ''}${completed ? ' done' : ''}">
+        <div class="plan-day-head"><span class="${isToday ? 'plan-day-today-label' : ''}">${fmtDayShort(d)}</span><span class="live-col-label">${completed ? 'Hecho' : isToday ? 'Hoy' : ''}</span></div>
+        ${body}
+        ${miniActions}
+      </div>`;
+  }
+
+  function monthCellHtml(d: Date, key: string, isToday: boolean, inCurrentMonth: boolean, scheduled: Workout | undefined, completed: CalendarDone | undefined): string {
+    const body = scheduled
+      ? `<button class="plan-month-cover" data-workout-id="${scheduled.id}" title="${scheduled.name} — Editar en biblioteca">${renderWorkoutCover(scheduled.intervals, 'sm')}</button>`
+      : completed
+        ? `<div class="plan-month-done-label" title="${completed.workoutName}">${completed.workoutName}</div>`
+        : `<button class="plan-month-add" data-create-date="${key}" title="Crear nuevo" aria-label="Crear nuevo">+</button>`;
+    return `
+      <div class="plan-month-day${isToday ? ' today' : ''}${completed ? ' done' : ''}${inCurrentMonth ? '' : ' outside'}">
+        <div class="plan-month-daynum">${d.getDate()}</div>
+        ${body}
+      </div>`;
+  }
+
   function paint(): void {
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 6);
-    const days: string[] = [];
+    const isMonth = viewMode === 'month';
+    const days = isMonth ? monthGridDays(monthAnchor) : Array.from({ length: 7 }, (_, i) => new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i));
+
     let plannedS = 0;
     let plannedTss = 0;
     let doneS = 0;
     let doneTss = 0;
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(weekStart);
-      d.setDate(d.getDate() + i);
-      const key = toDateKey(d);
-      const isToday = key === todayKey;
-      const scheduled = appState.workouts.find((w) => w.scheduledDate === key);
-      const completed = completedByDate.get(key);
-      const est = scheduled ? estimateWorkout(scheduled.intervals, appState.profile.ftp) : null;
-      if (est) {
-        plannedS += est.durationS;
-        plannedTss += est.tss ?? 0;
-      }
-      if (completed) {
-        doneS += completed.durationS;
-        doneTss += completed.tss;
-      }
 
-      days.push(`
-        <div class="plan-day${isToday ? ' today' : ''}${completed ? ' done' : ''}">
-          <div class="plan-day-head"><span class="${isToday ? 'plan-day-today-label' : ''}">${fmtDayShort(d)}</span><span class="live-col-label">${completed ? 'Hecho' : isToday ? 'Hoy' : ''}</span></div>
-          ${
-            scheduled
-              ? `
-            <button class="plan-day-cover" data-workout-id="${scheduled.id}" title="${scheduled.name} — Editar en biblioteca">${renderWorkoutCover(scheduled.intervals, 'sm')}</button>
-            <div class="plan-day-name">${scheduled.name}</div>
-            <div class="live-col-label">${est ? `${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS` : ''}</div>
-          `
-              : completed
-                ? `
-            <div class="plan-day-name">${completed.workoutName}</div>
-            <div class="live-col-label">completado</div>
-          `
-                : `<button class="plan-day-add" data-add-pending-date="${key}">+ Agregar</button>`
+    const cellsHtml = days
+      .map((d) => {
+        const key = toDateKey(d);
+        const isToday = key === todayKey;
+        const inCurrentMonth = !isMonth || d.getMonth() === monthAnchor.getMonth();
+        const scheduled = appState.workouts.find((w) => w.scheduledDate === key);
+        const completed = completedByDate.get(key);
+        const est = scheduled ? estimateWorkout(scheduled.intervals, appState.profile.ftp) : null;
+        if (!isMonth || inCurrentMonth) {
+          if (est) {
+            plannedS += est.durationS;
+            plannedTss += est.tss ?? 0;
           }
-          <div class="plan-day-actions">
-            <button class="plan-day-mini-add" data-add-pending-date="${key}" title="Agregar pendiente">+</button>
-            <button class="plan-day-mini-add" data-add-done-date="${key}" title="Agregar completado (.fit)">✓</button>
-          </div>
-        </div>`);
-    }
+          if (completed) {
+            doneS += completed.durationS;
+            doneTss += completed.tss;
+          }
+        }
+        return isMonth ? monthCellHtml(d, key, isToday, inCurrentMonth, scheduled, completed) : weekCellHtml(d, key, isToday, scheduled, completed);
+      })
+      .join('');
 
     const unscheduled = appState.workouts.filter((w) => !w.scheduledDate);
-    const scheduled = appState.workouts.filter((w) => w.scheduledDate);
+    const scheduledList = appState.workouts.filter((w) => w.scheduledDate);
+    const rangeLabel = isMonth ? fmtMonthLabel(monthAnchor) : fmtRange(days[0], days[6]);
+    const totalsLabel = isMonth ? 'Mes' : 'Semana';
 
     container.innerHTML = `
       <div class="screen plan-screen">
         <div class="plan-head">
           <h1>Plan</h1>
-          <div class="row-actions" style="align-items:center;margin:0">
+          <div class="row-actions" style="align-items:center;margin:0;flex-wrap:wrap">
+            <div class="plan-view-toggle">
+              <button class="plan-view-btn${!isMonth ? ' on' : ''}" id="view-week">Semana</button>
+              <button class="plan-view-btn${isMonth ? ' on' : ''}" id="view-month">Mes</button>
+            </div>
             <button id="plan-today">Hoy</button>
-            <button id="plan-prev" aria-label="Semana anterior">‹</button>
-            <span class="live-col-label" style="width:150px;text-align:center;display:inline-block">${fmtRange(weekStart, weekEnd)}</span>
-            <button id="plan-next" aria-label="Semana siguiente">›</button>
+            <button id="plan-prev" aria-label="Anterior">‹</button>
+            <span class="live-col-label" style="width:170px;text-align:center;display:inline-block">${rangeLabel}</span>
+            <button id="plan-next" aria-label="Siguiente">›</button>
           </div>
         </div>
         <div id="plan-import-errors"></div>
-        <div class="plan-week-grid">${days.join('')}</div>
+        ${isMonth ? `<div class="plan-month-weekdays">${MONTH_WEEKDAY_HEADER.map((n) => `<div>${n}</div>`).join('')}</div>` : ''}
+        <div class="${isMonth ? 'plan-month-grid' : 'plan-week-grid'}">${cellsHtml}</div>
         <div class="plan-totals">
-          <span>Semana: <b>${fmtHours(doneS)}</b> de ${fmtHours(plannedS)} h</span>
+          <span>${totalsLabel}: <b>${fmtHours(doneS)}</b> de ${fmtHours(plannedS)} h</span>
           <span>TSS: <b>${Math.round(doneTss)}</b> de ${Math.round(plannedTss)}</span>
+        </div>
+
+        ${createPanelHtml()}
+
+        <div class="panel plan-manual-done">
+          <h2 class="perfil-h2" style="margin:0">Agregar entrenamiento completado manualmente</h2>
+          <p class="hint" style="margin:4px 0 10px">Sube un archivo .fit de un entrenamiento que ya hiciste.</p>
+          <div class="row-actions" style="align-items:center">
+            <label class="live-col-label">Fecha<input type="date" id="manual-done-date" value="${todayKey}"></label>
+            <button id="manual-done-trigger">Elegir archivo .fit</button>
+          </div>
         </div>
 
         <div class="plan-bottom plan-bottom-single">
           <div class="plan-library">
             <div class="plan-library-head"><h2 class="perfil-h2" style="margin:0">Biblioteca</h2><label class="plan-import-link">Importar archivo<input type="file" id="import-workout" accept=".zwo,.mrc,.erg,.json" style="display:none"></label></div>
-            <div id="library-list">${[...scheduled, ...unscheduled].map(libraryRow).join('') || '<p class="hint">Todavía no importas ningún workout.</p>'}</div>
+            <div id="library-list">${[...scheduledList, ...unscheduled].map(libraryRow).join('') || '<p class="hint">Todavía no importas ningún workout.</p>'}</div>
           </div>
         </div>
 
@@ -183,21 +267,35 @@ export function renderCalendar(container: HTMLElement): () => void {
     wireDayButtons();
     wireLibrary();
     wireRulesInput();
+    wireCreatePanel();
 
+    container.querySelector('#view-week')?.addEventListener('click', () => {
+      if (viewMode === 'week') return;
+      viewMode = 'week';
+      paint();
+    });
+    container.querySelector('#view-month')?.addEventListener('click', () => {
+      if (viewMode === 'month') return;
+      viewMode = 'month';
+      paint();
+    });
     container.querySelector('#plan-today')?.addEventListener('click', () => {
       weekStart = startOfWeek(new Date());
+      monthAnchor = new Date(today.getFullYear(), today.getMonth(), 1);
       paint();
     });
     container.querySelector('#plan-prev')?.addEventListener('click', () => {
-      weekStart.setDate(weekStart.getDate() - 7);
+      if (viewMode === 'month') monthAnchor = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() - 1, 1);
+      else weekStart.setDate(weekStart.getDate() - 7);
       paint();
     });
     container.querySelector('#plan-next')?.addEventListener('click', () => {
-      weekStart.setDate(weekStart.getDate() + 7);
+      if (viewMode === 'month') monthAnchor = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + 1, 1);
+      else weekStart.setDate(weekStart.getDate() + 7);
       paint();
     });
 
-    container.querySelectorAll<HTMLButtonElement>('[data-workout-id].plan-day-cover').forEach((btn) => {
+    container.querySelectorAll<HTMLButtonElement>('[data-workout-id].plan-day-cover, [data-workout-id].plan-month-cover').forEach((btn) => {
       btn.addEventListener('click', () => {
         document.getElementById(`lib-row-${btn.dataset.workoutId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
@@ -236,36 +334,83 @@ export function renderCalendar(container: HTMLElement): () => void {
     wireLibrary();
   }
 
+  function wireCreatePanel(): void {
+    const panel = container.querySelector<HTMLElement>('#plan-create-panel');
+    if (!panel || !createDate) return;
+    const chips = panel.querySelectorAll<HTMLButtonElement>('.plan-chip');
+    const minutesInput = panel.querySelector<HTMLInputElement>('#create-minutes')!;
+    const description = panel.querySelector<HTMLElement>('#create-description')!;
+    const createErrors = panel.querySelector<HTMLElement>('#create-errors')!;
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        chips.forEach((c) => c.classList.remove('on'));
+        chip.classList.add('on');
+        const t = findTemplate(chip.dataset.template!);
+        if (!t) return;
+        minutesInput.min = String(t.minMinutes);
+        minutesInput.max = String(t.maxMinutes);
+        minutesInput.value = String(t.defaultMinutes);
+        description.textContent = t.description;
+      });
+    });
+
+    panel.querySelector('#create-submit')?.addEventListener('click', async () => {
+      const date = createDate;
+      if (!date) return;
+      const activeChip = panel.querySelector<HTMLButtonElement>('.plan-chip.on');
+      const t = findTemplate(activeChip?.dataset.template ?? WORKOUT_TEMPLATES[0].id);
+      if (!t) return;
+      const minutes = Math.round(Number(minutesInput.value));
+      if (!Number.isFinite(minutes) || minutes < t.minMinutes || minutes > t.maxMinutes) {
+        createErrors.innerHTML = errorsHtml([`Minutos fuera de rango para "${t.name}": entre ${t.minMinutes} y ${t.maxMinutes}.`]);
+        return;
+      }
+      const dateObj = new Date(`${date}T00:00:00`);
+      const workout: Workout = {
+        format_version: 1,
+        id: crypto.randomUUID(),
+        name: `${t.name} · ${minutes} min · ${dateObj.getDate()} ${MONTH_NAMES_SHORT[dateObj.getMonth()]}`,
+        intervals: t.build(minutes),
+        created_at: new Date().toISOString(),
+        scheduledDate: date,
+      };
+      const result = validateWorkout(workout);
+      createErrors.innerHTML = errorsHtml(result.errors);
+      if (!result.valid) return;
+      await saveWorkout(workout);
+      if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
+      appState.workouts = [...appState.workouts, workout];
+      createDate = null;
+      paint();
+    });
+
+    panel.querySelector('#plan-create-close')?.addEventListener('click', () => {
+      createDate = null;
+      paint();
+    });
+  }
+
   function wireDayButtons(): void {
     const pendingFileInput = container.querySelector<HTMLInputElement>('#import-workout')!;
     const doneFileInput = container.querySelector<HTMLInputElement>('#import-done-file')!;
     const importErrors = container.querySelector<HTMLElement>('#plan-import-errors')!;
 
-    container.querySelectorAll<HTMLButtonElement>('[data-add-pending-date]').forEach((btn) => {
+    container.querySelectorAll<HTMLButtonElement>('[data-create-date]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        pendingScheduleDate = btn.dataset.addPendingDate ?? null;
-        importErrors.innerHTML = '';
-        pendingFileInput.click();
-      });
-    });
-    container.querySelectorAll<HTMLButtonElement>('[data-add-done-date]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        pendingDoneDate = btn.dataset.addDoneDate ?? null;
-        importErrors.innerHTML = '';
-        doneFileInput.click();
+        createDate = btn.dataset.createDate ?? null;
+        paint();
+        container.querySelector('#plan-create-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
     });
 
     pendingFileInput.addEventListener('change', async () => {
       const file = pendingFileInput.files?.[0];
       pendingFileInput.value = '';
-      const scheduledDate = pendingScheduleDate;
-      pendingScheduleDate = null;
       if (!file) return;
       const { workout, errors } = await importWorkoutFile(file, appState.profile.ftp);
       importErrors.innerHTML = errorsHtml(errors);
       if (workout) {
-        if (scheduledDate) workout.scheduledDate = scheduledDate;
         await saveWorkout(workout);
         if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
         appState.workouts = [...appState.workouts, workout];
@@ -273,12 +418,15 @@ export function renderCalendar(container: HTMLElement): () => void {
       }
     });
 
+    container.querySelector('#manual-done-trigger')?.addEventListener('click', () => {
+      doneFileInput.click();
+    });
+
     doneFileInput.addEventListener('change', async () => {
       const file = doneFileInput.files?.[0];
       doneFileInput.value = '';
-      const dateKey = pendingDoneDate;
-      pendingDoneDate = null;
-      if (!file || !dateKey) return;
+      const dateKey = container.querySelector<HTMLInputElement>('#manual-done-date')?.value || todayKey;
+      if (!file) return;
       const { session, errors } = await buildCompletedSessionFromFit(file, appState.profile, dateKey);
       importErrors.innerHTML = errorsHtml(errors);
       if (session) {
