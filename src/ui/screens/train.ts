@@ -252,18 +252,24 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       // barra del bloque actual, no en una escala aparte. Sin el pad
       // vertical que sí llevan cadencia/pulso, para que 100% de la escala
       // toque el borde superior igual que una barra al 100%.
-      g.beginPath();
-      g.strokeStyle = 'rgba(255,255,255,.85)';
-      g.lineWidth = 1.5;
-      g.lineJoin = 'round';
+      const powerPath = new Path2D();
       history.forEach((p, j) => {
         const x = X(p.t);
         const powerPct = appState.profile.ftp > 0 ? (p.power / appState.profile.ftp) * 100 : 0;
         const heightPct = ZONE_HEIGHT_PCT[powerZone(powerPct)];
         const y = h - (heightPct / 100) * h;
-        j ? g.lineTo(x, y) : g.moveTo(x, y);
+        j ? powerPath.lineTo(x, y) : powerPath.moveTo(x, y);
       });
-      g.stroke();
+      // la línea queda justo sobre el color de zona de la barra, que puede
+      // ser gris, verde, azul... — un halo oscuro detrás asegura que se vea
+      // sin importar contra qué color caiga encima.
+      g.lineJoin = 'round';
+      g.strokeStyle = 'rgba(0,0,0,.55)';
+      g.lineWidth = 4;
+      g.stroke(powerPath);
+      g.strokeStyle = '#fff';
+      g.lineWidth = 2;
+      g.stroke(powerPath);
       const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
       line('cadence', 60, 110, zoneColor(2), 2);
       line('hr', 80, 190, dangerColor, 2);
