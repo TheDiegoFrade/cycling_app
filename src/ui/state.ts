@@ -7,6 +7,7 @@ import type { AppSettings } from '../storage/settings-store';
 import { listSessions } from '../storage/session-store';
 import type { SessionRecord } from '../storage/session-store';
 import { listWorkouts, saveWorkout } from '../storage/workout-store';
+import { ensureLocalDataOwnership } from '../storage/local-owner';
 import { isSupabaseConfigured, supabase } from '../supabase/client';
 import { listCloudSessions, pushSessionToCloud } from '../sync/cloud-sync';
 import type { CloudSessionSummary } from '../sync/cloud-sync';
@@ -72,17 +73,25 @@ class AppState {
   }
 
   async boot(): Promise<void> {
+    let session = null;
+    if (supabase) ({ data: { session } } = await supabase.auth.getSession());
+    const initialUser = toAuthUser(session);
+    // Debe correr ANTES de leer IndexedDB: si el dueño guardado no coincide
+    // con este usuario (otra persona usó este mismo navegador), borra todo
+    // lo local primero para no cargar ni, peor, migrar a la nube datos de
+    // quien entró antes. Ver storage/local-owner.ts.
+    await ensureLocalDataOwnership(initialUser?.id ?? null);
+
     const [profile, settings, workouts] = await Promise.all([loadProfile(), loadSettings(), listWorkouts()]);
     this.profile = profile;
     this.settings = settings;
     this.workouts = workouts;
 
     if (supabase) {
-      const { data } = await supabase.auth.getSession();
-      this.user = toAuthUser(data.session); // set directo: todavía no hay listeners ni pantalla montada
+      this.user = initialUser; // set directo: todavía no hay listeners ni pantalla montada
       if (this.user) await this.syncFromCloud(this.user.id);
-      supabase.auth.onAuthStateChange(async (_event, session) => {
-        const user = toAuthUser(session);
+      supabase.auth.onAuthStateChange(async (_event, newSession) => {
+        const user = toAuthUser(newSession);
         // Supabase dispara este callback también en TOKEN_REFRESHED (renovación
         // silenciosa en segundo plano, sin que el usuario haga nada) — si
         // notificáramos a los listeners en cada uno de esos eventos, cualquier
@@ -91,8 +100,16 @@ class AppState {
         // ningún error visible ni recarga de página. Solo importa cuando el
         // usuario realmente cambia (login, logout, o cambio de cuenta).
         if (user?.id === this.user?.id) return;
-        if (user) await this.syncFromCloud(user.id);
-        else this.cloudSessions = [];
+        await ensureLocalDataOwnership(user?.id ?? null);
+        if (user) {
+          const [profile, settings, workouts] = await Promise.all([loadProfile(), loadSettings(), listWorkouts()]);
+          this.profile = profile;
+          this.settings = settings;
+          this.workouts = workouts;
+          await this.syncFromCloud(user.id);
+        } else {
+          this.cloudSessions = [];
+        }
         this.setUser(user);
       });
     }
@@ -149,6 +166,14 @@ class AppState {
 
   async signOut(): Promise<void> {
     if (supabase) await supabase.auth.signOut();
+    // No depende del evento onAuthStateChange para borrar lo local: ese
+    // handler compara contra this.user, que el setUser(null) de abajo ya deja
+    // en null antes de que el evento llegue, así que el guard de "usuario sin
+    // cambios" lo saltaría. Se borra aquí mismo, sin esperar al evento.
+    await ensureLocalDataOwnership(null);
+    this.profile = DEFAULT_PROFILE;
+    this.settings = DEFAULT_SETTINGS;
+    this.workouts = [];
     this.cloudSessions = [];
     this.setUser(null);
   }

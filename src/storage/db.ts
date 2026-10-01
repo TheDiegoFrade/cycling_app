@@ -55,3 +55,7 @@ export function dbPut<T>(storeName: string, value: T, key?: IDBValidKey): Promis
 export function dbDelete(storeName: string, key: IDBValidKey): Promise<undefined> {
   return tx<undefined>(storeName, 'readwrite', (store) => store.delete(key));
 }
+
+export function dbClear(storeName: string): Promise<undefined> {
+  return tx<undefined>(storeName, 'readwrite', (store) => store.clear());
+}
