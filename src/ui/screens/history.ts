@@ -41,7 +41,7 @@ function isRowLiveRecorded(r: HistoryRow): boolean {
   return isLiveRecorded({ workoutId: r.workoutId, stravaActivityId: r.fromStrava ? 0 : null });
 }
 
-interface PowerBest {
+export interface PowerBest {
   watts: number;
   dateKey: string;
 }
@@ -117,11 +117,11 @@ function formInterpretation(tsb: number): string {
 }
 
 /** El color del número debe confirmar la lectura de formInterpretation, no
- * contradecirla — un -5 en azul "positivo" se ve alarmante junto a un
- * mensaje tranquilo. Mismos cortes que formInterpretation. */
+ * contradecirla. Fatigado usa el mismo neutro que equilibrado a propósito:
+ * no es un estado de alarma (nunca rojo/danger), solo no amerita el acento
+ * positivo que sí lleva "fresco". */
 function formaColor(tsb: number): string {
   if (tsb > 5) return 'var(--accent)';
-  if (tsb < -10) return 'var(--danger-text)';
   return 'var(--text)';
 }
 
@@ -251,7 +251,7 @@ function drawEfChart(canvas: HTMLCanvasElement, points: { dateKey: string; ef: n
  * piso cuando no hay nube configurada, y como red de seguridad junto al
  * histórico de Supabase (getPowerRecords) por si una sesión local reciente
  * todavía no terminó de sincronizarse. */
-function localPowerBests(localSessions: SessionRecord[]): Record<'best1min' | 'best5min' | 'best20min', PowerBest | null> {
+export function localPowerBests(localSessions: SessionRecord[]): Record<'best1min' | 'best5min' | 'best20min', PowerBest | null> {
   const result: Record<'best1min' | 'best5min' | 'best20min', PowerBest | null> = { best1min: null, best5min: null, best20min: null };
   const windows: [keyof typeof result, number][] = [
     ['best1min', 60],
@@ -271,7 +271,7 @@ function localPowerBests(localSessions: SessionRecord[]): Record<'best1min' | 'b
   return result;
 }
 
-function bestOf(local: PowerBest | null, cloud: PowerBest | null): PowerBest | null {
+export function bestOf(local: PowerBest | null, cloud: PowerBest | null): PowerBest | null {
   if (cloud && (!local || cloud.watts >= local.watts)) return cloud;
   return local;
 }
@@ -426,7 +426,7 @@ export function renderForma(container: HTMLElement): () => void {
                   <div class="forma-today-scheduled-name">${todayWorkout.name}</div>
                   ${matchesSuggestion ? '<span class="forma-today-badge">Coincide con lo que tu forma pide hoy</span>' : ''}
                 </div>`
-              : template && suggestedEstimate
+              : template && suggestedEstimate && suggestion.band !== 'fatigued'
                 ? `<div class="forma-today-suggest-row">
                     <div>
                       <div class="forma-today-suggest-name">${template.name}</div>
@@ -497,15 +497,7 @@ export function renderForma(container: HTMLElement): () => void {
             ${bestTssRow ? recordTileHtml('Mayor TSS en una sesión', String(Math.round(bestTssRow.tss)), fmtDateEsMx(bestTssRow.startedAt), false) : ''}
             ${longestRow ? recordTileHtml('Sesión más larga', fmt(longestRow.durationS), fmtDateEsMx(longestRow.startedAt), false) : ''}
             ${bestEfRow ? recordTileHtml('Mejor eficiencia (EF)', bestEfRow.ef.toFixed(2), fmtDateEsMx(bestEfRow.startedAt), false) : ''}
-            ${best1min ? recordTileHtml('Mejor 1 min', `${Math.round(best1min.watts)} W`, fmtDateEsMx(best1min.dateKey), isWithinDays(best1min.dateKey, todayKey, 7)) : ''}
-            ${best5min ? recordTileHtml('Mejor 5 min', `${Math.round(best5min.watts)} W`, fmtDateEsMx(best5min.dateKey), isWithinDays(best5min.dateKey, todayKey, 7)) : ''}
-            ${best20min ? recordTileHtml('Mejor 20 min', `${Math.round(best20min.watts)} W`, fmtDateEsMx(best20min.dateKey), isWithinDays(best20min.dateKey, todayKey, 7)) : ''}
           </div>
-          ${
-            appState.cloudEnabled && appState.user
-              ? `<div class="row-actions" style="margin-top:12px"><button id="forma-backfill-power">Recalcular picos históricos</button><span class="hint" id="forma-backfill-result"></span></div>`
-              : ''
-          }
         </div>
 
         <h2 class="perfil-h2" style="margin-top:28px">Tu progreso</h2>
@@ -543,17 +535,30 @@ export function renderForma(container: HTMLElement): () => void {
         </div>
 
         <h2 class="perfil-h2" style="margin-top:28px">Logros</h2>
-        <div class="panel forma-achievements-grid">
-          ${achievementResults
-            .map(
-              ({ achievement, earned }) => `
-            <div class="forma-achievement-tile${earned ? ' is-earned' : ' is-locked'}">
-              <div class="forma-achievement-icon">${achievement.icon}</div>
-              <div class="forma-achievement-title">${achievement.title}</div>
-              <div class="hint">${achievement.description}</div>
-            </div>`,
-            )
-            .join('')}
+        <div class="panel">
+          <p class="hint" style="margin-top:0">Picos de potencia — se celebran de nuevo cada vez que los superas.</p>
+          <div class="forma-records-grid" style="margin-bottom:16px">
+            ${best1min ? recordTileHtml('Mejor 1 min', `${Math.round(best1min.watts)} W`, fmtDateEsMx(best1min.dateKey), isWithinDays(best1min.dateKey, todayKey, 7)) : ''}
+            ${best5min ? recordTileHtml('Mejor 5 min', `${Math.round(best5min.watts)} W`, fmtDateEsMx(best5min.dateKey), isWithinDays(best5min.dateKey, todayKey, 7)) : ''}
+            ${best20min ? recordTileHtml('Mejor 20 min', `${Math.round(best20min.watts)} W`, fmtDateEsMx(best20min.dateKey), isWithinDays(best20min.dateKey, todayKey, 7)) : ''}
+          </div>
+          ${
+            appState.cloudEnabled && appState.user
+              ? `<div class="row-actions" style="margin-bottom:16px"><button id="forma-backfill-power">Recalcular picos históricos</button><span class="hint" id="forma-backfill-result"></span></div>`
+              : ''
+          }
+          <div class="forma-achievements-grid">
+            ${achievementResults
+              .map(
+                ({ achievement, earned }) => `
+              <div class="forma-achievement-tile${earned ? ' is-earned' : ' is-locked'}">
+                <div class="forma-achievement-icon">${achievement.icon}</div>
+                <div class="forma-achievement-title">${achievement.title}</div>
+                <div class="hint">${achievement.description}</div>
+              </div>`,
+              )
+              .join('')}
+          </div>
         </div>
       </div>
     `;
