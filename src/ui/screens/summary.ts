@@ -10,6 +10,7 @@ import type { SessionRecord } from '../../storage/session-store';
 import { isStravaConfigured, uploadSessionToStrava } from '../../sync/strava';
 import { downloadSessionSamples } from '../../sync/cloud-sync';
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
+import { checkAndCelebrateAchievements } from '../achievement-toast';
 
 const RPE_LABELS: Record<number, string> = {
   1: 'muy, muy fácil',
@@ -387,6 +388,13 @@ const CLOUD_RECONSTRUCTED_NOTE =
   '☁ Reconstruida desde tu copia en la nube — los avisos y ajustes de intensidad de esa sesión no se sincronizan entre dispositivos, así que no aparecen aquí.';
 
 export function renderSummary(container: HTMLElement): void {
+  // se consume de inmediato (no solo se lee): si el usuario navega fuera y
+  // vuelve a ver esta misma sesión desde Historial más tarde, no debe
+  // volver a disparar una celebración de logros "nuevos".
+  const justFinished = appState.justFinishedSession;
+  appState.justFinishedSession = false;
+  if (justFinished) void checkAndCelebrateAchievements();
+
   const session = appState.lastSession;
   const cloudSession = appState.lastCloudSession;
 

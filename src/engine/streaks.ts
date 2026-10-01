@@ -1,7 +1,7 @@
 /** Lunes de la semana (UTC) que contiene `dateKey` — mismo criterio
  * lunes-domingo que ya usan calendar.ts/home.ts, pero en UTC para no
  * depender de la zona horaria de quien ejecute esto (tests, etc.). */
-function mondayOfWeek(dateKey: string): string {
+export function mondayOfWeek(dateKey: string): string {
   const [y, m, d] = dateKey.split('-').map(Number);
   const date = new Date(Date.UTC(y, m - 1, d));
   const mondayOffset = (date.getUTCDay() + 6) % 7;
@@ -9,7 +9,7 @@ function mondayOfWeek(dateKey: string): string {
   return date.toISOString().slice(0, 10);
 }
 
-function addWeeks(mondayKey: string, weeks: number): string {
+export function addWeeks(mondayKey: string, weeks: number): string {
   const [y, m, d] = mondayKey.split('-').map(Number);
   const date = new Date(Date.UTC(y, m - 1, d));
   date.setUTCDate(date.getUTCDate() + weeks * 7);
@@ -54,4 +54,36 @@ export function computeWeeklyStreak(sessionDates: readonly string[], todayKey: s
   }
 
   return { currentWeeks, bestWeeks: Math.max(bestWeeks, currentWeeks) };
+}
+
+export interface WeeklyVolumeTrend {
+  recentHoursPerWeek: number;
+  priorHoursPerWeek: number;
+}
+
+/** Horas/semana promedio en las `weeks` semanas completas más recientes
+ * (lunes-domingo, sin contar la semana en curso que está a medias) contra
+ * las `weeks` semanas anteriores a esas — compara bloques de volumen
+ * completos, no sesiones sueltas. Siempre devuelve un número (0 si no hay
+ * sesiones en la ventana): a diferencia de una tendencia de EF/cadencia,
+ * "0 horas" es un dato real y mostrable, no "no sabemos todavía". */
+export function computeWeeklyVolumeTrend(
+  rows: readonly { startedAt: string; durationS: number }[],
+  todayKey: string,
+  weeks = 4,
+): WeeklyVolumeTrend {
+  const thisMonday = mondayOfWeek(todayKey);
+  const recentStart = addWeeks(thisMonday, -weeks);
+  const priorStart = addWeeks(thisMonday, -weeks * 2);
+  const hoursIn = (fromKey: string, toKeyExclusive: string): number =>
+    rows
+      .filter((r) => {
+        const d = r.startedAt.slice(0, 10);
+        return d >= fromKey && d < toKeyExclusive;
+      })
+      .reduce((sum, r) => sum + r.durationS, 0) / 3600;
+  return {
+    recentHoursPerWeek: hoursIn(recentStart, thisMonday) / weeks,
+    priorHoursPerWeek: hoursIn(priorStart, recentStart) / weeks,
+  };
 }

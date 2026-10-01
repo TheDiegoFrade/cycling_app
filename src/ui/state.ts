@@ -41,6 +41,10 @@ class AppState {
    * conecte simuladores por su cuenta y grabe una sesión falsa (ver
    * TORQ_DESIGN.md, bug #1). Se resetea al entrar de nuevo a Antes de empezar. */
   demoSession = false;
+  /** true solo entre terminar un entrenamiento real (no demo) y que Resumen
+   * lo consuma — dispara el chequeo de logros nuevos ahí, y solo ahí: así
+   * revisar una sesión vieja desde Historial nunca celebra nada "de nuevo". */
+  justFinishedSession = false;
   lastSession: SessionRecord | null = null;
   /** Resumen (sin samples) de una sesión que solo existe en la nube — ver
    * Resumen, que renderiza una vista reducida cuando esto está poblado en

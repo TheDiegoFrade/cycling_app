@@ -607,6 +607,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     // en segundo plano: la sesión ya quedó guardada local, no hay que
     // esperar a la nube (ni bloquear si no hay internet) para navegar.
     if (appState.user) void pushSessionToCloud(record, appState.profile, appState.user.id);
+    appState.justFinishedSession = true;
     navigate('session');
   }
 

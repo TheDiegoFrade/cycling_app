@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formBand, suggestToday } from './coaching';
+import { formBand, formLabel, suggestToday } from './coaching';
 
 describe('formBand', () => {
   it('tsb > 5 es fresh', () => {
@@ -19,6 +19,22 @@ describe('formBand', () => {
   it('tsb < -10 es fatigued', () => {
     expect(formBand(-11)).toBe('fatigued');
     expect(formBand(-30)).toBe('fatigued');
+  });
+});
+
+describe('formLabel', () => {
+  it('fresh → Fresco', () => {
+    expect(formLabel(10)).toBe('Fresco');
+  });
+  it('balanced → Equilibrado', () => {
+    expect(formLabel(0)).toBe('Equilibrado');
+  });
+  it('fatigued → Cargando fuerte', () => {
+    expect(formLabel(-20)).toBe('Cargando fuerte');
+  });
+  it('coincide con los mismos cortes que formBand', () => {
+    expect(formLabel(5)).toBe('Equilibrado');
+    expect(formLabel(-10)).toBe('Equilibrado');
   });
 });
 

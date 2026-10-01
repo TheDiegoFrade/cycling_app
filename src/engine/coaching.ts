@@ -8,6 +8,17 @@ export function formBand(tsb: number): FormBand {
   return 'balanced';
 }
 
+/** Versión en una palabra/frase corta de formBand, para no liderar la
+ * tarjeta de "Forma" con un número crudo (y a veces negativo) — "Cargando
+ * fuerte" en vez de "fatigado"/"cansado": la misma señal, enmarcada como
+ * evidencia de trabajo duro en vez de una advertencia. */
+export function formLabel(tsb: number): string {
+  const band = formBand(tsb);
+  if (band === 'fresh') return 'Fresco';
+  if (band === 'fatigued') return 'Cargando fuerte';
+  return 'Equilibrado';
+}
+
 export interface TodaySuggestion {
   band: FormBand;
   templateId: string;

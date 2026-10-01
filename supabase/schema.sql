@@ -113,6 +113,14 @@ alter table sessions add column if not exists best_1min_power numeric;
 alter table sessions add column if not exists best_5min_power numeric;
 alter table sessions add column if not exists best_20min_power numeric;
 
+-- id del workout del que salió esta sesión ('fit-import' si vino de un
+-- .fit subido a mano) — junto con strava_activity_id, distingue sesiones
+-- grabadas en vivo con la app de las importadas, para que rachas/récords/
+-- logros solo cuenten lo que de verdad se entrenó acá (ver
+-- core/session-origin.ts). Filas de antes de esta columna quedan en null,
+-- que se trata como "en vivo" para no quitarle un récord ya ganado a nadie.
+alter table sessions add column if not exists workout_id text;
+
 -- ─────────────────────────────────────────────────────────────────────────
 -- settings: ajustes de la app (volumen, reglas de fábrica activas,
 -- intervals.icu, personaje). Un renglón por usuario, blob jsonb porque el

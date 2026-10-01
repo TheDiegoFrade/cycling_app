@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeWeeklyStreak } from './streaks';
+import { computeWeeklyStreak, computeWeeklyVolumeTrend } from './streaks';
 
 describe('computeWeeklyStreak', () => {
   it('sin sesiones, racha 0', () => {
@@ -54,5 +54,32 @@ describe('computeWeeklyStreak', () => {
     const dates = ['2026-01-12', '2026-01-13', '2026-01-14'];
     const r = computeWeeklyStreak(dates, '2026-01-15');
     expect(r.currentWeeks).toBe(1);
+  });
+});
+
+describe('computeWeeklyVolumeTrend', () => {
+  // hoy es 2026-01-15 (jueves); lunes de esta semana es 2026-01-12.
+  it('sin sesiones, ambos promedios son 0', () => {
+    expect(computeWeeklyVolumeTrend([], '2026-01-15')).toEqual({ recentHoursPerWeek: 0, priorHoursPerWeek: 0 });
+  });
+
+  it('una sesión en las últimas 4 semanas completas cuenta en recent, no en prior', () => {
+    const rows = [{ startedAt: '2026-01-06T10:00:00Z', durationS: 3600 }]; // semana del 5 de enero
+    const r = computeWeeklyVolumeTrend(rows, '2026-01-15', 4);
+    expect(r.recentHoursPerWeek).toBeCloseTo(0.25); // 1h / 4 semanas
+    expect(r.priorHoursPerWeek).toBe(0);
+  });
+
+  it('una sesión en el bloque "prior" (semanas 5-8 atrás) cuenta ahí, no en recent', () => {
+    const rows = [{ startedAt: '2025-12-10T10:00:00Z', durationS: 7200 }];
+    const r = computeWeeklyVolumeTrend(rows, '2026-01-15', 4);
+    expect(r.recentHoursPerWeek).toBe(0);
+    expect(r.priorHoursPerWeek).toBeCloseTo(0.5); // 2h / 4 semanas
+  });
+
+  it('la semana en curso (parcial) no se cuenta en recent', () => {
+    const rows = [{ startedAt: '2026-01-14T10:00:00Z', durationS: 3600 }]; // dentro de la semana del 12 de enero, en curso
+    const r = computeWeeklyVolumeTrend(rows, '2026-01-15', 4);
+    expect(r.recentHoursPerWeek).toBe(0);
   });
 });

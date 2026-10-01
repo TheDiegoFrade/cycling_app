@@ -1,7 +1,9 @@
-import { suggestToday } from '../../engine/coaching';
+import { formLabel, suggestToday } from '../../engine/coaching';
 import { computeSessionAnalytics } from '../../engine/analytics';
 import { computePmc, futureTssEntries } from '../../engine/pmc';
-import { computeWeeklyStreak } from '../../engine/streaks';
+import { computeWeeklyStreak, computeWeeklyVolumeTrend } from '../../engine/streaks';
+import { buildAchievementInput, evaluateAchievements } from '../../engine/achievements';
+import { isLiveRecorded } from '../../core/session-origin';
 import { estimateWorkout } from '../../core/workout-estimate';
 import { findTemplate } from '../../core/workout-templates';
 import type { Workout } from '../../core/types';
@@ -13,12 +15,13 @@ import { appState } from '../state';
 import { backfillPowerRecords, getPowerRecords } from '../../sync/cloud-sync';
 import type { PowerRecords } from '../../sync/cloud-sync';
 import { pushWorkoutToCloud } from '../../sync/workout-sync';
+import { markAchievementsSeen } from '../achievement-toast';
 
 const CHART_WEEKS = 6;
 
 interface HistoryRow {
   id: string;
-  workoutId: string;
+  workoutId: string | null;
   workoutName: string;
   startedAt: string;
   durationS: number;
@@ -27,6 +30,15 @@ interface HistoryRow {
   rpe: number | null;
   origin: 'local' | 'cloud';
   fromStrava: boolean;
+  ftp: number;
+  avgCadence: number | null;
+}
+
+/** Si esta sesión cuenta para rachas/récords/logros — ver
+ * core/session-origin.ts. `fromStrava` ya es un booleano derivado acá, así
+ * que se adapta a lo que isLiveRecorded espera sin guardar el id crudo. */
+function isRowLiveRecorded(r: HistoryRow): boolean {
+  return isLiveRecorded({ workoutId: r.workoutId, stravaActivityId: r.fromStrava ? 0 : null });
 }
 
 interface PowerBest {
@@ -69,13 +81,19 @@ function localRow(session: SessionRecord): HistoryRow {
     rpe: session.rpe ?? null,
     origin: 'local',
     fromStrava: session.stravaActivityId !== undefined,
+    ftp: session.ftp,
+    // computeSessionAnalytics no filtra ceros de cadencia como sí hace con
+    // pulso — una sesión sin sensor de cadencia daría avgCadence=0, que
+    // ensuciaría la tendencia con una caída falsa si no se trata como "sin
+    // dato" igual que la nube (avg_cadence nulo de verdad).
+    avgCadence: a.avgCadence > 0 ? a.avgCadence : null,
   };
 }
 
 function cloudRow(s: (typeof appState.cloudSessions)[number]): HistoryRow {
   return {
     id: s.id,
-    workoutId: '',
+    workoutId: s.workoutId,
     workoutName: s.workoutName,
     startedAt: s.startedAt,
     // aproximado (fin - inicio de reloj): la nube no guarda samples, así que
@@ -86,12 +104,15 @@ function cloudRow(s: (typeof appState.cloudSessions)[number]): HistoryRow {
     rpe: s.rpe,
     origin: 'cloud',
     fromStrava: s.stravaActivityId !== null,
+    ftp: s.ftp,
+    avgCadence: s.avgCadence,
   };
 }
 
 function formInterpretation(tsb: number): string {
   if (tsb > 5) return 'Estás fresco y con buena base. Buen momento para meter intensidad esta semana.';
-  if (tsb < -10) return 'Traes fatiga acumulada — considera un día suave o de descanso.';
+  if (tsb < -10)
+    return 'Traes una carga de entrenamiento alta — eso es lo que construye forma. Un día suave hoy te la deja lista para seguir sumando.';
   return 'Carga equilibrada entre esfuerzo y descanso. Sigue como vas.';
 }
 
@@ -286,6 +307,23 @@ function efTrendPct(efPoints: { dateKey: string; ef: number }[], todayKey: strin
   return ((recentAvg - priorAvg) / priorAvg) * 100;
 }
 
+/** Mismo cálculo que efTrendPct con cadencia en vez de EF — se deja como
+ * función separada en vez de generalizar una de 12 líneas con un solo caso
+ * de reuso más. */
+function cadenceTrendPct(cadencePoints: { dateKey: string; cadence: number }[], todayKey: string): number | null {
+  if (cadencePoints.length < 4) return null;
+  const todayMs = new Date(`${todayKey}T00:00:00Z`).getTime();
+  const ageDays = (dateKey: string) => (todayMs - new Date(`${dateKey}T00:00:00Z`).getTime()) / 86400000;
+  const recent = cadencePoints.filter((p) => ageDays(p.dateKey) <= 7);
+  const prior = cadencePoints.filter((p) => ageDays(p.dateKey) >= 49 && ageDays(p.dateKey) <= 63);
+  if (recent.length === 0 || prior.length === 0) return null;
+  const avg = (points: { cadence: number }[]) => points.reduce((s, p) => s + p.cadence, 0) / points.length;
+  const recentAvg = avg(recent);
+  const priorAvg = avg(prior);
+  if (priorAvg === 0) return null;
+  return ((recentAvg - priorAvg) / priorAvg) * 100;
+}
+
 export function renderForma(container: HTMLElement): () => void {
   container.innerHTML = `
     <div class="screen">
@@ -345,14 +383,33 @@ export function renderForma(container: HTMLElement): () => void {
       const ctlWeekDelta = todayIndexInFull >= 0 && weekAgoIdx >= 0 ? latest.ctl - pmcFull[weekAgoIdx].ctl : null;
       const efTrend = efTrendPct(efPoints, todayKey);
 
-      // rachas y récords
-      const streak = computeWeeklyStreak(sorted.map((r) => r.startedAt.slice(0, 10)), todayKey);
-      const bestTssRow = sorted.reduce<HistoryRow | null>((best, r) => (!best || r.tss > best.tss ? r : best), null);
-      const longestRow = sorted.reduce<HistoryRow | null>((best, r) => (!best || r.durationS > best.durationS ? r : best), null);
-      const withEf = sorted.filter((r): r is HistoryRow & { ef: number } => r.ef !== null);
+      // rachas, récords, logros y progreso solo cuentan sesiones grabadas en
+      // vivo con la app — una importada de Strava o un .fit subido a mano no
+      // es "tu récord en Torq" (ver core/session-origin.ts). El PMC y la
+      // tendencia de EF de arriba sí siguen usando `sorted` completo: ahí
+      // importa la carga real que absorbió el cuerpo, venga de donde venga.
+      const liveSorted = sorted.filter(isRowLiveRecorded);
+      const streak = computeWeeklyStreak(liveSorted.map((r) => r.startedAt.slice(0, 10)), todayKey);
+      const bestTssRow = liveSorted.reduce<HistoryRow | null>((best, r) => (!best || r.tss > best.tss ? r : best), null);
+      const longestRow = liveSorted.reduce<HistoryRow | null>((best, r) => (!best || r.durationS > best.durationS ? r : best), null);
+      const withEf = liveSorted.filter((r): r is HistoryRow & { ef: number } => r.ef !== null);
       const bestEfRow = withEf.length ? withEf.reduce((best, r) => (r.ef > best.ef ? r : best)) : null;
 
-      const local = localPowerBests(localSessions);
+      const achievementInput = buildAchievementInput(liveSorted, streak, appState.profile.ftp);
+      const achievementResults = evaluateAchievements(achievementInput);
+
+      const oldestFtpRow = [...liveSorted].reverse().find((r) => r.ftp > 0) ?? null;
+      const ftpDeltaW = oldestFtpRow && oldestFtpRow.ftp !== appState.profile.ftp ? appState.profile.ftp - oldestFtpRow.ftp : null;
+      const cadencePoints = [...liveSorted]
+        .reverse()
+        .map((r) => ({ dateKey: r.startedAt.slice(0, 10), cadence: r.avgCadence }))
+        .filter((p): p is { dateKey: string; cadence: number } => p.cadence !== null);
+      const cadenceTrend = cadenceTrendPct(cadencePoints, todayKey);
+      const volumeTrend = computeWeeklyVolumeTrend(liveSorted, todayKey);
+      const volumeDeltaPct =
+        volumeTrend.priorHoursPerWeek > 0 ? ((volumeTrend.recentHoursPerWeek - volumeTrend.priorHoursPerWeek) / volumeTrend.priorHoursPerWeek) * 100 : null;
+
+      const local = localPowerBests(localSessions.filter((s) => isLiveRecorded({ workoutId: s.workoutId, stravaActivityId: s.stravaActivityId ?? null })));
       const best1min = bestOf(local.best1min, cloudPowerRecords?.best1min ?? null);
       const best5min = bestOf(local.best5min, cloudPowerRecords?.best5min ?? null);
       const best20min = bestOf(local.best20min, cloudPowerRecords?.best20min ?? null);
@@ -386,7 +443,10 @@ export function renderForma(container: HTMLElement): () => void {
             <div class="forma-numbers">
               <div><div class="forma-num num">${Math.round(latest.ctl)}</div><div class="live-col-label">Fitness</div></div>
               <div><div class="forma-num num" style="color:var(--text-muted)">${Math.round(latest.atl)}</div><div class="live-col-label">Fatiga</div></div>
-              <div><div class="forma-num num" style="color:${formaColor(latest.tsb)}">${latest.tsb > 0 ? '+' : ''}${Math.round(latest.tsb)}</div><div class="live-col-label">Forma</div></div>
+              <div>
+                <div class="forma-num forma-num-label num" style="color:${formaColor(latest.tsb)}">${formLabel(latest.tsb)}</div>
+                <div class="live-col-label">Forma <span class="forma-num-sub">(${latest.tsb > 0 ? '+' : ''}${Math.round(latest.tsb)})</span></div>
+              </div>
             </div>
             ${
               ctlWeekDelta !== null || efTrend !== null
@@ -447,12 +507,66 @@ export function renderForma(container: HTMLElement): () => void {
               : ''
           }
         </div>
+
+        <h2 class="perfil-h2" style="margin-top:28px">Tu progreso</h2>
+        <div class="panel forma-records-grid">
+          ${recordTileHtml(
+            'FTP actual',
+            `${appState.profile.ftp} W`,
+            ftpDeltaW !== null
+              ? ftpDeltaW > 0
+                ? `+${ftpDeltaW} W desde tu primer registro — tu umbral subió`
+                : ftpDeltaW < 0
+                  ? `${ftpDeltaW} W desde tu primer registro`
+                  : 'Igual que en tu primer registro'
+              : '',
+            false,
+          )}
+          ${
+            cadenceTrend !== null
+              ? recordTileHtml(
+                  'Cadencia promedio',
+                  `${Math.round(cadencePoints[cadencePoints.length - 1].cadence)} rpm`,
+                  `${cadenceTrend >= 0 ? '+' : ''}${cadenceTrend.toFixed(0)}% en 8 semanas`,
+                  false,
+                )
+              : ''
+          }
+          ${recordTileHtml(
+            'Volumen semanal',
+            `${volumeTrend.recentHoursPerWeek.toFixed(1)} h/sem`,
+            volumeDeltaPct !== null
+              ? `${volumeDeltaPct >= 0 ? '+' : ''}${volumeDeltaPct.toFixed(0)}% vs. las 4 semanas previas`
+              : 'Promedio de las últimas 4 semanas',
+            false,
+          )}
+        </div>
+
+        <h2 class="perfil-h2" style="margin-top:28px">Logros</h2>
+        <div class="panel forma-achievements-grid">
+          ${achievementResults
+            .map(
+              ({ achievement, earned }) => `
+            <div class="forma-achievement-tile${earned ? ' is-earned' : ' is-locked'}">
+              <div class="forma-achievement-icon">${achievement.icon}</div>
+              <div class="forma-achievement-title">${achievement.title}</div>
+              <div class="hint">${achievement.description}</div>
+            </div>`,
+            )
+            .join('')}
+        </div>
       </div>
     `;
 
       drawFitnessFatigueChart(container.querySelector('#pmc')!, pmcChart, todayIndexInChart);
       const efCanvas = container.querySelector<HTMLCanvasElement>('#ef');
       if (efCanvas) drawEfChart(efCanvas, efPoints);
+
+      // marca en silencio (sin celebrar) los logros que ya se tenían antes de
+      // que existiera esta sección — así si alguien abre Forma antes de su
+      // próximo entrenamiento, no le explota una celebración de varios logros
+      // "nuevos" a la vez la primera vez que esto esté desplegado.
+      markAchievementsSeen(achievementResults.filter((r) => r.earned).map((r) => r.achievement.id));
 
       container.querySelector('#forma-schedule-today')?.addEventListener('click', async () => {
         if (!template) return;
