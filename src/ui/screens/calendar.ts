@@ -1,7 +1,6 @@
 import { buildCompletedSessionFromFit } from '../../core/completed-session-import';
 import { importWorkoutFile } from '../../core/workout-file-import';
 import { validateRulesFile, validateWorkout } from '../../core/validator';
-import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import { estimateWorkout } from '../../core/workout-estimate';
 import type { RulesFile, Workout } from '../../core/types';
 import { saveWorkout, deleteWorkout } from '../../storage/workout-store';
@@ -169,21 +168,10 @@ export function renderCalendar(container: HTMLElement): () => void {
           <span>TSS: <b>${Math.round(doneTss)}</b> de ${Math.round(plannedTss)}</span>
         </div>
 
-        <div class="plan-bottom">
+        <div class="plan-bottom plan-bottom-single">
           <div class="plan-library">
             <div class="plan-library-head"><h2 class="perfil-h2" style="margin:0">Biblioteca</h2><label class="plan-import-link">Importar archivo<input type="file" id="import-workout" accept=".zwo,.mrc,.erg,.json" style="display:none"></label></div>
             <div id="library-list">${[...scheduled, ...unscheduled].map(libraryRow).join('') || '<p class="hint">Todavía no importas ningún workout.</p>'}</div>
-          </div>
-
-          <div class="panel plan-generate">
-            <h2 class="perfil-h2" style="margin:0">Generar workout</h2>
-            <div class="plan-chip-row" id="gen-chips">
-              ${WORKOUT_TEMPLATES.map((t, i) => `<button class="plan-chip${i === 0 ? ' on' : ''}" data-template="${t.id}">${t.name}</button>`).join('')}
-            </div>
-            <label class="live-col-label">Duración<input type="number" id="gen-minutes" value="${WORKOUT_TEMPLATES[0].defaultMinutes}" min="${WORKOUT_TEMPLATES[0].minMinutes}" max="${WORKOUT_TEMPLATES[0].maxMinutes}"></label>
-            <p class="hint" id="gen-description">${WORKOUT_TEMPLATES[0].description}</p>
-            <button class="btn-light" id="gen-create">Generar y guardar</button>
-            <div id="gen-errors"></div>
           </div>
         </div>
 
@@ -194,7 +182,6 @@ export function renderCalendar(container: HTMLElement): () => void {
 
     wireDayButtons();
     wireLibrary();
-    wireGenerate();
     wireRulesInput();
 
     container.querySelector('#plan-today')?.addEventListener('click', () => {
@@ -365,53 +352,6 @@ export function renderCalendar(container: HTMLElement): () => void {
 
   function closeAllMenus(): void {
     container.querySelectorAll('.live-menu.on').forEach((m) => m.classList.remove('on'));
-  }
-
-  function wireGenerate(): void {
-    const chips = container.querySelectorAll<HTMLButtonElement>('.plan-chip');
-    const minutesInput = container.querySelector<HTMLInputElement>('#gen-minutes')!;
-    const description = container.querySelector<HTMLElement>('#gen-description')!;
-    const genErrors = container.querySelector<HTMLElement>('#gen-errors')!;
-
-    chips.forEach((chip) => {
-      chip.addEventListener('click', () => {
-        chips.forEach((c) => c.classList.remove('on'));
-        chip.classList.add('on');
-        const t = findTemplate(chip.dataset.template!);
-        if (!t) return;
-        minutesInput.min = String(t.minMinutes);
-        minutesInput.max = String(t.maxMinutes);
-        minutesInput.value = String(t.defaultMinutes);
-        description.textContent = t.description;
-      });
-    });
-
-    container.querySelector('#gen-create')?.addEventListener('click', async () => {
-      const activeChip = container.querySelector<HTMLButtonElement>('.plan-chip.on');
-      const t = findTemplate(activeChip?.dataset.template ?? WORKOUT_TEMPLATES[0].id);
-      if (!t) return;
-      const minutes = Math.round(Number(minutesInput.value));
-      if (!Number.isFinite(minutes) || minutes < t.minMinutes || minutes > t.maxMinutes) {
-        genErrors.innerHTML = errorsHtml([`Minutos fuera de rango para "${t.name}": entre ${t.minMinutes} y ${t.maxMinutes}.`]);
-        return;
-      }
-      const now = new Date();
-      const workout: Workout = {
-        format_version: 1,
-        id: crypto.randomUUID(),
-        name: `${t.name} · ${minutes} min · ${now.getDate()} ${MONTH_NAMES_SHORT[now.getMonth()]}`,
-        intervals: t.build(minutes),
-        created_at: now.toISOString(),
-      };
-      const result = validateWorkout(workout);
-      genErrors.innerHTML = errorsHtml(result.errors);
-      if (result.valid) {
-        await saveWorkout(workout);
-        if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
-        appState.workouts = [...appState.workouts, workout];
-        refreshLibrary();
-      }
-    });
   }
 
   const rulesInput = () => container.querySelector<HTMLInputElement>('#import-rules');

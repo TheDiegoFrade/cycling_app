@@ -1,16 +1,25 @@
 import type { Workout } from '../../core/types';
+import { validateWorkout } from '../../core/validator';
 import { estimateWorkout } from '../../core/workout-estimate';
+import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import { computeSessionAnalytics } from '../../engine/analytics';
 import { clearDraft, listDrafts } from '../../storage/session-draft';
 import { listSessions, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
+import { saveWorkout } from '../../storage/workout-store';
 import { pushSessionToCloud } from '../../sync/cloud-sync';
+import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { navigate } from '../router';
 import { appState } from '../state';
 import { renderWorkoutCover } from '../workout-cover';
 
 const DAY_LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S']; // índice = Date#getDay()
-const ZONE_LEGEND: { zone: 1 | 2 | 3 | 4 | 5 | 6; label: string }[] = [1, 2, 3, 4, 5, 6].map((z) => ({ zone: z as 1 | 2 | 3 | 4 | 5 | 6, label: `Z${z}` }));
+const MONTH_NAMES_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+function errorsHtml(errors: string[]): string {
+  if (errors.length === 0) return '';
+  return `<div class="error-box"><strong>${errors.length} error(es):</strong><ul>${errors.map((e) => `<li>${e}</li>`).join('')}</ul></div>`;
+}
 
 function fmtDuration(totalS: number): string {
   const s = Math.max(0, Math.round(totalS));
@@ -81,7 +90,7 @@ export function renderHome(container: HTMLElement): void {
     const wattsLabel = low === high ? `${low} W` : `${low}–${high} W`;
     const label = todayWorkout ? 'Hoy toca' : `Agendado · ${nextWorkout.scheduledDate}`;
     return `
-      <div class="home-hero-card">
+      <div class="home-hero-card home-hero-clickable" data-workout-id="${nextWorkout.id}">
         ${renderWorkoutCover(nextWorkout.intervals, 'lg')}
         <div class="home-hero-body">
           <div>
@@ -89,7 +98,7 @@ export function renderHome(container: HTMLElement): void {
             <div class="home-hero-title">${nextWorkout.name}</div>
             <div class="hint">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS · a ${wattsLabel}</div>
           </div>
-          <button class="home-play-btn" id="hero-play" aria-label="Empezar" data-workout-id="${nextWorkout.id}">▶</button>
+          <button class="home-play-btn" aria-label="Empezar">▶</button>
         </div>
       </div>`;
   }
@@ -105,8 +114,9 @@ export function renderHome(container: HTMLElement): void {
       <div class="home-grid">
         <div class="home-grid-hero">${heroCardHtml()}</div>
         <div class="panel home-week-card" id="week-card">
-          <div class="home-week-head"><h2 class="perfil-h2" style="margin:0">Esta semana</h2><span class="live-col-label" id="week-fraction"></span></div>
+          <div class="home-week-head"><h2 class="perfil-h2" style="margin:0">Esta semana</h2></div>
           <div class="home-week-nums">
+            <div><div class="prepare-stat-num num" id="week-count">0/0</div><div class="live-col-label">entrenamientos</div></div>
             <div><div class="prepare-stat-num num" id="week-hours">0:00</div><div class="live-col-label">horas</div></div>
             <div><div class="prepare-stat-num num" id="week-tss">0</div><div class="live-col-label">TSS</div></div>
           </div>
@@ -118,46 +128,76 @@ export function renderHome(container: HTMLElement): void {
         </div>
       </div>
 
-      <div class="home-fortu">
-        <div class="home-fortu-head">
-          <h2 class="perfil-h2" style="margin:0">Para ti</h2>
-          <div class="home-fortu-legend">
-            ${ZONE_LEGEND.map((z) => `<span class="home-legend-item"><span class="home-legend-dot" style="background:var(--z${z.zone})"></span>${z.label}</span>`).join('')}
-            <a href="#/plan" class="home-fortu-link">Ver biblioteca</a>
-          </div>
+      <div class="panel home-generate">
+        <h2 class="perfil-h2" style="margin:0">Generar workout</h2>
+        <p class="hint" style="margin:4px 0 0">Créalo y entrena ahora mismo — también queda guardado en tu Plan.</p>
+        <div class="plan-chip-row" id="gen-chips" style="margin-top:12px">
+          ${WORKOUT_TEMPLATES.map((t, i) => `<button class="plan-chip${i === 0 ? ' on' : ''}" data-template="${t.id}">${t.name}</button>`).join('')}
         </div>
-        <div class="home-fortu-grid" id="fortu-grid"></div>
+        <label class="live-col-label">Duración<input type="number" id="gen-minutes" value="${WORKOUT_TEMPLATES[0].defaultMinutes}" min="${WORKOUT_TEMPLATES[0].minMinutes}" max="${WORKOUT_TEMPLATES[0].maxMinutes}"></label>
+        <p class="hint" id="gen-description">${WORKOUT_TEMPLATES[0].description}</p>
+        <button class="btn-light" id="gen-create">Generar y entrenar</button>
+        <div id="gen-errors"></div>
       </div>
     </div>
   `;
 
-  container.querySelector('#hero-play')?.addEventListener('click', () => {
+  container.querySelector<HTMLElement>('.home-hero-clickable')?.addEventListener('click', () => {
     if (!nextWorkout) return;
     appState.selectedWorkoutId = nextWorkout.id;
     navigate('prepare');
   });
 
-  const fortuGrid = container.querySelector<HTMLElement>('#fortu-grid')!;
-  const fortuCandidates = appState.workouts.filter((w) => w.id !== nextWorkout?.id).slice(0, 5);
-  fortuGrid.innerHTML = fortuCandidates.length
-    ? fortuCandidates
-        .map((w) => {
-          const est = estimateWorkout(w.intervals, appState.profile.ftp);
-          return `
-        <button class="home-fortu-item" data-workout-id="${w.id}">
-          ${renderWorkoutCover(w.intervals, 'md', w.name)}
-          <div class="home-fortu-name">${w.name}</div>
-          <div class="live-col-label">${Math.round(est.durationS / 60)} min</div>
-        </button>`;
-        })
-        .join('')
-    : '<p class="hint">Importa o genera un workout en Plan para verlo aquí.</p>';
-  fortuGrid.querySelectorAll<HTMLButtonElement>('[data-workout-id]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      appState.selectedWorkoutId = btn.dataset.workoutId ?? null;
+  function wireGenerate(): void {
+    const chips = container.querySelectorAll<HTMLButtonElement>('.plan-chip');
+    const minutesInput = container.querySelector<HTMLInputElement>('#gen-minutes')!;
+    const description = container.querySelector<HTMLElement>('#gen-description')!;
+    const genErrors = container.querySelector<HTMLElement>('#gen-errors')!;
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        chips.forEach((c) => c.classList.remove('on'));
+        chip.classList.add('on');
+        const t = findTemplate(chip.dataset.template!);
+        if (!t) return;
+        minutesInput.min = String(t.minMinutes);
+        minutesInput.max = String(t.maxMinutes);
+        minutesInput.value = String(t.defaultMinutes);
+        description.textContent = t.description;
+      });
+    });
+
+    container.querySelector('#gen-create')?.addEventListener('click', async () => {
+      const activeChip = container.querySelector<HTMLButtonElement>('.plan-chip.on');
+      const t = findTemplate(activeChip?.dataset.template ?? WORKOUT_TEMPLATES[0].id);
+      if (!t) return;
+      const minutes = Math.round(Number(minutesInput.value));
+      if (!Number.isFinite(minutes) || minutes < t.minMinutes || minutes > t.maxMinutes) {
+        genErrors.innerHTML = errorsHtml([`Minutos fuera de rango para "${t.name}": entre ${t.minMinutes} y ${t.maxMinutes}.`]);
+        return;
+      }
+      const now = new Date();
+      const workout: Workout = {
+        format_version: 1,
+        id: crypto.randomUUID(),
+        name: `${t.name} · ${minutes} min · ${now.getDate()} ${MONTH_NAMES_SHORT[now.getMonth()]}`,
+        intervals: t.build(minutes),
+        created_at: now.toISOString(),
+        // agendado hoy: el punto de generarlo desde Inicio es entrenarlo YA,
+        // no dejarlo sin fecha en la biblioteca de Plan como antes.
+        scheduledDate: todayKey,
+      };
+      const result = validateWorkout(workout);
+      genErrors.innerHTML = errorsHtml(result.errors);
+      if (!result.valid) return;
+      await saveWorkout(workout);
+      if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
+      appState.workouts = [...appState.workouts, workout];
+      appState.selectedWorkoutId = workout.id;
       navigate('prepare');
     });
-  });
+  }
+  wireGenerate();
 
   /** "Esta semana" necesita las sesiones reales (async, IndexedDB) — se
    * pinta con ceros primero y se reconcilia en cuanto cargan, mismo patrón
@@ -211,7 +251,7 @@ export function renderHome(container: HTMLElement): void {
 
     container.querySelector('#week-hours')!.textContent = fmtHours(totalSeconds);
     container.querySelector('#week-tss')!.textContent = String(Math.round(totalTss));
-    container.querySelector('#week-fraction')!.textContent = scheduledThisWeek.length ? `${doneCount} de ${scheduledThisWeek.length}` : '';
+    container.querySelector('#week-count')!.textContent = scheduledThisWeek.length ? `${doneCount}/${scheduledThisWeek.length}` : '—';
 
     const zoneTotal = zoneSeconds.reduce((a, b) => a + b, 0) || 1;
     container.querySelector('#week-zonebar')!.innerHTML = zoneSeconds

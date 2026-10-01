@@ -1569,59 +1569,14 @@ a {
   font-size: 12px;
   color: var(--text-muted);
 }
-.home-fortu {
+.home-hero-clickable {
+  cursor: pointer;
+}
+.home-generate {
   margin-top: 32px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-.home-fortu-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-.home-fortu-legend {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.home-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-.home-legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  display: inline-block;
-}
-.home-fortu-link {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-left: 12px;
-}
-.home-fortu-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 20px;
-}
-.home-fortu-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: none;
-  border: none;
-  text-align: left;
-  color: inherit;
-  padding: 0;
-  cursor: pointer;
-}
-.home-fortu-name {
-  font-weight: 500;
-  font-size: 15px;
 }
 
 /* ---------- Límites por bloque (ver TORQ_DESIGN.md, sección Plan) ---------- */
@@ -1755,6 +1710,9 @@ a {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 32px;
+}
+.plan-bottom-single {
+  grid-template-columns: 1fr;
 }
 .plan-library {
   display: flex;
