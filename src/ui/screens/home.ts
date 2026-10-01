@@ -12,6 +12,7 @@ import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { navigate, refresh } from '../router';
 import { appState } from '../state';
 import { renderWorkoutCover } from '../workout-cover';
+import { wireDatePicker } from '../date-picker';
 
 const DAY_LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S']; // índice = Date#getDay()
 const MONTH_NAMES_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -160,6 +161,8 @@ export function renderHome(container: HTMLElement): void {
     const genErrors = container.querySelector<HTMLElement>('#gen-errors')!;
     const whenRadios = container.querySelectorAll<HTMLInputElement>('input[name="gen-when"]');
     const dateInput = container.querySelector<HTMLInputElement>('#gen-date')!;
+    wireDatePicker(dateInput);
+    const dateWrapper = dateInput.closest<HTMLElement>('.date-picker')!;
     const submitBtn = container.querySelector<HTMLButtonElement>('#gen-create')!;
 
     function isLater(): boolean {
@@ -167,7 +170,7 @@ export function renderHome(container: HTMLElement): void {
     }
     function updateWhenUI(): void {
       const later = isLater();
-      dateInput.style.display = later ? '' : 'none';
+      dateWrapper.style.display = later ? '' : 'none';
       submitBtn.textContent = later ? 'Generar y agendar' : 'Generar y entrenar';
     }
     whenRadios.forEach((r) => r.addEventListener('change', updateWhenUI));

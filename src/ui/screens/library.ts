@@ -127,12 +127,14 @@ export function renderLibrary(container: HTMLElement): () => void {
   let activityRows: HistoryRow[] | null = null; // null mientras carga
 
   function matchesFilters(w: Workout): boolean {
-    if (search && !w.name.toLowerCase().includes(search.toLowerCase())) return false;
-    if (dateFrom || dateTo) {
-      if (!w.scheduledDate) return false;
-      if (dateFrom && w.scheduledDate < dateFrom) return false;
-      if (dateTo && w.scheduledDate > dateTo) return false;
-    }
+    return !search || w.name.toLowerCase().includes(search.toLowerCase());
+  }
+
+  function matchesActivityDate(r: HistoryRow): boolean {
+    if (!dateFrom && !dateTo) return true;
+    const day = r.startedAt.slice(0, 10);
+    if (dateFrom && day < dateFrom) return false;
+    if (dateTo && day > dateTo) return false;
     return true;
   }
 
@@ -187,18 +189,27 @@ export function renderLibrary(container: HTMLElement): () => void {
     return `
       <div class="library-filters">
         <input type="search" id="lib-search" placeholder="Buscar por título…" value="${search}">
-        <label class="live-col-label">Desde<input type="date" id="lib-date-from" value="${dateFrom}"></label>
-        <label class="live-col-label">Hasta<input type="date" id="lib-date-to" value="${dateTo}"></label>
-        <button id="lib-clear-filters" class="btn-light">Limpiar filtros</button>
+        ${search ? '<button id="lib-clear-filters" class="btn-light">Limpiar filtros</button>' : ''}
       </div>
       <div id="library-list"></div>
     `;
   }
 
   function activityTabHtml(): string {
-    if (activityRows === null) return '<p class="hint">Cargando…</p>';
-    if (activityRows.length === 0) return '<p class="hint">Todavía no hay sesiones guardadas.</p>';
-    return `<div class="forma-list">${activityRows.map(activityRowHtml).join('')}</div>`;
+    const filterRow = `
+      <div class="library-filters">
+        <label class="live-col-label">Desde<input type="date" id="lib-date-from" value="${dateFrom}"></label>
+        <label class="live-col-label">Hasta<input type="date" id="lib-date-to" value="${dateTo}"></label>
+        ${dateFrom || dateTo ? '<button id="lib-clear-filters" class="btn-light">Limpiar filtros</button>' : ''}
+      </div>
+    `;
+    if (activityRows === null) return `${filterRow}<p class="hint">Cargando…</p>`;
+    const rows = activityRows.filter(matchesActivityDate);
+    if (rows.length === 0) {
+      const emptyHint = activityRows.length === 0 ? 'Todavía no hay sesiones guardadas.' : 'Nada coincide con el filtro.';
+      return `${filterRow}<p class="hint">${emptyHint}</p>`;
+    }
+    return `${filterRow}<div class="forma-list">${rows.map(activityRowHtml).join('')}</div>`;
   }
 
   function renderList(): void {
@@ -373,25 +384,31 @@ export function renderLibrary(container: HTMLElement): () => void {
     });
   }
 
-  function wireFilters(): void {
+  function wireLibraryFilters(): void {
     container.querySelector<HTMLInputElement>('#lib-search')?.addEventListener('input', (e) => {
       search = (e.target as HTMLInputElement).value;
       renderList();
     });
+    container.querySelector('#lib-clear-filters')?.addEventListener('click', () => {
+      search = '';
+      render();
+    });
+  }
+
+  function wireActivityFilters(): void {
     const dateFromInput = container.querySelector<HTMLInputElement>('#lib-date-from');
     if (dateFromInput) wireDatePicker(dateFromInput);
     dateFromInput?.addEventListener('change', (e) => {
       dateFrom = (e.target as HTMLInputElement).value;
-      renderList();
+      render();
     });
     const dateToInput = container.querySelector<HTMLInputElement>('#lib-date-to');
     if (dateToInput) wireDatePicker(dateToInput);
     dateToInput?.addEventListener('change', (e) => {
       dateTo = (e.target as HTMLInputElement).value;
-      renderList();
+      render();
     });
     container.querySelector('#lib-clear-filters')?.addEventListener('click', () => {
-      search = '';
       dateFrom = '';
       dateTo = '';
       render();
@@ -422,9 +439,10 @@ export function renderLibrary(container: HTMLElement): () => void {
     if (activeTab === 'library') {
       renderList();
       wireImport();
-      wireFilters();
+      wireLibraryFilters();
     } else {
       wireActivity();
+      wireActivityFilters();
     }
     wireRulesInput();
 
