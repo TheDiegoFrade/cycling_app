@@ -237,7 +237,7 @@ export function renderPerfil(container: HTMLElement): void {
 
     const birthDateInput = container.querySelector<HTMLInputElement>('#profile-birth-date');
     if (birthDateInput) {
-      wireDatePicker(birthDateInput);
+      wireDatePicker(birthDateInput, { showToday: false });
       birthDateInput.addEventListener('change', () => {
         appState.profile = { ...appState.profile, birth_date: birthDateInput.value || undefined };
         appState.persistProfile();

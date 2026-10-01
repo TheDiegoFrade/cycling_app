@@ -54,7 +54,8 @@ function clamp(n: number, min: number, max: number): number {
  * directo. El input original se mantiene oculto como fuente de verdad: le
  * sigue cambiando `.value` y disparando `change`, así que cualquier listener
  * ya existente sobre ese input sigue funcionando sin tocarlo. */
-export function wireDatePicker(input: HTMLInputElement): void {
+export function wireDatePicker(input: HTMLInputElement, opts: { showToday?: boolean } = {}): void {
+  const showToday = opts.showToday ?? true;
   if (input.dataset.datePickerWired) return;
   input.dataset.datePickerWired = '1';
   input.classList.add('date-picker-hidden-input');
@@ -210,6 +211,8 @@ export function wireDatePicker(input: HTMLInputElement): void {
   let popup: HTMLElement | null = null;
   let viewY = 0;
   let viewM = 0;
+  let popupMode: 'days' | 'years' = 'days';
+  let yearsRangeStart = 0;
 
   function onOutside(e: MouseEvent): void {
     if (popup && !popup.contains(e.target as Node) && e.target !== calBtn) closePopup();
@@ -230,7 +233,38 @@ export function wireDatePicker(input: HTMLInputElement): void {
     closePopup();
   }
 
-  function renderPopup(): void {
+  function renderYearsView(): void {
+    if (!popup) return;
+    const years = Array.from({ length: 12 }, (_, i) => yearsRangeStart + i);
+    const cells = years
+      .map((y) => `<button type="button" class="date-picker-year-cell${y === viewY ? ' selected' : ''}" data-year="${y}">${y}</button>`)
+      .join('');
+    popup.innerHTML = `
+      <div class="date-picker-head">
+        <button type="button" class="date-picker-nav" data-nav="-1" aria-label="Años anteriores">‹</button>
+        <span>${years[0]}–${years[years.length - 1]}</span>
+        <button type="button" class="date-picker-nav" data-nav="1" aria-label="Años siguientes">›</button>
+      </div>
+      <div class="date-picker-year-grid">${cells}</div>
+    `;
+    popup.querySelector('[data-nav="-1"]')?.addEventListener('click', () => {
+      yearsRangeStart -= 12;
+      renderYearsView();
+    });
+    popup.querySelector('[data-nav="1"]')?.addEventListener('click', () => {
+      yearsRangeStart += 12;
+      renderYearsView();
+    });
+    popup.querySelectorAll<HTMLButtonElement>('[data-year]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        viewY = Number(btn.dataset.year);
+        popupMode = 'days';
+        renderPopup();
+      });
+    });
+  }
+
+  function renderDaysView(): void {
     if (!popup) return;
     const firstWeekday = (new Date(viewY, viewM - 1, 1).getDay() + 6) % 7; // lunes=0
     const total = daysInMonth(viewY, viewM);
@@ -243,12 +277,12 @@ export function wireDatePicker(input: HTMLInputElement): void {
     popup.innerHTML = `
       <div class="date-picker-head">
         <button type="button" class="date-picker-nav" data-nav="-1" aria-label="Mes anterior">‹</button>
-        <span>${MONTH_LABELS[viewM - 1]} ${viewY}</span>
+        <button type="button" class="date-picker-yearlabel" data-open-years>${MONTH_LABELS[viewM - 1]} ${viewY}</button>
         <button type="button" class="date-picker-nav" data-nav="1" aria-label="Mes siguiente">›</button>
       </div>
       <div class="date-picker-weekdays">${WEEKDAY_LABELS.map((w) => `<span>${w}</span>`).join('')}</div>
       <div class="date-picker-grid">${cells.join('')}</div>
-      <button type="button" class="date-picker-today">Hoy</button>
+      ${showToday ? '<button type="button" class="date-picker-today">Hoy</button>' : ''}
     `;
     popup.querySelector('[data-nav="-1"]')?.addEventListener('click', () => {
       viewM--;
@@ -266,6 +300,11 @@ export function wireDatePicker(input: HTMLInputElement): void {
       }
       renderPopup();
     });
+    popup.querySelector('[data-open-years]')?.addEventListener('click', () => {
+      yearsRangeStart = viewY - 5;
+      popupMode = 'years';
+      renderPopup();
+    });
     popup.querySelectorAll<HTMLButtonElement>('[data-day]').forEach((btn) => {
       btn.addEventListener('click', () => pick(viewY, viewM, Number(btn.dataset.day)));
     });
@@ -273,6 +312,11 @@ export function wireDatePicker(input: HTMLInputElement): void {
       const now = new Date();
       pick(now.getFullYear(), now.getMonth() + 1, now.getDate());
     });
+  }
+
+  function renderPopup(): void {
+    if (popupMode === 'years') renderYearsView();
+    else renderDaysView();
   }
 
   function openPopup(): void {
@@ -283,6 +327,7 @@ export function wireDatePicker(input: HTMLInputElement): void {
     const now = new Date();
     viewY = values.y ?? now.getFullYear();
     viewM = values.m ?? now.getMonth() + 1;
+    popupMode = 'days';
     popup = document.createElement('div');
     popup.className = 'date-picker-popup';
     wrapper.appendChild(popup);
