@@ -55,6 +55,16 @@ function fmtDateEsMx(iso: string): string {
   return new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+/** Igual que fmtDateEsMx pero para un dateKey "YYYY-MM-DD" sin hora — un
+ * string así lo parsea como medianoche UTC, así que formatearlo en la
+ * timezone local del navegador lo corre un día hacia atrás en cualquier
+ * timezone detrás de UTC (México incluido). Forzar UTC tanto al parsear
+ * como al formatear lo muestra tal cual es, sin instante real de por medio
+ * (mismo problema que ya se resolvió en completed-session-import.ts). */
+function fmtDateKeyEsMx(dateKey: string): string {
+  return new Date(`${dateKey}T00:00:00Z`).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
 function analyticsOf(session: SessionRecord) {
   const profile = { ...appState.profile, ftp: session.ftp };
   return computeSessionAnalytics(session.samples, profile);
@@ -538,9 +548,9 @@ export function renderForma(container: HTMLElement): () => void {
         <div class="panel">
           <p class="hint" style="margin-top:0">Picos de potencia — se celebran de nuevo cada vez que los superas.</p>
           <div class="forma-records-grid" style="margin-bottom:16px">
-            ${best1min ? recordTileHtml('Mejor 1 min', `${Math.round(best1min.watts)} W`, fmtDateEsMx(best1min.dateKey), isWithinDays(best1min.dateKey, todayKey, 7)) : ''}
-            ${best5min ? recordTileHtml('Mejor 5 min', `${Math.round(best5min.watts)} W`, fmtDateEsMx(best5min.dateKey), isWithinDays(best5min.dateKey, todayKey, 7)) : ''}
-            ${best20min ? recordTileHtml('Mejor 20 min', `${Math.round(best20min.watts)} W`, fmtDateEsMx(best20min.dateKey), isWithinDays(best20min.dateKey, todayKey, 7)) : ''}
+            ${best1min ? recordTileHtml('Mejor 1 min', `${Math.round(best1min.watts)} W`, fmtDateKeyEsMx(best1min.dateKey), isWithinDays(best1min.dateKey, todayKey, 7)) : ''}
+            ${best5min ? recordTileHtml('Mejor 5 min', `${Math.round(best5min.watts)} W`, fmtDateKeyEsMx(best5min.dateKey), isWithinDays(best5min.dateKey, todayKey, 7)) : ''}
+            ${best20min ? recordTileHtml('Mejor 20 min', `${Math.round(best20min.watts)} W`, fmtDateKeyEsMx(best20min.dateKey), isWithinDays(best20min.dateKey, todayKey, 7)) : ''}
           </div>
           ${
             appState.cloudEnabled && appState.user

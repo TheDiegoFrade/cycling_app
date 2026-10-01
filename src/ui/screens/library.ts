@@ -2,7 +2,7 @@ import { importWorkoutFile } from '../../core/workout-file-import';
 import { validateRulesFile, validateWorkout } from '../../core/validator';
 import { estimateWorkout } from '../../core/workout-estimate';
 import { computeSessionAnalytics } from '../../engine/analytics';
-import type { RulesFile, Workout } from '../../core/types';
+import type { Interval, RulesFile, Sample, Workout } from '../../core/types';
 import { saveWorkout, deleteWorkout } from '../../storage/workout-store';
 import type { SessionRecord } from '../../storage/session-store';
 import { deleteSession, listSessions } from '../../storage/session-store';
@@ -28,6 +28,12 @@ interface HistoryRow {
   rpe: number | null;
   origin: 'local' | 'cloud';
   fromStrava: boolean;
+  /** Perfil de potencia real de la sesión (% de FTP por tramo) — solo para
+   * sesiones locales (tienen samples). Sirve para dibujar una portada
+   * cuando la sesión no corresponde a ningún workout planeado en Torq (un
+   * .fit importado a mano, o de Strava): ahí no hay "intervalos" que
+   * mostrar, así que se grafica lo que de verdad se pedaleó. */
+  powerPctBuckets: number[] | null;
 }
 
 function fmt(totalS: number): string {
@@ -48,6 +54,22 @@ function analyticsOf(session: SessionRecord) {
   return computeSessionAnalytics(session.samples, profile);
 }
 
+/** Resume el perfil de potencia real en N tramos (% de FTP promedio de cada
+ * tramo) — ver nota en HistoryRow.powerPctBuckets sobre para qué sirve. */
+function bucketedPowerPcts(samples: readonly Sample[], ftp: number, buckets = 16): number[] {
+  if (samples.length === 0 || ftp <= 0) return [];
+  const bucketSize = samples.length / buckets;
+  const result: number[] = [];
+  for (let i = 0; i < buckets; i++) {
+    const start = Math.floor(i * bucketSize);
+    const end = Math.max(start + 1, Math.floor((i + 1) * bucketSize));
+    const slice = samples.slice(start, end);
+    const avgPower = slice.reduce((sum, s) => sum + s.power, 0) / slice.length;
+    result.push((avgPower / ftp) * 100);
+  }
+  return result;
+}
+
 function localRow(session: SessionRecord): HistoryRow {
   const a = analyticsOf(session);
   return {
@@ -61,6 +83,7 @@ function localRow(session: SessionRecord): HistoryRow {
     rpe: session.rpe ?? null,
     origin: 'local',
     fromStrava: session.stravaActivityId !== undefined,
+    powerPctBuckets: bucketedPowerPcts(session.samples, session.ftp),
   };
 }
 
@@ -78,12 +101,18 @@ function cloudRow(s: (typeof appState.cloudSessions)[number]): HistoryRow {
     rpe: s.rpe,
     origin: 'cloud',
     fromStrava: s.stravaActivityId !== null,
+    powerPctBuckets: null,
   };
 }
 
 function activityCoverHtml(row: HistoryRow): string {
   const workout = appState.workouts.find((w) => w.id === row.workoutId);
-  return workout ? renderWorkoutCover(workout.intervals, 'sm') : `<div class="workout-cover workout-cover-sm" style="background:var(--surface)"></div>`;
+  if (workout) return renderWorkoutCover(workout.intervals, 'sm');
+  if (row.powerPctBuckets && row.powerPctBuckets.length > 0) {
+    const intervals: Interval[] = row.powerPctBuckets.map((pct) => ({ name: '', type: 'steady', duration_s: 1, power_pct: pct }));
+    return renderWorkoutCover(intervals, 'sm');
+  }
+  return `<div class="workout-cover workout-cover-sm" style="background:var(--surface)"></div>`;
 }
 
 function errorsHtml(errors: string[]): string {
