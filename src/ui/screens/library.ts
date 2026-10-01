@@ -6,7 +6,7 @@ import type { Interval, RulesFile, Sample, Workout } from '../../core/types';
 import { saveWorkout, deleteWorkout } from '../../storage/workout-store';
 import type { SessionRecord } from '../../storage/session-store';
 import { deleteSession, listSessions } from '../../storage/session-store';
-import { deleteSessionFromCloud } from '../../sync/cloud-sync';
+import { deleteSessionFromCloud, downloadSessionSamples } from '../../sync/cloud-sync';
 import { deleteWorkoutFromCloud, pushWorkoutToCloud } from '../../sync/workout-sync';
 import { getRouteParam, navigate } from '../router';
 import { appState } from '../state';
@@ -34,6 +34,11 @@ interface HistoryRow {
    * .fit importado a mano, o de Strava): ahí no hay "intervalos" que
    * mostrar, así que se grafica lo que de verdad se pedaleó. */
   powerPctBuckets: number[] | null;
+  /** Para sesiones cloud-only: de dónde descargar sus samples bajo demanda
+   * (ver loadActivity) para poder calcular powerPctBuckets igual que las
+   * locales. null en sesiones locales (ya tienen samples) o sin .fit
+   * guardado (muy viejas). */
+  fitPath: string | null;
 }
 
 function fmt(totalS: number): string {
@@ -84,6 +89,7 @@ function localRow(session: SessionRecord): HistoryRow {
     origin: 'local',
     fromStrava: session.stravaActivityId !== undefined,
     powerPctBuckets: bucketedPowerPcts(session.samples, session.ftp),
+    fitPath: null,
   };
 }
 
@@ -102,6 +108,7 @@ function cloudRow(s: (typeof appState.cloudSessions)[number]): HistoryRow {
     origin: 'cloud',
     fromStrava: s.stravaActivityId !== null,
     powerPctBuckets: null,
+    fitPath: s.fitPath,
   };
 }
 
@@ -375,6 +382,28 @@ export function renderLibrary(container: HTMLElement): () => void {
         b.startedAt.localeCompare(a.startedAt),
       );
       if (activeTab === 'activity') render();
+      enrichCloudCovers();
+    });
+  }
+
+  /** Las sesiones cloud-only no traen samples (solo el resumen) — para
+   * poder dibujar su portada real (ver activityCoverHtml) hay que bajar su
+   * .fit y decodificarlo, igual que ya hace Inicio para "Tiempo por zona".
+   * Se hace después del primer pintado para no retrasar la lista. */
+  function enrichCloudCovers(): void {
+    const rows = activityRows;
+    if (!rows) return;
+    const pending = rows.filter((r) => r.origin === 'cloud' && r.fitPath && r.powerPctBuckets === null);
+    if (pending.length === 0) return;
+    Promise.all(
+      pending.map(async (row) => {
+        const samples = await downloadSessionSamples(row.fitPath!).catch(() => null);
+        if (!samples || samples.length === 0) return;
+        const cloudSession = appState.cloudSessions.find((s) => s.id === row.id);
+        row.powerPctBuckets = bucketedPowerPcts(samples, cloudSession?.ftp ?? appState.profile.ftp);
+      }),
+    ).then(() => {
+      if (activeTab === 'activity' && activityRows === rows) render();
     });
   }
 
