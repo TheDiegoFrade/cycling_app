@@ -911,6 +911,33 @@ a {
 .live-menu-item.danger {
   color: var(--danger-text);
 }
+.live-menu-hold {
+  position: relative;
+  overflow: hidden;
+}
+.live-menu-hold-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.live-menu-hold-hint {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.live-menu-hold-fill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: rgba(255, 77, 77, 0.3);
+  z-index: 0;
+}
+.live-menu-hold.holding .live-menu-hold-fill {
+  width: 100%;
+  transition: width 1.4s linear;
+}
 .live-menu-divider {
   height: 1px;
   background: var(--border);
@@ -2159,7 +2186,7 @@ a {
 }
 .date-field-cal-btn {
   margin-left: auto;
-  padding-left: 8px;
+  padding: 0 0 0 8px;
   background: none;
   border: none;
   color: var(--text-muted);
@@ -2222,7 +2249,7 @@ a {
 }
 .date-picker-year-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
 }
 .date-picker-year-cell {
@@ -2245,7 +2272,7 @@ a {
 }
 .date-picker-weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   text-align: center;
   color: var(--text-muted);
   font-size: 11px;
@@ -2253,7 +2280,7 @@ a {
 }
 .date-picker-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 2px;
 }
 .date-picker-cell {
@@ -2263,6 +2290,7 @@ a {
   justify-content: center;
   background: none;
   border: none;
+  padding: 0;
   color: var(--text);
   border-radius: var(--radius-sm);
   font-size: 13px;

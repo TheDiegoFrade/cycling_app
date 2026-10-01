@@ -77,7 +77,14 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
               <button class="live-menu-item" id="menuLimits" type="button">Límites</button>
               <div class="live-menu-divider"></div>
               <button class="live-menu-item" id="menuFinish" type="button">Terminar y guardar</button>
-              <button class="live-menu-item danger" id="menuDiscard" type="button">Salir sin guardar</button>
+              <div class="live-menu-divider"></div>
+              <button class="live-menu-item danger live-menu-hold" id="menuDiscard" type="button">
+                <span class="live-menu-hold-fill"></span>
+                <span class="live-menu-hold-content">
+                  <span>Salir sin guardar</span>
+                  <span class="live-menu-hold-hint">mantén presionado</span>
+                </span>
+              </button>
             </div>
           </div>
         </div>
@@ -737,20 +744,48 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     finish();
   });
 
-  $('menuDiscard').addEventListener('click', () => {
-    closeMenu();
-    if (engine.currentState === 'idle') {
-      navigate('home');
-      return;
+  // "Salir sin guardar" pierde toda la sesión sin vuelta atrás, y vive junto
+  // a "Terminar y guardar" (la acción buena, la que se usa todo el tiempo) —
+  // un solo tap mal puesto ahí sería carísimo. En vez de un window.confirm
+  // (que el reflejo de "aceptar todo" salta sin leer), exige mantener
+  // presionado: un toque accidental nunca dura lo suficiente.
+  const DISCARD_HOLD_MS = 1400;
+  let discardHoldTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function cancelDiscardHold(): void {
+    if (discardHoldTimer) {
+      clearTimeout(discardHoldTimer);
+      discardHoldTimer = null;
     }
-    if (!window.confirm('¿Salir sin guardar? Vas a perder todo el progreso de esta sesión.')) return;
+    document.getElementById('menuDiscard')?.classList.remove('holding');
+  }
+
+  function runDiscard(): void {
+    closeMenu();
     sessionFinished = true; // evita que el cleanup del desmontaje autoguarde un draft
     stopPollLoop();
     stopAutoStartWatcher();
     wakeLock.release();
     void clearDraft(sessionId);
     navigate('home');
+  }
+
+  $('menuDiscard').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (engine.currentState === 'idle') {
+      runDiscard();
+      return;
+    }
+    $('menuDiscard').classList.add('holding');
+    discardHoldTimer = setTimeout(() => {
+      discardHoldTimer = null;
+      runDiscard();
+    }, DISCARD_HOLD_MS);
   });
+  $('menuDiscard').addEventListener('pointerup', cancelDiscardHold);
+  $('menuDiscard').addEventListener('pointerleave', cancelDiscardHold);
+  $('menuDiscard').addEventListener('pointercancel', cancelDiscardHold);
+  window.addEventListener('blur', cancelDiscardHold);
 
   function toggleRun(): void {
     if (engine.currentState === 'idle') {
@@ -826,6 +861,8 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     document.removeEventListener('click', onDocClick);
     window.removeEventListener('keydown', onKeydown);
     window.removeEventListener('resize', draw);
+    window.removeEventListener('blur', cancelDiscardHold);
+    cancelDiscardHold();
     unsubTrainerState();
     unsubHrState?.();
     unsubTrainerReading();
