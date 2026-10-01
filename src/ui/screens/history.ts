@@ -1,7 +1,7 @@
 import { formLabel, suggestToday } from '../../engine/coaching';
 import { computeSessionAnalytics } from '../../engine/analytics';
 import { computePmc, futureTssEntries } from '../../engine/pmc';
-import { computeWeeklyStreak, computeWeeklyVolumeTrend } from '../../engine/streaks';
+import { computeWeeklyStreak, computeWeeklyVolumeTrend, mondayOfWeek } from '../../engine/streaks';
 import { buildAchievementInput, evaluateAchievements } from '../../engine/achievements';
 import { estimateWorkout } from '../../core/workout-estimate';
 import { findTemplate } from '../../core/workout-templates';
@@ -396,6 +396,14 @@ export function renderForma(container: HTMLElement): () => void {
       const volumeTrend = computeWeeklyVolumeTrend(sorted, todayKey);
       const volumeDeltaPct =
         volumeTrend.priorHoursPerWeek > 0 ? ((volumeTrend.recentHoursPerWeek - volumeTrend.priorHoursPerWeek) / volumeTrend.priorHoursPerWeek) * 100 : null;
+      // computeWeeklyVolumeTrend compara las últimas 4 semanas COMPLETAS,
+      // sin contar la semana en curso (a medias) — con una cuenta nueva o
+      // pocas semanas de historial, esas 4 semanas previas están vacías y
+      // "0.0 h/sem" se lee como "no entrenaste nada" en vez de "todavía no
+      // hay suficiente historial". Mientras tanto, mostrar lo acumulado en
+      // la semana en curso es más honesto que un cero plano.
+      const thisWeekStartKey = mondayOfWeek(todayKey);
+      const hoursThisWeekSoFar = sorted.filter((r) => r.startedAt.slice(0, 10) >= thisWeekStartKey).reduce((sum, r) => sum + r.durationS, 0) / 3600;
 
       const local = localPowerBests(localSessions);
       const best1min = bestOf(local.best1min, cloudPowerRecords?.best1min ?? null);
@@ -512,14 +520,18 @@ export function renderForma(container: HTMLElement): () => void {
                 )
               : ''
           }
-          ${recordTileHtml(
-            'Volumen semanal',
-            `${volumeTrend.recentHoursPerWeek.toFixed(1)} h/sem`,
-            volumeDeltaPct !== null
-              ? `${volumeDeltaPct >= 0 ? '+' : ''}${volumeDeltaPct.toFixed(0)}% vs. las 4 semanas previas`
-              : 'Promedio de las últimas 4 semanas',
-            false,
-          )}
+          ${
+            volumeTrend.recentHoursPerWeek > 0
+              ? recordTileHtml(
+                  'Volumen semanal',
+                  `${volumeTrend.recentHoursPerWeek.toFixed(1)} h/sem`,
+                  volumeDeltaPct !== null
+                    ? `${volumeDeltaPct >= 0 ? '+' : ''}${volumeDeltaPct.toFixed(0)}% vs. las 4 semanas previas`
+                    : 'Promedio de las últimas 4 semanas',
+                  false,
+                )
+              : recordTileHtml('Volumen semanal', `${hoursThisWeekSoFar.toFixed(1)} h`, 'Esta semana — construyendo tu historial', false)
+          }
         </div>
 
         <h2 class="perfil-h2" style="margin-top:28px">Logros</h2>
