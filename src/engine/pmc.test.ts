@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { computePmc } from './pmc';
+import { computePmc, futureTssEntries } from './pmc';
+import type { Interval, Workout } from '../core/types';
 
 const CTL_FACTOR = 1 - Math.exp(-1 / 42);
 const ATL_FACTOR = 1 - Math.exp(-1 / 7);
+
+const STEADY_30MIN: Interval[] = [{ name: 'Steady', type: 'steady', duration_s: 1800, power_pct: 100 }];
+
+function workout(scheduledDate: string, intervals: Interval[] = STEADY_30MIN): Pick<Workout, 'scheduledDate' | 'intervals'> {
+  return { scheduledDate, intervals };
+}
 
 describe('computePmc', () => {
   it('arreglo vacío da una serie vacía', () => {
@@ -67,5 +74,51 @@ describe('computePmc', () => {
       { dateKey: '2026-01-01', tss: 80 },
     ]);
     expect(b).toEqual(a);
+  });
+});
+
+describe('futureTssEntries', () => {
+  const today = '2026-01-01';
+
+  it('sin nada agendado, proyecta el mínimo de días en descanso puro (TSS 0)', () => {
+    const entries = futureTssEntries([], 200, today);
+    expect(entries).toHaveLength(7);
+    expect(entries.every((e) => e.tss === 0)).toBe(true);
+    expect(entries[0].dateKey).toBe('2026-01-02');
+    expect(entries[6].dateKey).toBe('2026-01-08');
+  });
+
+  it('un workout agendado más allá del mínimo extiende el horizonte hasta esa fecha', () => {
+    const entries = futureTssEntries([workout('2026-01-11')], 200, today);
+    expect(entries).toHaveLength(10); // 10 días hasta el 11 de enero
+    const dayOfWorkout = entries.find((e) => e.dateKey === '2026-01-11')!;
+    expect(dayOfWorkout.tss).toBeGreaterThan(0);
+  });
+
+  it('un workout agendado antes del mínimo no acorta el horizonte (sigue siendo minDays)', () => {
+    const entries = futureTssEntries([workout('2026-01-03')], 200, today);
+    expect(entries).toHaveLength(7);
+    const dayOfWorkout = entries.find((e) => e.dateKey === '2026-01-03')!;
+    expect(dayOfWorkout.tss).toBeGreaterThan(0);
+  });
+
+  it('un workout más allá del máximo recorta el horizonte a maxDays', () => {
+    const entries = futureTssEntries([workout('2026-01-30')], 200, today);
+    expect(entries).toHaveLength(21);
+    expect(entries.some((e) => e.dateKey === '2026-01-30')).toBe(false);
+  });
+
+  it('dos workouts el mismo día suman su TSS estimado', () => {
+    const single = futureTssEntries([workout('2026-01-05')], 200, today);
+    const double = futureTssEntries([workout('2026-01-05'), workout('2026-01-05')], 200, today);
+    const singleTss = single.find((e) => e.dateKey === '2026-01-05')!.tss;
+    const doubleTss = double.find((e) => e.dateKey === '2026-01-05')!.tss;
+    expect(doubleTss).toBeCloseTo(singleTss * 2, 5);
+  });
+
+  it('un workout agendado HOY o en el pasado no cuenta como futuro', () => {
+    const entries = futureTssEntries([workout(today), workout('2025-12-31')], 200, today);
+    expect(entries).toHaveLength(7);
+    expect(entries.every((e) => e.tss === 0)).toBe(true);
   });
 });

@@ -74,6 +74,13 @@ export async function pushSessionToCloud(session: SessionRecord, profile: Profil
       note: session.note ?? null,
       fit_path: fitPath,
       strava_activity_id: session.stravaActivityId ?? null,
+      // picos de potencia (mejor promedio sostenido) — guardados aparte del
+      // resto para poder calcular récords históricos de TODA la cuenta sin
+      // tener que descargar y decodificar el .fit de cada sesión, ver
+      // getPowerRecords más abajo.
+      best_1min_power: a.powerCurve.find((p) => p.windowS === 60)?.watts ?? null,
+      best_5min_power: a.powerCurve.find((p) => p.windowS === 300)?.watts ?? null,
+      best_20min_power: a.powerCurve.find((p) => p.windowS === 1200)?.watts ?? null,
     });
     if (insertError) throw insertError;
   } catch (err) {
@@ -153,4 +160,88 @@ export async function downloadSessionSamples(fitPath: string): Promise<Sample[] 
     console.error('[cloud-sync] no se pudo reconstruir la sesión desde su .fit', err);
     return null;
   }
+}
+
+export interface PowerRecord {
+  watts: number;
+  /** Fecha (YYYY-MM-DD) de la sesión que logró este pico. */
+  dateKey: string;
+}
+
+export interface PowerRecords {
+  best1min: PowerRecord | null;
+  best5min: PowerRecord | null;
+  best20min: PowerRecord | null;
+}
+
+const POWER_RECORD_COLUMNS = [
+  { key: 'best1min' as const, column: 'best_1min_power' },
+  { key: 'best5min' as const, column: 'best_5min_power' },
+  { key: 'best20min' as const, column: 'best_20min_power' },
+];
+
+/** Mejor pico histórico de TODA la cuenta por ventana (1/5/20 min) — un
+ * query chico por ventana en vez de traer todas las sesiones al cliente,
+ * ver columnas best_Xmin_power en supabase/schema.sql. Sesiones sin estos
+ * valores calculados (subidas antes de que existieran, ver
+ * backfillPowerRecords) simplemente no compiten por el récord. */
+export async function getPowerRecords(userId: string): Promise<PowerRecords> {
+  if (!supabase) return { best1min: null, best5min: null, best20min: null };
+  const results = await Promise.all(
+    POWER_RECORD_COLUMNS.map(async ({ column }) => {
+      const selectCols: string = `${column}, started_at`;
+      const { data, error } = await supabase!
+        .from('sessions')
+        .select(selectCols)
+        .eq('user_id', userId)
+        .not(column, 'is', null)
+        .order(column, { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error || !data) return null;
+      const row = data as unknown as Record<string, unknown>;
+      const watts = row[column] as number | null;
+      return watts ? { watts, dateKey: String(row.started_at).slice(0, 10) } : null;
+    }),
+  );
+  return { best1min: results[0], best5min: results[1], best20min: results[2] };
+}
+
+/** Recalcula los picos de potencia de sesiones ya subidas ANTES de que
+ * existieran estas columnas — a demanda, nunca automático (ver plan de
+ * Forma): descarga el .fit de cada una (ya tenemos la función para eso) y
+ * vuelve a correr el mismo cálculo que pushSessionToCloud. Sesiones sin
+ * fit_path (muy viejas) quedan fuera, igual que ya pasa con EF nulo en otras
+ * partes de la app. Devuelve cuántas se actualizaron. */
+export async function backfillPowerRecords(userId: string, onProgress?: (done: number, total: number) => void): Promise<number> {
+  if (!supabase) return 0;
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('id, fit_path, ftp')
+    .eq('user_id', userId)
+    .is('best_5min_power', null)
+    .not('fit_path', 'is', null);
+  if (error || !data) return 0;
+
+  let updated = 0;
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    onProgress?.(i, data.length);
+    const samples = await downloadSessionSamples(row.fit_path as string);
+    if (!samples || samples.length === 0) continue;
+    // el perfil solo importa aquí por el ftp que ya trae la propia sesión —
+    // powerCurve no depende de ningún otro campo del perfil.
+    const a = computeSessionAnalytics(samples, { ftp: row.ftp as number, hr_max: 200, cadence_floor: 0, hr_ceiling: 999, hr_min: 0, cadence_max: 999 });
+    const { error: updateError } = await supabase
+      .from('sessions')
+      .update({
+        best_1min_power: a.powerCurve.find((p) => p.windowS === 60)?.watts ?? null,
+        best_5min_power: a.powerCurve.find((p) => p.windowS === 300)?.watts ?? null,
+        best_20min_power: a.powerCurve.find((p) => p.windowS === 1200)?.watts ?? null,
+      })
+      .eq('id', row.id);
+    if (!updateError) updated++;
+  }
+  onProgress?.(data.length, data.length);
+  return updated;
 }

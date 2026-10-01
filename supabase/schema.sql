@@ -102,6 +102,17 @@ alter table sessions add column if not exists strava_activity_id bigint;
 create unique index if not exists sessions_user_strava_activity_idx
   on sessions (user_id, strava_activity_id) where strava_activity_id is not null;
 
+-- Picos de potencia (mejor promedio sostenido de 1/5/20 min) — guardados
+-- aparte para poder calcular récords históricos de TODA la cuenta sin tener
+-- que descargar y decodificar el .fit de cada sesión guardada en la nube,
+-- que no escala con el historial. Se calculan al subir cada sesión nueva
+-- (ver sync/cloud-sync.ts pushSessionToCloud); las que ya estaban subidas
+-- antes de este cambio se recalculan a demanda (botón "Recalcular picos
+-- históricos", ver backfillPowerRecords), nunca automático.
+alter table sessions add column if not exists best_1min_power numeric;
+alter table sessions add column if not exists best_5min_power numeric;
+alter table sessions add column if not exists best_20min_power numeric;
+
 -- ─────────────────────────────────────────────────────────────────────────
 -- settings: ajustes de la app (volumen, reglas de fábrica activas,
 -- intervals.icu, personaje). Un renglón por usuario, blob jsonb porque el

@@ -2032,6 +2032,86 @@ a {
   white-space: nowrap;
   cursor: pointer;
 }
+.forma-today-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 20px 24px;
+  margin: 16px 0 24px;
+}
+.forma-today-message {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 8px 0 14px;
+  max-width: 560px;
+}
+.forma-today-scheduled,
+.forma-today-suggest-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.forma-today-scheduled-name,
+.forma-today-suggest-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 20px;
+}
+.forma-today-badge {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--success);
+}
+.forma-trend-row {
+  display: flex;
+  gap: 24px;
+  margin: 4px 0 20px;
+  flex-wrap: wrap;
+}
+.forma-trend-item {
+  font-size: 13px;
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.forma-trend-arrow.up {
+  color: var(--accent-light);
+}
+.forma-trend-arrow.down {
+  color: var(--text-muted);
+}
+.forma-records {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.forma-streak {
+  min-width: 140px;
+}
+.forma-records-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 18px;
+  flex-grow: 1;
+}
+.forma-record-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.forma-record-value {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 24px;
+}
+.forma-record-badge {
+  font-size: 15px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   * {

@@ -1,15 +1,19 @@
-import { buildCompletedSessionFromFit } from '../../core/completed-session-import';
+import { suggestToday } from '../../engine/coaching';
 import { computeSessionAnalytics } from '../../engine/analytics';
-import { computePmc } from '../../engine/pmc';
+import { computePmc, futureTssEntries } from '../../engine/pmc';
+import { computeWeeklyStreak } from '../../engine/streaks';
+import { estimateWorkout } from '../../core/workout-estimate';
+import { findTemplate } from '../../core/workout-templates';
+import type { Workout } from '../../core/types';
 import type { SessionRecord } from '../../storage/session-store';
-import { deleteSession, listSessions, saveSession } from '../../storage/session-store';
-import { navigate, refresh } from '../router';
+import { listSessions } from '../../storage/session-store';
+import { saveWorkout } from '../../storage/workout-store';
+import { refresh } from '../router';
 import { appState } from '../state';
-import { deleteSessionFromCloud, pushSessionToCloud } from '../../sync/cloud-sync';
-import { importStravaActivity, isStravaConfigured, listStravaActivities } from '../../sync/strava';
-import { renderWorkoutCover } from '../workout-cover';
+import { backfillPowerRecords, getPowerRecords } from '../../sync/cloud-sync';
+import type { PowerRecords } from '../../sync/cloud-sync';
+import { pushWorkoutToCloud } from '../../sync/workout-sync';
 
-const STRAVA_IMPORT_WINDOW_DAYS = 60;
 const CHART_WEEKS = 6;
 
 interface HistoryRow {
@@ -23,6 +27,11 @@ interface HistoryRow {
   rpe: number | null;
   origin: 'local' | 'cloud';
   fromStrava: boolean;
+}
+
+interface PowerBest {
+  watts: number;
+  dateKey: string;
 }
 
 function fmt(totalS: number): string {
@@ -95,7 +104,12 @@ function formaColor(tsb: number): string {
   return 'var(--text)';
 }
 
-function drawFitnessFatigueChart(canvas: HTMLCanvasElement, points: ReturnType<typeof computePmc>): void {
+/** Dibuja CTL/ATL con dos tramos: sólido para lo real (0..todayIndex),
+ * punteado y semitransparente para la proyección (todayIndex..fin) — ver
+ * futureTssEntries en engine/pmc.ts para cómo se calcula esa proyección.
+ * Sin `todayIndex` (o si es el último punto) dibuja todo sólido, igual que
+ * antes de este cambio. */
+function drawFitnessFatigueChart(canvas: HTMLCanvasElement, points: ReturnType<typeof computePmc>, todayIndex?: number): void {
   if (points.length < 2) return;
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
@@ -124,21 +138,53 @@ function drawFitnessFatigueChart(canvas: HTMLCanvasElement, points: ReturnType<t
     g.stroke();
   });
 
+  const splitAt = todayIndex !== undefined ? Math.max(0, Math.min(points.length - 1, todayIndex)) : points.length - 1;
+
   const line = (key: 'ctl' | 'atl', color: string, lw: number) => {
-    g.beginPath();
     g.strokeStyle = color;
     g.lineWidth = lw;
     g.lineJoin = 'round';
-    points.forEach((p, i) => {
+
+    g.setLineDash([]);
+    g.globalAlpha = 1;
+    g.beginPath();
+    for (let i = 0; i <= splitAt; i++) {
       const x = X(i);
-      const y = Y(p[key]);
-      i ? g.lineTo(x, y) : g.moveTo(x, y);
-    });
+      const y = Y(points[i][key]);
+      i === 0 ? g.moveTo(x, y) : g.lineTo(x, y);
+    }
     g.stroke();
+
+    if (splitAt < points.length - 1) {
+      g.setLineDash([6, 5]);
+      g.globalAlpha = 0.55;
+      g.beginPath();
+      for (let i = splitAt; i < points.length; i++) {
+        const x = X(i);
+        const y = Y(points[i][key]);
+        i === splitAt ? g.moveTo(x, y) : g.lineTo(x, y);
+      }
+      g.stroke();
+      g.setLineDash([]);
+      g.globalAlpha = 1;
+    }
   };
   const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3d8bff';
   line('atl', '#5a6272', 2);
   line('ctl', accent, 3.5);
+
+  if (splitAt > 0 && splitAt < points.length - 1) {
+    const x = X(splitAt);
+    g.strokeStyle = 'rgba(242,244,247,.18)';
+    g.lineWidth = 1;
+    g.beginPath();
+    g.moveTo(x, pad);
+    g.lineTo(x, h - pad);
+    g.stroke();
+    g.fillStyle = 'rgba(242,244,247,.45)';
+    g.font = '10px sans-serif';
+    g.fillText('hoy', x + 4, pad + 10);
+  }
 }
 
 function drawEfChart(canvas: HTMLCanvasElement, points: { dateKey: string; ef: number }[]): void {
@@ -180,82 +226,67 @@ function drawEfChart(canvas: HTMLCanvasElement, points: { dateKey: string; ef: n
   });
 }
 
-function activityCoverHtml(row: HistoryRow): string {
-  const workout = appState.workouts.find((w) => w.id === row.workoutId);
-  return workout ? renderWorkoutCover(workout.intervals, 'sm') : `<div class="workout-cover workout-cover-sm" style="background:var(--surface)"></div>`;
+/** Mejor pico de potencia (1/5/20 min) de las sesiones locales — se usa como
+ * piso cuando no hay nube configurada, y como red de seguridad junto al
+ * histórico de Supabase (getPowerRecords) por si una sesión local reciente
+ * todavía no terminó de sincronizarse. */
+function localPowerBests(localSessions: SessionRecord[]): Record<'best1min' | 'best5min' | 'best20min', PowerBest | null> {
+  const result: Record<'best1min' | 'best5min' | 'best20min', PowerBest | null> = { best1min: null, best5min: null, best20min: null };
+  const windows: [keyof typeof result, number][] = [
+    ['best1min', 60],
+    ['best5min', 300],
+    ['best20min', 1200],
+  ];
+  localSessions.forEach((s) => {
+    const a = analyticsOf(s);
+    const dateKey = s.startedAt.slice(0, 10);
+    windows.forEach(([key, windowS]) => {
+      const watts = a.powerCurve.find((p) => p.windowS === windowS)?.watts ?? null;
+      if (watts === null) return;
+      const current = result[key];
+      if (!current || watts > current.watts) result[key] = { watts, dateKey };
+    });
+  });
+  return result;
 }
 
-function importSectionHtml(): string {
+function bestOf(local: PowerBest | null, cloud: PowerBest | null): PowerBest | null {
+  if (cloud && (!local || cloud.watts >= local.watts)) return cloud;
+  return local;
+}
+
+function isWithinDays(dateKey: string, todayKey: string, days: number): boolean {
+  const diff = (new Date(`${todayKey}T00:00:00Z`).getTime() - new Date(`${dateKey}T00:00:00Z`).getTime()) / 86400000;
+  return diff >= 0 && diff <= days;
+}
+
+function recordTileHtml(label: string, value: string, subtitle: string, isNew: boolean): string {
   return `
-    <h2 class="perfil-h2" style="margin-top:32px">Importar actividades</h2>
-    ${
-      isStravaConfigured()
-        ? `<div class="row-actions" style="margin:0 0 8px">
-            <button id="strava-import">Importar de Strava</button>
-          </div>
-          <p class="hint" id="strava-import-result">Trae tus rodadas de los últimos ${STRAVA_IMPORT_WINDOW_DAYS} días (necesitas tener Strava conectado en Perfil).</p>`
-        : ''
-    }
-    <div class="panel row-actions" style="align-items:flex-end">
-      <label>Fecha<input type="date" id="fit-import-date" value="${toDateKey(new Date())}"></label>
-      <button id="fit-import-btn">Elegir archivo .fit</button>
-      <input type="file" id="fit-import-file" accept=".fit" style="display:none">
-    </div>
-    <div id="fit-import-result"></div>
-  `;
+    <div class="forma-record-tile">
+      <div class="forma-record-value">${value}${isNew ? ' <span class="forma-record-badge" title="Nuevo récord en los últimos 7 días">🏆</span>' : ''}</div>
+      <div class="live-col-label">${label}</div>
+      ${subtitle ? `<div class="hint">${subtitle}</div>` : ''}
+    </div>`;
 }
 
-function wireImportSection(container: HTMLElement, localSessions: SessionRecord[]): void {
-  const stravaResultEl = container.querySelector<HTMLElement>('#strava-import-result');
-  container.querySelector('#strava-import')?.addEventListener('click', async () => {
-    if (!stravaResultEl) return;
-    stravaResultEl.textContent = 'Buscando actividades nuevas…';
-    try {
-      const known = new Set<number>();
-      localSessions.forEach((s) => s.stravaActivityId !== undefined && known.add(s.stravaActivityId));
-      appState.cloudSessions.forEach((s) => s.stravaActivityId !== null && known.add(s.stravaActivityId!));
-
-      const afterUnixS = Math.floor(Date.now() / 1000) - STRAVA_IMPORT_WINDOW_DAYS * 24 * 3600;
-      const activities = await listStravaActivities(afterUnixS);
-      const pending = activities.filter((a) => !known.has(a.id));
-
-      if (pending.length === 0) {
-        stravaResultEl.textContent = 'No hay rodadas nuevas que importar.';
-        return;
-      }
-      for (let i = 0; i < pending.length; i++) {
-        stravaResultEl.textContent = `Importando ${i + 1} de ${pending.length}: ${pending[i].name}…`;
-        await importStravaActivity(pending[i], appState.profile, appState.user?.id ?? null);
-      }
-      refresh();
-    } catch (err) {
-      stravaResultEl.textContent = `Error: ${err instanceof Error ? err.message : String(err)}`;
-    }
-  });
-
-  const fitResultEl = container.querySelector<HTMLElement>('#fit-import-result')!;
-  const fitDateInput = container.querySelector<HTMLInputElement>('#fit-import-date')!;
-  const fitFileInput = container.querySelector<HTMLInputElement>('#fit-import-file')!;
-  container.querySelector('#fit-import-btn')?.addEventListener('click', () => fitFileInput.click());
-  fitFileInput.addEventListener('change', async () => {
-    const file = fitFileInput.files?.[0];
-    fitFileInput.value = '';
-    if (!file) return;
-    fitResultEl.innerHTML = '<p class="hint">Leyendo archivo…</p>';
-    const { session, errors } = await buildCompletedSessionFromFit(file, appState.profile, fitDateInput.value || undefined);
-    if (errors.length > 0) {
-      fitResultEl.innerHTML = `<div class="error-box"><strong>${errors.length} error(es):</strong><ul>${errors.map((e) => `<li>${e}</li>`).join('')}</ul></div>`;
-      return;
-    }
-    if (session) {
-      await saveSession(session);
-      if (appState.user) void pushSessionToCloud(session, appState.profile, appState.user.id);
-      refresh();
-    }
-  });
+/** Promedio de EF reciente (últimos 7 días con dato) vs. hace ~8 semanas —
+ * null si no hay suficiente historia todavía en ninguna de las dos
+ * ventanas (evita mostrar una "tendencia" basada en 1-2 sesiones sueltas). */
+function efTrendPct(efPoints: { dateKey: string; ef: number }[], todayKey: string): number | null {
+  if (efPoints.length < 4) return null;
+  const todayMs = new Date(`${todayKey}T00:00:00Z`).getTime();
+  const ageDays = (dateKey: string) => (todayMs - new Date(`${dateKey}T00:00:00Z`).getTime()) / 86400000;
+  const recent = efPoints.filter((p) => ageDays(p.dateKey) <= 7);
+  const prior = efPoints.filter((p) => ageDays(p.dateKey) >= 49 && ageDays(p.dateKey) <= 63);
+  if (recent.length === 0 || prior.length === 0) return null;
+  const avg = (points: { ef: number }[]) => points.reduce((s, p) => s + p.ef, 0) / points.length;
+  const recentAvg = avg(recent);
+  const priorAvg = avg(prior);
+  if (priorAvg === 0) return null;
+  return ((recentAvg - priorAvg) / priorAvg) * 100;
 }
 
-export function renderForma(container: HTMLElement): void {
+export function renderForma(container: HTMLElement): () => void {
   container.innerHTML = `
     <div class="screen">
       <h1>Forma</h1>
@@ -263,57 +294,124 @@ export function renderForma(container: HTMLElement): void {
     </div>
   `;
 
-  listSessions().then((localSessions) => {
-    const localById = new Map(localSessions.map((s) => [s.id, s]));
-    const rows: HistoryRow[] = [
-      ...localSessions.map(localRow),
-      ...appState.cloudSessions.filter((s) => !localById.has(s.id)).map(cloudRow),
-    ];
+  const todayKey = toDateKey(new Date());
 
-    if (rows.length === 0) {
+  Promise.all([listSessions(), appState.user ? getPowerRecords(appState.user.id) : Promise.resolve<PowerRecords | null>(null)]).then(
+    ([localSessions, cloudPowerRecords]) => {
+      const localById = new Map(localSessions.map((s) => [s.id, s]));
+      const rows: HistoryRow[] = [
+        ...localSessions.map(localRow),
+        ...appState.cloudSessions.filter((s) => !localById.has(s.id)).map(cloudRow),
+      ];
+
+      if (rows.length === 0) {
+        container.innerHTML = `
+          <div class="screen forma-screen">
+            <h1>Tu forma</h1>
+            <p class="hint">Todavía no hay sesiones guardadas — tu Fitness/Fatiga/Forma aparece aquí en cuanto completes la primera. Si ya entrenaste fuera de la app, puedes agregarlo desde <a href="#/plan">Plan</a>.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const sorted = [...rows].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+
+      const realEntries = sorted.map((r) => ({ dateKey: r.startedAt.slice(0, 10), tss: r.tss }));
+      const futureEntries = futureTssEntries(appState.workouts, appState.profile.ftp, todayKey);
+      const pmcFull = computePmc([...realEntries, ...futureEntries]);
+      const todayIndexInFull = pmcFull.findIndex((p) => p.dateKey === todayKey);
+      const latest = todayIndexInFull >= 0 ? pmcFull[todayIndexInFull] : pmcFull[pmcFull.length - 1];
+      const chartStart = Math.max(0, todayIndexInFull - CHART_WEEKS * 7);
+      const pmcChart = pmcFull.slice(chartStart);
+      const todayIndexInChart = todayIndexInFull - chartStart;
+      const hasProjection = todayIndexInFull >= 0 && todayIndexInFull < pmcFull.length - 1;
+
+      const efPoints = [...sorted]
+        .reverse()
+        .map((r) => ({ dateKey: r.startedAt.slice(0, 10), ef: r.ef }))
+        .filter((p): p is { dateKey: string; ef: number } => p.ef !== null);
+
+      // tarjeta "hoy": qué entrenar según la forma actual, y si ya hay algo
+      // agendado para hoy en Plan, para no contradecirlo.
+      const suggestion = suggestToday(latest.tsb, new Date().getDay());
+      const template = findTemplate(suggestion.templateId);
+      const todayWorkout = appState.workouts.find((w) => w.scheduledDate === todayKey);
+      const suggestedEstimate = template ? estimateWorkout(template.build(template.defaultMinutes), appState.profile.ftp) : null;
+      const matchesSuggestion = Boolean(todayWorkout && template && todayWorkout.name.startsWith(template.name));
+
+      // tendencias: Fitness de esta semana vs. hace 7 días, EF reciente vs.
+      // hace ~8 semanas — null cuando no hay suficiente historia todavía.
+      const weekAgoIdx = todayIndexInFull - 7;
+      const ctlWeekDelta = todayIndexInFull >= 0 && weekAgoIdx >= 0 ? latest.ctl - pmcFull[weekAgoIdx].ctl : null;
+      const efTrend = efTrendPct(efPoints, todayKey);
+
+      // rachas y récords
+      const streak = computeWeeklyStreak(sorted.map((r) => r.startedAt.slice(0, 10)), todayKey);
+      const bestTssRow = sorted.reduce<HistoryRow | null>((best, r) => (!best || r.tss > best.tss ? r : best), null);
+      const longestRow = sorted.reduce<HistoryRow | null>((best, r) => (!best || r.durationS > best.durationS ? r : best), null);
+      const withEf = sorted.filter((r): r is HistoryRow & { ef: number } => r.ef !== null);
+      const bestEfRow = withEf.length ? withEf.reduce((best, r) => (r.ef > best.ef ? r : best)) : null;
+
+      const local = localPowerBests(localSessions);
+      const best1min = bestOf(local.best1min, cloudPowerRecords?.best1min ?? null);
+      const best5min = bestOf(local.best5min, cloudPowerRecords?.best5min ?? null);
+      const best20min = bestOf(local.best20min, cloudPowerRecords?.best20min ?? null);
+
       container.innerHTML = `
-        <div class="screen forma-screen">
-          <h1>Tu forma</h1>
-          <p class="hint">Todavía no hay sesiones guardadas — tu Fitness/Fatiga/Forma aparece aquí en cuanto completes la primera.</p>
-          ${importSectionHtml()}
-        </div>
-      `;
-      wireImportSection(container, localSessions);
-      return;
-    }
-
-    const sorted = [...rows].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
-    const pmcAll = computePmc(sorted.map((r) => ({ dateKey: r.startedAt.slice(0, 10), tss: r.tss })));
-    const latest = pmcAll[pmcAll.length - 1];
-    const pmcChart = pmcAll.slice(-CHART_WEEKS * 7);
-
-    const efPoints = [...sorted]
-      .reverse()
-      .map((r) => ({ dateKey: r.startedAt.slice(0, 10), ef: r.ef }))
-      .filter((p): p is { dateKey: string; ef: number } => p.ef !== null);
-
-    container.innerHTML = `
       <div class="screen forma-screen">
+        <div class="forma-today-card" style="border-color:${formaColor(latest.tsb)}">
+          <div class="live-col-label">Hoy</div>
+          <p class="forma-today-message">${formInterpretation(latest.tsb)}</p>
+          ${
+            todayWorkout
+              ? `<div class="forma-today-scheduled">
+                  <span class="live-col-label">Ya tienes agendado</span>
+                  <div class="forma-today-scheduled-name">${todayWorkout.name}</div>
+                  ${matchesSuggestion ? '<span class="forma-today-badge">Coincide con lo que tu forma pide hoy</span>' : ''}
+                </div>`
+              : template && suggestedEstimate
+                ? `<div class="forma-today-suggest-row">
+                    <div>
+                      <div class="forma-today-suggest-name">${template.name}</div>
+                      <div class="hint">${template.description} · ~${suggestedEstimate.tss ?? '—'} TSS · ${template.defaultMinutes} min</div>
+                    </div>
+                    <button class="btn-light" id="forma-schedule-today">Agendar hoy</button>
+                  </div>`
+                : ''
+          }
+        </div>
+
         <div class="forma-top">
           <div class="forma-left">
-            <h1>Tu forma</h1>
+            <div class="forma-numbers">
+              <div><div class="forma-num num">${Math.round(latest.ctl)}</div><div class="live-col-label">Fitness</div></div>
+              <div><div class="forma-num num" style="color:var(--text-muted)">${Math.round(latest.atl)}</div><div class="live-col-label">Fatiga</div></div>
+              <div><div class="forma-num num" style="color:${formaColor(latest.tsb)}">${latest.tsb > 0 ? '+' : ''}${Math.round(latest.tsb)}</div><div class="live-col-label">Forma</div></div>
+            </div>
             ${
-              latest
-                ? `<div class="forma-numbers">
-                    <div><div class="forma-num num">${Math.round(latest.ctl)}</div><div class="live-col-label">Fitness</div></div>
-                    <div><div class="forma-num num" style="color:var(--text-muted)">${Math.round(latest.atl)}</div><div class="live-col-label">Fatiga</div></div>
-                    <div><div class="forma-num num" style="color:${formaColor(latest.tsb)}">${latest.tsb > 0 ? '+' : ''}${Math.round(latest.tsb)}</div><div class="live-col-label">Forma</div></div>
-                  </div>
-                  <p class="forma-phrase">${formInterpretation(latest.tsb)}</p>`
+              ctlWeekDelta !== null || efTrend !== null
+                ? `<div class="forma-trend-row">
+                    ${
+                      ctlWeekDelta !== null
+                        ? `<div class="forma-trend-item"><span class="forma-trend-arrow ${ctlWeekDelta >= 0 ? 'up' : 'down'}">${ctlWeekDelta >= 0 ? '▲' : '▼'}</span>Fitness ${ctlWeekDelta >= 0 ? '+' : ''}${ctlWeekDelta.toFixed(1)} esta semana</div>`
+                        : ''
+                    }
+                    ${
+                      efTrend !== null
+                        ? `<div class="forma-trend-item"><span class="forma-trend-arrow ${efTrend >= 0 ? 'up' : 'down'}">${efTrend >= 0 ? '▲' : '▼'}</span>Eficiencia aeróbica ${efTrend >= 0 ? '+' : ''}${efTrend.toFixed(0)}% en 8 semanas</div>`
+                        : ''
+                    }
+                  </div>`
                 : ''
             }
             <div class="panel forma-chart-panel">
               <div class="forma-chart-legend">
                 <span class="home-legend-item"><span class="home-legend-dot" style="width:18px;height:3px;border-radius:2px;background:var(--accent)"></span>Fitness</span>
                 <span class="home-legend-item"><span class="home-legend-dot" style="width:18px;height:3px;border-radius:2px;background:#5a6272"></span>Fatiga</span>
-                <span class="live-col-label" style="margin-left:auto">Últimas ${CHART_WEEKS} semanas</span>
+                <span class="live-col-label" style="margin-left:auto">Últimas ${CHART_WEEKS} semanas${hasProjection ? ' + proyección' : ''}</span>
               </div>
               <canvas id="pmc" style="width:100%;height:220px;display:block"></canvas>
+              ${hasProjection ? '<p class="hint" style="margin:6px 0 0">La línea punteada proyecta tu Fitness/Fatiga a partir de lo que ya tienes agendado en Plan (días sin nada agendado cuentan como descanso).</p>' : ''}
             </div>
           </div>
         </div>
@@ -328,83 +426,64 @@ export function renderForma(container: HTMLElement): void {
             : ''
         }
 
-        <h2 class="perfil-h2" style="margin-top:28px">Actividad</h2>
-        <div class="forma-list">
-          ${sorted
-            .map((r) => {
-              const meta = [`TSS ${Math.round(r.tss)}`];
-              if (r.ef !== null) meta.push(`EF ${r.ef.toFixed(2)}`);
-              if (r.rpe) meta.push(`RPE ${r.rpe}`);
-              return `
-              <div class="forma-row" data-action="view" data-session-id="${r.id}" data-origin="${r.origin}" role="button" tabindex="0">
-                ${activityCoverHtml(r)}
-                <div class="forma-row-info">
-                  <div class="forma-row-name">${r.workoutName}</div>
-                  <div class="live-col-label forma-row-name">${fmtDateEsMx(r.startedAt)} · ${fmt(r.durationS)} · ${r.fromStrava ? 'Strava' : 'TORQ'}${r.origin === 'cloud' ? ' · ☁ solo resumen' : ''}</div>
-                </div>
-                <div class="live-col-label forma-row-meta">${meta.join(' · ')}</div>
-                <button class="live-menu-item danger forma-delete" data-action="delete" data-session-id="${r.id}" data-origin="${r.origin}">Borrar</button>
-              </div>`;
-            })
-            .join('')}
+        <h2 class="perfil-h2" style="margin-top:28px">Rachas y récords</h2>
+        <div class="panel forma-records">
+          <div class="forma-streak">
+            <div class="forma-num num">${streak.currentWeeks}</div>
+            <div class="live-col-label">semana${streak.currentWeeks === 1 ? '' : 's'} seguida${streak.currentWeeks === 1 ? '' : 's'} entrenando</div>
+            ${streak.currentWeeks > 1 && streak.currentWeeks === streak.bestWeeks ? '<p class="hint">🔥 ¡Tu racha más larga hasta ahora!</p>' : ''}
+          </div>
+          <div class="forma-records-grid">
+            ${bestTssRow ? recordTileHtml('Mayor TSS en una sesión', String(Math.round(bestTssRow.tss)), fmtDateEsMx(bestTssRow.startedAt), false) : ''}
+            ${longestRow ? recordTileHtml('Sesión más larga', fmt(longestRow.durationS), fmtDateEsMx(longestRow.startedAt), false) : ''}
+            ${bestEfRow ? recordTileHtml('Mejor eficiencia (EF)', bestEfRow.ef.toFixed(2), fmtDateEsMx(bestEfRow.startedAt), false) : ''}
+            ${best1min ? recordTileHtml('Mejor 1 min', `${Math.round(best1min.watts)} W`, fmtDateEsMx(best1min.dateKey), isWithinDays(best1min.dateKey, todayKey, 7)) : ''}
+            ${best5min ? recordTileHtml('Mejor 5 min', `${Math.round(best5min.watts)} W`, fmtDateEsMx(best5min.dateKey), isWithinDays(best5min.dateKey, todayKey, 7)) : ''}
+            ${best20min ? recordTileHtml('Mejor 20 min', `${Math.round(best20min.watts)} W`, fmtDateEsMx(best20min.dateKey), isWithinDays(best20min.dateKey, todayKey, 7)) : ''}
+          </div>
+          ${
+            appState.cloudEnabled && appState.user
+              ? `<div class="row-actions" style="margin-top:12px"><button id="forma-backfill-power">Recalcular picos históricos</button><span class="hint" id="forma-backfill-result"></span></div>`
+              : ''
+          }
         </div>
-
-        ${importSectionHtml()}
       </div>
     `;
 
-    drawFitnessFatigueChart(container.querySelector('#pmc')!, pmcChart);
-    const efCanvas = container.querySelector<HTMLCanvasElement>('#ef');
-    if (efCanvas) drawEfChart(efCanvas, efPoints);
+      drawFitnessFatigueChart(container.querySelector('#pmc')!, pmcChart, todayIndexInChart);
+      const efCanvas = container.querySelector<HTMLCanvasElement>('#ef');
+      if (efCanvas) drawEfChart(efCanvas, efPoints);
 
-    container.querySelectorAll<HTMLElement>('[data-action="view"]').forEach((el) => {
-      const openSession = (): void => {
-        const origin = el.dataset.origin as 'local' | 'cloud';
-        if (origin === 'local') {
-          const session = localById.get(el.dataset.sessionId!);
-          if (!session) return;
-          appState.lastSession = session;
-          appState.lastCloudSession = null;
-        } else {
-          const cloud = appState.cloudSessions.find((s) => s.id === el.dataset.sessionId);
-          if (!cloud) return;
-          appState.lastSession = null;
-          appState.lastCloudSession = cloud;
-        }
-        navigate('session');
-      };
-      el.addEventListener('click', (e) => {
-        if ((e.target as HTMLElement).closest('[data-action="delete"]')) return;
-        openSession();
-      });
-      el.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          openSession();
-        }
-      });
-    });
-
-    container.querySelectorAll<HTMLElement>('[data-action="delete"]').forEach((el) => {
-      el.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const id = el.dataset.sessionId!;
-        const origin = el.dataset.origin as 'local' | 'cloud';
-        if (!window.confirm('¿Borrar esta sesión? No se puede deshacer.')) return;
-
-        if (origin === 'local') {
-          await deleteSession(id);
-          // best-effort: si también estaba sincronizada, la quita de la nube
-          // para que no reaparezca como "solo en la nube" después.
-          if (appState.user) await deleteSessionFromCloud(id, appState.user.id);
-        } else if (appState.user) {
-          await deleteSessionFromCloud(id, appState.user.id);
-          appState.cloudSessions = appState.cloudSessions.filter((s) => s.id !== id);
-        }
+      container.querySelector('#forma-schedule-today')?.addEventListener('click', async () => {
+        if (!template) return;
+        const workout: Workout = {
+          format_version: 1,
+          id: crypto.randomUUID(),
+          name: `${template.name} · sugerido por Forma`,
+          intervals: template.build(template.defaultMinutes),
+          created_at: new Date().toISOString(),
+          scheduledDate: todayKey,
+        };
+        await saveWorkout(workout);
+        if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
+        appState.workouts = [...appState.workouts, workout];
         refresh();
       });
-    });
 
-    wireImportSection(container, localSessions);
-  });
+      container.querySelector('#forma-backfill-power')?.addEventListener('click', async (e) => {
+        if (!appState.user) return;
+        const btn = e.currentTarget as HTMLButtonElement;
+        const resultEl = container.querySelector<HTMLElement>('#forma-backfill-result')!;
+        btn.disabled = true;
+        const updated = await backfillPowerRecords(appState.user.id, (done, total) => {
+          resultEl.textContent = `Procesando ${done} de ${total}…`;
+        });
+        resultEl.textContent = updated > 0 ? `${updated} sesión(es) actualizadas.` : 'Nada que actualizar.';
+        if (updated > 0) refresh();
+        else btn.disabled = false;
+      });
+    },
+  );
+
+  return () => {};
 }

@@ -1,12 +1,89 @@
 import { importWorkoutFile } from '../../core/workout-file-import';
 import { validateRulesFile, validateWorkout } from '../../core/validator';
 import { estimateWorkout } from '../../core/workout-estimate';
+import { computeSessionAnalytics } from '../../engine/analytics';
 import type { RulesFile, Workout } from '../../core/types';
 import { saveWorkout, deleteWorkout } from '../../storage/workout-store';
+import type { SessionRecord } from '../../storage/session-store';
+import { deleteSession, listSessions } from '../../storage/session-store';
+import { deleteSessionFromCloud } from '../../sync/cloud-sync';
 import { deleteWorkoutFromCloud, pushWorkoutToCloud } from '../../sync/workout-sync';
 import { getRouteParam, navigate } from '../router';
 import { appState } from '../state';
 import { renderWorkoutCover } from '../workout-cover';
+
+type LibraryTab = 'library' | 'activity';
+
+/** Mismo shape que usaba Forma para su lista de "Actividad" — unifica
+ * sesiones locales (con samples) y resúmenes que solo viven en la nube. */
+interface HistoryRow {
+  id: string;
+  workoutId: string;
+  workoutName: string;
+  startedAt: string;
+  durationS: number;
+  tss: number;
+  ef: number | null;
+  rpe: number | null;
+  origin: 'local' | 'cloud';
+  fromStrava: boolean;
+}
+
+function fmt(totalS: number): string {
+  const s = Math.max(0, Math.round(totalS));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${r < 10 ? '0' : ''}${r}`;
+}
+
+/** Fecha local en español (es-MX) — nunca el formato estadounidense del
+ * navegador (ver TORQ_DESIGN.md, bug de formato de fecha). */
+function fmtDateEsMx(iso: string): string {
+  return new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function analyticsOf(session: SessionRecord) {
+  const profile = { ...appState.profile, ftp: session.ftp };
+  return computeSessionAnalytics(session.samples, profile);
+}
+
+function localRow(session: SessionRecord): HistoryRow {
+  const a = analyticsOf(session);
+  return {
+    id: session.id,
+    workoutId: session.workoutId,
+    workoutName: session.workoutName,
+    startedAt: session.startedAt,
+    durationS: session.samples.length,
+    tss: a.trainingStressScore ?? 0,
+    ef: a.efficiencyFactor,
+    rpe: session.rpe ?? null,
+    origin: 'local',
+    fromStrava: session.stravaActivityId !== undefined,
+  };
+}
+
+function cloudRow(s: (typeof appState.cloudSessions)[number]): HistoryRow {
+  return {
+    id: s.id,
+    workoutId: '',
+    workoutName: s.workoutName,
+    startedAt: s.startedAt,
+    // aproximado (fin - inicio de reloj): la nube no guarda samples, así que
+    // no sabemos el tiempo "corriendo" exacto si hubo pausas largas.
+    durationS: Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000),
+    tss: s.trainingStressScore ?? 0,
+    ef: s.efficiencyFactor,
+    rpe: s.rpe,
+    origin: 'cloud',
+    fromStrava: s.stravaActivityId !== null,
+  };
+}
+
+function activityCoverHtml(row: HistoryRow): string {
+  const workout = appState.workouts.find((w) => w.id === row.workoutId);
+  return workout ? renderWorkoutCover(workout.intervals, 'sm') : `<div class="workout-cover workout-cover-sm" style="background:var(--surface)"></div>`;
+}
 
 function errorsHtml(errors: string[]): string {
   if (errors.length === 0) return '';
@@ -34,14 +111,19 @@ async function importRulesFile(file: File, target: Workout): Promise<{ workout?:
   return workoutResult.valid ? { workout: merged, errors: [] } : { errors: workoutResult.errors };
 }
 
-/** Biblioteca de workouts (antes vivía inline en Plan) — con el tiempo la
- * lista crece demasiado para verse cómoda ahí, así que tiene su propia
- * pantalla con búsqueda por título y filtro por rango de fechas agendadas. */
+/** Biblioteca de workouts + Actividad (sesiones completadas) — dos pestañas
+ * porque son dominios distintos con acciones distintas; combinarlos en una
+ * sola lista perdía las acciones específicas de cada uno. Con el tiempo
+ * ambas listas crecen demasiado para verse cómodas inline en Plan/Forma, por
+ * eso viven aquí con su propio espacio (Biblioteca además con búsqueda por
+ * título y filtro por rango de fechas). */
 export function renderLibrary(container: HTMLElement): () => void {
+  let activeTab: LibraryTab = 'library';
   let search = '';
   let dateFrom = '';
   let dateTo = '';
   let rulesTargetWorkout: Workout | null = null;
+  let activityRows: HistoryRow[] | null = null; // null mientras carga
 
   function matchesFilters(w: Workout): boolean {
     if (search && !w.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -84,15 +166,49 @@ export function renderLibrary(container: HTMLElement): () => void {
       </div>`;
   }
 
+  function activityRowHtml(r: HistoryRow): string {
+    const meta = [`TSS ${Math.round(r.tss)}`];
+    if (r.ef !== null) meta.push(`EF ${r.ef.toFixed(2)}`);
+    if (r.rpe) meta.push(`RPE ${r.rpe}`);
+    return `
+      <div class="forma-row" data-action="view" data-session-id="${r.id}" data-origin="${r.origin}" role="button" tabindex="0">
+        ${activityCoverHtml(r)}
+        <div class="forma-row-info">
+          <div class="forma-row-name">${r.workoutName}</div>
+          <div class="live-col-label forma-row-name">${fmtDateEsMx(r.startedAt)} · ${fmt(r.durationS)} · ${r.fromStrava ? 'Strava' : 'TORQ'}${r.origin === 'cloud' ? ' · ☁ solo resumen' : ''}</div>
+        </div>
+        <div class="live-col-label forma-row-meta">${meta.join(' · ')}</div>
+        <button class="live-menu-item danger forma-delete" data-action="delete" data-session-id="${r.id}" data-origin="${r.origin}">Borrar</button>
+      </div>`;
+  }
+
+  function libraryTabHtml(): string {
+    return `
+      <div class="library-filters">
+        <input type="search" id="lib-search" placeholder="Buscar por título…" value="${search}">
+        <label class="live-col-label">Desde<input type="date" id="lib-date-from" value="${dateFrom}"></label>
+        <label class="live-col-label">Hasta<input type="date" id="lib-date-to" value="${dateTo}"></label>
+        <button id="lib-clear-filters" class="btn-light">Limpiar filtros</button>
+      </div>
+      <div id="library-list"></div>
+    `;
+  }
+
+  function activityTabHtml(): string {
+    if (activityRows === null) return '<p class="hint">Cargando…</p>';
+    if (activityRows.length === 0) return '<p class="hint">Todavía no hay sesiones guardadas.</p>';
+    return `<div class="forma-list">${activityRows.map(activityRowHtml).join('')}</div>`;
+  }
+
   function renderList(): void {
     const list = container.querySelector<HTMLElement>('#library-list')!;
     const rows = sortedFiltered();
     const emptyHint = appState.workouts.length === 0 ? 'Todavía no importas ningún workout.' : 'Nada coincide con el filtro.';
     list.innerHTML = rows.map(libraryRow).join('') || `<p class="hint">${emptyHint}</p>`;
-    wireList();
+    wireLibraryList();
   }
 
-  function wireList(): void {
+  function wireLibraryList(): void {
     container.querySelectorAll<HTMLInputElement>('[data-schedule-id]').forEach((input) => {
       input.addEventListener('change', async () => {
         const id = input.dataset.scheduleId!;
@@ -149,6 +265,74 @@ export function renderLibrary(container: HTMLElement): () => void {
         rulesTargetWorkout = target;
         container.querySelector<HTMLInputElement>('#import-rules')?.click();
       });
+    });
+  }
+
+  function wireActivity(): void {
+    let localById = new Map<string, SessionRecord>();
+    container.querySelectorAll<HTMLElement>('[data-action="view"]').forEach((el) => {
+      const openSession = (): void => {
+        const origin = el.dataset.origin as 'local' | 'cloud';
+        if (origin === 'cloud') {
+          const cloud = appState.cloudSessions.find((s) => s.id === el.dataset.sessionId);
+          if (!cloud) return;
+          appState.lastSession = null;
+          appState.lastCloudSession = cloud;
+          navigate('session');
+          return;
+        }
+        listSessions().then((sessions) => {
+          localById = new Map(sessions.map((s) => [s.id, s]));
+          const session = localById.get(el.dataset.sessionId!);
+          if (!session) return;
+          appState.lastSession = session;
+          appState.lastCloudSession = null;
+          navigate('session');
+        });
+      };
+      el.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).closest('[data-action="delete"]')) return;
+        openSession();
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openSession();
+        }
+      });
+    });
+
+    container.querySelectorAll<HTMLElement>('.forma-list [data-action="delete"]').forEach((el) => {
+      el.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id = el.dataset.sessionId!;
+        const origin = el.dataset.origin as 'local' | 'cloud';
+        if (!window.confirm('¿Borrar esta sesión? No se puede deshacer.')) return;
+
+        if (origin === 'local') {
+          await deleteSession(id);
+          // best-effort: si también estaba sincronizada, la quita de la nube
+          // para que no reaparezca como "solo en la nube" después.
+          if (appState.user) await deleteSessionFromCloud(id, appState.user.id);
+        } else if (appState.user) {
+          await deleteSessionFromCloud(id, appState.user.id);
+          appState.cloudSessions = appState.cloudSessions.filter((s) => s.id !== id);
+        }
+        // actualiza en el propio estado del cierre (no refresh() del router,
+        // que reiniciaría activeTab a "library") y repinta solo esta pantalla.
+        activityRows = (activityRows ?? []).filter((r) => r.id !== id);
+        render();
+      });
+    });
+  }
+
+  function loadActivity(): void {
+    listSessions().then((localSessions) => {
+      const localIds = new Set(localSessions.map((s) => s.id));
+      activityRows = [...localSessions.map(localRow), ...appState.cloudSessions.filter((s) => !localIds.has(s.id)).map(cloudRow)].sort((a, b) =>
+        b.startedAt.localeCompare(a.startedAt),
+      );
+      if (activeTab === 'activity') render();
     });
   }
 
@@ -217,30 +401,46 @@ export function renderLibrary(container: HTMLElement): () => void {
       <div class="screen library-screen">
         <div class="plan-head">
           <h1>Historial</h1>
-          <label class="plan-import-link">Importar archivo<input type="file" id="import-workout" accept=".zwo,.mrc,.erg,.json" style="display:none"></label>
+          ${activeTab === 'library' ? `<label class="plan-import-link">Importar archivo<input type="file" id="import-workout" accept=".zwo,.mrc,.erg,.json" style="display:none"></label>` : ''}
+        </div>
+        <div class="plan-view-toggle" style="margin:16px 0">
+          <button class="plan-view-btn${activeTab === 'library' ? ' on' : ''}" id="tab-library">Biblioteca</button>
+          <button class="plan-view-btn${activeTab === 'activity' ? ' on' : ''}" id="tab-activity">Actividad</button>
         </div>
         <div id="library-errors"></div>
-        <div class="library-filters">
-          <input type="search" id="lib-search" placeholder="Buscar por título…" value="${search}">
-          <label class="live-col-label">Desde<input type="date" id="lib-date-from" value="${dateFrom}"></label>
-          <label class="live-col-label">Hasta<input type="date" id="lib-date-to" value="${dateTo}"></label>
-          <button id="lib-clear-filters" class="btn-light">Limpiar filtros</button>
-        </div>
-        <div id="library-list"></div>
+        ${activeTab === 'library' ? libraryTabHtml() : activityTabHtml()}
         <input type="file" id="import-rules" accept=".json" style="display:none">
       </div>
     `;
-    renderList();
-    wireImport();
-    wireFilters();
+
+    if (activeTab === 'library') {
+      renderList();
+      wireImport();
+      wireFilters();
+    } else {
+      wireActivity();
+    }
     wireRulesInput();
+
+    container.querySelector('#tab-library')?.addEventListener('click', () => {
+      if (activeTab === 'library') return;
+      activeTab = 'library';
+      render();
+    });
+    container.querySelector('#tab-activity')?.addEventListener('click', () => {
+      if (activeTab === 'activity') return;
+      activeTab = 'activity';
+      render();
+    });
   }
 
   document.addEventListener('click', closeAllMenus);
   render();
+  loadActivity();
 
   // si venimos de "Ver en Historial" desde una celda de Plan, salta directo
-  // a ese workout en vez de dejar al usuario a buscarlo en la lista.
+  // a ese workout en vez de dejar al usuario a buscarlo en la lista (siempre
+  // en la pestaña Biblioteca, que es a la que apunta ese link).
   const focusId = getRouteParam();
   if (focusId) container.querySelector(`#lib-row-${focusId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 

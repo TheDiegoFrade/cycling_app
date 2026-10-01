@@ -1,5 +1,10 @@
+import { estimateWorkout } from '../core/workout-estimate';
+import type { Workout } from '../core/types';
+
 const CTL_TIME_CONSTANT_DAYS = 42;
 const ATL_TIME_CONSTANT_DAYS = 7;
+const PROJECTION_MIN_DAYS = 7;
+const PROJECTION_MAX_DAYS = 21;
 
 export interface DailyTss {
   /** Fecha en formato `YYYY-MM-DD`, UTC. */
@@ -60,4 +65,48 @@ export function computePmc(entries: readonly DailyTss[]): PmcPoint[] {
     points.push({ dateKey, ctl, atl, tsb });
   }
   return points;
+}
+
+function addDays(dateKey: string, days: number): string {
+  const d = parseDateKey(dateKey);
+  d.setUTCDate(d.getUTCDate() + days);
+  return toDateKey(d);
+}
+
+function daysBetween(fromKey: string, toKey: string): number {
+  return Math.round((parseDateKey(toKey).getTime() - parseDateKey(fromKey).getTime()) / 86400000);
+}
+
+/** TSS futuro sintético día por día, a partir de los workouts YA agendados
+ * en Plan — nunca inventado: un día sin nada agendado cuenta TSS 0. El
+ * horizonte es el día del último workout agendado (acotado entre
+ * PROJECTION_MIN_DAYS y PROJECTION_MAX_DAYS), o el mínimo si no hay nada
+ * agendado — así igual se ve la caída natural de Fitness si no se entrena.
+ * Pensado para concatenarse con el histórico real y pasarse a computePmc en
+ * una sola llamada (ver history.ts), para que el CTL/ATL de la proyección
+ * arranque exactamente del valor real de hoy sin saltos. */
+export function futureTssEntries(
+  workouts: readonly Pick<Workout, 'scheduledDate' | 'intervals'>[],
+  ftp: number,
+  todayKey: string,
+  minDays = PROJECTION_MIN_DAYS,
+  maxDays = PROJECTION_MAX_DAYS,
+): DailyTss[] {
+  const future = workouts.filter((w) => w.scheduledDate && w.scheduledDate > todayKey);
+  const lastScheduledKey = future.reduce<string | null>((max, w) => (!max || w.scheduledDate! > max ? w.scheduledDate! : max), null);
+  const horizonDays = lastScheduledKey ? Math.min(maxDays, Math.max(minDays, daysBetween(todayKey, lastScheduledKey))) : minDays;
+
+  const tssByDate = new Map<string, number>();
+  future.forEach((w) => {
+    const key = w.scheduledDate!;
+    const tss = estimateWorkout(w.intervals, ftp).tss ?? 0;
+    tssByDate.set(key, (tssByDate.get(key) ?? 0) + tss);
+  });
+
+  const entries: DailyTss[] = [];
+  for (let offset = 1; offset <= horizonDays; offset++) {
+    const dateKey = addDays(todayKey, offset);
+    entries.push({ dateKey, tss: tssByDate.get(dateKey) ?? 0 });
+  }
+  return entries;
 }

@@ -10,11 +10,13 @@ import type { SessionRecord } from '../../storage/session-store';
 import { computeSessionAnalytics } from '../../engine/analytics';
 import { downloadSessionSamples, pushSessionToCloud } from '../../sync/cloud-sync';
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
+import { importStravaActivity, isStravaConfigured, listStravaActivities } from '../../sync/strava';
 import { pushWorkoutToCloud } from '../../sync/workout-sync';
-import { navigate } from '../router';
+import { navigate, refresh } from '../router';
 import { appState } from '../state';
 import { renderWorkoutCover } from '../workout-cover';
 
+const STRAVA_IMPORT_WINDOW_DAYS = 60;
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const MONTH_WEEKDAY_HEADER = [1, 2, 3, 4, 5, 6, 0].map((i) => DAY_NAMES[i]); // lunes primero, solo para el header de la vista de mes
 const MONTH_NAMES_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -283,12 +285,29 @@ export function renderCalendar(container: HTMLElement): () => void {
         ${createPanelHtml()}
 
         <div class="panel plan-manual-done">
-          <h2 class="perfil-h2" style="margin:0">Agregar entrenamiento completado manualmente</h2>
-          <p class="hint" style="margin:4px 0 10px">Sube un archivo .fit de un entrenamiento que ya hiciste.</p>
-          <div class="row-actions" style="align-items:center">
-            <label class="live-col-label">Fecha<input type="date" id="manual-done-date" value="${todayKey}"></label>
-            <button id="manual-done-trigger">Elegir archivo .fit</button>
+          <h2 class="perfil-h2" style="margin:0">Agregar entrenamiento completado</h2>
+          ${
+            isStravaConfigured()
+              ? `<div class="plan-chip-row" id="import-method-chips" style="margin-top:12px">
+                  <button class="plan-chip on" data-method="manual">Archivo .fit</button>
+                  <button class="plan-chip" data-method="strava">Strava</button>
+                </div>`
+              : ''
+          }
+          <div id="import-method-manual" style="margin-top:12px">
+            <div class="row-actions" style="align-items:center">
+              <label class="live-col-label">Fecha<input type="date" id="manual-done-date" value="${todayKey}"></label>
+              <button id="manual-done-trigger">Elegir archivo .fit</button>
+            </div>
           </div>
+          ${
+            isStravaConfigured()
+              ? `<div id="import-method-strava" style="display:none;margin-top:12px">
+                  <button id="strava-import">Importar de Strava</button>
+                  <p class="hint" id="strava-import-result" style="margin-top:8px">Trae tus rodadas de los últimos ${STRAVA_IMPORT_WINDOW_DAYS} días (necesitas tener Strava conectado en Perfil).</p>
+                </div>`
+              : ''
+          }
         </div>
 
         <input type="file" id="import-done-file" accept=".fit" style="display:none">
@@ -416,6 +435,44 @@ export function renderCalendar(container: HTMLElement): () => void {
         if (appState.user) void pushSessionToCloud(session, appState.profile, appState.user.id);
         completedByDate.set(dateKey, localToCalendarDone(session));
         paint();
+      }
+    });
+
+    container.querySelectorAll<HTMLButtonElement>('#import-method-chips .plan-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        container.querySelectorAll('#import-method-chips .plan-chip').forEach((c) => c.classList.remove('on'));
+        chip.classList.add('on');
+        const method = chip.dataset.method;
+        container.querySelector<HTMLElement>('#import-method-manual')!.style.display = method === 'manual' ? '' : 'none';
+        container.querySelector<HTMLElement>('#import-method-strava')!.style.display = method === 'strava' ? '' : 'none';
+      });
+    });
+
+    container.querySelector('#strava-import')?.addEventListener('click', async () => {
+      const resultEl = container.querySelector<HTMLElement>('#strava-import-result');
+      if (!resultEl) return;
+      resultEl.textContent = 'Buscando actividades nuevas…';
+      try {
+        const localSessions = await listSessions();
+        const known = new Set<number>();
+        localSessions.forEach((s) => s.stravaActivityId !== undefined && known.add(s.stravaActivityId));
+        appState.cloudSessions.forEach((s) => s.stravaActivityId !== null && known.add(s.stravaActivityId!));
+
+        const afterUnixS = Math.floor(Date.now() / 1000) - STRAVA_IMPORT_WINDOW_DAYS * 24 * 3600;
+        const activities = await listStravaActivities(afterUnixS);
+        const pending = activities.filter((a) => !known.has(a.id));
+
+        if (pending.length === 0) {
+          resultEl.textContent = 'No hay rodadas nuevas que importar.';
+          return;
+        }
+        for (let i = 0; i < pending.length; i++) {
+          resultEl.textContent = `Importando ${i + 1} de ${pending.length}: ${pending[i].name}…`;
+          await importStravaActivity(pending[i], appState.profile, appState.user?.id ?? null);
+        }
+        refresh();
+      } catch (err) {
+        resultEl.textContent = `Error: ${err instanceof Error ? err.message : String(err)}`;
       }
     });
   }
