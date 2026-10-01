@@ -116,15 +116,6 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         </div>
       </div>
 
-      <div class="live-graph">
-        <div class="live-graph-legend">
-          <span><i style="background:#fff"></i>Potencia</span>
-          <span><i style="background:var(--z2)"></i>Cadencia</span>
-          <span><i style="background:var(--danger)"></i>Pulso</span>
-        </div>
-        <canvas id="g"></canvas>
-      </div>
-
       <div class="live-bottom-row">
         <div>
           <div class="live-metric-label">Cadencia</div>
@@ -136,7 +127,15 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         </div>
       </div>
 
-      <div class="live-timeline" id="timeline"></div>
+      <div class="live-graph">
+        <div class="live-graph-legend">
+          <span><i style="background:#fff"></i>Potencia</span>
+          <span><i style="background:var(--z2)"></i>Cadencia</span>
+          <span><i style="background:var(--danger)"></i>Pulso</span>
+        </div>
+        <div class="live-timeline" id="timeline"></div>
+        <canvas id="g"></canvas>
+      </div>
     </div>
     <div class="count" id="count"><div class="ring" id="ring"></div><div class="n num" id="countN">5</div><div class="what" id="countWhat"></div></div>
     <div class="rules" id="rules"><h4>Reglas activas</h4><div id="rulesList"></div></div>
@@ -200,6 +199,9 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   let autoStartStreak = 0;
   const AUTO_START_PEDAL_S = 3;
   let bannerTimer: ReturnType<typeof setTimeout> | null = null;
+  let compactTimer: ReturnType<typeof setTimeout> | null = null;
+  let activeAlertLevel: 'danger' | 'adjust' | null = null;
+  const firedMotivation = new Set<string>();
   let cdShown = -1;
   let currentIndex0 = 0;
   let currentTimeLeft = workout.intervals[0]?.duration_s ?? 0;
@@ -254,6 +256,74 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     if (last) {
       g.fillStyle = 'rgba(255,255,255,.6)';
       g.fillRect(X(last.t) - 1, pad, 2, h - 2 * pad);
+    }
+  }
+
+  const MOTIVATION = {
+    blockHalfway: ['Vas a la mitad de este bloque — no aflojes.', 'Mitad del bloque, todo bien hasta aquí.'],
+    blockLeft5: ['Quedan 5 minutos de este bloque, ¡tú puedes!', 'Faltan 5 del bloque — aguanta ahí.'],
+    blockLeft1: ['Último minuto del bloque, dale con todo.', '1 minuto y cambias de bloque.'],
+    sessionFirst10: ['Primeros 10 minutos — ¡vas muy bien!', 'Ya llevas 10 min, buen arranque.'],
+    sessionLeft10: ['Te faltan 10 minutos, ya lo tienes.', 'Últimos 10 — no te sueltes.'],
+    sessionLeft5: ['5 minutos más y terminas.', 'Ya casi — 5 min para el final.'],
+    sessionLeft1: ['Último minuto de todo el entrenamiento, ¡dale!', '1 minuto — termínalo fuerte.'],
+  } as const;
+
+  function pick(msgs: readonly string[]): string {
+    return msgs[Math.floor(Math.random() * msgs.length)];
+  }
+
+  /** Mensajes de ánimo durante el entrenamiento — por hitos de tiempo del
+   * bloque actual y de la sesión completa, cada uno una sola vez. Nunca
+   * compite con una alerta real en curso (activeAlertLevel) ni se queda
+   * pegado: usa el mismo banner de 'comment', breve y se quita solo. */
+  function maybeMotivate(): void {
+    if (activeAlertLevel) return;
+    const iv = workout.intervals[currentIndex0];
+    if (!iv) return;
+
+    const fire = (key: string, title: string, detail = ''): true => {
+      firedMotivation.add(key);
+      showBanner('info', title, detail, 3200);
+      return true;
+    };
+
+    const blockKey = (suffix: string) => `b${currentIndex0}-${suffix}`;
+    if (iv.duration_s > 120 && currentTimeLeft === Math.round(iv.duration_s / 2) && !firedMotivation.has(blockKey('half'))) {
+      fire(blockKey('half'), pick(MOTIVATION.blockHalfway));
+      return;
+    }
+    if (iv.duration_s > 360 && currentTimeLeft === 300 && !firedMotivation.has(blockKey('left5'))) {
+      fire(blockKey('left5'), pick(MOTIVATION.blockLeft5));
+      return;
+    }
+    if (iv.duration_s > 90 && currentTimeLeft === 60 && !firedMotivation.has(blockKey('left1'))) {
+      fire(blockKey('left1'), pick(MOTIVATION.blockLeft1));
+      return;
+    }
+
+    const totalLeft = Math.round(plan.totalDuration - lastElapsedS);
+    if (plan.totalDuration > 1200 && lastElapsedS === 600 && !firedMotivation.has('s-first10')) {
+      fire('s-first10', pick(MOTIVATION.sessionFirst10));
+      return;
+    }
+    if (plan.totalDuration > 1800 && lastElapsedS === Math.round(plan.totalDuration / 2) && !firedMotivation.has('s-half')) {
+      const avgPower = Math.round(history.reduce((s, p) => s + p.power, 0) / history.length);
+      const avgCadence = Math.round(history.reduce((s, p) => s + p.cadence, 0) / history.length);
+      fire('s-half', 'Vas a la mitad del entrenamiento', `Promedio hasta aquí: ${avgPower} W · ${avgCadence} rpm`);
+      return;
+    }
+    if (plan.totalDuration > 1200 && totalLeft === 600 && !firedMotivation.has('s-left10')) {
+      fire('s-left10', pick(MOTIVATION.sessionLeft10));
+      return;
+    }
+    if (totalLeft === 300 && !firedMotivation.has('s-left5')) {
+      fire('s-left5', pick(MOTIVATION.sessionLeft5));
+      return;
+    }
+    if (totalLeft === 60 && !firedMotivation.has('s-left1')) {
+      fire('s-left1', pick(MOTIVATION.sessionLeft1));
+      return;
     }
   }
 
@@ -382,14 +452,17 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   }
 
   /** Línea de tiempo del workout completo por zonas — hecho atenuado, bloque
-   * actual al 100% con contorno, pendiente muy tenue. Ver TORQ_DESIGN.md. */
+   * actual al 100% con contorno, pendiente muy tenue. Ver TORQ_DESIGN.md.
+   * El ancho de cada barra es proporcional a su duración (flex-grow), no
+   * uno por uno igual — así coincide con el eje de tiempo de `draw()`, que
+   * dibuja las líneas de potencia/cadencia/pulso encima en el mismo panel. */
   function paintTimeline(): void {
     $('timeline').innerHTML = workout.intervals
       .map((iv, i) => {
         const z = powerZone(iv.power_pct);
         const opacity = i < currentIndex0 ? 0.45 : i === currentIndex0 ? 1 : 0.18;
         const outline = i === currentIndex0 ? 'outline:2px solid var(--text);outline-offset:2px;' : '';
-        return `<div class="live-timeline-bar" style="height:${ZONE_HEIGHT_PCT[z]}%;background:${zoneColor(z)};opacity:${opacity};${outline}"></div>`;
+        return `<div class="live-timeline-bar" style="flex-grow:${iv.duration_s};height:${ZONE_HEIGHT_PCT[z]}%;background:${zoneColor(z)};opacity:${opacity};${outline}"></div>`;
       })
       .join('');
   }
@@ -421,10 +494,22 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       clearTimeout(bannerTimer);
       bannerTimer = null;
     }
+    if (compactTimer) {
+      clearTimeout(compactTimer);
+      compactTimer = null;
+    }
     $('banner').className = `live-message-overlay live-message-${kind} on`;
     $('bannerTitle').textContent = title;
     $('bannerDetail').textContent = detail;
-    if (holdMs !== null) bannerTimer = setTimeout(clearBanner, holdMs);
+    if (holdMs !== null) {
+      bannerTimer = setTimeout(clearBanner, holdMs);
+    } else if (kind === 'danger' || kind === 'adjust') {
+      // sin tiempo fijo (sigue sin corregirse) — tras unos segundos se achica
+      // a una franja delgada arriba en vez de tapar potencia y tiempo
+      // restante todo el bloque; la urgencia inicial ya se vio (bug: se
+      // quedaba tapando la pantalla entera mientras el problema seguía).
+      compactTimer = setTimeout(() => $('banner').classList.add('compact'), 3500);
+    }
   }
 
   function clearBanner(): void {
@@ -432,7 +517,11 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       clearTimeout(bannerTimer);
       bannerTimer = null;
     }
-    $('banner').classList.remove('on');
+    if (compactTimer) {
+      clearTimeout(compactTimer);
+      compactTimer = null;
+    }
+    $('banner').classList.remove('on', 'compact');
   }
 
   function handleEvent(event: EngineEvent): void {
@@ -487,6 +576,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         lastTargetWatts = event.sample.target;
         if (ergEnabled) trainer.setTarget(lastTargetWatts);
         draw();
+        maybeMotivate();
         ticksSinceDraftSave++;
         if (ticksSinceDraftSave >= DRAFT_SAVE_EVERY_TICKS) {
           ticksSinceDraftSave = 0;
@@ -546,9 +636,11 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
           const holdMs = n.level === 'danger' || n.level === 'adjust' ? null : 2600;
           showBanner(kind, n.message, n.detail ?? '', holdMs);
           alerts.push({ t: lastElapsedS, level: n.level, message: n.message });
+          activeAlertLevel = n.level === 'danger' || n.level === 'adjust' ? n.level : null;
         } else {
           beeper.play('tick');
           showBanner('info', n.message, '', 2200);
+          activeAlertLevel = null;
         }
         return;
       }
