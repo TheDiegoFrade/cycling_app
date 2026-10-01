@@ -1071,6 +1071,9 @@ a {
   width: calc(100% - 32px);
   height: calc(100% - 24px);
   pointer-events: none;
+  /* arriba de las barras — si no, las barras (opacas) tapan las líneas de
+   * potencia/cadencia/pulso que se dibujan encima de ellas. */
+  z-index: 1;
 }
 
 .live-center {
@@ -1205,7 +1208,6 @@ a {
   align-items: flex-end;
   gap: 2px;
   height: 100%;
-  z-index: 1;
 }
 /* El ancho de cada barra es proporcional a la duración real del bloque
  * (flex-grow inline por bloque, ver paintTimeline en train.ts) — así su

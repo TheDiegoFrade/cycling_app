@@ -216,6 +216,33 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   let lastElapsedS = 0;
   let sessionFinished = false;
 
+  // Mismos cortes que powerZone() (zones.ts), con el techo de cada zona
+  // anclado a su ZONE_HEIGHT_PCT — interpolado linealmente entre cortes en
+  // vez de "saltado" a un escalón por zona, para que la línea de potencia
+  // suba y baje con ruido real en vez de verse como un trazo plano.
+  const POWER_PCT_HEIGHT_POINTS: readonly [number, number][] = [
+    [0, 0],
+    [55, 25],
+    [75, 40],
+    [90, 55],
+    [105, 70],
+    [120, 85],
+    [150, 100],
+  ];
+
+  function powerPctToHeightPct(powerPct: number): number {
+    const points = POWER_PCT_HEIGHT_POINTS;
+    if (powerPct <= points[0][0]) return points[0][1];
+    for (let i = 1; i < points.length; i++) {
+      const [p1, h1] = points[i];
+      if (powerPct <= p1) {
+        const [p0, h0] = points[i - 1];
+        return h0 + ((powerPct - p0) / (p1 - p0)) * (h1 - h0);
+      }
+    }
+    return 100;
+  }
+
   /** Líneas de potencia/cadencia/pulso avanzando en vivo — igual que antes
    * del rediseño, el usuario prefiere verlas mientras entrena. */
   function draw(): void {
@@ -246,17 +273,18 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         });
         g.stroke();
       };
-      // potencia: mismo eje que las barras (altura por zona, ver
-      // ZONE_HEIGHT_PCT), no un rango lineal de watts — así en ERG, con la
-      // potencia pegada al objetivo, la línea queda a la misma altura que la
-      // barra del bloque actual, no en una escala aparte. Sin el pad
-      // vertical que sí llevan cadencia/pulso, para que 100% de la escala
-      // toque el borde superior igual que una barra al 100%.
+      // potencia: mismo eje que las barras (altura por zona), no un rango
+      // lineal de watts — pero interpolado de forma continua entre los
+      // mismos puntos de corte que usan las zonas (ver ZONE_HEIGHT_PCT), no
+      // "saltada" a un escalón fijo por zona — eso se veía como una línea
+      // recta y plana, nada parecido al ruido real de la potencia. Sin el
+      // pad vertical que sí llevan cadencia/pulso, para que 100% de la
+      // escala toque el borde superior igual que una barra al 100%.
       const powerPath = new Path2D();
       history.forEach((p, j) => {
         const x = X(p.t);
         const powerPct = appState.profile.ftp > 0 ? (p.power / appState.profile.ftp) * 100 : 0;
-        const heightPct = ZONE_HEIGHT_PCT[powerZone(powerPct)];
+        const heightPct = powerPctToHeightPct(powerPct);
         const y = h - (heightPct / 100) * h;
         j ? powerPath.lineTo(x, y) : powerPath.moveTo(x, y);
       });
@@ -273,12 +301,6 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger').trim();
       line('cadence', 60, 110, zoneColor(2), 2);
       line('hr', 80, 190, dangerColor, 2);
-    }
-
-    const last = history[history.length - 1];
-    if (last) {
-      g.fillStyle = 'rgba(255,255,255,.6)';
-      g.fillRect(X(last.t) - 1, pad, 2, h - 2 * pad);
     }
   }
 
