@@ -1,6 +1,6 @@
-export type Screen = 'home' | 'plan' | 'prepare' | 'train' | 'session' | 'form' | 'profile' | 'limits' | 'login';
+export type Screen = 'home' | 'plan' | 'library' | 'prepare' | 'train' | 'session' | 'form' | 'profile' | 'limits' | 'login';
 
-const SCREENS: readonly Screen[] = ['home', 'plan', 'prepare', 'train', 'session', 'form', 'profile', 'limits', 'login'];
+const SCREENS: readonly Screen[] = ['home', 'plan', 'library', 'prepare', 'train', 'session', 'form', 'profile', 'limits', 'login'];
 
 /** Rutas viejas → nuevas, ver TORQ_DESIGN.md ("Rutas: de la app actual a la
  * nueva"). Cualquier hash viejo se reescribe al nuevo antes de resolver la

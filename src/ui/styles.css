@@ -1718,24 +1718,16 @@ a {
   color: var(--text);
   font-weight: 600;
 }
-.plan-bottom {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 32px;
-}
-.plan-bottom-single {
-  grid-template-columns: 1fr;
-}
-.plan-library {
+.library-filters {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  flex-wrap: wrap;
 }
-.plan-library-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 6px;
+.library-filters #lib-search {
+  flex: 1;
+  min-width: 220px;
 }
 .plan-import-link {
   background: none;

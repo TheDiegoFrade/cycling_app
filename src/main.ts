@@ -6,6 +6,7 @@ import { renderCalendar } from './ui/screens/calendar';
 import { renderConnect } from './ui/screens/connect';
 import { renderForma } from './ui/screens/history';
 import { renderHome } from './ui/screens/home';
+import { renderLibrary } from './ui/screens/library';
 import { renderLimits } from './ui/screens/limits';
 import { renderLogin } from './ui/screens/login';
 import { renderPerfil } from './ui/screens/perfil';
@@ -24,11 +25,12 @@ function guarded(render: RenderFn): RenderFn {
   return (container) => (appState.cloudEnabled && !appState.user ? renderLogin(container) : render(container));
 }
 
-// Home, Plan, Forma y Perfil viven detrás de la barra lateral fija (ver
-// TORQ_DESIGN.md, "Navegación"); Prepare/Sesión en vivo/Login no la usan.
+// Home, Plan, Historial, Forma y Perfil viven detrás de la barra lateral fija
+// (ver TORQ_DESIGN.md, "Navegación"); Prepare/Sesión en vivo/Login no la usan.
 const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['home', withSidebar('home', renderHome)],
   ['plan', withSidebar('plan', renderCalendar)],
+  ['library', withSidebar('library', renderLibrary)],
   ['prepare', renderConnect],
   ['train', renderTrain],
   ['session', withSidebar(null, renderSummary)],

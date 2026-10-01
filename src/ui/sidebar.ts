@@ -4,9 +4,9 @@ import type { ConnectionState, HrAdapter, TrainerAdapter } from '../devices/type
 import type { Screen } from './router';
 import { appState } from './state';
 
-/** Las 4 secciones que viven en la barra lateral (ver TORQ_DESIGN.md,
+/** Las secciones que viven en la barra lateral (ver TORQ_DESIGN.md,
  * "Navegación"). Sesión en vivo y Antes de empezar no la usan. */
-export type SidebarScreen = 'home' | 'plan' | 'form' | 'profile';
+export type SidebarScreen = 'home' | 'plan' | 'library' | 'form' | 'profile';
 
 const ITEMS: { screen: SidebarScreen; route: Screen; label: string; icon: string }[] = [
   {
@@ -20,6 +20,12 @@ const ITEMS: { screen: SidebarScreen; route: Screen; label: string; icon: string
     route: 'plan',
     label: 'Plan',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>',
+  },
+  {
+    screen: 'library',
+    route: 'library',
+    label: 'Historial',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h12"/></svg>',
   },
   {
     screen: 'form',
@@ -113,7 +119,7 @@ function wireSensorRow(
 }
 
 /** Envuelve una pantalla con la barra lateral fija (wordmark, Inicio/Plan/
- * Forma/Perfil, tarjeta de Sensores). La pantalla envuelta sigue recibiendo
+ * Historial/Forma/Perfil, tarjeta de Sensores). La pantalla envuelta sigue recibiendo
  * su propio contenedor y controla su contenido exactamente igual que antes;
  * esto solo reemplaza la nav de texto que cada pantalla pintaba por su
  * cuenta. No aparece en Sesión en vivo ni en Antes de empezar. */

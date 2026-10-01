@@ -1,17 +1,16 @@
 import { buildCompletedSessionFromFit } from '../../core/completed-session-import';
-import { importWorkoutFile } from '../../core/workout-file-import';
-import { validateRulesFile, validateWorkout } from '../../core/validator';
+import { validateWorkout } from '../../core/validator';
 import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import { estimateWorkout } from '../../core/workout-estimate';
-import type { RulesFile, Sample, Workout } from '../../core/types';
+import type { Sample, Workout } from '../../core/types';
 import { ZONE_HEIGHT_PCT, powerZone } from '../../core/zones';
-import { saveWorkout, deleteWorkout } from '../../storage/workout-store';
+import { saveWorkout } from '../../storage/workout-store';
 import { listSessions, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
 import { computeSessionAnalytics } from '../../engine/analytics';
 import { downloadSessionSamples, pushSessionToCloud } from '../../sync/cloud-sync';
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
-import { deleteWorkoutFromCloud, pushWorkoutToCloud } from '../../sync/workout-sync';
+import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { navigate } from '../router';
 import { appState } from '../state';
 import { renderWorkoutCover } from '../workout-cover';
@@ -122,27 +121,6 @@ function errorsHtml(errors: string[]): string {
   return `<div class="error-box"><strong>${errors.length} error(es):</strong><ul>${errors.map((e) => `<li>${e}</li>`).join('')}</ul></div>`;
 }
 
-async function importRulesFile(file: File, target: Workout): Promise<{ workout?: Workout; errors: string[] }> {
-  const text = await file.text();
-  let raw: unknown;
-  try {
-    raw = JSON.parse(text);
-  } catch {
-    return { errors: [`"${file.name}" no es JSON válido.`] };
-  }
-  const result = validateRulesFile(raw);
-  if (!result.valid) return { errors: result.errors };
-  const rulesFile = raw as RulesFile;
-  const merged: Workout = {
-    ...target,
-    countdown: rulesFile.countdown ?? target.countdown,
-    comments: [...(target.comments ?? []), ...(rulesFile.comments ?? [])],
-    rules: [...(target.rules ?? []), ...(rulesFile.rules ?? [])],
-  };
-  const workoutResult = validateWorkout(merged);
-  return workoutResult.valid ? { workout: merged, errors: [] } : { errors: workoutResult.errors };
-}
-
 export function renderCalendar(container: HTMLElement): () => void {
   const today = new Date();
   const todayKey = toDateKey(today);
@@ -163,7 +141,6 @@ export function renderCalendar(container: HTMLElement): () => void {
    * null si está cerrado — un solo panel compartido por semana y mes en vez
    * de uno por celda, ver createPanelHtml/wireCreatePanel. */
   let createDate: string | null = null;
-  let rulesTargetWorkout: Workout | null = null;
 
   function createPanelHtml(): string {
     if (!createDate) return '';
@@ -188,7 +165,7 @@ export function renderCalendar(container: HTMLElement): () => void {
     const est = scheduled ? estimateWorkout(scheduled.intervals, appState.profile.ftp) : null;
     const body = scheduled
       ? `
-      <button class="plan-day-cover" data-workout-id="${scheduled.id}" title="${scheduled.name} — Editar en biblioteca">${renderWorkoutCover(scheduled.intervals, 'sm')}</button>
+      <button class="plan-day-cover" data-workout-id="${scheduled.id}" title="${scheduled.name} — Ver en Historial">${renderWorkoutCover(scheduled.intervals, 'sm')}</button>
       <div class="plan-day-name">${scheduled.name}</div>
       <div class="live-col-label">${est ? `${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS` : ''}</div>
     `
@@ -210,7 +187,7 @@ export function renderCalendar(container: HTMLElement): () => void {
 
   function monthCellHtml(d: Date, key: string, isToday: boolean, inCurrentMonth: boolean, scheduled: Workout | undefined, completed: CalendarDone | undefined): string {
     const body = scheduled
-      ? `<button class="plan-month-cover" data-workout-id="${scheduled.id}" title="${scheduled.name} — Editar en biblioteca">${renderWorkoutCover(scheduled.intervals, 'sm')}</button>`
+      ? `<button class="plan-month-cover" data-workout-id="${scheduled.id}" title="${scheduled.name} — Ver en Historial">${renderWorkoutCover(scheduled.intervals, 'sm')}</button>`
       : completed
         ? completed.coverHtml
           ? `<div class="plan-month-cover" title="${completed.workoutName}">${completed.coverHtml}</div>`
@@ -277,8 +254,6 @@ export function renderCalendar(container: HTMLElement): () => void {
 
     loadVisibleCloudCovers(days);
 
-    const unscheduled = appState.workouts.filter((w) => !w.scheduledDate);
-    const scheduledList = appState.workouts.filter((w) => w.scheduledDate);
     const rangeLabel = isMonth ? fmtMonthLabel(monthAnchor) : fmtRange(days[0], days[6]);
     const totalsLabel = isMonth ? 'Mes' : 'Semana';
 
@@ -316,21 +291,11 @@ export function renderCalendar(container: HTMLElement): () => void {
           </div>
         </div>
 
-        <div class="plan-bottom plan-bottom-single">
-          <div class="plan-library">
-            <div class="plan-library-head"><h2 class="perfil-h2" style="margin:0">Biblioteca</h2><label class="plan-import-link">Importar archivo<input type="file" id="import-workout" accept=".zwo,.mrc,.erg,.json" style="display:none"></label></div>
-            <div id="library-list">${[...scheduledList, ...unscheduled].map(libraryRow).join('') || '<p class="hint">Todavía no importas ningún workout.</p>'}</div>
-          </div>
-        </div>
-
         <input type="file" id="import-done-file" accept=".fit" style="display:none">
-        <input type="file" id="import-rules" accept=".json" style="display:none">
       </div>
     `;
 
     wireDayButtons();
-    wireLibrary();
-    wireRulesInput();
     wireCreatePanel();
 
     container.querySelector('#view-week')?.addEventListener('click', () => {
@@ -361,41 +326,9 @@ export function renderCalendar(container: HTMLElement): () => void {
 
     container.querySelectorAll<HTMLButtonElement>('[data-workout-id].plan-day-cover, [data-workout-id].plan-month-cover').forEach((btn) => {
       btn.addEventListener('click', () => {
-        document.getElementById(`lib-row-${btn.dataset.workoutId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        navigate('library', btn.dataset.workoutId);
       });
     });
-  }
-
-  function libraryRow(w: Workout): string {
-    const est = estimateWorkout(w.intervals, appState.profile.ftp);
-    const meta = `${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS · ${w.scheduledDate ? `agendado ${w.scheduledDate}` : 'sin fecha'}`;
-    return `
-      <div class="plan-lib-row" id="lib-row-${w.id}" data-workout-id="${w.id}">
-        ${renderWorkoutCover(w.intervals, 'sm')}
-        <div class="plan-lib-info">
-          <div style="font-weight:500">${w.name}</div>
-          <div class="live-col-label">${meta}</div>
-        </div>
-        <input type="date" class="plan-lib-date" data-schedule-id="${w.id}" value="${w.scheduledDate ?? ''}" title="Agendar">
-        <a href="#/prepare" class="prepare-link plan-lib-train" data-train-id="${w.id}">Entrenar</a>
-        <div class="plan-lib-menu-wrap">
-          <button class="live-menu-btn plan-lib-menu-btn" data-menu-for="${w.id}" aria-label="Más opciones">⋯</button>
-          <div class="live-menu" id="menu-${w.id}">
-            <button class="live-menu-item" data-action="limits" data-workout-id="${w.id}">Editar límites</button>
-            <button class="live-menu-item" data-action="apply-rules" data-workout-id="${w.id}">+ reglas</button>
-            <div class="live-menu-divider"></div>
-            <button class="live-menu-item danger" data-action="delete" data-workout-id="${w.id}">Borrar</button>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  function refreshLibrary(): void {
-    const scheduled = appState.workouts.filter((w) => w.scheduledDate);
-    const unscheduled = appState.workouts.filter((w) => !w.scheduledDate);
-    const list = container.querySelector<HTMLElement>('#library-list')!;
-    list.innerHTML = [...scheduled, ...unscheduled].map(libraryRow).join('') || '<p class="hint">Todavía no importas ningún workout.</p>';
-    wireLibrary();
   }
 
   function wireCreatePanel(): void {
@@ -456,7 +389,6 @@ export function renderCalendar(container: HTMLElement): () => void {
   }
 
   function wireDayButtons(): void {
-    const pendingFileInput = container.querySelector<HTMLInputElement>('#import-workout')!;
     const doneFileInput = container.querySelector<HTMLInputElement>('#import-done-file')!;
     const importErrors = container.querySelector<HTMLElement>('#plan-import-errors')!;
 
@@ -466,20 +398,6 @@ export function renderCalendar(container: HTMLElement): () => void {
         paint();
         container.querySelector('#plan-create-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
-    });
-
-    pendingFileInput.addEventListener('change', async () => {
-      const file = pendingFileInput.files?.[0];
-      pendingFileInput.value = '';
-      if (!file) return;
-      const { workout, errors } = await importWorkoutFile(file, appState.profile.ftp);
-      importErrors.innerHTML = errorsHtml(errors);
-      if (workout) {
-        await saveWorkout(workout);
-        if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
-        appState.workouts = [...appState.workouts, workout];
-        paint();
-      }
     });
 
     container.querySelector('#manual-done-trigger')?.addEventListener('click', () => {
@@ -502,89 +420,6 @@ export function renderCalendar(container: HTMLElement): () => void {
     });
   }
 
-  function wireLibrary(): void {
-    container.querySelectorAll<HTMLInputElement>('[data-schedule-id]').forEach((input) => {
-      input.addEventListener('change', async () => {
-        const id = input.dataset.scheduleId!;
-        const workout = appState.workouts.find((w) => w.id === id);
-        if (!workout) return;
-        const updated: Workout = { ...workout };
-        if (input.value) updated.scheduledDate = input.value;
-        else delete updated.scheduledDate;
-        await saveWorkout(updated);
-        if (appState.user) void pushWorkoutToCloud(updated, appState.user.id);
-        appState.workouts = appState.workouts.map((w) => (w.id === id ? updated : w));
-        paint();
-      });
-    });
-
-    container.querySelectorAll<HTMLAnchorElement>('[data-train-id]').forEach((a) => {
-      a.addEventListener('click', () => {
-        appState.selectedWorkoutId = a.dataset.trainId ?? null;
-      });
-    });
-
-    container.querySelectorAll<HTMLButtonElement>('[data-menu-for]').forEach((btn) => {
-      const menu = container.querySelector<HTMLElement>(`#menu-${btn.dataset.menuFor}`)!;
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const wasOpen = menu.classList.contains('on');
-        container.querySelectorAll('.live-menu.on').forEach((m) => m.classList.remove('on'));
-        if (!wasOpen) menu.classList.add('on');
-      });
-    });
-
-    container.querySelectorAll<HTMLButtonElement>('[data-action="limits"]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        appState.selectedWorkoutId = btn.dataset.workoutId ?? null;
-        navigate('limits');
-      });
-    });
-    container.querySelectorAll<HTMLButtonElement>('[data-action="delete"]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const id = btn.dataset.workoutId!;
-        const w = appState.workouts.find((x) => x.id === id);
-        if (!w) return;
-        if (!window.confirm(`¿Borrar "${w.name}"? No se puede deshacer.`)) return;
-        await deleteWorkout(id);
-        if (appState.user) void deleteWorkoutFromCloud(id, appState.user.id);
-        appState.workouts = appState.workouts.filter((x) => x.id !== id);
-        paint();
-      });
-    });
-    container.querySelectorAll<HTMLButtonElement>('[data-action="apply-rules"]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const target = appState.workouts.find((w) => w.id === btn.dataset.workoutId);
-        if (!target) return;
-        rulesTargetWorkout = target;
-        container.querySelector<HTMLInputElement>('#import-rules')?.click();
-      });
-    });
-  }
-
-  function closeAllMenus(): void {
-    container.querySelectorAll('.live-menu.on').forEach((m) => m.classList.remove('on'));
-  }
-
-  const rulesInput = () => container.querySelector<HTMLInputElement>('#import-rules');
-  function wireRulesInput(): void {
-    rulesInput()?.addEventListener('change', async () => {
-      const input = rulesInput()!;
-      const file = input.files?.[0];
-      input.value = '';
-      if (!file || !rulesTargetWorkout) return;
-      const { workout, errors } = await importRulesFile(file, rulesTargetWorkout);
-      container.querySelector('#plan-import-errors')!.innerHTML = errorsHtml(errors);
-      if (workout) {
-        await saveWorkout(workout);
-        if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
-        appState.workouts = appState.workouts.map((w) => (w.id === workout.id ? workout : w));
-        refreshLibrary();
-      }
-    });
-  }
-
-  document.addEventListener('click', closeAllMenus);
   paint();
   void listSessions().then((sessions) => {
     completedByDate = new Map(sessions.map((s) => [s.startedAt.slice(0, 10), localToCalendarDone(s)]));
@@ -603,7 +438,5 @@ export function renderCalendar(container: HTMLElement): () => void {
     paint();
   });
 
-  return () => {
-    document.removeEventListener('click', closeAllMenus);
-  };
+  return () => {};
 }
