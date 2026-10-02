@@ -200,7 +200,6 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const AUTO_START_PEDAL_S = 3;
   let bannerTimer: ReturnType<typeof setTimeout> | null = null;
   let compactTimer: ReturnType<typeof setTimeout> | null = null;
-  let activeAlertLevel: 'danger' | 'adjust' | null = null;
   const firedMotivation = new Set<string>();
   let cdShown = -1;
   let currentIndex0 = 0;
@@ -318,12 +317,21 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     return msgs[Math.floor(Math.random() * msgs.length)];
   }
 
+  /** Si hay una alerta de ajuste/peligro activa ahora mismo (leído del propio
+   * banner en pantalla, no de una bandera aparte que se puede desincronizar
+   * si el motor descarta un evento 'recover' por competir con otra regla en
+   * el mismo tick — ver RuleEngine.evaluateTick). */
+  function hasActiveAlert(): boolean {
+    const banner = $('banner');
+    return banner.classList.contains('on') && (banner.classList.contains('live-message-adjust') || banner.classList.contains('live-message-danger'));
+  }
+
   /** Mensajes de ánimo durante el entrenamiento — por hitos de tiempo del
    * bloque actual y de la sesión completa, cada uno una sola vez. Nunca
-   * compite con una alerta real en curso (activeAlertLevel) ni se queda
-   * pegado: usa el mismo banner de 'comment', breve y se quita solo. */
+   * compite con una alerta real en curso ni se queda pegado: usa el mismo
+   * banner de 'comment', breve y se quita solo. */
   function maybeMotivate(): void {
-    if (activeAlertLevel) return;
+    if (hasActiveAlert()) return;
     const iv = workout.intervals[currentIndex0];
     if (!iv) return;
 
@@ -333,40 +341,48 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       return true;
     };
 
+    // "<=" / ">=" (cruzó el umbral), no "===" (exacto): un tick perdido
+    // (pestaña en segundo plano, pausa/reanudación, retomar un borrador)
+    // salta el segundo exacto y el hito no disparaba nunca — con el cruce
+    // dispara en el primer tick posterior, sin importar si se saltó alguno.
     const blockKey = (suffix: string) => `b${currentIndex0}-${suffix}`;
-    if (iv.duration_s > 120 && currentTimeLeft === Math.round(iv.duration_s / 2) && !firedMotivation.has(blockKey('half'))) {
+    const blockHalf = Math.round(iv.duration_s / 2);
+    if (iv.duration_s > 120 && currentTimeLeft <= blockHalf && !firedMotivation.has(blockKey('half'))) {
       fire(blockKey('half'), pick(MOTIVATION.blockHalfway));
       return;
     }
-    if (iv.duration_s > 360 && currentTimeLeft === 300 && !firedMotivation.has(blockKey('left5'))) {
+    if (iv.duration_s > 360 && currentTimeLeft <= 300 && !firedMotivation.has(blockKey('left5'))) {
       fire(blockKey('left5'), pick(MOTIVATION.blockLeft5));
       return;
     }
-    if (iv.duration_s > 90 && currentTimeLeft === 60 && !firedMotivation.has(blockKey('left1'))) {
+    if (iv.duration_s > 90 && currentTimeLeft <= 60 && !firedMotivation.has(blockKey('left1'))) {
       fire(blockKey('left1'), pick(MOTIVATION.blockLeft1));
       return;
     }
 
     const totalLeft = Math.round(plan.totalDuration - lastElapsedS);
-    if (plan.totalDuration > 1200 && lastElapsedS === 600 && !firedMotivation.has('s-first10')) {
+    const sessionHalf = Math.round(plan.totalDuration / 2);
+    if (plan.totalDuration > 1200 && lastElapsedS >= 600 && !firedMotivation.has('s-first10')) {
       fire('s-first10', pick(MOTIVATION.sessionFirst10));
       return;
     }
-    if (plan.totalDuration > 1800 && lastElapsedS === Math.round(plan.totalDuration / 2) && !firedMotivation.has('s-half')) {
+    if (plan.totalDuration > 1800 && lastElapsedS >= sessionHalf && !firedMotivation.has('s-half')) {
       const avgPower = Math.round(history.reduce((s, p) => s + p.power, 0) / history.length);
       const avgCadence = Math.round(history.reduce((s, p) => s + p.cadence, 0) / history.length);
       fire('s-half', 'Vas a la mitad del entrenamiento', `Promedio hasta aquí: ${avgPower} W · ${avgCadence} rpm`);
       return;
     }
-    if (plan.totalDuration > 1200 && totalLeft === 600 && !firedMotivation.has('s-left10')) {
+    if (plan.totalDuration > 1200 && totalLeft <= 600 && !firedMotivation.has('s-left10')) {
       fire('s-left10', pick(MOTIVATION.sessionLeft10));
       return;
     }
-    if (totalLeft === 300 && !firedMotivation.has('s-left5')) {
+    // duración mínima > el propio umbral: si no, con "<=" dispara ya en el
+    // primer tick de un workout corto ("5 min más" cuando en realidad dura 2).
+    if (plan.totalDuration > 300 && totalLeft <= 300 && !firedMotivation.has('s-left5')) {
       fire('s-left5', pick(MOTIVATION.sessionLeft5));
       return;
     }
-    if (totalLeft === 60 && !firedMotivation.has('s-left1')) {
+    if (plan.totalDuration > 60 && totalLeft <= 60 && !firedMotivation.has('s-left1')) {
       fire('s-left1', pick(MOTIVATION.sessionLeft1));
       return;
     }
@@ -683,11 +699,9 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
           const holdMs = n.level === 'danger' || n.level === 'adjust' ? null : 2600;
           showBanner(kind, n.message, n.detail ?? '', holdMs);
           alerts.push({ t: lastElapsedS, level: n.level, message: n.message });
-          activeAlertLevel = n.level === 'danger' || n.level === 'adjust' ? n.level : null;
         } else {
           beeper.play('tick');
           showBanner('info', n.message, '', 2200);
-          activeAlertLevel = null;
         }
         return;
       }
