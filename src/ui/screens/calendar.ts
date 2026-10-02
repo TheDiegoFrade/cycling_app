@@ -502,14 +502,21 @@ export function renderCalendar(container: HTMLElement): () => void {
 
   paint();
   void listSessions().then((sessions) => {
-    completedByDate = new Map(sessions.map((s) => [s.startedAt.slice(0, 10), localToCalendarDone(s)]));
+    // toDateKey(new Date(startedAt)), NO startedAt.slice(0,10): un
+    // .slice() lee la fecha en UTC, y una sesión grabada tarde en la noche
+    // en una timezone detrás de UTC (México incluida) cae en el día
+    // siguiente en UTC — se marcaba "hecho" un día después del real. Las
+    // celdas del calendario sí están indexadas por fecha local (toDateKey
+    // más abajo en paint()), así que la fecha del "hecho" debe calcularse
+    // igual para que coincidan.
+    completedByDate = new Map(sessions.map((s) => [toDateKey(new Date(s.startedAt)), localToCalendarDone(s)]));
     // sesiones que solo viven en la nube (grabadas en otro dispositivo) —
     // sin esto, esos días nunca se marcan "Hecho" aunque sí aparezcan en Forma.
     const localIds = new Set(sessions.map((s) => s.id));
     appState.cloudSessions
       .filter((s) => !localIds.has(s.id))
       .forEach((s) => {
-        const key = s.startedAt.slice(0, 10);
+        const key = toDateKey(new Date(s.startedAt));
         if (!completedByDate.has(key)) {
           completedByDate.set(key, cloudToCalendarDone(s));
           cloudOnlyByDate.set(key, s);
