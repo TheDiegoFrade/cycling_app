@@ -1844,6 +1844,21 @@ a {
   font-size: 16px;
   padding: 4px;
 }
+.plan-create-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: -4px 0;
+}
+.plan-create-divider::before,
+.plan-create-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
 .plan-manual-done {
   margin: 20px 0;
 }

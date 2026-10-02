@@ -1,4 +1,5 @@
 import { buildCompletedSessionFromFit } from '../../core/completed-session-import';
+import { importWorkoutFile } from '../../core/workout-file-import';
 import { validateWorkout } from '../../core/validator';
 import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import { estimateWorkout } from '../../core/workout-estimate';
@@ -161,6 +162,8 @@ export function renderCalendar(container: HTMLElement): () => void {
         <p class="hint" id="create-description">${WORKOUT_TEMPLATES[0].description}</p>
         <button class="btn-light" id="create-submit">Crear</button>
         <div id="create-errors"></div>
+        <div class="plan-create-divider"><span>o</span></div>
+        <label class="plan-import-link">Importar archivo (.zwo, .mrc, .erg)<input type="file" id="create-import" accept=".zwo,.mrc,.erg,.json" style="display:none"></label>
       </div>`;
   }
 
@@ -395,6 +398,23 @@ export function renderCalendar(container: HTMLElement): () => void {
       const result = validateWorkout(workout);
       createErrors.innerHTML = errorsHtml(result.errors);
       if (!result.valid) return;
+      await saveWorkout(workout);
+      if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
+      appState.workouts = [...appState.workouts, workout];
+      createDate = null;
+      paint();
+    });
+
+    panel.querySelector<HTMLInputElement>('#create-import')?.addEventListener('change', async (e) => {
+      const input = e.currentTarget as HTMLInputElement;
+      const file = input.files?.[0];
+      input.value = '';
+      const date = createDate;
+      if (!file || !date) return;
+      const { workout: imported, errors } = await importWorkoutFile(file, appState.profile.ftp);
+      createErrors.innerHTML = errorsHtml(errors);
+      if (!imported) return;
+      const workout: Workout = { ...imported, scheduledDate: date };
       await saveWorkout(workout);
       if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
       appState.workouts = [...appState.workouts, workout];
