@@ -10,6 +10,8 @@ import { renderLibrary } from './ui/screens/library';
 import { renderLimits } from './ui/screens/limits';
 import { renderLogin } from './ui/screens/login';
 import { renderLogSession } from './ui/screens/log-session';
+import { renderAcceptInvite } from './ui/screens/accept-invite';
+import { renderCoachInvite } from './ui/screens/coach-invite';
 import { renderPerfil } from './ui/screens/perfil';
 import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
@@ -40,6 +42,10 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['limits', renderLimits],
   // Registrar fuerza/movilidad (#/log, #/log/:id) — se llega desde Plan.
   ['log', withSidebar('plan', renderLogSession)],
+  // Vista del coach: el atleta abre #/invite/:token; el coach invita desde
+  // #/coach-invite (solo cuentas con profiles.is_coach).
+  ['invite', withSidebar(null, renderAcceptInvite)],
+  ['coach-invite', withSidebar('coach-invite', renderCoachInvite)],
 ];
 
 SCREENS_TO_GUARD.forEach(([screen, render]) => registerScreen(screen, guarded(render)));

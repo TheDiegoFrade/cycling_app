@@ -3,10 +3,11 @@ import { BleTrainerAdapter } from '../devices/ftms';
 import type { ConnectionState, HrAdapter, TrainerAdapter } from '../devices/types';
 import type { Screen } from './router';
 import { appState } from './state';
+import { escapeHtml } from './workout-cover';
 
 /** Las secciones que viven en la barra lateral (ver TORQ_DESIGN.md,
  * "Navegación"). Sesión en vivo y Antes de empezar no la usan. */
-export type SidebarScreen = 'home' | 'plan' | 'library' | 'form' | 'profile';
+export type SidebarScreen = 'home' | 'plan' | 'library' | 'form' | 'profile' | 'coach-invite';
 
 const ITEMS: { screen: SidebarScreen; route: Screen; label: string; icon: string }[] = [
   {
@@ -49,8 +50,21 @@ const STATE_LABEL: Record<ConnectionState, string> = {
   error: 'Error',
 };
 
+/** Solo para cuentas con profiles.is_coach (ver sync/coach-link). Las demás
+ * secciones del coach (Atletas, Semanas, Biblioteca) llegan en los
+ * siguientes pasos de docs/coach-view/README.md. */
+const COACH_ITEMS: typeof ITEMS = [
+  {
+    screen: 'coach-invite',
+    route: 'coach-invite',
+    label: 'Invitar atleta',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6"/><path d="M19 8v6M16 11h6"/></svg>',
+  },
+];
+
 function sidebarHtml(active: SidebarScreen | null): string {
-  const links = ITEMS.map(
+  const items = appState.coach.isCoach ? [...ITEMS, ...COACH_ITEMS] : ITEMS;
+  const links = items.map(
     (i) => `
     <a href="#/${i.route}" class="sidebar-link${i.screen === active ? ' active' : ''}">${i.icon}${i.label}</a>`,
   ).join('');
@@ -58,6 +72,11 @@ function sidebarHtml(active: SidebarScreen | null): string {
     <nav class="sidebar">
       <div class="sidebar-brand">TORQ</div>
       <div class="sidebar-links">${links}</div>
+      ${
+        appState.coach.myCoach
+          ? `<a href="#/profile" class="sidebar-coach-card"><span class="sidebar-sensors-title">Tu coach</span><span>${escapeHtml(appState.coach.myCoach.coachName ?? 'Tu coach')}</span></a>`
+          : ''
+      }
       <div class="sidebar-sensors">
         <div class="sidebar-sensors-title">Sensores</div>
         <button type="button" class="sidebar-sensor-row" id="sidebar-trainer-row">

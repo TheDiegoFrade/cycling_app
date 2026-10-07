@@ -467,3 +467,219 @@ begin
   return new;
 end;
 $$;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Vista del coach, paso 3: vínculo coach ↔ atleta e invitaciones (ver
+-- docs/coach-view/README.md, "Permisos (RLS)").
+--
+-- Quién es coach: profiles.is_coach, que SOLO se cambia a mano desde el SQL
+-- Editor (el trigger de abajo ignora cualquier intento desde la app):
+--   update profiles set is_coach = true
+--   where user_id = (select id from auth.users where email = 'coach@ejemplo.com');
+-- El atleta ve el nombre del coach (profiles.name) al abrir la invitación.
+-- ─────────────────────────────────────────────────────────────────────────
+alter table profiles add column if not exists is_coach boolean not null default false;
+
+create or replace function profiles_protect_is_coach() returns trigger
+language plpgsql as $$
+begin
+  -- Desde la app (rol authenticated/anon) nadie se puede volver coach:
+  -- solo el SQL Editor o la service role (auth.role() distinto o null).
+  if coalesce(auth.role(), '') in ('authenticated', 'anon') then
+    if tg_op = 'INSERT' then
+      new.is_coach := false;
+    elsif new.is_coach is distinct from old.is_coach then
+      new.is_coach := old.is_coach;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_protect_is_coach on profiles;
+create trigger profiles_protect_is_coach before insert or update on profiles
+  for each row execute function profiles_protect_is_coach();
+
+-- coach_athletes: el vínculo y el plan acordado. Nadie lo escribe directo:
+-- se crea con accept_coach_invite() y se termina con end_my_coach_link()
+-- (ambas security definer, abajo). Coach y atleta pueden leer los suyos.
+create table if not exists coach_athletes (
+  id uuid primary key default gen_random_uuid(),
+  coach_id uuid not null references auth.users (id) on delete cascade,
+  athlete_id uuid not null references auth.users (id) on delete cascade,
+  tier text not null check (tier in ('basica', 'pro', 'revision', 'todo')),
+  status text not null default 'active' check (status in ('active', 'ended')),
+  started_at timestamptz not null default now(),
+  ended_at timestamptz,
+  check (coach_id <> athlete_id)
+);
+
+alter table coach_athletes enable row level security;
+
+drop policy if exists "coach_athletes: leer los propios" on coach_athletes;
+create policy "coach_athletes: leer los propios" on coach_athletes for select
+  using (auth.uid() = coach_id or auth.uid() = athlete_id);
+
+-- Un atleta tiene como máximo un coach activo, garantizado por Postgres
+-- (mismo patrón que training_plans_one_active_per_user).
+create unique index if not exists coach_athletes_one_active_per_athlete
+  on coach_athletes (athlete_id) where status = 'active';
+create index if not exists coach_athletes_coach_status_idx on coach_athletes (coach_id, status);
+
+-- coach_invites: links de un solo uso con vencimiento. Solo se guarda el
+-- hash SHA-256 del token; el token va en el link y nunca toca la base.
+create table if not exists coach_invites (
+  id uuid primary key default gen_random_uuid(),
+  coach_id uuid not null references auth.users (id) on delete cascade,
+  token_hash text not null unique,
+  tier text not null check (tier in ('basica', 'pro', 'revision', 'todo')),
+  expires_at timestamptz not null,
+  used_by uuid references auth.users (id) on delete set null,
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+alter table coach_invites enable row level security;
+
+drop policy if exists "coach_invites: leer las propias" on coach_invites;
+create policy "coach_invites: leer las propias" on coach_invites for select
+  using (auth.uid() = coach_id);
+
+drop policy if exists "coach_invites: crear si es coach" on coach_invites;
+create policy "coach_invites: crear si es coach" on coach_invites for insert
+  with check (
+    auth.uid() = coach_id
+    and exists (select 1 from profiles where user_id = auth.uid() and is_coach)
+    and used_by is null
+    and used_at is null
+    and expires_at > now()
+    and expires_at <= now() + interval '30 days'
+  );
+
+-- Cancelar = borrar un link que nadie ha usado.
+drop policy if exists "coach_invites: cancelar las propias sin usar" on coach_invites;
+create policy "coach_invites: cancelar las propias sin usar" on coach_invites for delete
+  using (auth.uid() = coach_id and used_by is null);
+
+create index if not exists coach_invites_coach_idx on coach_invites (coach_id, created_at desc);
+
+-- is_coach_of: LA regla de permisos de la vista del coach. Verdadera solo
+-- si hay un vínculo activo entre el usuario actual y ese atleta — al
+-- desvincularse deja de serlo en ese instante. Las políticas de lectura del
+-- coach (paso 4) se construyen sobre esto.
+create or replace function is_coach_of(p_athlete_id uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from coach_athletes
+    where coach_id = auth.uid() and athlete_id = p_athlete_id and status = 'active'
+  );
+$$;
+
+-- Lo que ve el atleta al abrir el link, antes de aceptar. status:
+-- valid | invalid | used | expired | own (el coach abrió su propio link).
+create or replace function preview_coach_invite(p_token text)
+returns table (status text, coach_name text, tier text, expires_at timestamptz)
+language plpgsql stable security definer set search_path = public as $$
+declare
+  inv coach_invites%rowtype;
+begin
+  if auth.uid() is null then
+    raise exception 'Inicia sesión para ver la invitación.';
+  end if;
+  select * into inv from coach_invites where token_hash = encode(sha256(convert_to(p_token, 'UTF8')), 'hex');
+  if not found then
+    return query select 'invalid'::text, null::text, null::text, null::timestamptz;
+    return;
+  end if;
+  return query
+    select
+      case
+        when inv.used_by is not null then 'used'
+        when inv.expires_at <= now() then 'expired'
+        when inv.coach_id = auth.uid() then 'own'
+        else 'valid'
+      end,
+      (select p.name from profiles p where p.user_id = inv.coach_id),
+      inv.tier,
+      inv.expires_at;
+end;
+$$;
+
+-- Aceptar: todo en una transacción — marca el link como usado y crea el
+-- vínculo, o no hace nada. El índice único de arriba respalda la regla de
+-- un coach activo aunque dos aceptaciones se crucen.
+create or replace function accept_coach_invite(p_token text)
+returns table (coach_name text, tier text)
+language plpgsql volatile security definer set search_path = public as $$
+declare
+  uid uuid := auth.uid();
+  inv coach_invites%rowtype;
+  current_coach uuid;
+begin
+  if uid is null then
+    raise exception 'Inicia sesión para aceptar la invitación.';
+  end if;
+  select * into inv from coach_invites
+    where token_hash = encode(sha256(convert_to(p_token, 'UTF8')), 'hex')
+    for update;
+  if not found then
+    raise exception 'Este link de invitación no existe.';
+  end if;
+  if inv.used_by is not null then
+    raise exception 'Este link ya se usó. Pídele a tu coach uno nuevo.';
+  end if;
+  if inv.expires_at <= now() then
+    raise exception 'Este link ya venció. Pídele a tu coach uno nuevo.';
+  end if;
+  if inv.coach_id = uid then
+    raise exception 'No puedes aceptar tu propia invitación.';
+  end if;
+  select coach_id into current_coach from coach_athletes where athlete_id = uid and status = 'active';
+  if current_coach = inv.coach_id then
+    raise exception 'Ya es tu coach.';
+  elsif current_coach is not null then
+    raise exception 'Ya tienes un coach. Desvincúlate desde Perfil antes de aceptar otro.';
+  end if;
+
+  insert into coach_athletes (coach_id, athlete_id, tier) values (inv.coach_id, uid, inv.tier);
+  update coach_invites set used_by = uid, used_at = now() where id = inv.id;
+
+  return query select (select p.name from profiles p where p.user_id = inv.coach_id), inv.tier;
+end;
+$$;
+
+-- El coach actual del atleta (nombre incluido — el atleta no puede leer el
+-- perfil del coach directo). Cero filas si no tiene.
+create or replace function my_coach()
+returns table (coach_name text, tier text, started_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  select (select p.name from profiles p where p.user_id = ca.coach_id), ca.tier, ca.started_at
+  from coach_athletes ca
+  where ca.athlete_id = auth.uid() and ca.status = 'active';
+$$;
+
+-- El atleta termina el vínculo cuando quiera (desde Perfil). Regresa
+-- true si había uno activo.
+create or replace function end_my_coach_link() returns boolean
+language plpgsql volatile security definer set search_path = public as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Inicia sesión.';
+  end if;
+  update coach_athletes set status = 'ended', ended_at = now()
+    where athlete_id = auth.uid() and status = 'active';
+  return found;
+end;
+$$;
+
+-- Las funciones security definer no deben quedar abiertas a anon.
+revoke execute on function is_coach_of(uuid) from public, anon;
+revoke execute on function preview_coach_invite(text) from public, anon;
+revoke execute on function accept_coach_invite(text) from public, anon;
+revoke execute on function my_coach() from public, anon;
+revoke execute on function end_my_coach_link() from public, anon;
+grant execute on function is_coach_of(uuid) to authenticated;
+grant execute on function preview_coach_invite(text) to authenticated;
+grant execute on function accept_coach_invite(text) to authenticated;
+grant execute on function my_coach() to authenticated;
+grant execute on function end_my_coach_link() to authenticated;

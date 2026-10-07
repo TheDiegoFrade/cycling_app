@@ -6,6 +6,10 @@ import { ZONE_NAMES } from '../../core/zones';
 import type { PowerZone } from '../../core/zones';
 import { beeper } from '../audio';
 import { appState } from '../state';
+import { refresh } from '../router';
+import { escapeHtml } from '../workout-cover';
+import { COACH_TIER_LABELS } from '../../core/coach-invite';
+import { endMyCoachLink } from '../../sync/coach-link';
 import { wireDatePicker } from '../date-picker';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
 
@@ -175,6 +179,20 @@ export function renderPerfil(container: HTMLElement): void {
               </div>
             </div>
 
+            ${
+              appState.coach.myCoach
+                ? `
+            <div class="panel perfil-panel">
+              <h2 class="perfil-h2">Tu coach</h2>
+              <div class="perfil-account-row">
+                <div><div>${escapeHtml(appState.coach.myCoach.coachName ?? 'Tu coach')}</div><div class="perfil-alert-hint">Plan: ${COACH_TIER_LABELS[appState.coach.myCoach.tier]} · desde ${new Date(appState.coach.myCoach.startedAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}</div></div>
+                <button id="coach-unlink" class="perfil-danger-link" style="margin:0">Desvincularme</button>
+              </div>
+              <div id="coach-unlink-result"></div>
+            </div>`
+                : ''
+            }
+
             <div class="panel perfil-panel">
               <h2 class="perfil-h2">Cuentas conectadas</h2>
               ${
@@ -317,6 +335,19 @@ export function renderPerfil(container: HTMLElement): void {
         appState.persistSettings();
         paint();
       });
+    });
+
+    container.querySelector('#coach-unlink')?.addEventListener('click', async () => {
+      const name = appState.coach.myCoach?.coachName ?? 'tu coach';
+      if (!window.confirm(`¿Desvincularte de ${name}? Deja de ver tus datos en este momento.`)) return;
+      const resultEl = container.querySelector<HTMLElement>('#coach-unlink-result')!;
+      try {
+        await endMyCoachLink();
+        appState.coach = { ...appState.coach, myCoach: null };
+        refresh(); // repinta también la barra lateral (tarjeta "Tu coach")
+      } catch (err) {
+        resultEl.innerHTML = `<div class="error-box">${escapeHtml(err instanceof Error ? err.message : String(err))}</div>`;
+      }
     });
 
     container.querySelector('#strava-btn')?.addEventListener('click', () => {
