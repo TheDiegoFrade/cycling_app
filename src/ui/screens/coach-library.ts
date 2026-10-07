@@ -3,6 +3,7 @@
 // por bloque) y de fuerza/movilidad/flexibilidad (ejercicios con dosis y
 // link a video). De aquí elige al agregar entrenamientos en la semana de
 // un atleta (screens/coach-week.ts).
+import { errorMessage } from '../coach-ui';
 import {
   MAX_EXERCISES,
   TEMPLATE_KINDS,
@@ -284,7 +285,7 @@ export function renderCoachLibrary(container: HTMLElement): void {
     try {
       templates = await listTemplates(coachId!);
     } catch (err) {
-      errors = [`No se pudo cargar tu biblioteca: ${err instanceof Error ? err.message : String(err)}`];
+      errors = [`No se pudo cargar tu biblioteca: ${errorMessage(err)}`];
       templates = [];
     }
   }
@@ -340,7 +341,7 @@ export function renderCoachLibrary(container: HTMLElement): void {
           await deleteTemplate(coachId!, t.id);
           message = 'Plantilla borrada.';
         } catch (err) {
-          errors = [`No se pudo borrar: ${err instanceof Error ? err.message : String(err)}`];
+          errors = [`No se pudo borrar: ${errorMessage(err)}`];
         }
         await reload();
         render();
@@ -431,7 +432,7 @@ export function renderCoachLibrary(container: HTMLElement): void {
         filter = 'all';
         await reload();
       } catch (err) {
-        errors = [`No se pudo guardar: ${err instanceof Error ? err.message : String(err)}`];
+        errors = [`No se pudo guardar: ${errorMessage(err)}`];
       }
       busy = false;
       render();

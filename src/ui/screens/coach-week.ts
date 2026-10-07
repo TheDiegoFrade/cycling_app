@@ -16,7 +16,7 @@ import type { Interval, Workout } from '../../core/types';
 import { listAthleteSessions } from '../../sync/coach-athletes';
 import { requestCoachWeek } from '../../sync/coach-ai';
 import type { CoachWeekContext } from '../../sync/coach-ai';
-import { COACH_OVERVIEW_DAYS, sinceIso, todayUtcKey } from '../coach-ui';
+import { COACH_OVERVIEW_DAYS, sinceIso, todayUtcKey, errorMessage } from '../coach-ui';
 import type { PlanWeekItem } from '../../core/plan-week';
 import { validateWorkout } from '../../core/validator';
 import { listCoachAthletes } from '../../sync/coach-athletes';
@@ -113,7 +113,7 @@ export function renderCoachWeek(container: HTMLElement): void {
       week = next;
       syncFromWeek();
     } catch (err) {
-      error = `No se pudo cargar la semana: ${err instanceof Error ? err.message : String(err)}`;
+      error = `No se pudo cargar la semana: ${errorMessage(err)}`;
     }
     loading = false;
     render();
@@ -140,7 +140,7 @@ export function renderCoachWeek(container: HTMLElement): void {
         status = 'Borrador guardado';
       })
       .catch((err) => {
-        error = `No se pudo guardar: ${err instanceof Error ? err.message : String(err)}`;
+        error = `No se pudo guardar: ${errorMessage(err)}`;
         status = '';
       })
       .finally(() => {
@@ -490,7 +490,7 @@ export function renderCoachWeek(container: HTMLElement): void {
         aiNote = `La IA propuso ${proposed.length} ${proposed.length === 1 ? 'entrenamiento' : 'entrenamientos'}${dropped ? ` (descarté ${dropped} que no ${dropped === 1 ? 'era válido' : 'eran válidos'})` : ''}. Revísalos y publica cuando esté lista.`;
       } catch (err) {
         aiNote = '';
-        error = `La IA no pudo proponer la semana: ${err instanceof Error ? err.message : String(err)}`;
+        error = `La IA no pudo proponer la semana: ${errorMessage(err)}`;
       }
       aiBusy = false;
       render();
@@ -504,7 +504,7 @@ export function renderCoachWeek(container: HTMLElement): void {
         await week.discard();
         syncFromWeek();
       } catch (err) {
-        error = `No se pudo descartar: ${err instanceof Error ? err.message : String(err)}`;
+        error = `No se pudo descartar: ${errorMessage(err)}`;
       }
       busy = false;
       render();
@@ -533,7 +533,7 @@ export function renderCoachWeek(container: HTMLElement): void {
         render();
         return;
       } catch (err) {
-        error = err instanceof Error ? err.message : String(err);
+        error = errorMessage(err);
       }
       busy = false;
       render();

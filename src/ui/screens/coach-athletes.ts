@@ -19,6 +19,7 @@ import {
   sourceLabel,
   todayUtcKey,
   tsbColor,
+  errorMessage,
 } from '../coach-ui';
 import { appState } from '../state';
 import { escapeHtml } from '../workout-cover';
@@ -160,7 +161,7 @@ export function renderCoachAthletes(container: HTMLElement): void {
       sessions.forEach((s) => byAthlete.set(s.userId, [...(byAthlete.get(s.userId) ?? []), s]));
       rows = athletes.map((athlete) => ({ athlete, summary: summarizeAthlete(byAthlete.get(athlete.userId) ?? [], todayKey, athlete.ftpConfirmed) }));
     } catch (err) {
-      error = `No se pudieron cargar tus atletas: ${err instanceof Error ? err.message : String(err)}`;
+      error = `No se pudieron cargar tus atletas: ${errorMessage(err)}`;
     }
     render();
   })();

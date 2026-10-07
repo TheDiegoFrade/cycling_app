@@ -9,7 +9,7 @@ import { listCoachAthletes } from '../../sync/coach-athletes';
 import type { CoachAthlete } from '../../sync/coach-athletes';
 import { fetchCoachReview, loadMonthlyReport, saveReview, setReviewStatus } from '../../sync/monthly-reviews';
 import type { MonthlyReview, ReviewContent } from '../../sync/monthly-reviews';
-import { athleteName, disciplineLabel, todayUtcKey } from '../coach-ui';
+import { athleteName, disciplineLabel, todayUtcKey, errorMessage } from '../coach-ui';
 import { renderReportSheet } from '../monthly-report-view';
 import { getRouteParam, navigate } from '../router';
 import { appState } from '../state';
@@ -132,7 +132,7 @@ export function renderCoachReview(container: HTMLElement): () => void {
       },
       (err) => {
         dirty = true;
-        if (!stale()) setStatus(`No se pudo guardar: ${err instanceof Error ? err.message : String(err)}`);
+        if (!stale()) setStatus(`No se pudo guardar: ${errorMessage(err)}`);
       },
     );
     return run;
@@ -240,7 +240,7 @@ export function renderCoachReview(container: HTMLElement): () => void {
       review = await setReviewStatus(review.id, 'published');
       status = 'Publicada';
     } catch (err) {
-      status = `No se pudo publicar: ${err instanceof Error ? err.message : String(err)}`;
+      status = `No se pudo publicar: ${errorMessage(err)}`;
     } finally {
       busy = false;
       if (!stale()) render();
@@ -255,7 +255,7 @@ export function renderCoachReview(container: HTMLElement): () => void {
       review = await setReviewStatus(review.id, 'draft');
       status = 'De vuelta en borrador';
     } catch (err) {
-      status = `No se pudo cambiar: ${err instanceof Error ? err.message : String(err)}`;
+      status = `No se pudo cambiar: ${errorMessage(err)}`;
     } finally {
       busy = false;
       if (!stale()) render();
@@ -288,7 +288,7 @@ export function renderCoachReview(container: HTMLElement): () => void {
         : { verdict: suggestVerdict(suggested), coachMessage: '', findings: suggested.map((f) => ({ ...f })), goals: [], coachName: appState.profile.name ?? null };
       render();
     } catch (err) {
-      shell(`<div class="error-box">No se pudo armar el reporte: ${escapeHtml(err instanceof Error ? err.message : String(err))}</div>`);
+      shell(`<div class="error-box">No se pudo armar el reporte: ${escapeHtml(errorMessage(err))}</div>`);
     }
   })();
 

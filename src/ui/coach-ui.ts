@@ -88,3 +88,12 @@ export function todayUtcKey(): string {
 export function sinceIso(days: number): string {
   return new Date(Date.now() - days * 86400000).toISOString();
 }
+
+/** Texto de un error para mostrarlo. Los de Supabase (PostgREST) son
+ * objetos con `message`, no instancias de Error: String() daría
+ * "[object Object]". */
+export function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === 'object' && 'message' in err && typeof (err as { message: unknown }).message === 'string') return (err as { message: string }).message;
+  return String(err);
+}

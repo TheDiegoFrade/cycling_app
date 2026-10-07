@@ -5,7 +5,7 @@
 import { isMonthKey, monthLabel, VERDICT_LABELS } from '../../core/monthly-report';
 import { listPublishedReviews, loadMonthlyReport } from '../../sync/monthly-reviews';
 import type { MonthlyReview } from '../../sync/monthly-reviews';
-import { todayUtcKey } from '../coach-ui';
+import { todayUtcKey, errorMessage } from '../coach-ui';
 import { renderReportSheet } from '../monthly-report-view';
 import { getRouteParam } from '../router';
 import { appState } from '../state';
@@ -70,7 +70,7 @@ export function renderReview(container: HTMLElement): () => void {
       );
       container.querySelector('#rv-print')?.addEventListener('click', () => window.print());
     } catch (err) {
-      shell(`<div class="error-box">No se pudo cargar: ${escapeHtml(err instanceof Error ? err.message : String(err))}</div>`);
+      shell(`<div class="error-box">No se pudo cargar: ${escapeHtml(errorMessage(err))}</div>`);
     }
   })();
 
