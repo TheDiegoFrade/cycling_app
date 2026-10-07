@@ -12,9 +12,10 @@ export const ZONE_NAMES: Record<PowerZone, string> = {
   6: 'Anaeróbico',
 };
 
-/** Altura (%) de la barra de un bloque según su zona — sube con la zona para
- * que el perfil se lea aunque no se distinga el color. Ver TORQ_DESIGN.md,
- * "Zonas". Compartida por WorkoutCover y la línea de tiempo de Sesión en vivo. */
+/** Altura (%) "de referencia" de cada zona — ya no se usa directo para
+ * dibujar barras (eso aplanaba dos bloques de zona 2 a 110W y 120W a la
+ * misma altura, perdiendo la diferencia real entre ellos). Se queda como
+ * los puntos de corte que alimentan powerPctToHeightPct de abajo. */
 export const ZONE_HEIGHT_PCT: Record<PowerZone, number> = {
   1: 25,
   2: 40,
@@ -23,6 +24,36 @@ export const ZONE_HEIGHT_PCT: Record<PowerZone, number> = {
   5: 85,
   6: 100,
 };
+
+/** Mismos cortes que powerZone(), con el techo de cada zona anclado a su
+ * ZONE_HEIGHT_PCT — pero interpolado linealmente entre cortes en vez de
+ * "saltado" a un escalón por zona, para que dos bloques de la misma zona a
+ * distinta potencia (ej. Z2 a 110W vs 120W) se lean distinto en vez de
+ * verse como la misma barra. Compartida por WorkoutCover, el timeline
+ * estático y la línea de potencia en vivo (antes vivía solo ahí, duplicada
+ * de hecho). */
+const POWER_PCT_HEIGHT_POINTS: readonly [number, number][] = [
+  [0, 0],
+  [55, 25],
+  [75, 40],
+  [90, 55],
+  [105, 70],
+  [120, 85],
+  [150, 100],
+];
+
+export function powerPctToHeightPct(powerPct: number): number {
+  const points = POWER_PCT_HEIGHT_POINTS;
+  if (powerPct <= points[0][0]) return points[0][1];
+  for (let i = 1; i < points.length; i++) {
+    const [p1, h1] = points[i];
+    if (powerPct <= p1) {
+      const [p0, h0] = points[i - 1];
+      return h0 + ((powerPct - p0) / (p1 - p0)) * (h1 - h0);
+    }
+  }
+  return 100;
+}
 
 /** Zona de potencia (1–6, gris→azul→verde→amarillo→naranja→rojo) a partir del
  * % de FTP. Umbrales estilo Coggan: recuperación, resistencia, tempo, umbral,

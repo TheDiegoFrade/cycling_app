@@ -4,7 +4,7 @@ import { validateWorkout } from '../../core/validator';
 import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import { estimateWorkout } from '../../core/workout-estimate';
 import type { Sample, Workout } from '../../core/types';
-import { ZONE_HEIGHT_PCT, powerZone } from '../../core/zones';
+import { powerZone, powerPctToHeightPct } from '../../core/zones';
 import { saveWorkout } from '../../storage/workout-store';
 import { listSessions, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
@@ -13,12 +13,18 @@ import { downloadSessionSamples, pushSessionToCloud } from '../../sync/cloud-syn
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
 import { importStravaActivity, isStravaConfigured, listStravaActivities } from '../../sync/strava';
 import { pushWorkoutToCloud } from '../../sync/workout-sync';
-import { navigate, refresh } from '../router';
+import { refresh } from '../router';
 import { appState } from '../state';
-import { renderWorkoutCover } from '../workout-cover';
+import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { wireDatePicker } from '../date-picker';
+import { renderCoachSection } from '../coach';
+import { isSupabaseConfigured } from '../../supabase/client';
+import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
 
 const STRAVA_IMPORT_WINDOW_DAYS = 60;
+// Tope de entrenamientos (agendados + completados, combinados) que puede
+// mostrar un mismo día — ver wireDragAndDrop y "+ Crear nuevo".
+const MAX_PER_DAY = 2;
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const MONTH_WEEKDAY_HEADER = [1, 2, 3, 4, 5, 6, 0].map((i) => DAY_NAMES[i]); // lunes primero, solo para el header de la vista de mes
 const MONTH_NAMES_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -86,6 +92,18 @@ interface CalendarDone {
    * o grabado) se veía como texto plano al lado de los días agendados, que
    * sí muestran su cover — ver reportHtml en weekCellHtml/monthCellHtml. */
   coverHtml?: string;
+  /** Id real de la sesión local (storage/session-store) — solo presente si
+   * existe localmente, nunca para resúmenes que solo viven en la nube. Sin
+   * esto no hay forma de mover la sesión de día (no hay qué actualizar). */
+  sessionId?: string;
+  /** Id de la sesión en `sessions` (nube) — solo para resúmenes cloud-only,
+   * así loadVisibleCloudCovers sabe cuál entrada de un día con varias
+   * actualizar cuando resuelve su cover real. */
+  cloudSessionId?: string;
+  /** true si vino de importar una actividad de Strava — esas nunca se
+   * pueden arrastrar a otro día, Strava es la fuente real de su fecha, no
+   * Torq (ver wireDragAndDrop). */
+  isStrava?: boolean;
 }
 
 /** Mismo lenguaje visual que renderWorkoutCover (barras por zona), pero a
@@ -99,8 +117,9 @@ function renderSessionCover(samples: readonly Sample[], ftp: number): string {
   for (let i = 0; i < samples.length; i += chunkSize) {
     const chunk = samples.slice(i, i + chunkSize);
     const avgPower = chunk.reduce((sum, s) => sum + s.power, 0) / chunk.length;
-    const zone = powerZone((avgPower / ftp) * 100);
-    bars.push(`<div class="workout-cover-bar" style="height:${ZONE_HEIGHT_PCT[zone]}%;background:var(--z${zone})"></div>`);
+    const avgPct = (avgPower / ftp) * 100;
+    const zone = powerZone(avgPct);
+    bars.push(`<div class="workout-cover-bar" style="height:${powerPctToHeightPct(avgPct)}%;background:var(--z${zone})"></div>`);
   }
   return `<div class="workout-cover workout-cover-sm">${bars.join('')}</div>`;
 }
@@ -112,12 +131,14 @@ function localToCalendarDone(s: SessionRecord): CalendarDone {
     durationS: s.samples.length,
     tss: a.trainingStressScore ?? 0,
     coverHtml: renderSessionCover(s.samples, s.ftp),
+    sessionId: s.id,
+    isStrava: s.stravaActivityId !== undefined,
   };
 }
 
 function cloudToCalendarDone(s: CloudSessionSummary): CalendarDone {
   const durationS = Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000);
-  return { workoutName: s.workoutName, durationS, tss: s.trainingStressScore ?? 0 };
+  return { workoutName: s.workoutName, durationS, tss: s.trainingStressScore ?? 0, cloudSessionId: s.id };
 }
 
 function errorsHtml(errors: string[]): string {
@@ -131,12 +152,19 @@ export function renderCalendar(container: HTMLElement): () => void {
   let viewMode: ViewMode = 'week';
   let weekStart = startOfWeek(today);
   let monthAnchor = new Date(today.getFullYear(), today.getMonth(), 1);
-  let completedByDate = new Map<string, CalendarDone>();
+  // Hasta MAX_PER_DAY entradas por día (ver wireDragAndDrop) — por eso es
+  // un arreglo y no un solo valor como antes.
+  let completedByDate = new Map<string, CalendarDone[]>();
+  /** SessionRecord real por id — completedByDate solo trae el resumen
+   * derivado (CalendarDone), pero mover una sesión de día (drag-and-drop)
+   * necesita mutar y volver a guardar el registro real. */
+  let sessionsById = new Map<string, SessionRecord>();
   /** Resumen crudo (con fitPath) de las sesiones que solo viven en la nube,
    * indexado por fecha — completedByDate ya no trae lo necesario para pedir
    * el .fit, así que esto es lo que usa loadVisibleCloudCovers para saber
-   * a cuáles pedirles el cover de verdad en vez de dejarlas en texto plano. */
-  let cloudOnlyByDate = new Map<string, CloudSessionSummary>();
+   * a cuáles pedirles el cover de verdad en vez de dejarlas en texto plano.
+   * Arreglo por si un día tiene más de una sesión cloud-only. */
+  let cloudOnlyByDate = new Map<string, CloudSessionSummary[]>();
   /** Evita re-pedir el .fit de una fecha ya intentada (con o sin éxito) cada
    * vez que se repinta — paint() llama a loadVisibleCloudCovers en cada
    * render, incluido el que dispara la propia descarga al terminar. */
@@ -145,6 +173,47 @@ export function renderCalendar(container: HTMLElement): () => void {
    * null si está cerrado — un solo panel compartido por semana y mes en vez
    * de uno por celda, ver createPanelHtml/wireCreatePanel. */
   let createDate: string | null = null;
+  /** Id del workout cuyo detalle (nombre + descripción + stats) se muestra
+   * en el panel flotante, null si está cerrado — ver workoutDetailHtml. */
+  let detailWorkoutId: string | null = null;
+
+  function intervalBlockHtml(iv: Workout['intervals'][number]): string {
+    // Bloques cortos (ej. activaciones de 8s) redondeaban a "0 min", que no
+    // dice nada — segundos para menos de 1 min, minutos para el resto.
+    const durationLabel = iv.duration_s < 60 ? `${iv.duration_s}s` : `${Math.round(iv.duration_s / 60)} min`;
+    const power = iv.ramp_to_pct ? `${iv.power_pct}% → ${iv.ramp_to_pct}% FTP` : `${iv.power_pct}% FTP`;
+    const cadence = iv.cadence_min || iv.cadence_max ? ` · cadencia ${iv.cadence_min ?? ''}${iv.cadence_min && iv.cadence_max ? '-' : ''}${iv.cadence_max ?? ''}` : '';
+    return `
+      <div class="workout-detail-block">
+        <div class="workout-detail-block-head">
+          <span class="workout-detail-block-name">${escapeHtml(iv.name || iv.type)}</span>
+          <span class="live-col-label">${durationLabel}</span>
+        </div>
+        <div class="live-col-label">${power}${escapeHtml(cadence)}</div>
+      </div>`;
+  }
+
+  function workoutDetailHtml(): string {
+    if (!detailWorkoutId) return '';
+    const w = appState.workouts.find((x) => x.id === detailWorkoutId);
+    if (!w) return '';
+    const est = estimateWorkout(w.intervals, appState.profile.ftp);
+    return `
+      <div class="modal-backdrop" id="workout-detail-backdrop">
+        <div class="panel plan-coach-modal" id="workout-detail-panel">
+          <div class="plan-create-head">
+            <h2 class="perfil-h2" style="margin:0">${escapeHtml(w.name)}</h2>
+            <button class="plan-create-close" id="workout-detail-close" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="live-col-label">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS</div>
+          <div class="workout-detail-blocks" style="margin-top:12px">
+            ${w.intervals.map(intervalBlockHtml).join('')}
+          </div>
+          <div class="perfil-h2" style="margin-top:14px;font-size:15px">Sobre este entrenamiento</div>
+          ${w.description ? `<p class="hint" style="margin-top:4px">${escapeHtml(w.description)}</p>` : '<p class="hint" style="margin-top:4px">Sin notas adicionales para este entrenamiento.</p>'}
+        </div>
+      </div>`;
+  }
 
   function createPanelHtml(): string {
     if (!createDate) return '';
@@ -167,40 +236,80 @@ export function renderCalendar(container: HTMLElement): () => void {
       </div>`;
   }
 
-  function weekCellHtml(d: Date, key: string, isToday: boolean, scheduled: Workout | undefined, completed: CalendarDone | undefined): string {
-    const est = scheduled ? estimateWorkout(scheduled.intervals, appState.profile.ftp) : null;
-    const body = scheduled
-      ? `
-      <button class="plan-day-cover" data-workout-id="${scheduled.id}" title="${scheduled.name} — Ver en Historial">${renderWorkoutCover(scheduled.intervals, 'sm')}</button>
-      <div class="plan-day-name">${scheduled.name}</div>
-      <div class="live-col-label">${est ? `${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS` : ''}</div>
-    `
-      : completed
-        ? `
-      ${completed.coverHtml ? `<div class="plan-day-cover">${completed.coverHtml}</div>` : ''}
-      <div class="plan-day-name">${completed.workoutName}</div>
-      <div class="live-col-label">completado</div>
-    `
-        : `<button class="plan-day-add" data-create-date="${key}">+ Crear nuevo</button>`;
-    const miniActions = scheduled || completed ? `<div class="plan-day-actions"><button class="plan-day-mini-add" data-create-date="${key}" title="Crear nuevo">+</button></div>` : '';
+  type DayEntry = { kind: 'scheduled'; workout: Workout } | { kind: 'completed'; done: CalendarDone };
+
+  function dayEntries(scheduledList: Workout[], completedList: CalendarDone[]): DayEntry[] {
+    return [
+      ...scheduledList.map((workout): DayEntry => ({ kind: 'scheduled', workout })),
+      ...completedList.map((done): DayEntry => ({ kind: 'completed', done })),
+    ];
+  }
+
+  /** Atributos drag — solo agendados (siempre movibles) y completados
+   * locales que NO vengan de Strava (esa es su fuente real de fecha, ver
+   * wireDragAndDrop). Sesiones cloud-only tampoco: no hay registro local
+   * que mutar. */
+  function dragAttrs(entry: DayEntry): string {
+    if (entry.kind === 'scheduled') return `draggable="true" data-drag-kind="workout" data-drag-id="${entry.workout.id}"`;
+    const c = entry.done;
+    if (!c.sessionId || c.isStrava) return '';
+    return `draggable="true" data-drag-kind="session" data-drag-id="${c.sessionId}"`;
+  }
+
+  function weekCellHtml(d: Date, key: string, isToday: boolean, scheduledList: Workout[], completedList: CalendarDone[]): string {
+    const entries = dayEntries(scheduledList, completedList);
+    const anyCompleted = completedList.length > 0;
+    const entryHtml = (entry: DayEntry): string => {
+      if (entry.kind === 'scheduled') {
+        const w = entry.workout;
+        const est = estimateWorkout(w.intervals, appState.profile.ftp);
+        return `
+          <div class="plan-day-entry" ${dragAttrs(entry)}>
+            <button class="plan-day-cover" data-workout-id="${w.id}" title="${escapeHtml(w.name)} — Ver detalle">${renderWorkoutCover(w.intervals, 'sm')}</button>
+            <div class="plan-day-name">${escapeHtml(w.name)}</div>
+            <div class="live-col-label">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS</div>
+          </div>`;
+      }
+      const c = entry.done;
+      return `
+        <div class="plan-day-entry" ${dragAttrs(entry)}${c.isStrava ? ' title="Viene de Strava — su fecha no se puede mover aquí"' : ''}>
+          ${c.coverHtml ? `<div class="plan-day-cover">${c.coverHtml}</div>` : ''}
+          <div class="plan-day-name">${escapeHtml(c.workoutName)}</div>
+          <div class="live-col-label">completado${c.isStrava ? ' · Strava' : ''}</div>
+        </div>`;
+    };
+    const body = entries.length > 0 ? entries.map(entryHtml).join('') : `<button class="plan-day-add" data-create-date="${key}">+ Crear nuevo</button>`;
+    const miniActions =
+      entries.length > 0 && entries.length < MAX_PER_DAY
+        ? `<div class="plan-day-actions"><button class="plan-day-mini-add" data-create-date="${key}" title="Agregar otro">+</button></div>`
+        : '';
     return `
-      <div class="plan-day${isToday ? ' today' : ''}${completed ? ' done' : ''}">
-        <div class="plan-day-head"><span class="${isToday ? 'plan-day-today-label' : ''}">${fmtDayShort(d)}</span><span class="live-col-label">${completed ? 'Hecho' : isToday ? 'Hoy' : ''}</span></div>
+      <div class="plan-day${isToday ? ' today' : ''}${anyCompleted ? ' done' : ''}" data-drop-date="${key}">
+        <div class="plan-day-head"><span class="${isToday ? 'plan-day-today-label' : ''}">${fmtDayShort(d)}</span><span class="live-col-label">${anyCompleted ? 'Hecho' : isToday ? 'Hoy' : ''}</span></div>
         ${body}
         ${miniActions}
       </div>`;
   }
 
-  function monthCellHtml(d: Date, key: string, isToday: boolean, inCurrentMonth: boolean, scheduled: Workout | undefined, completed: CalendarDone | undefined): string {
-    const body = scheduled
-      ? `<button class="plan-month-cover" data-workout-id="${scheduled.id}" title="${scheduled.name} — Ver en Historial">${renderWorkoutCover(scheduled.intervals, 'sm')}</button>`
-      : completed
-        ? completed.coverHtml
-          ? `<div class="plan-month-cover" title="${completed.workoutName}">${completed.coverHtml}</div>`
-          : `<div class="plan-month-done-label" title="${completed.workoutName}">${completed.workoutName}</div>`
+  function monthCellHtml(d: Date, key: string, isToday: boolean, inCurrentMonth: boolean, scheduledList: Workout[], completedList: CalendarDone[]): string {
+    const entries = dayEntries(scheduledList, completedList);
+    const anyCompleted = completedList.length > 0;
+    const entryHtml = (entry: DayEntry): string => {
+      if (entry.kind === 'scheduled') {
+        const w = entry.workout;
+        return `<button class="plan-month-cover" data-workout-id="${w.id}" ${dragAttrs(entry)} title="${escapeHtml(w.name)} — Ver detalle">${renderWorkoutCover(w.intervals, 'sm')}</button>`;
+      }
+      const c = entry.done;
+      return c.coverHtml
+        ? `<div class="plan-month-cover" ${dragAttrs(entry)} title="${escapeHtml(c.workoutName)}">${c.coverHtml}</div>`
+        : `<div class="plan-month-done-label" ${dragAttrs(entry)} title="${escapeHtml(c.workoutName)}">${escapeHtml(c.workoutName)}</div>`;
+    };
+    const body =
+      entries.length > 0
+        ? `<div class="plan-month-entries">${entries.map(entryHtml).join('')}</div>`
         : `<button class="plan-month-add" data-create-date="${key}" title="Crear nuevo" aria-label="Crear nuevo">+</button>`;
     return `
-      <div class="plan-month-day${isToday ? ' today' : ''}${completed ? ' done' : ''}${inCurrentMonth ? '' : ' outside'}">
+      <div class="plan-month-day${isToday ? ' today' : ''}${anyCompleted ? ' done' : ''}${inCurrentMonth ? '' : ' outside'}" data-drop-date="${key}">
         <div class="plan-month-daynum">${d.getDate()}</div>
         ${body}
       </div>`;
@@ -214,15 +323,21 @@ export function renderCalendar(container: HTMLElement): () => void {
     days.forEach((d) => {
       const key = toDateKey(d);
       if (cloudCoverAttempted.has(key)) return;
-      const summary = cloudOnlyByDate.get(key);
-      if (!summary || !summary.fitPath) return;
+      const summaries = cloudOnlyByDate.get(key) ?? [];
+      if (summaries.length === 0) return;
       cloudCoverAttempted.add(key);
-      void downloadSessionSamples(summary.fitPath).then((samples) => {
-        if (!samples || samples.length === 0) return;
-        const existing = completedByDate.get(key);
-        if (!existing) return;
-        completedByDate.set(key, { ...existing, coverHtml: renderSessionCover(samples, summary.ftp) });
-        paint();
+      summaries.forEach((summary) => {
+        if (!summary.fitPath) return;
+        void downloadSessionSamples(summary.fitPath).then((samples) => {
+          if (!samples || samples.length === 0) return;
+          const existing = completedByDate.get(key);
+          if (!existing) return;
+          completedByDate.set(
+            key,
+            existing.map((e) => (e.cloudSessionId === summary.id ? { ...e, coverHtml: renderSessionCover(samples, summary.ftp) } : e)),
+          );
+          paint();
+        });
       });
     });
   }
@@ -241,20 +356,22 @@ export function renderCalendar(container: HTMLElement): () => void {
         const key = toDateKey(d);
         const isToday = key === todayKey;
         const inCurrentMonth = !isMonth || d.getMonth() === monthAnchor.getMonth();
-        const scheduled = appState.workouts.find((w) => w.scheduledDate === key);
-        const completed = completedByDate.get(key);
-        const est = scheduled ? estimateWorkout(scheduled.intervals, appState.profile.ftp) : null;
+        const scheduledList = appState.workouts.filter((w) => w.scheduledDate === key);
+        const completedList = completedByDate.get(key) ?? [];
         if (!isMonth || inCurrentMonth) {
-          if (est) {
+          scheduledList.forEach((w) => {
+            const est = estimateWorkout(w.intervals, appState.profile.ftp);
             plannedS += est.durationS;
             plannedTss += est.tss ?? 0;
-          }
-          if (completed) {
-            doneS += completed.durationS;
-            doneTss += completed.tss;
-          }
+          });
+          completedList.forEach((c) => {
+            doneS += c.durationS;
+            doneTss += c.tss;
+          });
         }
-        return isMonth ? monthCellHtml(d, key, isToday, inCurrentMonth, scheduled, completed) : weekCellHtml(d, key, isToday, scheduled, completed);
+        return isMonth
+          ? monthCellHtml(d, key, isToday, inCurrentMonth, scheduledList, completedList)
+          : weekCellHtml(d, key, isToday, scheduledList, completedList);
       })
       .join('');
 
@@ -263,8 +380,19 @@ export function renderCalendar(container: HTMLElement): () => void {
     const rangeLabel = isMonth ? fmtMonthLabel(monthAnchor) : fmtRange(days[0], days[6]);
     const totalsLabel = isMonth ? 'Mes' : 'Semana';
 
+    const needsOnboarding = isSupabaseConfigured() && !!appState.user && !isCoachProfileComplete(appState.profile);
+
     container.innerHTML = `
       <div class="screen plan-screen">
+        ${
+          needsOnboarding
+            ? `<div class="recovery-banner">
+                <p><strong>Te falta el cuestionario del coach</strong> — lo necesitas para que el coach pueda crear tu plan de entrenamiento.</p>
+                <div class="row-actions"><button class="primary" id="plan-open-onboarding">Contestarlo ahora</button></div>
+              </div>`
+            : ''
+        }
+        <div id="coach-slot"></div>
         <div class="plan-head">
           <h1>Plan</h1>
           <div class="row-actions" style="align-items:center;margin:0;flex-wrap:wrap">
@@ -287,6 +415,7 @@ export function renderCalendar(container: HTMLElement): () => void {
         </div>
 
         ${createPanelHtml()}
+        ${workoutDetailHtml()}
 
         <div class="panel plan-manual-done">
           <h2 class="perfil-h2" style="margin:0">Agregar entrenamiento completado</h2>
@@ -320,6 +449,11 @@ export function renderCalendar(container: HTMLElement): () => void {
 
     wireDayButtons();
     wireCreatePanel();
+    wireDragAndDrop();
+    renderCoachSection(container, paint);
+    container.querySelector('#plan-open-onboarding')?.addEventListener('click', () => {
+      openOnboardingForm(() => paint(), true);
+    });
 
     container.querySelector('#view-week')?.addEventListener('click', () => {
       if (viewMode === 'week') return;
@@ -349,8 +483,21 @@ export function renderCalendar(container: HTMLElement): () => void {
 
     container.querySelectorAll<HTMLButtonElement>('[data-workout-id].plan-day-cover, [data-workout-id].plan-month-cover').forEach((btn) => {
       btn.addEventListener('click', () => {
-        navigate('library', btn.dataset.workoutId);
+        detailWorkoutId = btn.dataset.workoutId!;
+        paint();
       });
+    });
+
+    const detailBackdrop = container.querySelector<HTMLElement>('#workout-detail-backdrop');
+    detailBackdrop?.querySelector('#workout-detail-close')?.addEventListener('click', () => {
+      detailWorkoutId = null;
+      paint();
+    });
+    detailBackdrop?.addEventListener('click', (e) => {
+      if (e.target === detailBackdrop) {
+        detailWorkoutId = null;
+        paint();
+      }
     });
   }
 
@@ -378,6 +525,11 @@ export function renderCalendar(container: HTMLElement): () => void {
     panel.querySelector('#create-submit')?.addEventListener('click', async () => {
       const date = createDate;
       if (!date) return;
+      const existingCount = appState.workouts.filter((w) => w.scheduledDate === date).length + (completedByDate.get(date)?.length ?? 0);
+      if (existingCount >= MAX_PER_DAY) {
+        createErrors.innerHTML = errorsHtml([`Ese día ya tiene ${MAX_PER_DAY} entrenamientos — elige otra fecha.`]);
+        return;
+      }
       const activeChip = panel.querySelector<HTMLButtonElement>('.plan-chip.on');
       const t = findTemplate(activeChip?.dataset.template ?? WORKOUT_TEMPLATES[0].id);
       if (!t) return;
@@ -411,6 +563,11 @@ export function renderCalendar(container: HTMLElement): () => void {
       input.value = '';
       const date = createDate;
       if (!file || !date) return;
+      const existingCount = appState.workouts.filter((w) => w.scheduledDate === date).length + (completedByDate.get(date)?.length ?? 0);
+      if (existingCount >= MAX_PER_DAY) {
+        createErrors.innerHTML = errorsHtml([`Ese día ya tiene ${MAX_PER_DAY} entrenamientos — elige otra fecha.`]);
+        return;
+      }
       const { workout: imported, errors } = await importWorkoutFile(file, appState.profile.ftp);
       createErrors.innerHTML = errorsHtml(errors);
       if (!imported) return;
@@ -426,6 +583,97 @@ export function renderCalendar(container: HTMLElement): () => void {
       createDate = null;
       paint();
     });
+  }
+
+  /** Arrastrar un workout agendado o una sesión local no-Strava a otro día.
+   * Agendados: siempre movibles (es un plan futuro). Completados: solo si
+   * son locales y no vienen de Strava — esa es su fuente real de fecha, ver
+   * dragAttrs. Tope de MAX_PER_DAY por día, igual para ambos tipos. */
+  function wireDragAndDrop(): void {
+    let dragPayload: { kind: 'workout' | 'session'; id: string } | null = null;
+    const importErrors = container.querySelector<HTMLElement>('#plan-import-errors');
+
+    function showDropError(message: string): void {
+      if (!importErrors) return;
+      importErrors.innerHTML = errorsHtml([message]);
+      setTimeout(() => {
+        if (importErrors.innerHTML.includes(escapeHtml(message))) importErrors.innerHTML = '';
+      }, 3000);
+    }
+
+    container.querySelectorAll<HTMLElement>('[data-drag-kind]').forEach((el) => {
+      el.addEventListener('dragstart', (e) => {
+        dragPayload = { kind: el.dataset.dragKind as 'workout' | 'session', id: el.dataset.dragId! };
+        e.dataTransfer?.setData('text/plain', el.dataset.dragId!);
+        if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+        el.classList.add('dragging');
+      });
+      el.addEventListener('dragend', () => {
+        dragPayload = null;
+        el.classList.remove('dragging');
+      });
+    });
+
+    container.querySelectorAll<HTMLElement>('[data-drop-date]').forEach((cell) => {
+      cell.addEventListener('dragover', (e) => {
+        if (!dragPayload) return;
+        e.preventDefault();
+        cell.classList.add('drag-over');
+      });
+      cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
+      cell.addEventListener('drop', (e) => {
+        e.preventDefault();
+        cell.classList.remove('drag-over');
+        const payload = dragPayload;
+        dragPayload = null;
+        if (!payload) return;
+        const targetKey = cell.dataset.dropDate!;
+        void handleDrop(payload, targetKey, showDropError);
+      });
+    });
+  }
+
+  async function handleDrop(payload: { kind: 'workout' | 'session'; id: string }, targetKey: string, onError: (message: string) => void): Promise<void> {
+    const existingCount = appState.workouts.filter((w) => w.scheduledDate === targetKey).length + (completedByDate.get(targetKey)?.length ?? 0);
+
+    if (payload.kind === 'workout') {
+      const w = appState.workouts.find((x) => x.id === payload.id);
+      if (!w || w.scheduledDate === targetKey) return;
+      if (existingCount >= MAX_PER_DAY) {
+        onError(`Ese día ya tiene ${MAX_PER_DAY} entrenamientos — muévelo a otro día o quita uno primero.`);
+        return;
+      }
+      w.scheduledDate = targetKey;
+      appState.workouts = [...appState.workouts];
+      await saveWorkout(w);
+      if (appState.user) void pushWorkoutToCloud(w, appState.user.id);
+      paint();
+      return;
+    }
+
+    // Sesión completada local (no-Strava, ya filtrado por dragAttrs) — se
+    // desplaza preservando la hora del día y la duración real, solo cambia
+    // la fecha de calendario.
+    const record = sessionsById.get(payload.id);
+    if (!record) return;
+    const currentKey = toDateKey(new Date(record.startedAt));
+    if (currentKey === targetKey) return;
+    if (existingCount >= MAX_PER_DAY) {
+      onError(`Ese día ya tiene ${MAX_PER_DAY} entrenamientos — muévelo a otro día o quita uno primero.`);
+      return;
+    }
+    const deltaMs = new Date(`${targetKey}T00:00:00`).getTime() - new Date(`${currentKey}T00:00:00`).getTime();
+    record.startedAt = new Date(new Date(record.startedAt).getTime() + deltaMs).toISOString();
+    record.finishedAt = new Date(new Date(record.finishedAt).getTime() + deltaMs).toISOString();
+    await saveSession(record);
+    if (appState.user) void pushSessionToCloud(record, appState.profile, appState.user.id);
+
+    completedByDate.set(
+      currentKey,
+      (completedByDate.get(currentKey) ?? []).filter((c) => c.sessionId !== payload.id),
+    );
+    completedByDate.set(targetKey, [...(completedByDate.get(targetKey) ?? []), localToCalendarDone(record)]);
+    paint();
   }
 
   function wireDayButtons(): void {
@@ -451,12 +699,18 @@ export function renderCalendar(container: HTMLElement): () => void {
       doneFileInput.value = '';
       const dateKey = container.querySelector<HTMLInputElement>('#manual-done-date')?.value || todayKey;
       if (!file) return;
+      const existingCount = appState.workouts.filter((w) => w.scheduledDate === dateKey).length + (completedByDate.get(dateKey)?.length ?? 0);
+      if (existingCount >= MAX_PER_DAY) {
+        importErrors.innerHTML = errorsHtml([`Ese día ya tiene ${MAX_PER_DAY} entrenamientos — elige otra fecha.`]);
+        return;
+      }
       const { session, errors } = await buildCompletedSessionFromFit(file, appState.profile, dateKey);
       importErrors.innerHTML = errorsHtml(errors);
       if (session) {
         await saveSession(session);
         if (appState.user) void pushSessionToCloud(session, appState.profile, appState.user.id);
-        completedByDate.set(dateKey, localToCalendarDone(session));
+        sessionsById.set(session.id, session);
+        completedByDate.set(dateKey, [...(completedByDate.get(dateKey) ?? []), localToCalendarDone(session)]);
         paint();
       }
     });
@@ -509,18 +763,24 @@ export function renderCalendar(container: HTMLElement): () => void {
     // celdas del calendario sí están indexadas por fecha local (toDateKey
     // más abajo en paint()), así que la fecha del "hecho" debe calcularse
     // igual para que coincidan.
-    completedByDate = new Map(sessions.map((s) => [toDateKey(new Date(s.startedAt)), localToCalendarDone(s)]));
+    completedByDate = new Map();
+    sessionsById = new Map();
+    sessions.forEach((s) => {
+      const key = toDateKey(new Date(s.startedAt));
+      completedByDate.set(key, [...(completedByDate.get(key) ?? []), localToCalendarDone(s)]);
+      sessionsById.set(s.id, s);
+    });
     // sesiones que solo viven en la nube (grabadas en otro dispositivo) —
     // sin esto, esos días nunca se marcan "Hecho" aunque sí aparezcan en Forma.
+    // Se agregan (no reemplazan) a lo que ya haya ese día — un día puede
+    // tener una sesión local Y una cloud-only a la vez.
     const localIds = new Set(sessions.map((s) => s.id));
     appState.cloudSessions
       .filter((s) => !localIds.has(s.id))
       .forEach((s) => {
         const key = toDateKey(new Date(s.startedAt));
-        if (!completedByDate.has(key)) {
-          completedByDate.set(key, cloudToCalendarDone(s));
-          cloudOnlyByDate.set(key, s);
-        }
+        completedByDate.set(key, [...(completedByDate.get(key) ?? []), cloudToCalendarDone(s)]);
+        cloudOnlyByDate.set(key, [...(cloudOnlyByDate.get(key) ?? []), s]);
       });
     paint();
   });

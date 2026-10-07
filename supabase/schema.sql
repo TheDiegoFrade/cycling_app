@@ -48,6 +48,29 @@ alter table profiles add column if not exists height_cm numeric;
 alter table profiles add column if not exists weight_kg numeric;
 alter table profiles add column if not exists sex text check (sex in ('M', 'F', 'other'));
 
+-- Contexto de coaching para el coach de IA (ver supabase/functions/coach-chat)
+-- — mismo criterio: opcional, no afecta el motor, se fusiona al guardar
+-- desde el cuestionario inicial, nunca se reemplaza el renglón completo.
+alter table profiles add column if not exists experience_level text
+  check (experience_level in ('new_to_cycling', 'returning_or_new_to_app', 'experienced'));
+alter table profiles add column if not exists general_fitness_level text
+  check (general_fitness_level in ('sedentary', 'active_other_sport', 'active_cyclist'));
+alter table profiles add column if not exists years_riding numeric;
+alter table profiles add column if not exists structured_training_years numeric;
+alter table profiles add column if not exists competes boolean;
+alter table profiles add column if not exists category text;
+alter table profiles add column if not exists discipline text
+  check (discipline in ('mountain', 'road', 'gravel', 'other'));
+alter table profiles add column if not exists injuries text;
+alter table profiles add column if not exists rides_outside boolean;
+alter table profiles add column if not exists has_outdoor_power_meter boolean;
+alter table profiles add column if not exists recent_best_result text;
+-- ftp/hr_max ya existían desde el inicio (son requeridos para el motor) —
+-- estas banderas dicen si el atleta confirmó que ese número es real, o si
+-- sigue siendo el default sin tocar (ver core/types.ts Profile).
+alter table profiles add column if not exists ftp_confirmed boolean;
+alter table profiles add column if not exists hr_max_confirmed boolean;
+
 -- ─────────────────────────────────────────────────────────────────────────
 -- sessions: resumen de cada entrenamiento (sin los samples, ver Storage)
 -- ─────────────────────────────────────────────────────────────────────────
@@ -120,6 +143,12 @@ alter table sessions add column if not exists best_20min_power numeric;
 -- core/session-origin.ts). Filas de antes de esta columna quedan en null,
 -- que se trata como "en vivo" para no quitarle un récord ya ganado a nadie.
 alter table sessions add column if not exists workout_id text;
+
+-- Comentario corto del coach IA para ESTA sesión (modo
+-- finished_training_eval_comment) — null hasta que se pida uno. Null
+-- también funciona como el gate de "no pedir dos veces para la misma
+-- sesión", ver coach-chat/index.ts checkModeAllowed.
+alter table sessions add column if not exists coach_comment text;
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- settings: ajustes de la app (volumen, reglas de fábrica activas,
@@ -212,6 +241,81 @@ create policy "strava_connections: leer lo propio" on strava_connections for sel
   using (auth.uid() = user_id);
 
 -- ─────────────────────────────────────────────────────────────────────────
+-- Coach IA: planes generados y uso mensual de la API de Claude.
+--
+-- training_plans: el cliente puede LEER su plan (para pintar la pantalla
+-- Plan), pero solo la Edge Function coach-chat (service role, ignora RLS)
+-- puede escribirlo — igual que strava_tokens. El frecuencia de llamadas al
+-- coach se controla con last_eval_iso_week / current_block_exhausted, ver
+-- supabase/functions/coach-chat/index.ts (checkModeAllowed).
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists training_plans (
+  id uuid primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  status text not null default 'active' check (status in ('active', 'completed', 'abandoned')),
+  goal text not null,
+  data jsonb not null, -- bloques + semanas + workouts generados, shape evoluciona
+  last_eval_iso_week text, -- ej. "2026-W40" — gate de 1 evaluación semanal
+  current_block_exhausted boolean not null default false, -- gate de publish_block
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table training_plans enable row level security;
+
+drop policy if exists "training_plans: leer lo propio" on training_plans;
+create policy "training_plans: leer lo propio" on training_plans for select
+  using (auth.uid() = user_id);
+
+-- Registro append-only de cada vez que se crea o modifica un plan — sirve
+-- para el tope de 3 al mes (crear + modificar cuentan juntos, ver
+-- coach-chat/index.ts checkModeAllowed). El cliente puede leerlo (para
+-- mostrar "te quedan N de 3" antes de que lo intente), solo la Edge
+-- Function escribe.
+create table if not exists plan_actions (
+  id uuid primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  action text not null check (action in ('create', 'modify')),
+  created_at timestamptz not null default now()
+);
+
+alter table plan_actions enable row level security;
+
+drop policy if exists "plan_actions: leer lo propio" on plan_actions;
+create policy "plan_actions: leer lo propio" on plan_actions for select
+  using (auth.uid() = user_id);
+
+create index if not exists plan_actions_user_created_idx on plan_actions (user_id, created_at);
+
+create index if not exists training_plans_user_status_idx on training_plans (user_id, status);
+
+-- Un solo plan activo por usuario, garantizado por Postgres — no depende de
+-- que checkModeAllowed() en coach-chat/index.ts nunca tenga un bug ni de
+-- que dos requests no se crucen. Insertar un segundo plan 'active' para el
+-- mismo user_id truena con "duplicate key value" directo en la base.
+create unique index if not exists training_plans_one_active_per_user
+  on training_plans (user_id) where status = 'active';
+
+-- coach_usage: conteo de tokens/requests por usuario y mes — solo para
+-- monitoreo y como red de seguridad de gasto (ver MONTHLY_TOKEN_CEILING en
+-- coach-chat/index.ts). El límite real de frecuencia es el de arriba, este
+-- es solo el techo duro por si ese falla.
+create table if not exists coach_usage (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  period date not null, -- primer día del mes, ej. 2026-10-01
+  tokens_used integer not null default 0,
+  requests_used integer not null default 0,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, period)
+);
+
+alter table coach_usage enable row level security;
+
+drop policy if exists "coach_usage: leer lo propio" on coach_usage;
+create policy "coach_usage: leer lo propio" on coach_usage for select
+  using (auth.uid() = user_id);
+
+-- ─────────────────────────────────────────────────────────────────────────
 -- Storage: bucket privado para los .fit, un archivo por sesión en
 -- "{user_id}/{session_id}.fit" — el primer segmento de la ruta ES el
 -- user_id, y las políticas de abajo exigen que coincida con auth.uid().
@@ -231,3 +335,36 @@ create policy "fit-files: subir lo propio" on storage.objects for insert
 drop policy if exists "fit-files: borrar lo propio" on storage.objects;
 create policy "fit-files: borrar lo propio" on storage.objects for delete
   using (bucket_id = 'fit-files' and (storage.foldername(name)) [1] = auth.uid()::text);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- plan_actions: amplía el check de `action` para incluir 'weekly_eval' —
+-- antes solo 'create'/'modify'. weekly_eval tiene su propio tope mensual
+-- SEPARADO del de create/modify (ver MONTHLY_WEEKLY_EVAL_LIMIT en
+-- coach-chat/index.ts) — mezclarlos haría que evaluar la semana unas pocas
+-- veces se comiera todo el presupuesto de cambios de plan del mes.
+-- ─────────────────────────────────────────────────────────────────────────
+alter table plan_actions drop constraint if exists plan_actions_action_check;
+alter table plan_actions add constraint plan_actions_action_check check (action in ('create', 'modify', 'weekly_eval'));
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- training_plans: hasta 2 weekly_eval por semana ISO (antes 1) — permite
+-- "refrescar" la semana si el atleta quiere agregar contexto que olvidó la
+-- primera vez (ver MONTHLY_WEEKLY_EVAL_LIMIT y checkModeAllowed en
+-- coach-chat/index.ts). eval_count_this_iso_week cuenta cuántas van en la
+-- semana ISO de last_eval_iso_week; se resetea solo cuando cambia de semana.
+-- ─────────────────────────────────────────────────────────────────────────
+alter table training_plans add column if not exists eval_count_this_iso_week int not null default 0;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- fit-files: faltaba la política de UPDATE — nunca hizo falta hasta ahora
+-- porque nada volvía a subir un .fit con el mismo id de sesión. El
+-- drag-and-drop de sesiones completadas (mover de día) sí lo hace
+-- (pushSessionToCloud con upsert:true sobre el mismo archivo), y eso
+-- dispara un UPDATE en Storage que, sin esta política, RLS rechaza con
+-- "new row violates row-level security policy" (encontrado probando el
+-- drag-and-drop real). select/insert/delete ya existían, solo faltaba esta.
+-- ─────────────────────────────────────────────────────────────────────────
+drop policy if exists "fit-files: actualizar lo propio" on storage.objects;
+create policy "fit-files: actualizar lo propio" on storage.objects for update
+  using (bucket_id = 'fit-files' and (storage.foldername(name)) [1] = auth.uid()::text)
+  with check (bucket_id = 'fit-files' and (storage.foldername(name)) [1] = auth.uid()::text);

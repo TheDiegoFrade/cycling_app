@@ -11,8 +11,10 @@ import { downloadSessionSamples, pushSessionToCloud } from '../../sync/cloud-syn
 import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { navigate, refresh } from '../router';
 import { appState } from '../state';
-import { renderWorkoutCover } from '../workout-cover';
+import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { wireDatePicker } from '../date-picker';
+import { isSupabaseConfigured } from '../../supabase/client';
+import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
 
 const DAY_LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S']; // índice = Date#getDay()
 const MONTH_NAMES_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -69,14 +71,40 @@ export function renderHome(container: HTMLElement): void {
   const name = displayName();
   const initial = (appState.user?.email ?? '?').charAt(0).toUpperCase();
 
-  const todayWorkout = appState.workouts.find((w) => w.scheduledDate === todayKey);
+  // Hoy puede tener hasta 2 agendados (ver MAX_PER_DAY en calendar.ts) — se
+  // muestran los dos, cada uno con su propio botón de play, en vez de
+  // asumir que solo puede haber uno.
+  const todayWorkouts = appState.workouts.filter((w) => w.scheduledDate === todayKey);
   const nextWorkout =
-    todayWorkout ??
-    appState.workouts
-      .filter((w): w is Workout & { scheduledDate: string } => Boolean(w.scheduledDate) && w.scheduledDate! > todayKey)
-      .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate))[0];
+    todayWorkouts.length > 0
+      ? null
+      : appState.workouts
+          .filter((w): w is Workout & { scheduledDate: string } => Boolean(w.scheduledDate) && w.scheduledDate! > todayKey)
+          .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate))[0];
+
+  function heroCardFor(w: Workout, label: string): string {
+    const est = estimateWorkout(w.intervals, appState.profile.ftp);
+    const [low, high] = est.wattsRange;
+    const wattsLabel = low === high ? `${low} W` : `${low}–${high} W`;
+    return `
+      <div class="home-hero-card home-hero-clickable" data-workout-id="${w.id}">
+        ${renderWorkoutCover(w.intervals, 'lg')}
+        <div class="home-hero-body">
+          <div>
+            <div class="live-col-label">${label}</div>
+            <div class="home-hero-title">${escapeHtml(w.name)}</div>
+            <div class="hint">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS · a ${wattsLabel}</div>
+          </div>
+          <button class="home-play-btn" aria-label="Empezar">▶</button>
+        </div>
+      </div>`;
+  }
 
   function heroCardHtml(): string {
+    if (todayWorkouts.length > 0) {
+      const label = todayWorkouts.length > 1 ? 'Hoy toca — elige uno' : 'Hoy toca';
+      return todayWorkouts.map((w) => heroCardFor(w, label)).join('');
+    }
     if (!nextWorkout) {
       return `
         <div class="home-hero-card home-hero-empty">
@@ -86,23 +114,10 @@ export function renderHome(container: HTMLElement): void {
           <a href="#/plan" class="prepare-link">Ir a Plan</a>
         </div>`;
     }
-    const est = estimateWorkout(nextWorkout.intervals, appState.profile.ftp);
-    const [low, high] = est.wattsRange;
-    const wattsLabel = low === high ? `${low} W` : `${low}–${high} W`;
-    const label = todayWorkout ? 'Hoy toca' : `Agendado · ${nextWorkout.scheduledDate}`;
-    return `
-      <div class="home-hero-card home-hero-clickable" data-workout-id="${nextWorkout.id}">
-        ${renderWorkoutCover(nextWorkout.intervals, 'lg')}
-        <div class="home-hero-body">
-          <div>
-            <div class="live-col-label">${label}</div>
-            <div class="home-hero-title">${nextWorkout.name}</div>
-            <div class="hint">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS · a ${wattsLabel}</div>
-          </div>
-          <button class="home-play-btn" aria-label="Empezar">▶</button>
-        </div>
-      </div>`;
+    return heroCardFor(nextWorkout, `Agendado · ${nextWorkout.scheduledDate}`);
   }
+
+  const needsOnboarding = isSupabaseConfigured() && !!appState.user && !isCoachProfileComplete(appState.profile);
 
   container.innerHTML = `
     <div class="screen home-screen">
@@ -111,6 +126,15 @@ export function renderHome(container: HTMLElement): void {
         <h1>${greeting()}${name ? `, ${name}` : ''}</h1>
         <div class="perfil-avatar">${initial}</div>
       </div>
+
+      ${
+        needsOnboarding
+          ? `<div class="recovery-banner">
+              <p><strong>Te falta el cuestionario del coach</strong> — lo necesitas para que el coach pueda crear tu plan de entrenamiento.</p>
+              <div class="row-actions"><button class="primary" id="home-open-onboarding">Contestarlo ahora</button></div>
+            </div>`
+          : ''
+      }
 
       <div class="home-grid">
         <div class="home-grid-hero">${heroCardHtml()}</div>
@@ -148,10 +172,17 @@ export function renderHome(container: HTMLElement): void {
     </div>
   `;
 
-  container.querySelector<HTMLElement>('.home-hero-clickable')?.addEventListener('click', () => {
-    if (!nextWorkout) return;
-    appState.selectedWorkoutId = nextWorkout.id;
-    navigate('prepare');
+  container.querySelectorAll<HTMLElement>('.home-hero-clickable').forEach((card) => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.workoutId;
+      if (!id) return;
+      appState.selectedWorkoutId = id;
+      navigate('prepare');
+    });
+  });
+
+  container.querySelector('#home-open-onboarding')?.addEventListener('click', () => {
+    openOnboardingForm(() => refresh(), true);
   });
 
   function wireGenerate(): void {

@@ -7,6 +7,7 @@ import type { PowerZone } from '../../core/zones';
 import { beeper } from '../audio';
 import { appState } from '../state';
 import { wireDatePicker } from '../date-picker';
+import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
 
 const SOUNDS = [
   { id: 'tick', label: 'Cuenta regresiva' },
@@ -123,6 +124,16 @@ export function renderPerfil(container: HTMLElement): void {
                     .join('')}
                 </div>
               </div>
+            </div>
+
+            <div class="panel perfil-panel">
+              <h2 class="perfil-h2">Cuestionario del coach</h2>
+              <p class="hint" style="margin:0 0 8px">${
+                isCoachProfileComplete(appState.profile)
+                  ? 'Ya lo contestaste — esto es lo que usa el coach para crear y ajustar tu plan. Puedes actualizarlo cuando quieras (ej. en cuanto confirmes tu FTP).'
+                  : 'Todavía no lo contestas — lo necesitas para que el coach pueda crear tu plan.'
+              }</p>
+              <button class="btn-light" id="profile-open-onboarding">${isCoachProfileComplete(appState.profile) ? 'Editar cuestionario' : 'Contestar cuestionario'}</button>
             </div>
 
             <div class="panel perfil-panel">
@@ -263,6 +274,12 @@ export function renderPerfil(container: HTMLElement): void {
       const value = (e.target as HTMLSelectElement).value as 'M' | 'F' | 'other' | '';
       appState.profile = { ...appState.profile, sex: value || undefined };
       appState.persistProfile();
+    });
+
+    // allowSkip:true — a diferencia de la primera vez (antes de "Crear mi
+    // plan", donde es obligatorio), acá es revisión/edición libre.
+    container.querySelector('#profile-open-onboarding')?.addEventListener('click', () => {
+      openOnboardingForm(() => paint(), true);
     });
 
     container.querySelectorAll<HTMLButtonElement>('[data-switch]').forEach((btn) => {

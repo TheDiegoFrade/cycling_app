@@ -9,7 +9,9 @@ export async function fetchCloudProfile(userId: string): Promise<Profile | null 
   if (!supabase) return undefined;
   const { data, error } = await supabase
     .from('profiles')
-    .select('ftp, hr_max, cadence_floor, hr_ceiling, hr_min, cadence_max, name, birth_date, height_cm, weight_kg, sex')
+    .select(
+      'ftp, hr_max, cadence_floor, hr_ceiling, hr_min, cadence_max, name, birth_date, height_cm, weight_kg, sex, experience_level, general_fitness_level, years_riding, structured_training_years, competes, category, discipline, injuries, rides_outside, has_outdoor_power_meter, recent_best_result, ftp_confirmed, hr_max_confirmed',
+    )
     .eq('user_id', userId)
     .maybeSingle();
   if (error) {
@@ -29,6 +31,19 @@ export async function fetchCloudProfile(userId: string): Promise<Profile | null 
     height_cm: data.height_cm ?? undefined,
     weight_kg: data.weight_kg ?? undefined,
     sex: data.sex ?? undefined,
+    experienceLevel: data.experience_level ?? undefined,
+    generalFitnessLevel: data.general_fitness_level ?? undefined,
+    yearsRiding: data.years_riding ?? undefined,
+    structuredTrainingYears: data.structured_training_years ?? undefined,
+    competes: data.competes ?? undefined,
+    category: data.category ?? undefined,
+    discipline: data.discipline ?? undefined,
+    injuries: data.injuries ?? undefined,
+    ridesOutside: data.rides_outside ?? undefined,
+    hasOutdoorPowerMeter: data.has_outdoor_power_meter ?? undefined,
+    recentBestResult: data.recent_best_result ?? undefined,
+    ftpConfirmed: data.ftp_confirmed ?? undefined,
+    hrMaxConfirmed: data.hr_max_confirmed ?? undefined,
   };
 }
 
@@ -52,6 +67,19 @@ export async function pushProfileToCloud(profile: Profile, userId: string): Prom
       height_cm: profile.height_cm ?? null,
       weight_kg: profile.weight_kg ?? null,
       sex: profile.sex ?? null,
+      experience_level: profile.experienceLevel ?? null,
+      general_fitness_level: profile.generalFitnessLevel ?? null,
+      years_riding: profile.yearsRiding ?? null,
+      structured_training_years: profile.structuredTrainingYears ?? null,
+      competes: profile.competes ?? null,
+      category: profile.category ?? null,
+      discipline: profile.discipline ?? null,
+      injuries: profile.injuries ?? null,
+      rides_outside: profile.ridesOutside ?? null,
+      has_outdoor_power_meter: profile.hasOutdoorPowerMeter ?? null,
+      recent_best_result: profile.recentBestResult ?? null,
+      ftp_confirmed: profile.ftpConfirmed ?? null,
+      hr_max_confirmed: profile.hrMaxConfirmed ?? null,
     });
     if (error) throw error;
   } catch (err) {

@@ -3,9 +3,10 @@ import { BleHrAdapter } from '../../devices/heart-rate';
 import { SimulatedHrAdapter, SimulatedTrainerAdapter } from '../../devices/simulated';
 import type { ConnectionState, HrAdapter, TrainerAdapter, TrainerReading } from '../../devices/types';
 import { estimateWorkout } from '../../core/workout-estimate';
-import { renderWorkoutCover } from '../workout-cover';
+import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { navigate } from '../router';
 import { appState } from '../state';
+import type { Interval } from '../../core/types';
 
 const STATE_LABEL: Record<ConnectionState, string> = {
   disconnected: 'Sin conectar',
@@ -19,6 +20,22 @@ const hasBluetooth = typeof navigator !== 'undefined' && 'bluetooth' in navigato
 
 function fmtMinutes(totalS: number): string {
   return `${Math.round(totalS / 60)} min`;
+}
+
+function intervalBlockHtml(iv: Interval): string {
+  // Bloques cortos (ej. activaciones de 8s) redondeaban a "0 min", que no
+  // dice nada — segundos para menos de 1 min, minutos para el resto.
+  const durationLabel = iv.duration_s < 60 ? `${iv.duration_s}s` : `${Math.round(iv.duration_s / 60)} min`;
+  const power = iv.ramp_to_pct ? `${iv.power_pct}% → ${iv.ramp_to_pct}% FTP` : `${iv.power_pct}% FTP`;
+  const cadence = iv.cadence_min || iv.cadence_max ? ` · cadencia ${iv.cadence_min ?? ''}${iv.cadence_min && iv.cadence_max ? '-' : ''}${iv.cadence_max ?? ''}` : '';
+  return `
+    <div class="workout-detail-block">
+      <div class="workout-detail-block-head">
+        <span class="workout-detail-block-name">${escapeHtml(iv.name || iv.type)}</span>
+        <span class="live-col-label">${durationLabel}</span>
+      </div>
+      <div class="live-col-label">${power}${escapeHtml(cadence)}</div>
+    </div>`;
 }
 
 /** "Antes de empezar" — ver TORQ_DESIGN.md. Sin barra lateral. El botón
@@ -52,13 +69,17 @@ export function renderConnect(container: HTMLElement): void {
           ${renderWorkoutCover(workout.intervals, 'lg')}
           <div class="prepare-heading">
             <div class="live-col-label">Vas a entrenar</div>
-            <div class="prepare-title">${workout.name}</div>
+            <div class="prepare-title">${escapeHtml(workout.name)}</div>
           </div>
           <div class="prepare-stats">
             <div><div class="prepare-stat-num num">${fmtMinutes(estimate.durationS)}</div><div class="live-col-label">duración</div></div>
             <div><div class="prepare-stat-num num">${estimate.tss ?? '—'}</div><div class="live-col-label">TSS estimado</div></div>
             <div><div class="prepare-stat-num num">${wattsLabel}</div><div class="live-col-label">en los bloques, con FTP ${appState.profile.ftp}</div></div>
           </div>
+          <div class="workout-detail-blocks" style="margin-top:10px">
+            ${workout.intervals.map(intervalBlockHtml).join('')}
+          </div>
+          ${workout.description ? `<div class="perfil-h2" style="margin-top:10px;font-size:15px">Sobre este entrenamiento</div><p class="hint prepare-description">${escapeHtml(workout.description)}</p>` : ''}
           <div class="row-actions">
             <a href="#/limits" class="prepare-link">Editar límites por bloque</a>
             <a href="#/plan" class="prepare-link">Cambiar workout</a>

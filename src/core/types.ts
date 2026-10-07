@@ -118,6 +118,29 @@ export interface Profile {
   height_cm?: number;
   weight_kg?: number;
   sex?: 'M' | 'F' | 'other';
+
+  // Contexto de coaching para el coach de IA (ver supabase/functions/coach-chat)
+  // — igual que arriba, opcional, no afecta el motor. Se llenan una vez en el
+  // cuestionario inicial y se actualizan ahí; al guardar siempre se FUSIONA
+  // sobre el perfil existente, nunca se reemplaza el objeto completo.
+  experienceLevel?: 'new_to_cycling' | 'returning_or_new_to_app' | 'experienced';
+  generalFitnessLevel?: 'sedentary' | 'active_other_sport' | 'active_cyclist';
+  yearsRiding?: number;
+  structuredTrainingYears?: number; // distinto de yearsRiding: años entrenando CON estructura/potencia
+  competes?: boolean;
+  category?: string; // solo tiene sentido si competes=true, ej. "Experto 30-39"
+  discipline?: 'mountain' | 'road' | 'gravel' | 'other';
+  injuries?: string;
+  ridesOutside?: boolean;
+  hasOutdoorPowerMeter?: boolean; // solo relevante si ridesOutside=true
+  recentBestResult?: string;
+  // `ftp`/`hr_max` arriba SIEMPRE tienen un número (el motor lo necesita para
+  // zonas/ERG en vivo) — pero puede ser el default sin confirmar
+  // (DEFAULT_PROFILE: ftp 200, hr_max 185) de alguien que nunca lo tocó.
+  // Ausente o `false` = trátalo como desconocido para el coach (dispara el
+  // protocolo de calibración), aunque el motor lo siga usando para entrenar.
+  ftpConfirmed?: boolean;
+  hrMaxConfirmed?: boolean;
 }
 
 export interface Sample {

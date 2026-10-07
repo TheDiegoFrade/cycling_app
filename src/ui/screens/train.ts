@@ -1,5 +1,5 @@
 import { buildFactoryRules, buildIntervalLimitRules } from '../../core/defaults';
-import { powerZone, ZONE_HEIGHT_PCT, ZONE_NAMES } from '../../core/zones';
+import { powerZone, powerPctToHeightPct, ZONE_NAMES } from '../../core/zones';
 import type { Profile, Rule, Sample, Workout } from '../../core/types';
 import { Clock } from '../../engine/clock';
 import { buildPlan, intervalIndexAt, targetWattsAt } from '../../engine/plan';
@@ -67,6 +67,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
             <span class="live-intensity-value num" id="bias">100%</span>
             <button id="bPlus" type="button" aria-label="Subir intensidad">+</button>
           </div>
+          <button class="live-erg-quick" id="erg-quick" type="button" title="Prender/apagar ERG">⚡ ERG</button>
           <button class="live-pause-btn" id="btnMain" type="button">Empezar</button>
           <div class="live-menu-wrap" id="menuWrap">
             <button class="live-menu-btn" id="menuBtn" type="button" aria-label="Más opciones">⋯</button>
@@ -214,33 +215,6 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   let sessionId: string = crypto.randomUUID();
   let lastElapsedS = 0;
   let sessionFinished = false;
-
-  // Mismos cortes que powerZone() (zones.ts), con el techo de cada zona
-  // anclado a su ZONE_HEIGHT_PCT — interpolado linealmente entre cortes en
-  // vez de "saltado" a un escalón por zona, para que la línea de potencia
-  // suba y baje con ruido real en vez de verse como un trazo plano.
-  const POWER_PCT_HEIGHT_POINTS: readonly [number, number][] = [
-    [0, 0],
-    [55, 25],
-    [75, 40],
-    [90, 55],
-    [105, 70],
-    [120, 85],
-    [150, 100],
-  ];
-
-  function powerPctToHeightPct(powerPct: number): number {
-    const points = POWER_PCT_HEIGHT_POINTS;
-    if (powerPct <= points[0][0]) return points[0][1];
-    for (let i = 1; i < points.length; i++) {
-      const [p1, h1] = points[i];
-      if (powerPct <= p1) {
-        const [p0, h0] = points[i - 1];
-        return h0 + ((powerPct - p0) / (p1 - p0)) * (h1 - h0);
-      }
-    }
-    return 100;
-  }
 
   /** Líneas de potencia/cadencia/pulso avanzando en vivo — igual que antes
    * del rediseño, el usuario prefiere verlas mientras entrena. */
@@ -525,7 +499,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         // contra el fondo oscuro el color prácticamente no se notaba.
         const opacity = i < currentIndex0 ? 0.6 : i === currentIndex0 ? 1 : 0.35;
         const outline = i === currentIndex0 ? 'outline:2px solid var(--text);outline-offset:2px;' : '';
-        return `<div class="live-timeline-bar" style="flex-grow:${iv.duration_s};height:${ZONE_HEIGHT_PCT[z]}%;background:${zoneColor(z)};opacity:${opacity};${outline}"></div>`;
+        return `<div class="live-timeline-bar" style="flex-grow:${iv.duration_s};height:${powerPctToHeightPct(iv.power_pct)}%;background:${zoneColor(z)};opacity:${opacity};${outline}"></div>`;
       })
       .join('');
   }
@@ -839,10 +813,19 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   }
   document.addEventListener('click', onDocClick);
 
-  $('menuErg').addEventListener('click', () => {
+  /** Único lugar que prende/apaga ERG — lo disparan dos controles: el botón
+   * rápido siempre visible en la barra superior (id erg-quick, agregado
+   * porque el de abajo, enterrado en el menú "⋯", no era lo bastante
+   * visible para algo que ahora el coach le pide al atleta cambiar A MITAD
+   * de un workout, no solo como ajuste de configuración) y el item del
+   * menú, que se queda por si alguien ya tenía el hábito de usarlo ahí. */
+  function toggleErg(): void {
     closeMenu();
     ergEnabled = !ergEnabled;
-    $('menuErg').textContent = `ERG: ${ergEnabled ? 'activado' : 'desactivado'}`;
+    const label = `ERG: ${ergEnabled ? 'activado' : 'desactivado'}`;
+    $('menuErg').textContent = label;
+    $('erg-quick').textContent = ergEnabled ? '⚡ ERG' : '⚡ ERG off';
+    $('erg-quick').classList.toggle('off', !ergEnabled);
     if (ergEnabled) {
       // al reactivarlo, vuelve a mandar el objetivo actual de inmediato en
       // vez de esperar al próximo tick para que el rodillo enganche ya
@@ -866,7 +849,9 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       ergEnabled ? '' : `resistencia fija ${resistancePercent}% · ajusta con +/- (no verificado en hardware real)`,
       2200,
     );
-  });
+  }
+  $('menuErg').addEventListener('click', toggleErg);
+  $('erg-quick').addEventListener('click', toggleErg);
 
   $('menuFtp').addEventListener('click', () => {
     closeMenu();
@@ -948,6 +933,12 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       wakeLock.acquire();
       $('btnMain').textContent = 'Pausar';
       engine.start(resumeAtS).forEach(handleEvent);
+      // Solo en un arranque de verdad (no al recuperar un borrador tras un
+      // reload) — y después de los eventos de arranque del motor, para que
+      // gane sobre el banner de "primer bloque" en vez de que ese la tape.
+      // Tiempo generoso (no los 1.6-3.2s de los banners de ánimo): es la
+      // única vez que el atleta lee esto antes de subirse de verdad.
+      if (resumeAtS === 0 && workout.description) showBanner('info', 'Antes de arrancar', workout.description, 10000);
       driveEngineTicks();
     } else if (engine.currentState === 'running') {
       engine.pause().forEach(handleEvent);

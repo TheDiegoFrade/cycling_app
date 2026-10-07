@@ -6,7 +6,7 @@ import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../storage/setting
 import type { AppSettings } from '../storage/settings-store';
 import { listSessions } from '../storage/session-store';
 import type { SessionRecord } from '../storage/session-store';
-import { listWorkouts, saveWorkout } from '../storage/workout-store';
+import { deleteWorkout, hasMigratedWorkoutsToCloud, listWorkouts, markWorkoutsMigratedToCloud, saveWorkout } from '../storage/workout-store';
 import { ensureLocalDataOwnership } from '../storage/local-owner';
 import { isSupabaseConfigured, supabase } from '../supabase/client';
 import { listCloudSessions, pushSessionToCloud } from '../sync/cloud-sync';
@@ -150,10 +150,34 @@ class AppState {
 
     if (cloudWorkouts) {
       if (cloudWorkouts.length > 0) {
+        // La nube manda: cualquier workout que esté en la caché local pero
+        // YA NO esté en la nube se borra de IndexedDB también — si no, un
+        // borrado hecho desde otro lado (p. ej. el coach dando de baja un
+        // plan) deja basura local para siempre que ningún flujo normal
+        // limpia, y el calendario la sigue mostrando como si existiera.
+        const cloudIds = new Set(cloudWorkouts.map((w) => w.id));
+        const staleLocalIds = this.workouts.filter((w) => !cloudIds.has(w.id)).map((w) => w.id);
+        await Promise.all(staleLocalIds.map((id) => deleteWorkout(id)));
+
         this.workouts = cloudWorkouts;
         await Promise.all(cloudWorkouts.map((w) => saveWorkout(w)));
+        await markWorkoutsMigratedToCloud(); // ya hay algo en la nube — la migración de abajo nunca debe volver a correr para este usuario
       } else if (this.workouts.length > 0) {
-        await Promise.all(this.workouts.map((w) => pushWorkoutToCloud(w, userId)));
+        if (!(await hasMigratedWorkoutsToCloud())) {
+          // Solo la PRIMERA vez que la nube aparece vacía para este usuario
+          // en este navegador — si no, un borrado legítimo (nube vacía A
+          // PROPÓSITO) se confunde con "usuario nuevo que nunca sincronizó"
+          // y resucita lo que se acaba de borrar en cada sync subsiguiente.
+          await Promise.all(this.workouts.map((w) => pushWorkoutToCloud(w, userId)));
+          await markWorkoutsMigratedToCloud();
+        } else {
+          // Ya se migró antes y la nube está en cero de verdad — la nube
+          // sigue mandando: lo local se limpia para que coincida, si no se
+          // queda basura local para siempre que el calendario sigue
+          // mostrando como si existiera.
+          await Promise.all(this.workouts.map((w) => deleteWorkout(w.id)));
+          this.workouts = [];
+        }
       }
     }
 

@@ -863,6 +863,26 @@ a {
   font-weight: 500;
   font-size: 16px;
 }
+/* Acceso directo a ERG en la barra superior — antes solo vivía enterrado en
+ * el menú "⋯" (ver toggleErg en train.ts), pero el coach ahora le pide al
+ * atleta cambiarlo A MITAD de un workout según el bloque, no solo como
+ * ajuste de configuración ocasional — tenía que ser visible sin buscarlo. */
+.live-erg-quick {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 500;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.live-erg-quick.off {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  border-color: var(--border);
+}
 .live-menu-wrap {
   position: relative;
 }
@@ -1545,14 +1565,24 @@ a {
   grid-template-columns: 2fr 1fr;
   gap: 24px;
 }
+/* Hasta 2 tarjetas apiladas cuando hoy hay dos entrenamientos agendados —
+ * ver heroCardHtml en home.ts. Con una sola, se sigue viendo igual que
+ * antes gracias a :only-child más abajo. */
+.home-grid-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 .home-hero-card {
   background: var(--surface);
   border-radius: var(--radius-xl);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 100%;
   box-sizing: border-box;
+}
+.home-hero-card:only-child {
+  height: 100%;
 }
 .home-hero-empty {
   padding: 24px 28px;
@@ -1767,6 +1797,30 @@ a {
   border-radius: 999px;
   color: var(--text-muted);
 }
+/* Hasta MAX_PER_DAY entradas por día (ver calendar.ts dayEntries) — cada
+ * una envuelta en su propio bloque con separador, en vez de que los dos
+ * .plan-day-cover/.plan-day-name se vean pegados como si fueran uno solo. */
+.plan-day-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.plan-day-entry + .plan-day-entry {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.plan-day-entry[draggable='true'] {
+  cursor: grab;
+}
+.plan-day-entry.dragging {
+  opacity: 0.4;
+}
+/* Blanco de destino al arrastrar — ver wireDragAndDrop en calendar.ts. */
+.plan-day[data-drop-date].drag-over,
+.plan-month-day[data-drop-date].drag-over {
+  outline: 2px dashed var(--text);
+  outline-offset: -2px;
+}
 .plan-totals {
   display: flex;
   gap: 32px;
@@ -1934,6 +1988,13 @@ a {
   font-size: 12px;
   color: var(--text-soft);
 }
+/* Hasta MAX_PER_DAY entradas apiladas en el espacio reducido de la vista
+ * de mes — ver dayEntries en calendar.ts. */
+.plan-month-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
 .plan-month-cover {
   display: block;
   width: 100%;
@@ -1941,6 +2002,10 @@ a {
   border: none;
   padding: 0;
   cursor: pointer;
+}
+.plan-month-cover[draggable='true'],
+.plan-month-done-label[draggable='true'] {
+  cursor: grab;
 }
 .plan-month-cover .workout-cover {
   height: 28px;
@@ -2482,4 +2547,76 @@ a {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* Coach de IA (ver src/ui/coach.ts) — tarjeta en Plan + popup de creación. */
+.plan-coach-card {
+  margin-bottom: 16px;
+}
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+.plan-coach-modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+/* Desglose bloque por bloque de un workout (nombre, minutos, %FTP) — se
+ * repite igual en el popup de detalle del calendario y en "Antes de
+ * empezar" (ver intervalBlockHtml en calendar.ts/connect.ts). */
+.workout-detail-block {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 6px;
+}
+.workout-detail-block-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2px;
+}
+.workout-detail-block-name {
+  font-weight: 500;
+}
+/* Burbuja de mensaje del coach — de un solo sentido, sin input de respuesta
+ * (ver src/ui/coach.ts). Solo presenta lo que ya regresó la Edge Function. */
+.coach-bubble {
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  margin-top: 10px;
+  position: relative;
+}
+.coach-bubble-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent-light);
+  margin-bottom: 6px;
+}
+.coach-bubble-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.coach-bubble-text {
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: pre-wrap;
 }
