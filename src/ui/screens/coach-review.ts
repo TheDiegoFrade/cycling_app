@@ -3,8 +3,9 @@
 // último mes completo). Los números los arma Torq; el coach escribe el
 // mensaje, ajusta los hallazgos y los objetivos, y publica. El atleta no ve
 // nada hasta entonces. Cada cambio se guarda solo (con una pausa corta).
-import { cleanFindings, cleanGoals, defaultReviewMonth, isMonthKey, monthLabel, shiftMonth, suggestFindings, suggestVerdict } from '../../core/monthly-report';
+import { cleanFindings, cleanGoals, defaultReviewMonth, isMonthKey, monthLabel, reviewAiContext, shiftMonth, suggestFindings, suggestVerdict } from '../../core/monthly-report';
 import type { MonthlyReport, ReviewFinding, ReviewVerdict } from '../../core/monthly-report';
+import { requestMonthlyReviewDraft } from '../../sync/coach-ai';
 import { listCoachAthletes } from '../../sync/coach-athletes';
 import type { CoachAthlete } from '../../sync/coach-athletes';
 import { fetchCoachReview, loadMonthlyReport, saveReview, setReviewStatus } from '../../sync/monthly-reviews';
@@ -35,6 +36,8 @@ export function renderCoachReview(container: HTMLElement): () => void {
   let saving: Promise<void> = Promise.resolve();
   let status = '';
   let busy = false;
+  let drafting = false;
+  let aiMessage: string | null = null;
   let disposed = false;
 
   const stale = () => disposed || getRouteParam() !== routeParam;
@@ -66,6 +69,7 @@ export function renderCoachReview(container: HTMLElement): () => void {
       content,
       publishedAt: review?.publishedAt ?? null,
       editable,
+      aiMessage: editable ? aiMessage : null,
     });
   }
 
@@ -89,6 +93,7 @@ export function renderCoachReview(container: HTMLElement): () => void {
           <div class="coach-pills">${statusPill()}<span class="hint" id="rv-status" aria-live="polite">${escapeHtml(status)}</span></div>
         </div>
         <div class="coach-head-actions">
+          ${published() ? '' : `<button type="button" id="rv-ai"${drafting || busy ? ' disabled' : ''}>${drafting ? 'Redactando…' : 'Redactar con IA'}</button>`}
           <button type="button" id="rv-print">Descargar PDF</button>
           ${
             published()
@@ -163,6 +168,7 @@ export function renderCoachReview(container: HTMLElement): () => void {
       wireSheet();
     });
     container.querySelector('#rv-publish')?.addEventListener('click', () => void publish());
+    container.querySelector('#rv-ai')?.addEventListener('click', () => void draftWithAi());
     container.querySelector('#rv-unpublish')?.addEventListener('click', () => void unpublish());
     wireSheet();
   }
@@ -173,6 +179,16 @@ export function renderCoachReview(container: HTMLElement): () => void {
     root.querySelector<HTMLSelectElement>('[data-rv="verdict"]')?.addEventListener('change', (e) => {
       content.verdict = (e.target as HTMLSelectElement).value as ReviewVerdict;
       changed();
+    });
+    root.querySelector('#rv-use-ai-message')?.addEventListener('click', () => {
+      if (!aiMessage) return;
+      content.coachMessage = aiMessage;
+      aiMessage = null;
+      changed(true);
+    });
+    root.querySelector('#rv-dismiss-ai-message')?.addEventListener('click', () => {
+      aiMessage = null;
+      render();
     });
     root.querySelector<HTMLTextAreaElement>('[data-rv="message"]')?.addEventListener('input', (e) => {
       content.coachMessage = (e.target as HTMLTextAreaElement).value;
@@ -221,6 +237,42 @@ export function renderCoachReview(container: HTMLElement): () => void {
       changed(true);
       container.querySelector<HTMLInputElement>(`[data-rv-goal="${content.goals.length - 1}"][data-field="title"]`)?.focus();
     });
+  }
+
+  /** La IA propone veredicto, hallazgos y (si están vacíos) mensaje y
+   * objetivos. Nada se publica: queda en el borrador para que el coach lo
+   * revise. Si el coach ya escribió su mensaje, la propuesta se le ofrece
+   * aparte en vez de reemplazarlo. */
+  async function draftWithAi(): Promise<void> {
+    if (!report || !athlete) return;
+    if (!window.confirm('La IA va a proponer el veredicto y los hallazgos (reemplaza los actuales) y, si están vacíos, el mensaje y los objetivos. Tú revisas todo antes de publicar. ¿Continuar?')) return;
+    drafting = true;
+    setStatus('La IA está redactando… (puede tardar unos segundos)');
+    render();
+    try {
+      const draft = await requestMonthlyReviewDraft(
+        reviewAiContext(
+          report,
+          athleteId!,
+          { name: athlete.name, ftp: athlete.ftp, weightKg: athlete.weightKg, discipline: disciplineLabel(athlete), injuries: athlete.injuries, goal: athlete.goal },
+          content.coachMessage,
+        ),
+      );
+      if (stale()) return;
+      content.verdict = draft.verdict;
+      content.findings = cleanFindings(draft.findings);
+      const message = draft.message.trim();
+      if (!content.coachMessage.trim()) content.coachMessage = message;
+      else aiMessage = message && message !== content.coachMessage.trim() ? message : null;
+      if (!cleanGoals(content.goals).length) content.goals = cleanGoals(draft.goals);
+      drafting = false;
+      changed(true);
+      setStatus('Listo: revisa lo que propuso la IA antes de publicar.');
+    } catch (err) {
+      drafting = false;
+      status = `La IA no pudo redactar: ${errorMessage(err)}`;
+      if (!stale()) render();
+    }
   }
 
   async function publish(): Promise<void> {

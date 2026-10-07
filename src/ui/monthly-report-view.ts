@@ -16,6 +16,9 @@ export interface SheetContent {
 }
 
 export interface SheetData {
+  /** Mensaje que propuso la IA cuando el coach ya había escrito el suyo
+   * (no se lo reemplaza: se le ofrece). Solo en edición. */
+  aiMessage?: string | null;
   report: MonthlyReport;
   athleteName: string;
   coachName: string | null;
@@ -205,6 +208,15 @@ function coachNoteHtml(d: SheetData): string {
           </label>
           <h2>Mensaje de tu coach</h2>
           <textarea data-rv="message" rows="7" maxlength="4000" placeholder="Qué pasó este mes, qué te gustó, qué hay que mejorar y por qué. Es lo primero que leerá tu atleta. Deja una línea en blanco entre párrafos.">${escapeHtml(c.coachMessage)}</textarea>
+          ${
+            d.aiMessage
+              ? `<div class="rpt-ai-box">
+                  <span class="rpt-lbl">La IA propone este mensaje (el tuyo no se tocó)</span>
+                  ${paragraphs(d.aiMessage)}
+                  <div class="rpt-edit-actions"><button type="button" id="rv-use-ai-message">Usar este mensaje</button><button type="button" id="rv-dismiss-ai-message">Descartar</button></div>
+                </div>`
+              : ''
+          }
         </div>
       </div>`;
   }

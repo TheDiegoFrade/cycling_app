@@ -260,7 +260,68 @@ export const CoachWeekOutputSchema = z.object({
   workouts: z.array(GeneratedWorkoutSchema),
 });
 
-export type Mode = 'create_plan' | 'weekly_eval' | 'publish_block' | 'finished_training_eval_comment' | 'coach_week';
+// Revisión mensual (vista del coach, paso 7b). El cliente manda los números
+// YA calculados del reporte (src/core/monthly-report.ts, sin Strava) — nunca
+// sesiones crudas. La IA solo redacta; nada se guarda hasta que el coach lo
+// edita y publica.
+const ToneSchema = z.enum(['good', 'warn', 'bad']);
+const num = z.number().finite();
+const numOrNull = num.nullable();
+
+export const MonthlyReviewInputContextSchema = z.object({
+  athleteId: z.string().uuid(),
+  monthKey: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
+  inProgress: z.boolean(),
+  athlete: z.object({
+    name: z.string().nullable(),
+    ftp: num.positive().nullable(),
+    weightKg: num.positive().nullable(),
+    discipline: z.string().nullable(),
+    injuries: z.string().nullable(),
+    goal: z.string().nullable(),
+  }),
+  kpis: z.object({
+    hours: num,
+    hoursPrev: num,
+    tss: num,
+    tssPrev: num,
+    plannedCount: num,
+    doneCount: num,
+    compliancePct: numOrNull,
+    compliancePrevPct: numOrNull,
+    ctlStart: num,
+    ctlEnd: num,
+    ftp: numOrNull,
+    ftpPrev: numOrNull,
+    tsbEnd: num,
+  }),
+  weeks: z.array(z.object({ label: z.string(), plannedTss: num, doneTss: num })).max(6),
+  bests: z.array(z.object({ label: z.string(), month: numOrNull, prev: numOrNull, best90: numOrNull })).max(3),
+  intensityHours: z.record(z.string(), num),
+  hoursWithoutPower: num,
+  aerobic: z.array(z.object({ label: z.string(), decouplingPct: numOrNull, ef: numOrNull })).max(6),
+  routines: z.array(z.object({ kind: z.string(), planned: num, done: num })).max(3),
+  srpeTotal: num,
+  keySessions: z
+    .array(z.object({ date: z.string(), name: z.string().max(120), minutes: num, np: numOrNull, intensityFactor: numOrNull, tss: numOrNull, rpe: numOrNull, note: z.string().max(200) }))
+    .max(5),
+  missedDays: z.number().int().nonnegative(),
+  partialDays: z.number().int().nonnegative(),
+  // Lo que el coach ya escribió (si algo): la IA lo respeta y lo complementa.
+  coachDraft: z.string().max(4000),
+});
+
+export const MonthlyReviewOutputSchema = z.object({
+  verdict: z.enum(['on_track', 'attention', 'off_track']),
+  // 3-6 hallazgos concretos, cada uno con números del mes
+  findings: z.array(z.object({ tone: ToneSchema, title: z.string().max(140), body: z.string().max(600) })).min(1).max(6),
+  // borrador del mensaje al atleta (2-3 párrafos cortos, de tú)
+  message: z.string().max(3000),
+  // 2-3 objetivos medibles para el mes siguiente
+  goals: z.array(z.object({ title: z.string().max(140), detail: z.string().max(400) })).max(3),
+});
+
+export type Mode = 'create_plan' | 'weekly_eval' | 'publish_block' | 'finished_training_eval_comment' | 'coach_week' | 'monthly_review';
 
 export function schemaForMode(mode: Mode) {
   switch (mode) {
@@ -274,6 +335,8 @@ export function schemaForMode(mode: Mode) {
       return FinishedTrainingEvalCommentSchema;
     case 'coach_week':
       return CoachWeekOutputSchema;
+    case 'monthly_review':
+      return MonthlyReviewOutputSchema;
   }
 }
 
@@ -289,5 +352,7 @@ export function inputContextSchemaForMode(mode: Mode) {
       return FinishedTrainingEvalCommentInputContextSchema;
     case 'coach_week':
       return CoachWeekInputContextSchema;
+    case 'monthly_review':
+      return MonthlyReviewInputContextSchema;
   }
 }

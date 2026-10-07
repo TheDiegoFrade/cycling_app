@@ -4293,6 +4293,20 @@ a {
   }
 }
 
+.rpt-ai-box {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px dashed var(--r-accent);
+  border-radius: 8px;
+  background: #f4f7fd;
+}
+.rpt-ai-box p {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
 /* Lista de reportes del atleta (screens/review.ts) */
 .review-list {
   display: grid;

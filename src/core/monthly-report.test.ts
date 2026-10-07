@@ -9,6 +9,7 @@ import {
   isMonthKey,
   monthEnd,
   monthLabel,
+  reviewAiContext,
   shiftMonth,
   suggestFindings,
   suggestVerdict,
@@ -170,5 +171,23 @@ describe('hallazgos sugeridos', () => {
   it('limpia lo que escribe el coach', () => {
     expect(cleanFindings([{ tone: 'good', title: '  Bien ', body: '' }, { tone: 'bad', title: '', body: ' ' }])).toEqual([{ tone: 'good', title: 'Bien', body: '' }]);
     expect(cleanGoals(Array.from({ length: 8 }, (_, i) => ({ title: `g${i}`, detail: '' })))).toHaveLength(5);
+  });
+});
+
+describe('contexto para la IA', () => {
+  it('solo números redondeados, sin Strava, con lo que escribió el coach', () => {
+    const sessions = [
+      ride('2026-09-02', { tss: 80.4, best20: 262, decouplingPct: 4.26, minutes: 90, intensityFactor: 0.7, efficiencyFactor: 1.4234 }),
+      ride('2026-09-10', { source: 'strava', tss: 500, workoutName: 'Secreta' }),
+    ];
+    const r = buildMonthlyReport({ monthKey: '2026-09', todayKey: '2026-10-07', sessions, workouts: [workout('2026-09-02'), workout('2026-09-03')], routines: [], ftp: 250 });
+    const ctx = reviewAiContext(r, '00000000-0000-0000-0000-00000000000a', { name: 'Ana', ftp: 250, weightKg: 0, discipline: 'Ruta', injuries: null, goal: null }, 'Buen mes');
+    expect(ctx.monthKey).toBe('2026-09');
+    expect(ctx.athlete.weightKg).toBeNull();
+    expect(ctx.kpis.tss).toBe(80);
+    expect(ctx.missedDays).toBe(1);
+    expect(ctx.aerobic.find((a) => a.decouplingPct !== null)?.decouplingPct).toBe(4.3);
+    expect(ctx.coachDraft).toBe('Buen mes');
+    expect(JSON.stringify(ctx)).not.toContain('Secreta');
   });
 });

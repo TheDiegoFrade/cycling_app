@@ -76,11 +76,12 @@ const DAY_OFFSET: Record<string, number> = { mon: 0, tue: 1, wed: 2, thu: 3, fri
 
 // Lanzamiento controlado — el coach llama a Claude (dinero real por
 // request) y todavía no está listo para abrirse a toda la base de
-// usuarios. Solo estos dos user_id pueden usarlo mientras tanto. Quitar
+// usuarios. Solo estos user_id pueden usarlo mientras tanto. Quitar
 // esta lista (o vaciarla) es la forma de abrirlo a todos después.
 const ALLOWED_USER_IDS = new Set([
   '68c9ddae-cee4-4d2f-8d0f-9553f9fe5782', // dperezcf@gmail.com — usuario dummy de pruebas
   '1d868aa6-bd45-4a1a-83aa-7d9f54c8d24b', // andrea.guerrero.guzman@gmail.com
+  '95b1f5fc-a167-4c9e-ae16-95d158280c3d', // dpcfrade@gmail.com — dueño de la app y coach
 ]);
 
 interface CoachChatRequest {
@@ -228,11 +229,22 @@ function buildUserMessage(mode: Mode, context: Record<string, unknown>): string 
       '- `rationale`: 2-5 razones cortas en español, dirigidas al coach, hablando del atleta en tercera persona. El atleta no las ve.',
       '- `workouts` puede venir vacío si la indicación pide descanso.',
     ].join('\n'),
+    monthly_review: [
+      'Modo: monthly_review. Trabajas para el COACH HUMANO de este atleta: redactas un borrador de su revisión mensual; él la edita y decide si la publica.',
+      'Los números ya vienen calculados (sin Strava). Úsalos tal cual: nunca inventes datos, sesiones ni causas que no se vean en ellos. Si algo no se puede saber con los datos, no lo afirmes.',
+      '- `findings`: 3-6 hallazgos concretos, cada uno con al menos un número del mes y comparado con el mes anterior cuando exista. `tone`: good (va bien), warn (a cuidar), bad (importante, actuar ya). `title` corto con punto final; `body` de una o dos frases.',
+      '- Referencias: progresión de CTL sana ≈ 1-7 puntos por semana; desacople < 5 % = buena base aeróbica; TSB entre −10 y −30 = construyendo, < −30 = fatiga alta; cumplimiento ≥ 85 % es muy bueno, < 70 % pide ajustar el plan.',
+      '- `verdict`: on_track si el mes fue bueno, attention si hay 2 o más cosas a cuidar, off_track si hay algo importante (fatiga muy alta, mes casi sin entrenar).',
+      '- `message`: borrador del mensaje AL ATLETA, de tú, cálido y directo, 2-3 párrafos cortos separados por una línea en blanco: qué salió bien, qué hay que mejorar y por qué importa. Sin saludo formal ni firma. Si `coachDraft` trae texto, respeta sus ideas y su tono y complétalo en vez de contradecirlo.',
+      '- `goals`: 2-3 objetivos para el mes siguiente, concretos y medibles (`title`) con cómo se mide o por qué (`detail`). Respeta las lesiones del atleta.',
+      '- Si `inProgress` es true, el mes no ha terminado: dilo con cuidado y no saques conclusiones de lo que falta.',
+      '- Todo en español.',
+    ].join('\n'),
   };
   // El contrato de Workout solo aplica a los modos que generan entrenamientos
   // — mandárselo a finished_training_eval_comment es tokens tirados, nunca
   // genera intervals.
-  const contract = mode === 'finished_training_eval_comment' ? '' : `${WORKOUT_CONTRACT}\n\n`;
+  const contract = mode === 'finished_training_eval_comment' || mode === 'monthly_review' ? '' : `${WORKOUT_CONTRACT}\n\n`;
   return `${headers[mode]}\n\n${contract}Datos:\n${JSON.stringify(context, null, 2)}`;
 }
 
@@ -254,7 +266,7 @@ async function checkModeAllowed(
   mode: Mode,
   context: Record<string, unknown>,
 ): Promise<{ ok: true } | { ok: false; reason: string }> {
-  if (mode === 'coach_week') {
+  if (mode === 'coach_week' || mode === 'monthly_review') {
     // Solo el coach con vínculo ACTIVO con ese atleta — misma regla que
     // is_coach_of() en schema.sql. El userId es del JWT, nunca del body.
     const { data: link } = await admin
@@ -524,6 +536,11 @@ async function applyModeEffects(
       rationale: output.rationale,
       workouts: (output.workouts as { dayOfWeek: string }[]).filter((w) => open.has(w.dayOfWeek)),
     };
+  }
+
+  if (mode === 'monthly_review') {
+    // No escribe nada: el coach aplica el borrador en su editor y decide.
+    return output;
   }
 
   if (mode === 'finished_training_eval_comment') {
