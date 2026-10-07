@@ -2,6 +2,8 @@ import { importWorkoutFile } from '../../core/workout-file-import';
 import { validateRulesFile, validateWorkout } from '../../core/validator';
 import { estimateWorkout } from '../../core/workout-estimate';
 import { computeSessionAnalytics } from '../../engine/analytics';
+import { COMPLETION_LABELS, NON_BIKE_KIND_LABELS, isNonBikeKind, srpeLoad } from '../../core/session-kind';
+import type { NonBikeKind, SessionCompletion } from '../../core/session-kind';
 import type { Interval, RulesFile, Sample, Workout } from '../../core/types';
 import { saveWorkout, deleteWorkout } from '../../storage/workout-store';
 import type { SessionRecord } from '../../storage/session-store';
@@ -10,7 +12,7 @@ import { deleteSessionFromCloud, downloadSessionSamples } from '../../sync/cloud
 import { deleteWorkoutFromCloud, pushWorkoutToCloud } from '../../sync/workout-sync';
 import { getRouteParam, navigate } from '../router';
 import { appState } from '../state';
-import { renderWorkoutCover } from '../workout-cover';
+import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { wireDatePicker } from '../date-picker';
 
 type LibraryTab = 'library' | 'activity';
@@ -39,6 +41,40 @@ interface HistoryRow {
    * locales. null en sesiones locales (ya tienen samples) o sin .fit
    * guardado (muy viejas). */
   fitPath: string | null;
+  /** Fuerza/movilidad/flexibilidad/otro registrada a mano: sin portada de
+   * potencia ni TSS, se abre en Registrar en vez de Resumen. */
+  nonBikeKind?: NonBikeKind;
+  completion?: SessionCompletion | null;
+  srpe?: number | null;
+}
+
+/** Abreviatura para el cuadro de color que sustituye a la portada. */
+const KIND_SHORT: Record<NonBikeKind, string> = { strength: 'FZA', mobility: 'MOV', flexibility: 'FLX', other: 'OTRO' };
+
+/** Fila de una sesión que no es de bici — mismas columnas, duración de reloj. */
+function nonBikeRow(
+  s: { id: string; workoutName: string; startedAt: string; finishedAt: string; rpe?: number | null; completion?: SessionCompletion | null },
+  kind: NonBikeKind,
+  origin: 'local' | 'cloud',
+): HistoryRow {
+  const durationS = Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000);
+  return {
+    id: s.id,
+    workoutId: '',
+    workoutName: s.workoutName,
+    startedAt: s.startedAt,
+    durationS,
+    tss: 0,
+    ef: null,
+    rpe: s.rpe ?? null,
+    origin,
+    fromStrava: false,
+    powerPctBuckets: null,
+    fitPath: null,
+    nonBikeKind: kind,
+    completion: s.completion ?? null,
+    srpe: srpeLoad(kind, s.completion, s.rpe, durationS / 60),
+  };
 }
 
 function fmt(totalS: number): string {
@@ -76,6 +112,7 @@ function bucketedPowerPcts(samples: readonly Sample[], ftp: number, buckets = 16
 }
 
 function localRow(session: SessionRecord): HistoryRow {
+  if (isNonBikeKind(session.kind)) return nonBikeRow(session, session.kind, 'local');
   const a = analyticsOf(session);
   return {
     id: session.id,
@@ -94,6 +131,7 @@ function localRow(session: SessionRecord): HistoryRow {
 }
 
 function cloudRow(s: (typeof appState.cloudSessions)[number]): HistoryRow {
+  if (isNonBikeKind(s.kind)) return nonBikeRow(s, s.kind, 'cloud');
   return {
     id: s.id,
     workoutId: '',
@@ -205,7 +243,24 @@ export function renderLibrary(container: HTMLElement): () => void {
       </div>`;
   }
 
+  function nonBikeRowHtml(r: HistoryRow, kind: NonBikeKind): string {
+    const skipped = r.completion === 'skipped';
+    const meta = skipped ? [COMPLETION_LABELS.skipped] : [r.rpe ? `RPE ${r.rpe}` : null, r.srpe !== null && r.srpe !== undefined ? `${r.srpe} sRPE` : null].filter(Boolean);
+    const when = skipped ? fmtDateEsMx(r.startedAt) : `${fmtDateEsMx(r.startedAt)} · ${fmt(r.durationS)}`;
+    return `
+      <div class="forma-row" data-action="view" data-session-id="${r.id}" data-origin="${r.origin}" data-log="1" role="button" tabindex="0">
+        <div class="forma-row-kind kind-${kind} num" aria-hidden="true">${KIND_SHORT[kind]}</div>
+        <div class="forma-row-info">
+          <div class="forma-row-name">${escapeHtml(r.workoutName)}</div>
+          <div class="live-col-label forma-row-name">${when} · ${NON_BIKE_KIND_LABELS[kind]}${r.completion === 'partial' ? ' · parcial' : ''}</div>
+        </div>
+        <div class="live-col-label forma-row-meta">${meta.join(' · ')}</div>
+        <button class="live-menu-item danger forma-delete" data-action="delete" data-session-id="${r.id}" data-origin="${r.origin}">Borrar</button>
+      </div>`;
+  }
+
   function activityRowHtml(r: HistoryRow): string {
+    if (r.nonBikeKind) return nonBikeRowHtml(r, r.nonBikeKind);
     const meta = [`TSS ${Math.round(r.tss)}`];
     if (r.ef !== null) meta.push(`EF ${r.ef.toFixed(2)}`);
     if (r.rpe) meta.push(`RPE ${r.rpe}`);
@@ -237,6 +292,7 @@ export function renderLibrary(container: HTMLElement): () => void {
         <label class="live-col-label">Desde<input type="date" id="lib-date-from" value="${dateFrom}"></label>
         <label class="live-col-label">Hasta<input type="date" id="lib-date-to" value="${dateTo}"></label>
         ${dateFrom || dateTo ? '<button id="lib-clear-filters" class="btn-light">Limpiar filtros</button>' : ''}
+        <a href="#/log" class="plan-import-link" style="margin-left:auto;align-self:center">Registrar fuerza o movilidad</a>
       </div>
     `;
     if (activityRows === null) return `${filterRow}<p class="hint">Cargando…</p>`;
@@ -321,6 +377,10 @@ export function renderLibrary(container: HTMLElement): () => void {
     let localById = new Map<string, SessionRecord>();
     container.querySelectorAll<HTMLElement>('[data-action="view"]').forEach((el) => {
       const openSession = (): void => {
+        if (el.dataset.log) {
+          navigate('log', el.dataset.sessionId!);
+          return;
+        }
         const origin = el.dataset.origin as 'local' | 'cloud';
         if (origin === 'cloud') {
           const cloud = appState.cloudSessions.find((s) => s.id === el.dataset.sessionId);

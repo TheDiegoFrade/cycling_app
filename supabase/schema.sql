@@ -416,3 +416,54 @@ create trigger sessions_set_source before insert or update on sessions
   for each row execute function sessions_set_source();
 
 alter table sessions alter column source set not null;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- sessions.kind / completion / srpe_load: fuerza, movilidad y flexibilidad
+-- conviven con la bici en la misma tabla (vista del coach, paso 2 — ver
+-- docs/coach-view/README.md y src/core/session-kind.ts).
+--   kind: bike_indoor, bike_outdoor, strength, mobility, flexibility, other.
+--     null = bici de la que no sabemos si fue en interior o exterior (un
+--     .fit subido a mano, o filas de antes de esta columna): se trata como
+--     bici en todo.
+--   completion: complete, partial, skipped — solo lo traen las sesiones
+--     registradas a mano; null en bici grabada/importada (se asume hecha).
+--   srpe_load: RPE × minutos, solo sesiones que no son de bici. Nunca se
+--     convierte a TSS ni se suma al CTL de la bici: son escalas distintas.
+-- ─────────────────────────────────────────────────────────────────────────
+alter table sessions add column if not exists kind text;
+alter table sessions drop constraint if exists sessions_kind_check;
+alter table sessions add constraint sessions_kind_check
+  check (kind in ('bike_indoor', 'bike_outdoor', 'strength', 'mobility', 'flexibility', 'other'));
+
+alter table sessions add column if not exists completion text;
+alter table sessions drop constraint if exists sessions_completion_check;
+alter table sessions add constraint sessions_completion_check
+  check (completion in ('complete', 'partial', 'skipped'));
+
+alter table sessions add column if not exists srpe_load numeric;
+alter table sessions drop constraint if exists sessions_srpe_load_check;
+alter table sessions add constraint sessions_srpe_load_check
+  check (srpe_load is null or (srpe_load >= 0 and kind in ('strength', 'mobility', 'flexibility', 'other')));
+
+-- Lo único que se sabe con certeza de las filas viejas: lo grabado en vivo
+-- con Torq es rodillo. Lo de Strava y los .fit subidos se quedan en null
+-- (bici sin detalle) en vez de adivinar.
+update sessions set kind = 'bike_indoor' where kind is null and source = 'torq';
+
+-- Versiones viejas de la app (PWA en caché) no mandan `kind`: lo grabado
+-- en vivo con Torq siempre es rodillo, así que el trigger de source también
+-- lo completa. Misma función de arriba, con esa línea de más.
+create or replace function sessions_set_source() returns trigger
+language plpgsql as $$
+begin
+  if new.strava_activity_id is not null or new.workout_id = 'strava-import' then
+    new.source := 'strava';
+  elsif new.source is null then
+    new.source := case when new.workout_id = 'fit-import' then 'fit_upload' else 'torq' end;
+  end if;
+  if new.kind is null and new.source = 'torq' then
+    new.kind := 'bike_indoor';
+  end if;
+  return new;
+end;
+$$;

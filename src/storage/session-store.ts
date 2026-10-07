@@ -1,3 +1,4 @@
+import type { SessionCompletion, SessionKind } from '../core/session-kind';
 import type { SessionSource } from '../core/session-source';
 import type { RuleLevel, Sample } from '../core/types';
 import { dbDelete, dbGetAll, dbPut, STORES } from './db';
@@ -22,6 +23,14 @@ export interface SessionRecord {
   /** De dónde llegó (ver core/session-source.ts). Sesiones guardadas antes
    * de este campo no lo traen — usar sessionSourceOf, nunca leerlo directo. */
   source?: SessionSource;
+  /** Bici (interior/exterior) o fuerza/movilidad/flexibilidad/otro — ver
+   * core/session-kind.ts. undefined = bici sin detalle (sesiones viejas o
+   * .fit subido a mano). Las que no son de bici casi nunca traen samples
+   * (samples = []): se registran a mano en Registrar, su duración es
+   * finishedAt - startedAt y su carga es sRPE, nunca TSS. */
+  kind?: SessionKind;
+  /** Solo lo traen las sesiones registradas a mano (ver core/session-kind). */
+  completion?: SessionCompletion;
 }
 
 export function listSessions(): Promise<SessionRecord[]> {

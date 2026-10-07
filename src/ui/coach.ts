@@ -8,6 +8,8 @@ import { computePmc } from '../engine/pmc';
 import { listSessions } from '../storage/session-store';
 import type { SessionRecord } from '../storage/session-store';
 import { isAiEligibleSession } from '../core/session-source';
+import { isBikeSession, wasTrained } from '../core/session-kind';
+import type { SessionCompletion, SessionKind } from '../core/session-kind';
 import { computeSessionAnalytics } from '../engine/analytics';
 import { estimateWorkout } from '../core/workout-estimate';
 import { deleteWorkout } from '../storage/workout-store';
@@ -22,16 +24,21 @@ const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
  * función de abajo que arma contexto para coach-chat pasa por aquí — nunca
  * leer listSessions()/appState.cloudSessions directo para eso. La
  * deduplicación local/nube usa los ids de TODAS las locales (sin filtrar),
- * así una sesión de Strava local tampoco se cuela por el lado de la nube. */
-async function aiEligibleSessions(): Promise<{
+ * así una sesión de Strava local tampoco se cuela por el lado de la nube.
+ *
+ * `bikeOnly` deja fuera fuerza/movilidad: el TSS, el PMC y las horas que ve
+ * la IA son de bici, igual que Forma (ver core/session-kind.ts). Los
+ * registros "No la hice" nunca entran — no se entrenó. */
+async function aiEligibleSessions(bikeOnly: boolean): Promise<{
   localSessions: SessionRecord[];
   cloudOnly: typeof appState.cloudSessions;
 }> {
   const allLocal = await listSessions();
   const localIds = new Set(allLocal.map((s) => s.id));
+  const keep = (s: { kind?: SessionKind | null; completion?: SessionCompletion | null }) => wasTrained(s) && (!bikeOnly || isBikeSession(s));
   return {
-    localSessions: allLocal.filter(isAiEligibleSession),
-    cloudOnly: appState.cloudSessions.filter((s) => !localIds.has(s.id) && isAiEligibleSession(s)),
+    localSessions: allLocal.filter((s) => isAiEligibleSession(s) && keep(s)),
+    cloudOnly: appState.cloudSessions.filter((s) => !localIds.has(s.id) && isAiEligibleSession(s) && keep(s)),
   };
 }
 
@@ -421,7 +428,7 @@ interface RecentHistory {
 /** Calcula el historial real del atleta con el mismo motor que ya usa Forma
  * (computePmc) — null genuino si no hay ninguna sesión, nunca inventado. */
 async function computeRecentHistory(): Promise<RecentHistory | null> {
-  const { localSessions, cloudOnly } = await aiEligibleSessions();
+  const { localSessions, cloudOnly } = await aiEligibleSessions(true);
   const localEntries = localSessions.map((s) => ({
     dateKey: s.startedAt.slice(0, 10),
     tss: computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp }).trainingStressScore ?? 0,
@@ -470,7 +477,7 @@ async function computeOccupiedDates(startDate: string, weeksAhead: number): Prom
 
   // occupiedDates también le llega al modelo (ver prompt.ts), así que las
   // fechas de sesiones de Strava tampoco van.
-  const { localSessions, cloudOnly } = await aiEligibleSessions();
+  const { localSessions, cloudOnly } = await aiEligibleSessions(false);
   const localDates = localSessions.map((s) => s.startedAt.slice(0, 10)).filter(inRange);
   const cloudDates = cloudOnly
     .map((s) => s.startedAt.slice(0, 10))
@@ -514,7 +521,7 @@ async function computeWeekEvalContext(
   const weeks = plan.data.weeks;
   if (weeks.length === 0) return null;
 
-  const { localSessions, cloudOnly } = await aiEligibleSessions();
+  const { localSessions, cloudOnly } = await aiEligibleSessions(true);
   const localEntries = localSessions.map((s) => ({
     dateKey: s.startedAt.slice(0, 10),
     tss: computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp }).trainingStressScore ?? 0,

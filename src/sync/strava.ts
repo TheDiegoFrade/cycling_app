@@ -88,6 +88,9 @@ export interface StravaActivitySummary {
   startDate: string;
   movingTimeS: number;
   distanceM: number;
+  /** 'VirtualRide', 'Ride', 'GravelRide'… — undefined si la Edge Function
+   * strava-activities desplegada todavía es la de antes de este campo. */
+  sportType?: string;
 }
 
 /** Actividades de ciclismo de Strava — `afterUnixS` opcional para no traer
@@ -132,6 +135,7 @@ export async function importStravaActivity(activity: StravaActivitySummary, prof
     intensityChanges: [],
     stravaActivityId: activity.id,
     source: 'strava',
+    kind: activity.sportType === undefined ? undefined : activity.sportType === 'VirtualRide' ? 'bike_indoor' : 'bike_outdoor',
   };
 
   await saveSession(record);

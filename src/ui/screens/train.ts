@@ -727,6 +727,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       alerts,
       intensityChanges,
       source: 'torq',
+      kind: 'bike_indoor',
     };
     await saveSession(record);
     void clearDraft(sessionId);

@@ -3,6 +3,7 @@ import { validateWorkout } from '../../core/validator';
 import { estimateWorkout } from '../../core/workout-estimate';
 import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import { computeSessionAnalytics } from '../../engine/analytics';
+import { isBikeSession } from '../../core/session-kind';
 import { clearDraft, listDrafts } from '../../storage/session-draft';
 import { listSessions, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
@@ -274,7 +275,9 @@ export function renderHome(container: HTMLElement): void {
     const weekEndExclusive = new Date(weekStart);
     weekEndExclusive.setDate(weekEndExclusive.getDate() + 7);
 
-    const weekSessions = sessions.filter((s) => {
+    // "Esta semana" es de bici (horas, TSS, zonas) — fuerza/movilidad van
+    // con sRPE aparte, nunca se suman aquí (ver core/session-kind.ts).
+    const weekSessions = sessions.filter(isBikeSession).filter((s) => {
       const key = s.startedAt.slice(0, 10);
       return key >= weekStartKey && key < toDateKey(weekEndExclusive);
     });
@@ -296,7 +299,7 @@ export function renderHome(container: HTMLElement): void {
     // llegaron a este IndexedDB — solo tenemos el resumen, no las samples;
     // sin esto "Esta semana" se queda corto tras entrenar desde el celular.
     const localIds = new Set(sessions.map((s) => s.id));
-    const cloudOnlyThisWeek = appState.cloudSessions.filter((s) => !localIds.has(s.id)).filter((s) => {
+    const cloudOnlyThisWeek = appState.cloudSessions.filter((s) => !localIds.has(s.id) && isBikeSession(s)).filter((s) => {
       const key = s.startedAt.slice(0, 10);
       return key >= weekStartKey && key < toDateKey(weekEndExclusive);
     });
@@ -408,6 +411,8 @@ export function renderHome(container: HTMLElement): void {
         const record: SessionRecord = {
           ...draft,
           finishedAt: new Date().toISOString(),
+          source: 'torq',
+          kind: 'bike_indoor',
         };
         await saveSession(record);
         await clearDraft(draft.id);

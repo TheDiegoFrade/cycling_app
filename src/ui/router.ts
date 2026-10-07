@@ -1,6 +1,6 @@
-export type Screen = 'home' | 'plan' | 'library' | 'prepare' | 'train' | 'session' | 'form' | 'profile' | 'limits' | 'login';
+export type Screen = 'home' | 'plan' | 'library' | 'prepare' | 'train' | 'session' | 'form' | 'profile' | 'limits' | 'login' | 'log';
 
-const SCREENS: readonly Screen[] = ['home', 'plan', 'library', 'prepare', 'train', 'session', 'form', 'profile', 'limits', 'login'];
+const SCREENS: readonly Screen[] = ['home', 'plan', 'library', 'prepare', 'train', 'session', 'form', 'profile', 'limits', 'login', 'log'];
 
 /** Rutas viejas → nuevas, ver TORQ_DESIGN.md ("Rutas: de la app actual a la
  * nueva"). Cualquier hash viejo se reescribe al nuevo antes de resolver la
@@ -21,6 +21,11 @@ let currentCleanup: (() => void) | void;
  * no lo consume ninguna pantalla (eso es la Fase 9, Resumen), pero la ruta
  * ya queda lista para leerlo. */
 let currentParam: string | null = null;
+/** Hash de la pantalla anterior dentro de la app (null si se entró directo)
+ * — para "volver" sin history.back(), que saca de la app si la pantalla se
+ * abrió directo desde un link o bookmark. */
+let previousHash: string | null = null;
+let currentHash: string | null = null;
 
 export function registerScreen(name: Screen, render: RenderFn): void {
   routes.set(name, render);
@@ -32,6 +37,10 @@ export function navigate(screen: Screen, param?: string): void {
 
 export function getRouteParam(): string | null {
   return currentParam;
+}
+
+export function getPreviousHash(): string | null {
+  return previousHash;
 }
 
 function resolveHash(): { screen: Screen; param: string | null } {
@@ -54,6 +63,10 @@ function renderCurrent(): void {
   // (replaceState no dispara hashchange).
   const normalized = param ? `#/${screen}/${param}` : `#/${screen}`;
   if (location.hash !== normalized) history.replaceState(null, '', normalized);
+  if (normalized !== currentHash) {
+    previousHash = currentHash;
+    currentHash = normalized;
+  }
   currentCleanup = routes.get(screen)?.(container);
 }
 

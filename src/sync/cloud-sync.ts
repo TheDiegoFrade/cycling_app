@@ -1,6 +1,8 @@
 import { computeSessionAnalytics } from '../engine/analytics';
 import { encodeFitActivity } from '../export/fit';
 import { parseFitActivity } from '../core/fit-activity-parser';
+import { isBikeSession, srpeLoad } from '../core/session-kind';
+import type { SessionCompletion, SessionKind } from '../core/session-kind';
 import { sessionSourceOf } from '../core/session-source';
 import type { SessionSource } from '../core/session-source';
 import type { Profile, Sample } from '../core/types';
@@ -40,6 +42,17 @@ export interface CloudSessionSummary {
   /** De dónde llegó (ver core/session-source.ts) — 'strava' nunca entra al
    * contexto del coach de IA. */
   source: SessionSource;
+  /** null = bici sin detalle (ver core/session-kind.ts). */
+  kind: SessionKind | null;
+  completion: SessionCompletion | null;
+  /** RPE × minutos, solo sesiones que no son de bici. */
+  srpeLoad: number | null;
+}
+
+/** Duración de reloj (fin - inicio) en minutos — la que usan las sesiones
+ * registradas a mano, que no tienen samples. */
+function wallClockMinutes(startedAt: string, finishedAt: string): number {
+  return Math.max(0, (new Date(finishedAt).getTime() - new Date(startedAt).getTime()) / 60000);
 }
 
 /** Sube el .fit a Storage y el resumen a la tabla `sessions`. Best-effort:
@@ -50,15 +63,26 @@ export interface CloudSessionSummary {
 export async function pushSessionToCloud(session: SessionRecord, profile: Profile, userId: string): Promise<void> {
   if (!supabase) return;
   const sessionProfile: Profile = { ...profile, ftp: session.ftp };
+  const bike = isBikeSession(session);
   try {
-    const bytes = encodeFitActivity(new Date(session.startedAt), session.samples, sessionProfile);
-    const fitPath = `${userId}/${session.id}.fit`;
-    const { error: uploadError } = await supabase.storage
-      .from('fit-files')
-      .upload(fitPath, bytes, { contentType: 'application/octet-stream', upsert: true });
-    if (uploadError) throw uploadError;
+    // Fuerza/movilidad registradas a mano no traen samples: no hay .fit que
+    // subir ni nada que analizar (fit_path y métricas quedan en null).
+    const hasSamples = session.samples.length > 0;
+    let fitPath: string | null = null;
+    if (hasSamples) {
+      const bytes = encodeFitActivity(new Date(session.startedAt), session.samples, sessionProfile);
+      fitPath = `${userId}/${session.id}.fit`;
+      const { error: uploadError } = await supabase.storage
+        .from('fit-files')
+        .upload(fitPath, bytes, { contentType: 'application/octet-stream', upsert: true });
+      if (uploadError) throw uploadError;
+    }
 
-    const a = computeSessionAnalytics(session.samples, sessionProfile);
+    const a = hasSamples ? computeSessionAnalytics(session.samples, sessionProfile) : null;
+    // Una sesión de fuerza grabada en el reloj trae pulso pero potencia en 0
+    // — solo el pulso significa algo ahí; lo de potencia/cadencia/TSS sería
+    // un cero falso que ensucia cualquier reporte.
+    const p = bike ? a : null;
     const { error: insertError } = await supabase.from('sessions').upsert({
       id: session.id,
       user_id: userId,
@@ -66,18 +90,18 @@ export async function pushSessionToCloud(session: SessionRecord, profile: Profil
       started_at: session.startedAt,
       finished_at: session.finishedAt,
       ftp: session.ftp,
-      avg_power: a.avgPower,
-      max_power: a.maxPower,
-      avg_cadence: a.avgCadence,
-      max_cadence: a.maxCadence,
-      avg_hr: a.avgHr,
-      max_hr: a.maxHr,
-      normalized_power: a.normalizedPower,
-      intensity_factor: a.intensityFactor,
-      training_stress_score: a.trainingStressScore,
-      variability_index: a.variabilityIndex,
-      efficiency_factor: a.efficiencyFactor,
-      hr_drift_pct: a.hrDriftPct,
+      avg_power: p?.avgPower ?? null,
+      max_power: p?.maxPower ?? null,
+      avg_cadence: p?.avgCadence ?? null,
+      max_cadence: p?.maxCadence ?? null,
+      avg_hr: a?.avgHr ?? null,
+      max_hr: a?.maxHr ?? null,
+      normalized_power: p?.normalizedPower ?? null,
+      intensity_factor: p?.intensityFactor ?? null,
+      training_stress_score: p?.trainingStressScore ?? null,
+      variability_index: p?.variabilityIndex ?? null,
+      efficiency_factor: p?.efficiencyFactor ?? null,
+      hr_drift_pct: p?.hrDriftPct ?? null,
       rpe: session.rpe ?? null,
       note: session.note ?? null,
       fit_path: fitPath,
@@ -86,13 +110,16 @@ export async function pushSessionToCloud(session: SessionRecord, profile: Profil
       // el trigger sessions_set_source de schema.sql fuerza 'strava' igual
       // si trae strava_activity_id — esto es lo mismo, del lado del cliente.
       source: sessionSourceOf(session),
+      kind: session.kind ?? null,
+      completion: session.completion ?? null,
+      srpe_load: srpeLoad(session.kind, session.completion, session.rpe, wallClockMinutes(session.startedAt, session.finishedAt)),
       // picos de potencia (mejor promedio sostenido) — guardados aparte del
       // resto para poder calcular récords históricos de TODA la cuenta sin
       // tener que descargar y decodificar el .fit de cada sesión, ver
       // getPowerRecords más abajo.
-      best_1min_power: a.powerCurve.find((p) => p.windowS === 60)?.watts ?? null,
-      best_5min_power: a.powerCurve.find((p) => p.windowS === 300)?.watts ?? null,
-      best_20min_power: a.powerCurve.find((p) => p.windowS === 1200)?.watts ?? null,
+      best_1min_power: p?.powerCurve.find((c) => c.windowS === 60)?.watts ?? null,
+      best_5min_power: p?.powerCurve.find((c) => c.windowS === 300)?.watts ?? null,
+      best_20min_power: p?.powerCurve.find((c) => c.windowS === 1200)?.watts ?? null,
     });
     if (insertError) throw insertError;
   } catch (err) {
@@ -119,7 +146,7 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
   const { data, error } = await supabase
     .from('sessions')
     .select(
-      'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id, fit_path, workout_id, source',
+      'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id, fit_path, workout_id, source, kind, completion, srpe_load',
     )
     .eq('user_id', userId)
     .order('started_at', { ascending: false });
@@ -151,6 +178,9 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
     fitPath: row.fit_path,
     workoutId: row.workout_id,
     source: sessionSourceOf({ source: row.source, workoutId: row.workout_id, stravaActivityId: row.strava_activity_id }),
+    kind: row.kind,
+    completion: row.completion,
+    srpeLoad: row.srpe_load,
   }));
 }
 

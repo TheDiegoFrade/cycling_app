@@ -9,6 +9,7 @@ import { renderHome } from './ui/screens/home';
 import { renderLibrary } from './ui/screens/library';
 import { renderLimits } from './ui/screens/limits';
 import { renderLogin } from './ui/screens/login';
+import { renderLogSession } from './ui/screens/log-session';
 import { renderPerfil } from './ui/screens/perfil';
 import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
@@ -37,6 +38,8 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['form', withSidebar('form', renderForma)],
   ['profile', withSidebar('profile', renderPerfil)],
   ['limits', renderLimits],
+  // Registrar fuerza/movilidad (#/log, #/log/:id) — se llega desde Plan.
+  ['log', withSidebar('plan', renderLogSession)],
 ];
 
 SCREENS_TO_GUARD.forEach(([screen, render]) => registerScreen(screen, guarded(render)));
