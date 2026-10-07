@@ -79,6 +79,16 @@ const COACH_ITEMS: typeof ITEMS = [
   },
 ];
 
+/** Misma inicial que el círculo de Inicio y Perfil (la del correo). */
+function profileInitial(): string {
+  return (appState.user?.email ?? '?').charAt(0).toUpperCase();
+}
+
+function profileName(): string {
+  if (appState.profile.name) return appState.profile.name;
+  return appState.user?.email?.split('@')[0] ?? 'Tu perfil';
+}
+
 function sidebarHtml(active: SidebarScreen | null): string {
   const linkHtml = (i: (typeof ITEMS)[number]) => `
     <a href="#/${i.route}" class="sidebar-link${i.screen === active ? ' active' : ''}">${i.icon}${i.label}</a>`;
@@ -105,6 +115,10 @@ function sidebarHtml(active: SidebarScreen | null): string {
           <span class="sidebar-sensor-state"><span class="status-dot" id="sidebar-hr-dot"></span><span id="sidebar-hr-state">${STATE_LABEL.disconnected}</span></span>
         </button>
       </div>
+      <a href="#/profile" class="sidebar-profile${active === 'profile' ? ' active' : ''}" aria-label="Ir a tu perfil">
+        <span class="perfil-avatar sidebar-avatar" aria-hidden="true">${escapeHtml(profileInitial())}</span>
+        <span class="sidebar-profile-text"><span class="sidebar-profile-name">${escapeHtml(profileName())}</span><span class="sidebar-sensors-title">Ver perfil</span></span>
+      </a>
     </nav>
     <div class="main-content" id="main-slot"></div>
   `;

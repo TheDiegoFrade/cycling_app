@@ -125,7 +125,7 @@ export function renderHome(container: HTMLElement): void {
       <div id="draft-recovery"></div>
       <div class="home-topline">
         <h1>${greeting()}${name ? `, ${name}` : ''}</h1>
-        <div class="perfil-avatar">${initial}</div>
+        <a href="#/profile" class="perfil-avatar perfil-avatar-link" aria-label="Ir a tu perfil" title="Tu perfil">${initial}</a>
       </div>
 
       ${

@@ -124,6 +124,7 @@ a {
 .sidebar {
   width: 248px;
   flex-shrink: 0;
+  overflow-y: auto;
   background: var(--surface-nav);
   border-right: 1px solid var(--border);
   padding: 32px 20px;
@@ -176,6 +177,52 @@ a {
 .sidebar-sensors-title {
   font-size: 12px;
   color: var(--text-muted);
+}
+/* Tu círculo de perfil, abajo de Sensores (lleva a Perfil) */
+.sidebar-sensors + .sidebar-profile {
+  margin-top: -20px; /* el gap de la barra es 32px: quedan 12px */
+}
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  color: var(--text);
+  text-decoration: none;
+}
+.sidebar-profile:hover,
+.sidebar-profile.active {
+  background: var(--surface);
+}
+.sidebar-profile .sidebar-avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 15px;
+}
+.sidebar-profile-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sidebar-profile-name {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.perfil-avatar-link {
+  text-decoration: none;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.perfil-avatar-link:hover {
+  filter: brightness(1.12);
+}
+.perfil-avatar-link:focus-visible,
+.sidebar-profile:focus-visible {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 2px;
 }
 .sidebar-sensor-row {
   background: none;
