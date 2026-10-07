@@ -162,6 +162,7 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
               <div class="coach-pills">${pillsHtml(athlete)}${summary.alerts.map(alertPillHtml).join('')}</div>
             </div>
           </div>
+          <div class="coach-head-actions"><a href="#/coach-week/${athlete.userId}" class="coach-btn coach-btn-primary">Ajustar semana</a></div>
         </header>
         ${athlete.injuries ? `<div class="panel coach-injuries"><span class="live-col-label">Lesiones o molestias que registró</span><span>${escapeHtml(athlete.injuries)}</span></div>` : ''}
 

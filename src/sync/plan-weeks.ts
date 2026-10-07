@@ -1,0 +1,99 @@
+// Borradores de semana del coach (vista del coach, paso 6a). El coach lee
+// lo agendado del atleta y escribe SOLO en plan_weeks; publicar pasa por la
+// función publish_plan_week de supabase/schema.sql, que es lo único que
+// escribe en `workouts` del atleta.
+import { addDaysKey, isoWeekLabel } from '../core/plan-week';
+import type { PlanWeekItem } from '../core/plan-week';
+import type { Workout } from '../core/types';
+import { supabase } from '../supabase/client';
+
+export interface PlanWeekDraft {
+  id: string;
+  items: PlanWeekItem[];
+  baseWorkoutIds: string[];
+  updatedAt: string;
+}
+
+function client() {
+  if (!supabase) throw new Error('Supabase no configurado');
+  return supabase;
+}
+
+/** Lo que el atleta tiene agendado de lunes a domingo de esa semana. */
+export async function fetchAthleteWeekWorkouts(athleteId: string, mondayKey: string): Promise<Workout[]> {
+  const { data, error } = await client()
+    .from('workouts')
+    .select('data')
+    .eq('user_id', athleteId)
+    .gte('data->>scheduledDate', mondayKey)
+    .lte('data->>scheduledDate', addDaysKey(mondayKey, 6));
+  if (error) throw error;
+  return (data ?? []).map((r) => r.data as Workout);
+}
+
+/** El borrador de este coach para ese atleta y semana, o null. */
+export async function fetchDraft(coachId: string, athleteId: string, mondayKey: string): Promise<PlanWeekDraft | null> {
+  const { data, error } = await client()
+    .from('plan_weeks')
+    .select('id, items, base_workout_ids, updated_at')
+    .eq('coach_id', coachId)
+    .eq('athlete_id', athleteId)
+    .eq('week_start', mondayKey)
+    .eq('status', 'draft')
+    .maybeSingle();
+  if (error) throw error;
+  return data ? { id: data.id, items: data.items as PlanWeekItem[], baseWorkoutIds: data.base_workout_ids, updatedAt: data.updated_at } : null;
+}
+
+/** Cuándo se publicó por última vez esa semana (de cualquier coach), o null. */
+export async function fetchLastPublishedAt(athleteId: string, mondayKey: string): Promise<string | null> {
+  const { data, error } = await client()
+    .from('plan_weeks')
+    .select('published_at')
+    .eq('athlete_id', athleteId)
+    .eq('week_start', mondayKey)
+    .eq('status', 'published')
+    .maybeSingle();
+  if (error) throw error;
+  return data?.published_at ?? null;
+}
+
+export async function createDraft(
+  coachId: string,
+  athleteId: string,
+  mondayKey: string,
+  items: PlanWeekItem[],
+  baseWorkoutIds: string[],
+): Promise<PlanWeekDraft> {
+  const { data, error } = await client()
+    .from('plan_weeks')
+    .insert({
+      coach_id: coachId,
+      athlete_id: athleteId,
+      week_start: mondayKey,
+      iso_week: isoWeekLabel(mondayKey),
+      items,
+      base_workout_ids: baseWorkoutIds,
+    })
+    .select('id, items, base_workout_ids, updated_at')
+    .single();
+  if (error) throw error;
+  return { id: data.id, items: data.items as PlanWeekItem[], baseWorkoutIds: data.base_workout_ids, updatedAt: data.updated_at };
+}
+
+export async function saveDraftItems(draftId: string, items: PlanWeekItem[]): Promise<void> {
+  const { error } = await client().from('plan_weeks').update({ items, updated_at: new Date().toISOString() }).eq('id', draftId).eq('status', 'draft');
+  if (error) throw error;
+}
+
+export async function discardDraft(draftId: string): Promise<void> {
+  const { error } = await client().from('plan_weeks').delete().eq('id', draftId).eq('status', 'draft');
+  if (error) throw error;
+}
+
+/** Lanza con el mensaje en español de publish_plan_week si no se puede. */
+export async function publishDraft(draftId: string): Promise<string> {
+  const { data, error } = await client().rpc('publish_plan_week', { p_week_id: draftId });
+  if (error) throw new Error(error.message);
+  return data as string;
+}

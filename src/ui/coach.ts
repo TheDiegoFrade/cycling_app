@@ -14,6 +14,7 @@ import { computeSessionAnalytics } from '../engine/analytics';
 import { estimateWorkout } from '../core/workout-estimate';
 import { deleteWorkout } from '../storage/workout-store';
 import { escapeHtml } from './workout-cover';
+import { confirmAiWithHumanCoach, humanCoachName } from './coach-notice';
 
 const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'M', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
 const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
@@ -53,13 +54,18 @@ const THINKING_MESSAGES = [
   '✍️ Escribiendo las notas del coach…',
 ];
 
+/** "Tu coach" a secas confunde si el atleta también tiene coach humano. */
+function aiCoachTitle(): string {
+  return humanCoachName() ? 'Coach de IA' : 'Tu coach';
+}
+
 /** Presenta lo que dijo el coach como un mensaje amigable — sigue siendo de
  * un solo sentido, no hay caja de respuesta ni hilo. Solo texto que ya
  * regresó la Edge Function, nunca algo editable. */
 function coachBubbleHtml(text: string): string {
   return `
     <div class="coach-bubble">
-      <div class="coach-bubble-label"><span class="coach-bubble-dot"></span>Tu coach</div>
+      <div class="coach-bubble-label"><span class="coach-bubble-dot"></span>${aiCoachTitle()}</div>
       <div class="coach-bubble-text">${escapeHtml(text)}</div>
     </div>`;
 }
@@ -189,7 +195,7 @@ function planSummaryHtml(plan: ActivePlanRow, weeklyEvalsUsed: number, planActio
   const planActionsRemaining = MONTHLY_PLAN_ACTION_LIMIT - planActionsUsed;
   return `
     <div class="panel plan-coach-card">
-      <h2 class="perfil-h2" style="margin:0">Tu coach — ${plan.goal}</h2>
+      <h2 class="perfil-h2" style="margin:0">${aiCoachTitle()} — ${plan.goal}</h2>
       <div class="plan-chip-row" style="margin-top:10px">${blocks}</div>
       <p class="hint" style="margin-top:8px">${plan.current_block_exhausted ? 'El bloque actual ya se completó — toca publicar el siguiente.' : 'Semana en curso dentro del plan.'}</p>
       ${plan.data.lastEvalNote ? coachBubbleHtml(plan.data.lastEvalNote) : ''}
@@ -213,7 +219,7 @@ function wireAbandonButton(slot: HTMLElement, container: HTMLElement, onChange: 
   const errorEl = slot.querySelector<HTMLElement>('#coach-abandon-error');
   zone?.querySelector('#coach-abandon')?.addEventListener('click', (e) => {
     e.preventDefault();
-    if (!zone) return;
+    if (!zone || !confirmAiWithHumanCoach()) return;
     zone.innerHTML = `
       <span class="hint">¿Dar de baja?</span>
       <button class="plan-chip" id="coach-abandon-yes">Sí</button>
@@ -258,6 +264,7 @@ function wireWeeklyEvalButton(slot: HTMLElement, plan: ActivePlanRow, onChange: 
   if (!openBtn || !form || !noteInput || !submitBtn || !status) return;
 
   openBtn.addEventListener('click', () => {
+    if (!confirmAiWithHumanCoach()) return;
     openBtn.parentElement!.style.display = 'none';
     form.style.display = '';
   });
@@ -353,7 +360,7 @@ function createCardHtml(actionsUsed: number): string {
   const atLimit = remaining <= 0;
   return `
     <div class="panel plan-coach-card">
-      <h2 class="perfil-h2" style="margin:0">Tu coach</h2>
+      <h2 class="perfil-h2" style="margin:0">${aiCoachTitle()}</h2>
       <p class="hint" style="margin-top:8px">Todavía no tienes un plan — el coach arma tu periodización y va ajustando cada semana según cómo te va.</p>
       <button class="btn-light" id="coach-open-create" style="margin-top:10px" ${atLimit ? 'disabled' : ''}>Crear mi plan</button>
       <p class="hint" style="margin-top:6px">${atLimit ? 'Ya usaste tus 3 creaciones/cambios de plan de este mes — vuelve el próximo mes.' : `Te quedan ${remaining} de ${MONTHLY_PLAN_ACTION_LIMIT} creaciones/cambios de plan este mes.`}</p>
@@ -401,7 +408,17 @@ export function renderCoachSection(container: HTMLElement, onChange: () => void)
     fetchMonthlyWeeklyEvalsUsed(appState.user.id),
   ]).then(([plan, actionsUsed, weeklyEvalsUsed]) => {
     slot.innerHTML = plan ? planSummaryHtml(plan, weeklyEvalsUsed, actionsUsed) : createCardHtml(actionsUsed);
+    // Con coach humano: recordatorio visible (no bloquea) de platicar con
+    // él antes de pedirle cambios a la IA — ver ui/coach-notice.ts.
+    const humanCoach = humanCoachName();
+    if (humanCoach) {
+      slot.firstElementChild?.insertAdjacentHTML(
+        'afterbegin',
+        `<p class="coach-human-note">Tienes coach: <strong>${escapeHtml(humanCoach)}</strong>. Antes de pedirle cambios a la IA, platícalo con tu coach para que el plan no se contradiga. Mover, agregar o quitar entrenamientos lo puedes hacer cuando quieras.</p>`,
+      );
+    }
     slot.querySelector('#coach-open-create')?.addEventListener('click', () => {
+      if (!confirmAiWithHumanCoach()) return;
       // El cuestionario inicial llena el Perfil persistente — si ya está
       // completo (de esta vez o de una anterior), no se vuelve a preguntar.
       if (isCoachProfileComplete(appState.profile)) {
