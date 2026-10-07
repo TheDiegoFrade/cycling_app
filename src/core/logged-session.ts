@@ -21,6 +21,8 @@ export interface LogSessionForm {
   note: string;
   /** .fit del reloj, si lo subió: samples + hora real de inicio. */
   fit: { samples: Sample[]; startedAt: string } | null;
+  /** Rutina agendada por el coach que se está registrando, si aplica. */
+  plannedItemId?: string;
 }
 
 /** Errores de validación en español, listos para mostrar; vacío si se puede
@@ -76,6 +78,7 @@ export function buildLoggedSession(
   }
 
   const samples = skipped ? [] : (form.fit?.samples ?? []);
+  const plannedItemId = form.plannedItemId ?? existing?.plannedItemId;
   const note = form.note.trim();
   return {
     id: existing?.id ?? crypto.randomUUID(),
@@ -92,5 +95,6 @@ export function buildLoggedSession(
     source: samples.length > 0 ? 'fit_upload' : 'manual',
     kind: form.kind,
     completion: form.completion,
+    ...(plannedItemId ? { plannedItemId } : {}),
   };
 }

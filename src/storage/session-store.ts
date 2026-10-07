@@ -31,6 +31,9 @@ export interface SessionRecord {
   kind?: SessionKind;
   /** Solo lo traen las sesiones registradas a mano (ver core/session-kind). */
   completion?: SessionCompletion;
+  /** Rutina agendada por el coach (planned_routines.id) que registra esta
+   * sesión — ver screens/log-session.ts. */
+  plannedItemId?: string;
 }
 
 export function listSessions(): Promise<SessionRecord[]> {

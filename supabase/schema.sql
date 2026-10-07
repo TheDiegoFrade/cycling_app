@@ -851,3 +851,155 @@ $$;
 
 revoke execute on function publish_plan_week(uuid) from public, anon;
 grant execute on function publish_plan_week(uuid) to authenticated;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Vista del coach, paso 5: biblioteca del coach y rutinas de fuerza/movilidad.
+--
+-- session_templates: plantillas del coach (bici, fuerza, movilidad,
+-- flexibilidad). Solo el coach las ve y edita. Al agendarlas el contenido
+-- se COPIA (a workouts o planned_routines, con id nuevo): editar o borrar
+-- una plantilla nunca cambia lo ya publicado, y el atleta no necesita leer
+-- esta tabla (más simple que el "lee las de sus semanas publicadas" del
+-- README, con el mismo resultado).
+--   payload bici: { description?, intervals: [...] }  (como core/types.ts Interval)
+--   payload rutina: { description?, durationMin?, targetRpe?, note?,
+--                     exercises: [{ name, dose, videoUrl? }] }
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists session_templates (
+  id uuid primary key default gen_random_uuid(),
+  coach_id uuid not null references auth.users (id) on delete cascade,
+  kind text not null check (kind in ('bike', 'strength', 'mobility', 'flexibility')),
+  name text not null check (char_length(name) between 1 and 80),
+  payload jsonb not null check (jsonb_typeof(payload) = 'object'),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table session_templates enable row level security;
+
+drop policy if exists "session_templates: coach lee las suyas" on session_templates;
+create policy "session_templates: coach lee las suyas" on session_templates for select
+  using (auth.uid() = coach_id);
+
+drop policy if exists "session_templates: coach crea si es coach" on session_templates;
+create policy "session_templates: coach crea si es coach" on session_templates for insert
+  with check (auth.uid() = coach_id and exists (select 1 from profiles where user_id = auth.uid() and is_coach));
+
+drop policy if exists "session_templates: coach edita las suyas" on session_templates;
+create policy "session_templates: coach edita las suyas" on session_templates for update
+  using (auth.uid() = coach_id) with check (auth.uid() = coach_id);
+
+drop policy if exists "session_templates: coach borra las suyas" on session_templates;
+create policy "session_templates: coach borra las suyas" on session_templates for delete
+  using (auth.uid() = coach_id);
+
+create index if not exists session_templates_coach_idx on session_templates (coach_id, kind);
+
+-- planned_routines: una rutina de fuerza/movilidad agendada a un atleta (la
+-- copia de la plantilla). Se crean SOLO al publicar una semana
+-- (publish_plan_week); el atleta las ve en Plan y las registra en
+-- Registrar, que liga la sesión con sessions.planned_item_id.
+create table if not exists planned_routines (
+  id uuid primary key,
+  athlete_id uuid not null references auth.users (id) on delete cascade,
+  coach_id uuid references auth.users (id) on delete set null,
+  scheduled_date date not null,
+  kind text not null check (kind in ('strength', 'mobility', 'flexibility')),
+  name text not null,
+  payload jsonb not null check (jsonb_typeof(payload) = 'object'),
+  plan_week_id uuid references plan_weeks (id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table planned_routines enable row level security;
+
+drop policy if exists "planned_routines: atleta lee las suyas" on planned_routines;
+create policy "planned_routines: atleta lee las suyas" on planned_routines for select
+  using (auth.uid() = athlete_id);
+
+drop policy if exists "planned_routines: coach lee las de sus atletas" on planned_routines;
+create policy "planned_routines: coach lee las de sus atletas" on planned_routines for select
+  using (is_coach_of(athlete_id));
+
+create index if not exists planned_routines_athlete_date_idx on planned_routines (athlete_id, scheduled_date);
+
+-- Con qué elemento planeado (workout o rutina) se empata una sesión — por
+-- ahora lo llena Registrar al registrar una rutina agendada.
+alter table sessions add column if not exists planned_item_id uuid;
+
+-- Publicar, ahora también con rutinas: cada item trae `workout` (bici, va a
+-- workouts) o `routine` (va a planned_routines). Mismas reglas que antes:
+-- todo en una transacción, solo se borra lo que el coach quitó de
+-- base_workout_ids (que guarda ids de ambas tablas), nada fuera de la
+-- semana, ningún id de otro usuario.
+create or replace function publish_plan_week(p_week_id uuid) returns timestamptz
+language plpgsql volatile security definer set search_path = public as $$
+declare
+  w plan_weeks%rowtype;
+  item jsonb;
+  obj jsonb;
+  wid text;
+  day_key text;
+  keep text[] := '{}';
+  ts timestamptz := now();
+begin
+  select * into w from plan_weeks where id = p_week_id for update;
+  if not found or w.coach_id is distinct from auth.uid() then
+    raise exception 'No encontramos ese borrador.';
+  end if;
+  if not is_coach_of(w.athlete_id) then
+    raise exception 'Este atleta ya no está vinculado contigo.';
+  end if;
+  if w.status <> 'draft' then
+    raise exception 'Esta semana ya se publicó. Recarga para ver la versión actual.';
+  end if;
+
+  for item in select value from jsonb_array_elements(w.items) loop
+    obj := coalesce(item -> 'workout', item -> 'routine');
+    wid := obj ->> 'id';
+    day_key := obj ->> 'scheduledDate';
+    if obj is null or wid is null or wid !~ '^[0-9a-fA-F-]{36}$' then
+      raise exception 'Hay un elemento sin identificador válido.';
+    end if;
+    if day_key is null or day_key !~ '^\d{4}-\d{2}-\d{2}$'
+       or day_key::date < w.week_start or day_key::date > w.week_start + 6 then
+      raise exception 'Hay un elemento fuera de esta semana.';
+    end if;
+    if exists (select 1 from workouts where id = wid::uuid and user_id <> w.athlete_id)
+       or exists (select 1 from planned_routines where id = wid::uuid and athlete_id <> w.athlete_id) then
+      raise exception 'Un elemento del borrador no pertenece a este atleta.';
+    end if;
+
+    if item ? 'workout' then
+      insert into workouts (id, user_id, data, updated_at)
+        values (wid::uuid, w.athlete_id, obj, ts)
+        on conflict (id) do update set data = excluded.data, updated_at = excluded.updated_at;
+    else
+      if (obj ->> 'kind') is null or (obj ->> 'kind') not in ('strength', 'mobility', 'flexibility') then
+        raise exception 'Hay una rutina con un tipo no válido.';
+      end if;
+      insert into planned_routines (id, athlete_id, coach_id, scheduled_date, kind, name, payload, plan_week_id, updated_at)
+        values (wid::uuid, w.athlete_id, w.coach_id, day_key::date, obj ->> 'kind', coalesce(nullif(obj ->> 'name', ''), 'Rutina'),
+                coalesce(obj -> 'payload', '{}'::jsonb), w.id, ts)
+        on conflict (id) do update set scheduled_date = excluded.scheduled_date, kind = excluded.kind, name = excluded.name,
+          payload = excluded.payload, plan_week_id = excluded.plan_week_id, coach_id = excluded.coach_id, updated_at = excluded.updated_at;
+    end if;
+    keep := keep || wid;
+  end loop;
+
+  delete from workouts
+    where user_id = w.athlete_id and id::text = any (w.base_workout_ids) and not (id::text = any (keep));
+  delete from planned_routines
+    where athlete_id = w.athlete_id and id::text = any (w.base_workout_ids) and not (id::text = any (keep));
+
+  update plan_weeks set status = 'superseded', updated_at = ts
+    where athlete_id = w.athlete_id and week_start = w.week_start and status = 'published';
+  update plan_weeks set status = 'published', published_at = ts, updated_at = ts
+    where id = w.id;
+  return ts;
+end;
+$$;
+
+revoke execute on function publish_plan_week(uuid) from public, anon;
+grant execute on function publish_plan_week(uuid) to authenticated;

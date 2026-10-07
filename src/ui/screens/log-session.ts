@@ -15,6 +15,9 @@ import { wireDatePicker } from '../date-picker';
 import { getPreviousHash, getRouteParam, navigate } from '../router';
 import { appState } from '../state';
 import { escapeHtml } from '../workout-cover';
+import { TEMPLATE_KIND_LABELS, safeVideoUrl } from '../../core/coach-templates';
+import type { PlannedRoutine } from '../../core/coach-templates';
+import { humanCoachName } from '../coach-notice';
 
 const RPE_HINTS: Record<number, string> = {
   1: 'Muy fácil',
@@ -65,6 +68,7 @@ function cloudToRecord(s: CloudSessionSummary, samples: SessionRecord['samples']
     source: s.source,
     kind: s.kind ?? undefined,
     completion: s.completion ?? undefined,
+    plannedItemId: s.plannedItemId ?? undefined,
   };
 }
 
@@ -85,8 +89,43 @@ function formFrom(existing: SessionRecord | null): LogSessionForm {
   };
 }
 
+/** La rutina que agendó el coach: ejercicios, dosis, videos y su nota
+ * (lado izquierdo de docs/coach-view/mockups/Registrar.dc.html). */
+function routineCardHtml(r: PlannedRoutine): string {
+  const p = r.payload;
+  const coach = humanCoachName();
+  const pill = [TEMPLATE_KIND_LABELS[r.kind], p.durationMin ? `${p.durationMin} min` : null, p.targetRpe ? `RPE objetivo ${p.targetRpe}` : null]
+    .filter(Boolean)
+    .join(' · ');
+  return `
+    <section class="panel log-card log-routine" data-log-kind="${r.kind}" aria-label="Rutina de tu coach">
+      <span class="live-col-label">${coach ? `Asignada por ${escapeHtml(coach)}` : 'Rutina asignada'}</span>
+      <h2 class="perfil-h2" style="margin:0">${escapeHtml(r.name)}</h2>
+      <span class="coach-pill log-routine-pill">${escapeHtml(pill)}</span>
+      ${p.description ? `<p class="hint">${escapeHtml(p.description)}</p>` : ''}
+      <div class="log-exercises">
+        ${p.exercises
+          .map((e) => {
+            const url = safeVideoUrl(e.videoUrl);
+            return `
+          <div class="log-exercise">
+            <div><div class="log-exercise-name">${escapeHtml(e.name)}</div>${e.dose ? `<div class="hint">${escapeHtml(e.dose)}</div>` : ''}</div>
+            ${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="log-video" aria-label="Ver video de ${escapeHtml(e.name)}">▶ Video</a>` : ''}
+          </div>`;
+          })
+          .join('')}
+      </div>
+      ${p.note ? `<div class="log-coach-note">${coach ? `Nota de ${escapeHtml(coach)}` : 'Nota'}: ${escapeHtml(p.note)}</div>` : ''}
+    </section>`;
+}
+
 export function renderLogSession(container: HTMLElement): void {
-  const editId = getRouteParam();
+  const param = getRouteParam();
+  // #/log/r-<id> = registrar una rutina agendada por el coach;
+  // #/log/<id> = editar una sesión ya registrada.
+  const routineId = param?.startsWith('r-') ? param.slice(2) : null;
+  const editId = routineId ? null : param;
+  let routine: PlannedRoutine | null = routineId ? (appState.plannedRoutines.find((r) => r.id === routineId) ?? null) : null;
   let existing: SessionRecord | null = null;
   let form: LogSessionForm = formFrom(null);
   let fitLabel: string | null = null;
@@ -109,7 +148,7 @@ export function renderLogSession(container: HTMLElement): void {
 
   function render(): void {
     const skipped = form.completion === 'skipped';
-    const title = existing ? 'Editar sesión' : 'Registrar fuerza o movilidad';
+    const title = existing ? 'Editar sesión' : routine ? 'Registrar rutina' : 'Registrar fuerza o movilidad';
     container.innerHTML = `
       <div class="screen log-screen">
         <header class="log-head">
@@ -117,6 +156,8 @@ export function renderLogSession(container: HTMLElement): void {
           <h1>${title}</h1>
         </header>
 
+        <div class="log-layout">
+        ${routine ? routineCardHtml(routine) : ''}
         <section class="panel log-card" data-log-kind="${form.kind}" aria-label="Registrar">
           <h2 class="perfil-h2" style="margin:0">¿Cómo te fue?</h2>
 
@@ -184,6 +225,7 @@ export function renderLogSession(container: HTMLElement): void {
             </div>
           </div>
         </section>
+        </div>
         <input type="file" id="log-fit-file" accept=".fit" style="display:none">
       </div>`;
     wire();
@@ -304,6 +346,34 @@ export function renderLogSession(container: HTMLElement): void {
     else navigate('plan');
   }
 
+  if (routineId) {
+    if (!routine) {
+      container.innerHTML = `<div class="screen"><h1>Registrar rutina</h1><p class="hint">No encontramos esa rutina. Puede que tu coach la haya cambiado: revisa tu Plan.</p><a href="#/plan">Ir a Plan</a></div>`;
+      return;
+    }
+    const r = routine;
+    // ¿ya la registró? (local o en la nube) -> abre esa sesión para editarla
+    void listSessions().then((local) => {
+      const logged = local.find((s) => s.plannedItemId === r.id) ?? appState.cloudSessions.find((s) => s.plannedItemId === r.id);
+      if (getRouteParam() !== param) return;
+      if (logged) {
+        navigate('log', logged.id);
+        return;
+      }
+      form = {
+        ...formFrom(null),
+        kind: r.kind,
+        name: r.name === NON_BIKE_KIND_LABELS[r.kind] ? '' : r.name,
+        dateKey: r.scheduledDate,
+        minutes: r.payload.durationMin ?? null,
+        plannedItemId: r.id,
+      };
+      render();
+    });
+    container.innerHTML = '<div class="screen"><h1>Registrar rutina</h1><p class="hint">Cargando…</p></div>';
+    return;
+  }
+
   if (!editId) {
     render();
     return;
@@ -323,6 +393,7 @@ export function renderLogSession(container: HTMLElement): void {
     }
     existing = found;
     form = formFrom(found);
+    routine = found.plannedItemId ? (appState.plannedRoutines.find((r) => r.id === found.plannedItemId) ?? null) : null;
     render();
   });
 }

@@ -7,7 +7,7 @@ import { escapeHtml } from './workout-cover';
 
 /** Las secciones que viven en la barra lateral (ver TORQ_DESIGN.md,
  * "Navegación"). Sesión en vivo y Antes de empezar no la usan. */
-export type SidebarScreen = 'home' | 'plan' | 'library' | 'form' | 'profile' | 'coach-invite' | 'coach-athletes';
+export type SidebarScreen = 'home' | 'plan' | 'library' | 'form' | 'profile' | 'coach-invite' | 'coach-athletes' | 'coach-library';
 
 const ITEMS: { screen: SidebarScreen; route: Screen; label: string; icon: string }[] = [
   {
@@ -51,14 +51,20 @@ const STATE_LABEL: Record<ConnectionState, string> = {
 };
 
 /** Solo para cuentas con profiles.is_coach (ver sync/coach-link). Se
- * AGREGAN a las del atleta: el coach también entrena con la app. Semanas y
- * Biblioteca llegan en los siguientes pasos de docs/coach-view/README.md. */
+ * AGREGAN a las del atleta: el coach también entrena con la app. "Semanas
+ * de todos" llega en un paso posterior de docs/coach-view/README.md. */
 const COACH_ITEMS: typeof ITEMS = [
   {
     screen: 'coach-athletes',
     route: 'coach-athletes',
     label: 'Atletas',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 2.9-5.5 6.5-5.5s6.5 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14.5c2.7 0 4.5 1.6 4.5 4.5"/></svg>',
+  },
+  {
+    screen: 'coach-library',
+    route: 'coach-library',
+    label: 'Biblioteca',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h6M8 11h6"/></svg>',
   },
   {
     screen: 'coach-invite',
