@@ -21,93 +21,148 @@ export function isCoachProfileComplete(profile: Profile): boolean {
   );
 }
 
+function esc(v: string | number | undefined | null): string {
+  return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/** Una opción grande (título + explicación) de una pregunta de selección única. */
+function optionHtml(attr: string, value: string, on: boolean, title: string, desc: string): string {
+  return `<button type="button" class="ob-option${on ? ' on' : ''}" ${attr}="${value}" aria-pressed="${on}">
+    <span class="ob-option-title">${title}</span><span class="ob-option-desc">${desc}</span>
+  </button>`;
+}
+
+/** Interruptor: checkbox real (oculto) + el dibujo del switch, para que la
+ * lógica siga leyendo `.checked`. */
+function toggleHtml(id: string, checked: boolean, title: string, desc = '', extraAttrs = ''): string {
+  return `<label class="ob-toggle" ${extraAttrs}>
+    <span class="ob-toggle-text"><span class="ob-toggle-title">${title}</span>${desc ? `<span class="ob-toggle-desc">${desc}</span>` : ''}</span>
+    <input type="checkbox" id="${id}" class="ob-switch-input" ${checked ? 'checked' : ''}>
+    <span class="ob-switch" aria-hidden="true"></span>
+  </label>`;
+}
+
+function sectionHtml(n: number, title: string, body: string): string {
+  return `<section class="ob-section"><h3 class="ob-section-title"><span class="ob-section-num">${n}</span>${title}</h3>${body}</section>`;
+}
+
 function modalHtml(p: Profile): string {
+  const editing = isCoachProfileComplete(p);
+  const experience = p.experienceLevel ?? 'experienced';
+  const fitness = p.generalFitnessLevel ?? 'active_other_sport';
+  const discipline = p.discipline ?? 'mountain';
   return `
     <div class="modal-backdrop" id="onboarding-backdrop">
-      <div class="panel plan-coach-modal" id="onboarding-modal" style="max-width:480px">
-        <div class="plan-create-head">
-          <h2 class="perfil-h2" style="margin:0">Antes de tu plan — cuéntanos de ti</h2>
-          <button class="plan-create-close" id="onboarding-close" aria-label="Cerrar">✕</button>
+      <div class="panel ob-modal" id="onboarding-modal" role="dialog" aria-modal="true" aria-labelledby="ob-title">
+        <header class="ob-head">
+          <div>
+            <h2 class="ob-title" id="ob-title">${editing ? 'Tu perfil de entrenamiento' : 'Antes de tu plan, cuéntanos de ti'}</h2>
+            <p class="ob-subtitle">Tu coach y la IA usan esto para armar y ajustar tu plan. Puedes cambiarlo cuando quieras desde Perfil.</p>
+          </div>
+          <button type="button" class="ob-close" id="onboarding-close" aria-label="Cerrar">✕</button>
+        </header>
+
+        <div class="ob-body">
+          ${sectionHtml(
+            1,
+            'Tu experiencia',
+            `<p class="ob-q">¿Qué tanto has entrenado con estructura?</p>
+            <div class="ob-options" id="ob-experience">
+              ${optionHtml('data-level', 'new_to_cycling', experience === 'new_to_cycling', 'Nunca con estructura', 'Empiezo desde cero con zonas y planes.')}
+              ${optionHtml('data-level', 'returning_or_new_to_app', experience === 'returning_or_new_to_app', 'Ya entreno, pero no en Torq', 'Tengo experiencia; es mi primera vez aquí.')}
+              ${optionHtml('data-level', 'experienced', experience === 'experienced', 'Entreno regular', 'Conozco mis números y uso zonas.')}
+            </div>
+            <p class="ob-q">¿Qué tan activo has estado los últimos meses?</p>
+            <div class="ob-options" id="ob-fitness">
+              ${optionHtml('data-level', 'sedentary', fitness === 'sedentary', 'Apenas arranco', 'Poca actividad física últimamente.')}
+              ${optionHtml('data-level', 'active_other_sport', fitness === 'active_other_sport', 'Activo, pero no en bici', 'Corro, nado, gimnasio u otro deporte.')}
+              ${optionHtml('data-level', 'active_cyclist', fitness === 'active_cyclist', 'Ya ando en bici seguido', 'Varias salidas por semana.')}
+            </div>
+            <div class="ob-grid">
+              <label class="ob-field">Años andando en bici
+                <span class="ob-input-unit"><input type="number" id="ob-years" value="${esc(p.yearsRiding ?? 0)}" min="0" max="60" inputmode="numeric"><span>años</span></span>
+              </label>
+              <label class="ob-field">Años entrenando con potencia o estructura
+                <span class="ob-input-unit"><input type="number" id="ob-structured-years" value="${esc(p.structuredTrainingYears ?? 0)}" min="0" max="60" inputmode="numeric"><span>años</span></span>
+              </label>
+            </div>`,
+          )}
+
+          ${sectionHtml(
+            2,
+            'Tu bici',
+            `<p class="ob-q">Disciplina principal</p>
+            <div class="ob-chips" id="ob-discipline">
+              ${(
+                [
+                  ['mountain', 'Montaña / XC'],
+                  ['road', 'Ruta'],
+                  ['gravel', 'Gravel'],
+                  ['other', 'Otra'],
+                ] as const
+              )
+                .map(([v, label]) => `<button type="button" class="ob-chip${discipline === v ? ' on' : ''}" data-discipline="${v}" aria-pressed="${discipline === v}">${label}</button>`)
+                .join('')}
+            </div>
+            <div class="ob-toggles">
+              ${toggleHtml('ob-rides-outside', !!p.ridesOutside, 'Salgo a rodar afuera', 'Aunque sea de vez en cuando.')}
+              ${toggleHtml('ob-outdoor-power', !!p.hasOutdoorPowerMeter, 'Tengo medidor de potencia afuera', '', `id="ob-outdoor-power-label" style="display:${p.ridesOutside ? 'flex' : 'none'}"`)}
+            </div>`,
+          )}
+
+          ${sectionHtml(
+            3,
+            'Tus números',
+            `<div class="ob-grid">
+              <div class="ob-field">
+                <label for="ob-ftp">FTP actual</label>
+                <span class="ob-input-unit"><input type="number" id="ob-ftp" value="${p.ftpConfirmed ? esc(p.ftp) : ''}" placeholder="Ej. 200" inputmode="numeric" ${p.ftpConfirmed ? '' : 'disabled'}><span>W</span></span>
+                ${toggleHtml('ob-no-ftp', !p.ftpConfirmed, 'No sé mi FTP todavía')}
+              </div>
+              <div class="ob-field">
+                <label for="ob-hrmax">Pulso máximo</label>
+                <span class="ob-input-unit"><input type="number" id="ob-hrmax" value="${p.hrMaxConfirmed ? esc(p.hr_max) : ''}" placeholder="Ej. 185" inputmode="numeric" ${p.hrMaxConfirmed ? '' : 'disabled'}><span>lpm</span></span>
+                ${toggleHtml('ob-no-hrmax', !p.hrMaxConfirmed, 'No sé mi pulso máximo')}
+              </div>
+            </div>
+            <p class="ob-note">No pasa nada si no los sabes: el plan arranca con un protocolo para calibrarlos con seguridad.</p>`,
+          )}
+
+          ${sectionHtml(
+            4,
+            'Metas y salud',
+            `<div class="ob-toggles">
+              ${toggleHtml('ob-competes', !!p.competes, 'Compito o quiero competir')}
+            </div>
+            <label class="ob-field" id="ob-category-label" style="display:${p.competes ? 'flex' : 'none'}">Categoría
+              <input type="text" id="ob-category" value="${esc(p.category)}" placeholder="Ej. Experto 30-39, Élite, Cat 2">
+            </label>
+            <label class="ob-field"><span>Mejor resultado o logro reciente <span class="ob-optional">opcional</span></span>
+              <input type="text" id="ob-best-result" value="${esc(p.recentBestResult)}" placeholder="Ej. terminé mi primer XC local">
+            </label>
+            <label class="ob-field"><span>Lesiones o limitaciones actuales <span class="ob-optional">opcional</span></span>
+              <textarea id="ob-injuries" rows="3" placeholder="Ej. molestia en rodilla izquierda, evitar sentadilla profunda">${esc(p.injuries)}</textarea>
+            </label>`,
+          )}
+
+          ${sectionHtml(
+            5,
+            'Entrenamientos recientes fuera de Torq',
+            `<p class="ob-note" style="margin-top:0">¿Entrenaste con otra app o dispositivo las últimas 1 o 2 semanas? Sube esos archivos .fit para que el plan arranque con contexto real. Lo que ya grabaste en Torq no hace falta. <span class="ob-optional">opcional</span></p>
+            <label class="ob-upload">
+              <span class="ob-upload-icon" aria-hidden="true">↑</span>
+              <span><strong>Elegir archivos .fit</strong><span class="ob-toggle-desc">Puedes elegir varios a la vez.</span></span>
+              <input type="file" id="ob-fit-files" accept=".fit" multiple>
+            </label>
+            <p class="ob-note" id="ob-fit-status" aria-live="polite"></p>`,
+          )}
         </div>
-        <p class="hint">Esto se guarda en tu perfil y no se vuelve a preguntar — solo la primera vez.</p>
 
-        <label class="live-col-label" style="margin-top:12px;display:block">¿Qué tan nuevo eres entrenando con estructura?</label>
-        <div class="plan-chip-row" id="ob-experience">
-          <button class="plan-chip${p.experienceLevel === 'new_to_cycling' ? ' on' : ''}" data-level="new_to_cycling">Nunca he entrenado con estructura</button>
-          <button class="plan-chip${p.experienceLevel === 'returning_or_new_to_app' ? ' on' : ''}" data-level="returning_or_new_to_app">Ya entreno, pero no en Torq</button>
-          <button class="plan-chip${!p.experienceLevel || p.experienceLevel === 'experienced' ? ' on' : ''}" data-level="experienced">Entreno regular, conozco mis números</button>
-        </div>
-
-        <label class="live-col-label" style="margin-top:12px;display:block">¿Qué tan activo has estado (en lo que sea) los últimos meses?</label>
-        <div class="plan-chip-row" id="ob-fitness">
-          <button class="plan-chip${p.generalFitnessLevel === 'sedentary' ? ' on' : ''}" data-level="sedentary">Sedentario, apenas arranco</button>
-          <button class="plan-chip${!p.generalFitnessLevel || p.generalFitnessLevel === 'active_other_sport' ? ' on' : ''}" data-level="active_other_sport">Activo, pero no en bici</button>
-          <button class="plan-chip${p.generalFitnessLevel === 'active_cyclist' ? ' on' : ''}" data-level="active_cyclist">Ya ando en bici seguido</button>
-        </div>
-
-        <label class="live-col-label" style="margin-top:12px;display:block">Disciplina</label>
-        <div class="plan-chip-row" id="ob-discipline">
-          <button class="plan-chip${!p.discipline || p.discipline === 'mountain' ? ' on' : ''}" data-discipline="mountain">Montaña / XC</button>
-          <button class="plan-chip${p.discipline === 'road' ? ' on' : ''}" data-discipline="road">Ruta</button>
-          <button class="plan-chip${p.discipline === 'gravel' ? ' on' : ''}" data-discipline="gravel">Gravel</button>
-          <button class="plan-chip${p.discipline === 'other' ? ' on' : ''}" data-discipline="other">Otra</button>
-        </div>
-
-        <div class="row-actions" style="margin-top:12px">
-          <label class="live-col-label" style="flex:1">Años dándole a la bici
-            <input type="number" id="ob-years" value="${p.yearsRiding ?? 0}" min="0" max="60" style="width:100%">
-          </label>
-          <label class="live-col-label" style="flex:1">Años entrenando con potencia/estructura
-            <input type="number" id="ob-structured-years" value="${p.structuredTrainingYears ?? 0}" min="0" max="60" style="width:100%">
-          </label>
-        </div>
-
-        <label class="live-col-label" style="margin-top:12px;display:block">
-          <input type="checkbox" id="ob-competes" style="width:auto;margin-right:6px" ${p.competes ? 'checked' : ''}>Compito o quiero competir
-        </label>
-        <label class="live-col-label" id="ob-category-label" style="margin-top:4px;display:${p.competes ? 'block' : 'none'}">Categoría
-          <input type="text" id="ob-category" value="${p.category ?? ''}" placeholder="Ej. Experto 30-39, Elite, Cat 2" style="width:100%">
-        </label>
-
-        <label class="live-col-label" style="margin-top:12px;display:block">
-          <input type="checkbox" id="ob-rides-outside" style="width:auto;margin-right:6px" ${p.ridesOutside ? 'checked' : ''}>Salgo a rodar afuera, al menos a veces
-        </label>
-        <label class="live-col-label" id="ob-outdoor-power-label" style="margin-top:4px;display:${p.ridesOutside ? 'block' : 'none'}">
-          <input type="checkbox" id="ob-outdoor-power" style="width:auto;margin-right:6px" ${p.hasOutdoorPowerMeter ? 'checked' : ''}>Tengo medidor de potencia afuera
-        </label>
-
-        <label class="live-col-label" style="margin-top:12px;display:block">Lesiones o limitaciones actuales (opcional)
-          <textarea id="ob-injuries" rows="2" style="width:100%;resize:vertical;font-family:inherit">${p.injuries ?? ''}</textarea>
-        </label>
-
-        <label class="live-col-label" style="margin-top:12px;display:block">Mejor resultado/logro reciente (opcional)
-          <input type="text" id="ob-best-result" value="${p.recentBestResult ?? ''}" placeholder="Ej. terminé mi primer XC local" style="width:100%">
-        </label>
-
-        <div class="row-actions" style="margin-top:12px">
-          <label class="live-col-label" style="flex:1">FTP actual (W)
-            <input type="number" id="ob-ftp" value="${p.ftpConfirmed ? p.ftp : ''}" placeholder="Ej. 200" style="width:100%" ${p.ftpConfirmed ? '' : 'disabled'}>
-          </label>
-          <label class="live-col-label" style="flex:1">Pulso máximo (lpm)
-            <input type="number" id="ob-hrmax" value="${p.hrMaxConfirmed ? p.hr_max : ''}" placeholder="Ej. 185" style="width:100%" ${p.hrMaxConfirmed ? '' : 'disabled'}>
-          </label>
-        </div>
-        <label class="live-col-label" style="margin-top:4px;display:block">
-          <input type="checkbox" id="ob-no-ftp" style="width:auto;margin-right:6px" ${p.ftpConfirmed ? '' : 'checked'}>No sé mi FTP todavía
-        </label>
-        <label class="live-col-label" style="margin-top:4px;display:block">
-          <input type="checkbox" id="ob-no-hrmax" style="width:auto;margin-right:6px" ${p.hrMaxConfirmed ? '' : 'checked'}>No sé mi pulso máximo
-        </label>
-        <p class="hint" style="margin-top:4px">No pasa nada si no los sabes — el coach arma un protocolo para calibrarlos con seguridad.</p>
-
-        <label class="live-col-label" style="margin-top:12px;display:block">¿Entrenaste en OTRA app o dispositivo (no en Torq) las últimas 1-2 semanas? (opcional)</label>
-        <p class="hint">Sube esos archivos .fit para darle contexto real al coach desde el inicio. Solo actividades de FUERA de Torq — las que ya grabaste aquí no hace falta subirlas, el coach ya las ve solo.</p>
-        <label class="plan-import-link">Elegir archivos .fit<input type="file" id="ob-fit-files" accept=".fit" multiple style="display:none"></label>
-        <p class="hint" id="ob-fit-status" style="margin-top:4px"></p>
-
-        <button class="btn-light" id="onboarding-submit" style="margin-top:16px">Guardar</button>
-        <button class="plan-create-close" id="onboarding-skip" style="margin-top:8px;width:100%">Saltar por ahora</button>
-        <p class="hint" id="onboarding-status" style="margin-top:8px"></p>
+        <footer class="ob-foot">
+          <span class="ob-status" id="onboarding-status" aria-live="polite"></span>
+          <button type="button" class="ob-skip" id="onboarding-skip">Saltar por ahora</button>
+          <button type="button" class="ob-save" id="onboarding-submit">Guardar</button>
+        </footer>
       </div>
     </div>`;
 }
@@ -125,24 +180,27 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
 
   if (!allowSkip) backdrop.querySelector('#onboarding-skip')?.remove();
 
-  backdrop.querySelectorAll<HTMLButtonElement>('#ob-experience .plan-chip').forEach((chip) => {
+  backdrop.querySelectorAll<HTMLButtonElement>('#ob-experience .ob-option').forEach((chip) => {
     chip.addEventListener('click', () => {
-      backdrop.querySelectorAll('#ob-experience .plan-chip').forEach((c) => c.classList.remove('on'));
+      backdrop.querySelectorAll('#ob-experience .ob-option').forEach((c) => { c.classList.remove('on'); c.setAttribute('aria-pressed', 'false'); });
       chip.classList.add('on');
+      chip.setAttribute('aria-pressed', 'true');
       experienceLevel = chip.dataset.level as typeof experienceLevel;
     });
   });
-  backdrop.querySelectorAll<HTMLButtonElement>('#ob-fitness .plan-chip').forEach((chip) => {
+  backdrop.querySelectorAll<HTMLButtonElement>('#ob-fitness .ob-option').forEach((chip) => {
     chip.addEventListener('click', () => {
-      backdrop.querySelectorAll('#ob-fitness .plan-chip').forEach((c) => c.classList.remove('on'));
+      backdrop.querySelectorAll('#ob-fitness .ob-option').forEach((c) => { c.classList.remove('on'); c.setAttribute('aria-pressed', 'false'); });
       chip.classList.add('on');
+      chip.setAttribute('aria-pressed', 'true');
       generalFitnessLevel = chip.dataset.level as typeof generalFitnessLevel;
     });
   });
-  backdrop.querySelectorAll<HTMLButtonElement>('#ob-discipline .plan-chip').forEach((chip) => {
+  backdrop.querySelectorAll<HTMLButtonElement>('#ob-discipline .ob-chip').forEach((chip) => {
     chip.addEventListener('click', () => {
-      backdrop.querySelectorAll('#ob-discipline .plan-chip').forEach((c) => c.classList.remove('on'));
+      backdrop.querySelectorAll('#ob-discipline .ob-chip').forEach((c) => { c.classList.remove('on'); c.setAttribute('aria-pressed', 'false'); });
       chip.classList.add('on');
+      chip.setAttribute('aria-pressed', 'true');
       discipline = chip.dataset.discipline as typeof discipline;
     });
   });
@@ -150,13 +208,13 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
   const competesCheckbox = backdrop.querySelector<HTMLInputElement>('#ob-competes')!;
   const categoryLabel = backdrop.querySelector<HTMLElement>('#ob-category-label')!;
   competesCheckbox.addEventListener('change', () => {
-    categoryLabel.style.display = competesCheckbox.checked ? 'block' : 'none';
+    categoryLabel.style.display = competesCheckbox.checked ? 'flex' : 'none';
   });
 
   const ridesOutsideCheckbox = backdrop.querySelector<HTMLInputElement>('#ob-rides-outside')!;
   const outdoorPowerLabel = backdrop.querySelector<HTMLElement>('#ob-outdoor-power-label')!;
   ridesOutsideCheckbox.addEventListener('change', () => {
-    outdoorPowerLabel.style.display = ridesOutsideCheckbox.checked ? 'block' : 'none';
+    outdoorPowerLabel.style.display = ridesOutsideCheckbox.checked ? 'flex' : 'none';
   });
 
   const ftpInput = backdrop.querySelector<HTMLInputElement>('#ob-ftp')!;

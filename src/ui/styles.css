@@ -4407,3 +4407,333 @@ a {
     background: #fff !important;
   }
 }
+
+/* ---------- Cuestionario del coach (onboarding.ts) ---------- */
+.ob-modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.ob-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.ob-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 1.1;
+}
+.ob-subtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.ob-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+.ob-body {
+  overflow-y: auto;
+  padding: 8px 28px 24px;
+}
+.ob-section {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ob-section:last-child {
+  border-bottom: none;
+}
+.ob-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 20px;
+}
+.ob-section-num {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+}
+.ob-q {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--text-soft);
+}
+.ob-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+.ob-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  text-align: left;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text);
+  cursor: pointer;
+}
+.ob-option:hover {
+  border-color: var(--text-muted);
+}
+.ob-option.on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-sunken));
+}
+.ob-option-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+.ob-option-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+.ob-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ob-chip {
+  padding: 8px 14px;
+  border: 1px solid var(--border-control);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 14px;
+  cursor: pointer;
+}
+.ob-chip.on {
+  border-color: var(--accent);
+  color: var(--accent-light);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.ob-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 16px;
+}
+.ob-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+.ob-field input,
+.ob-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+}
+.ob-field textarea {
+  resize: vertical;
+  min-height: 72px;
+}
+.ob-field input:disabled {
+  opacity: 0.45;
+}
+.ob-input-unit {
+  position: relative;
+  display: block;
+}
+.ob-input-unit input {
+  padding-right: 52px;
+}
+.ob-input-unit > span {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.ob-optional {
+  font-size: 11px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 7px;
+  margin-left: 4px;
+}
+.ob-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.ob-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ob-toggle {
+  display: flex;
+  flex-direction: row; /* label global es columna */
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  cursor: pointer;
+}
+.ob-field .ob-toggle {
+  padding: 2px 0;
+}
+.ob-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ob-toggle-title {
+  font-size: 14px;
+  color: var(--text);
+}
+.ob-toggle-desc {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.ob-switch-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.ob-switch {
+  position: relative;
+  width: 44px;
+  height: 25px;
+  border-radius: 13px;
+  background: var(--border-control);
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.ob-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: left 0.15s ease;
+}
+.ob-switch-input:checked + .ob-switch {
+  background: var(--accent);
+}
+.ob-switch-input:checked + .ob-switch::after {
+  left: 22px;
+}
+.ob-switch-input:focus-visible + .ob-switch {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 2px;
+}
+.ob-upload {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px dashed var(--border-control);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--text);
+}
+.ob-upload:hover {
+  border-color: var(--accent);
+}
+.ob-upload input {
+  display: none;
+}
+.ob-upload strong {
+  display: block;
+  font-weight: 500;
+  font-size: 14px;
+}
+.ob-upload-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--surface-sunken);
+  color: var(--accent-light);
+  font-size: 16px;
+}
+.ob-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 28px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.ob-status {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.ob-skip {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+.ob-save {
+  padding: 10px 22px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+@media (max-width: 560px) {
+  .ob-head,
+  .ob-body,
+  .ob-foot {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
