@@ -2,6 +2,7 @@ import { buildAchievementInput, evaluateAchievements } from '../engine/achieveme
 import type { Achievement } from '../engine/achievements';
 import { computeWeeklyStreak } from '../engine/streaks';
 import { computeSessionAnalytics } from '../engine/analytics';
+import { isBikeSession } from '../core/session-kind';
 import { listSessions } from '../storage/session-store';
 import type { SessionRecord } from '../storage/session-store';
 import { localPowerBests, bestOf } from './screens/history';
@@ -146,8 +147,10 @@ interface MinimalRow {
  * no hay celebración esta vez, no debe romper la pantalla de Resumen. */
 export async function checkAndCelebrateAchievements(): Promise<void> {
   try {
-    const localSessions = await listSessions();
-    const localById = new Map(localSessions.map((s) => [s.id, s]));
+    // logros y rachas son de bici, igual que en Forma (ver history.ts).
+    const allLocalSessions = await listSessions();
+    const localById = new Map(allLocalSessions.map((s) => [s.id, s]));
+    const localSessions = allLocalSessions.filter(isBikeSession);
     const localRows: MinimalRow[] = localSessions.map((s) => ({
       startedAt: s.startedAt,
       durationS: s.samples.length,
@@ -156,7 +159,7 @@ export async function checkAndCelebrateAchievements(): Promise<void> {
       stravaActivityId: s.stravaActivityId ?? null,
     }));
     const cloudRows: MinimalRow[] = appState.cloudSessions
-      .filter((s) => !localById.has(s.id))
+      .filter((s) => !localById.has(s.id) && isBikeSession(s))
       .map((s) => ({
         startedAt: s.startedAt,
         durationS: Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000),

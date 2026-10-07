@@ -6,6 +6,7 @@ import { buildAchievementInput, evaluateAchievements } from '../../engine/achiev
 import { estimateWorkout } from '../../core/workout-estimate';
 import { findTemplate } from '../../core/workout-templates';
 import type { Workout } from '../../core/types';
+import { isBikeSession } from '../../core/session-kind';
 import type { SessionRecord } from '../../storage/session-store';
 import { listSessions } from '../../storage/session-store';
 import { saveWorkout } from '../../storage/workout-store';
@@ -337,11 +338,16 @@ export function renderForma(container: HTMLElement): () => void {
   const todayKey = toDateKey(new Date());
 
   Promise.all([listSessions(), appState.user ? getPowerRecords(appState.user.id) : Promise.resolve<PowerRecords | null>(null)]).then(
-    ([localSessions, cloudPowerRecords]) => {
-      const localById = new Map(localSessions.map((s) => [s.id, s]));
+    ([allLocalSessions, cloudPowerRecords]) => {
+      // Forma es de bici: TSS, CTL/ATL/TSB, potencia, EF, rachas y logros.
+      // Fuerza/movilidad se miden con sRPE y nunca se suman aquí (ver
+      // core/session-kind.ts). La deduplicación local/nube sí usa TODAS las
+      // locales, para que una de fuerza local no reaparezca desde la nube.
+      const localById = new Map(allLocalSessions.map((s) => [s.id, s]));
+      const localSessions = allLocalSessions.filter(isBikeSession);
       const rows: HistoryRow[] = [
         ...localSessions.map(localRow),
-        ...appState.cloudSessions.filter((s) => !localById.has(s.id)).map(cloudRow),
+        ...appState.cloudSessions.filter((s) => !localById.has(s.id) && isBikeSession(s)).map(cloudRow),
       ];
 
       if (rows.length === 0) {

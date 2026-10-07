@@ -36,7 +36,15 @@ Deno.serve(async (req) => {
 
     const rides = activities
       .filter((a) => RIDE_TYPES.has(a.sport_type ?? a.type))
-      .map((a) => ({ id: a.id, name: a.name, startDate: a.start_date, movingTimeS: a.moving_time, distanceM: a.distance }));
+      .map((a) => ({
+        id: a.id,
+        name: a.name,
+        startDate: a.start_date,
+        movingTimeS: a.moving_time,
+        distanceM: a.distance,
+        // el cliente lo usa para sessions.kind: VirtualRide = interior.
+        sportType: a.sport_type ?? a.type,
+      }));
 
     return new Response(JSON.stringify(rides), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (err) {

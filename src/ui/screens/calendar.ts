@@ -5,6 +5,8 @@ import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import { estimateWorkout } from '../../core/workout-estimate';
 import type { Sample, Workout } from '../../core/types';
 import { powerZone, powerPctToHeightPct } from '../../core/zones';
+import { NON_BIKE_KIND_LABELS, isNonBikeKind, wasTrained } from '../../core/session-kind';
+import type { NonBikeKind, SessionKind } from '../../core/session-kind';
 import { saveWorkout } from '../../storage/workout-store';
 import { listSessions, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
@@ -13,7 +15,7 @@ import { downloadSessionSamples, pushSessionToCloud } from '../../sync/cloud-syn
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
 import { importStravaActivity, isStravaConfigured, listStravaActivities } from '../../sync/strava';
 import { pushWorkoutToCloud } from '../../sync/workout-sync';
-import { refresh } from '../router';
+import { navigate, refresh } from '../router';
 import { appState } from '../state';
 import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { wireDatePicker } from '../date-picker';
@@ -104,6 +106,26 @@ interface CalendarDone {
    * pueden arrastrar a otro día, Strava es la fuente real de su fecha, no
    * Torq (ver wireDragAndDrop). */
   isStrava?: boolean;
+  /** Fuerza/movilidad/flexibilidad/otro registrada a mano — sin portada de
+   * potencia ni TSS: se pinta con el color de su tipo, abre Registrar al
+   * tocarla y no suma a los totales de horas/TSS de la bici. */
+  nonBikeKind?: NonBikeKind;
+  /** "Fuerza · 45 min · RPE 6" — solo con nonBikeKind. */
+  logMeta?: string;
+}
+
+function logMeta(kind: NonBikeKind, durationS: number, rpe: number | null | undefined): string {
+  return [NON_BIKE_KIND_LABELS[kind], `${Math.round(durationS / 60)} min`, rpe ? `RPE ${rpe}` : null].filter(Boolean).join(' · ');
+}
+
+/** CalendarDone para una sesión que no es de bici, local o de la nube. */
+function nonBikeDone(
+  s: { workoutName: string; startedAt: string; finishedAt: string; rpe?: number | null; kind?: SessionKind | null },
+  kind: NonBikeKind,
+  ids: { sessionId?: string; cloudSessionId?: string },
+): CalendarDone {
+  const durationS = Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000);
+  return { workoutName: s.workoutName, durationS, tss: 0, nonBikeKind: kind, logMeta: logMeta(kind, durationS, s.rpe), ...ids };
 }
 
 /** Mismo lenguaje visual que renderWorkoutCover (barras por zona), pero a
@@ -125,6 +147,7 @@ function renderSessionCover(samples: readonly Sample[], ftp: number): string {
 }
 
 function localToCalendarDone(s: SessionRecord): CalendarDone {
+  if (isNonBikeKind(s.kind)) return nonBikeDone(s, s.kind, { sessionId: s.id });
   const a = computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp });
   return {
     workoutName: s.workoutName,
@@ -137,6 +160,7 @@ function localToCalendarDone(s: SessionRecord): CalendarDone {
 }
 
 function cloudToCalendarDone(s: CloudSessionSummary): CalendarDone {
+  if (isNonBikeKind(s.kind)) return nonBikeDone(s, s.kind, { cloudSessionId: s.id });
   const durationS = Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000);
   return { workoutName: s.workoutName, durationS, tss: s.trainingStressScore ?? 0, cloudSessionId: s.id };
 }
@@ -271,6 +295,15 @@ export function renderCalendar(container: HTMLElement): () => void {
           </div>`;
       }
       const c = entry.done;
+      if (c.nonBikeKind) {
+        return `
+          <div class="plan-day-entry" ${dragAttrs(entry)}>
+            <button class="plan-day-log kind-${c.nonBikeKind}" data-log-id="${c.sessionId ?? c.cloudSessionId}" title="Ver o editar">
+              <span class="plan-day-name">${escapeHtml(c.workoutName)}</span>
+              <span class="live-col-label">${escapeHtml(c.logMeta ?? '')}</span>
+            </button>
+          </div>`;
+      }
       return `
         <div class="plan-day-entry" ${dragAttrs(entry)}${c.isStrava ? ' title="Viene de Strava — su fecha no se puede mover aquí"' : ''}>
           ${c.coverHtml ? `<div class="plan-day-cover">${c.coverHtml}</div>` : ''}
@@ -300,6 +333,9 @@ export function renderCalendar(container: HTMLElement): () => void {
         return `<button class="plan-month-cover" data-workout-id="${w.id}" ${dragAttrs(entry)} title="${escapeHtml(w.name)} — Ver detalle">${renderWorkoutCover(w.intervals, 'sm')}</button>`;
       }
       const c = entry.done;
+      if (c.nonBikeKind) {
+        return `<button class="plan-month-done-label plan-month-log kind-${c.nonBikeKind}" ${dragAttrs(entry)} data-log-id="${c.sessionId ?? c.cloudSessionId}" title="${escapeHtml(c.logMeta ?? c.workoutName)}">${escapeHtml(c.workoutName)}</button>`;
+      }
       return c.coverHtml
         ? `<div class="plan-month-cover" ${dragAttrs(entry)} title="${escapeHtml(c.workoutName)}">${c.coverHtml}</div>`
         : `<div class="plan-month-done-label" ${dragAttrs(entry)} title="${escapeHtml(c.workoutName)}">${escapeHtml(c.workoutName)}</div>`;
@@ -365,6 +401,7 @@ export function renderCalendar(container: HTMLElement): () => void {
             plannedTss += est.tss ?? 0;
           });
           completedList.forEach((c) => {
+            if (c.nonBikeKind) return; // horas/TSS de bici, ver CalendarDone.nonBikeKind
             doneS += c.durationS;
             doneTss += c.tss;
           });
@@ -418,7 +455,10 @@ export function renderCalendar(container: HTMLElement): () => void {
         ${workoutDetailHtml()}
 
         <div class="panel plan-manual-done">
-          <h2 class="perfil-h2" style="margin:0">Agregar entrenamiento completado</h2>
+          <div class="plan-head" style="margin:0;align-items:center">
+            <h2 class="perfil-h2" style="margin:0">Agregar entrenamiento completado</h2>
+            <a href="#/log" class="plan-import-link">Registrar fuerza o movilidad</a>
+          </div>
           ${
             isStravaConfigured()
               ? `<div class="plan-chip-row" id="import-method-chips" style="margin-top:12px">
@@ -682,6 +722,10 @@ export function renderCalendar(container: HTMLElement): () => void {
     const manualDoneDate = container.querySelector<HTMLInputElement>('#manual-done-date');
     if (manualDoneDate) wireDatePicker(manualDoneDate);
 
+    container.querySelectorAll<HTMLButtonElement>('[data-log-id]').forEach((btn) => {
+      btn.addEventListener('click', () => navigate('log', btn.dataset.logId!));
+    });
+
     container.querySelectorAll<HTMLButtonElement>('[data-create-date]').forEach((btn) => {
       btn.addEventListener('click', () => {
         createDate = btn.dataset.createDate ?? null;
@@ -766,6 +810,7 @@ export function renderCalendar(container: HTMLElement): () => void {
     completedByDate = new Map();
     sessionsById = new Map();
     sessions.forEach((s) => {
+      if (!wasTrained(s)) return; // "No la hice": se ve en Historial, no marca el día como hecho
       const key = toDateKey(new Date(s.startedAt));
       completedByDate.set(key, [...(completedByDate.get(key) ?? []), localToCalendarDone(s)]);
       sessionsById.set(s.id, s);
@@ -776,11 +821,12 @@ export function renderCalendar(container: HTMLElement): () => void {
     // tener una sesión local Y una cloud-only a la vez.
     const localIds = new Set(sessions.map((s) => s.id));
     appState.cloudSessions
-      .filter((s) => !localIds.has(s.id))
+      .filter((s) => !localIds.has(s.id) && wasTrained(s))
       .forEach((s) => {
         const key = toDateKey(new Date(s.startedAt));
         completedByDate.set(key, [...(completedByDate.get(key) ?? []), cloudToCalendarDone(s)]);
-        cloudOnlyByDate.set(key, [...(cloudOnlyByDate.get(key) ?? []), s]);
+        // fuerza/movilidad no tiene portada de potencia que reconstruir
+        if (!isNonBikeKind(s.kind)) cloudOnlyByDate.set(key, [...(cloudOnlyByDate.get(key) ?? []), s]);
       });
     paint();
   });
