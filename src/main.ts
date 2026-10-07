@@ -12,6 +12,8 @@ import { renderLogin } from './ui/screens/login';
 import { renderLogSession } from './ui/screens/log-session';
 import { renderAcceptInvite } from './ui/screens/accept-invite';
 import { renderCoachInvite } from './ui/screens/coach-invite';
+import { renderCoachAthletes } from './ui/screens/coach-athletes';
+import { renderCoachAthlete } from './ui/screens/coach-athlete';
 import { renderPerfil } from './ui/screens/perfil';
 import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
@@ -46,6 +48,8 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   // #/coach-invite (solo cuentas con profiles.is_coach).
   ['invite', withSidebar(null, renderAcceptInvite)],
   ['coach-invite', withSidebar('coach-invite', renderCoachInvite)],
+  ['coach-athletes', withSidebar('coach-athletes', renderCoachAthletes)],
+  ['coach-athlete', withSidebar('coach-athletes', renderCoachAthlete)],
 ];
 
 SCREENS_TO_GUARD.forEach(([screen, render]) => registerScreen(screen, guarded(render)));
