@@ -22,6 +22,7 @@ import { wireDatePicker } from '../date-picker';
 import { renderCoachSection } from '../coach';
 import { isSupabaseConfigured } from '../../supabase/client';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
+import { notifyPlanChange } from '../coach-notice';
 
 const STRAVA_IMPORT_WINDOW_DAYS = 60;
 // Tope de entrenamientos (agendados + completados, combinados) que puede
@@ -688,6 +689,7 @@ export function renderCalendar(container: HTMLElement): () => void {
       await saveWorkout(w);
       if (appState.user) void pushWorkoutToCloud(w, appState.user.id);
       paint();
+      notifyPlanChange();
       return;
     }
 

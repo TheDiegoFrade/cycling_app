@@ -14,6 +14,7 @@ import { getRouteParam, navigate } from '../router';
 import { appState } from '../state';
 import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { wireDatePicker } from '../date-picker';
+import { notifyPlanChange, planChangeNotice } from '../coach-notice';
 
 type LibraryTab = 'library' | 'activity';
 
@@ -326,6 +327,8 @@ export function renderLibrary(container: HTMLElement): () => void {
         if (appState.user) void pushWorkoutToCloud(updated, appState.user.id);
         appState.workouts = appState.workouts.map((w) => (w.id === id ? updated : w));
         renderList();
+        // mover o quitar de la agenda algo que ya estaba agendado
+        if (workout.scheduledDate) notifyPlanChange();
       });
     });
 
@@ -356,7 +359,8 @@ export function renderLibrary(container: HTMLElement): () => void {
         const id = btn.dataset.workoutId!;
         const w = appState.workouts.find((x) => x.id === id);
         if (!w) return;
-        if (!window.confirm(`¿Borrar "${w.name}"? No se puede deshacer.`)) return;
+        const coachNote = w.scheduledDate ? planChangeNotice() : null;
+        if (!window.confirm(`¿Borrar "${w.name}"? No se puede deshacer.${coachNote ? `\n\n${coachNote}` : ''}`)) return;
         await deleteWorkout(id);
         if (appState.user) void deleteWorkoutFromCloud(id, appState.user.id);
         appState.workouts = appState.workouts.filter((x) => x.id !== id);

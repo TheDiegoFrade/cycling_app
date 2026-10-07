@@ -725,3 +725,129 @@ create or replace view coach_athlete_profiles with (security_barrier) as
 
 revoke all on coach_athlete_profiles from public, anon;
 grant select on coach_athlete_profiles to authenticated;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Vista del coach, paso 6a: el coach edita y publica la semana de un atleta
+-- (ver docs/coach-view/README.md, "Flujo de la semana").
+--
+-- plan_weeks: un borrador por atleta y semana (lunes a domingo). El coach lo
+-- arma a partir de lo que el atleta ya tiene agendado (workouts), lo edita
+-- y lo publica con publish_plan_week(); hasta entonces el atleta no ve nada.
+-- Al publicar, la semana se escribe en `workouts` del atleta (lo que ya lee
+-- su pantalla Plan) y la versión publicada anterior queda 'superseded'.
+--   items: [{ workout: <Workout de core/types.ts>, origin: 'athlete'|'coach',
+--             edited: boolean }]
+--   base_workout_ids: los workouts del atleta que había en esa semana al
+--     crear el borrador. Al publicar solo se borran de esos los que el
+--     coach quitó — lo que el atleta agregue mientras tanto no se toca.
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists plan_weeks (
+  id uuid primary key default gen_random_uuid(),
+  athlete_id uuid not null references auth.users (id) on delete cascade,
+  coach_id uuid not null references auth.users (id) on delete cascade,
+  iso_week text not null, -- ej. "2026-W42"
+  week_start date not null check (extract(isodow from week_start) = 1), -- lunes
+  status text not null default 'draft' check (status in ('draft', 'published', 'superseded')),
+  items jsonb not null default '[]'::jsonb check (jsonb_typeof(items) = 'array'),
+  base_workout_ids text[] not null default '{}',
+  ai_rationale text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  published_at timestamptz
+);
+
+alter table plan_weeks enable row level security;
+
+-- El coach ve las semanas de sus atletas activos; el atleta, solo las
+-- publicadas (nunca un borrador).
+drop policy if exists "plan_weeks: coach lee las de sus atletas" on plan_weeks;
+create policy "plan_weeks: coach lee las de sus atletas" on plan_weeks for select
+  using (auth.uid() = coach_id and is_coach_of(athlete_id));
+
+drop policy if exists "plan_weeks: atleta lee las publicadas" on plan_weeks;
+create policy "plan_weeks: atleta lee las publicadas" on plan_weeks for select
+  using (auth.uid() = athlete_id and status = 'published');
+
+-- El coach crea y edita SOLO borradores; publicar va por la función de abajo.
+drop policy if exists "plan_weeks: coach crea borradores" on plan_weeks;
+create policy "plan_weeks: coach crea borradores" on plan_weeks for insert
+  with check (auth.uid() = coach_id and is_coach_of(athlete_id) and status = 'draft' and published_at is null);
+
+drop policy if exists "plan_weeks: coach edita borradores" on plan_weeks;
+create policy "plan_weeks: coach edita borradores" on plan_weeks for update
+  using (auth.uid() = coach_id and is_coach_of(athlete_id) and status = 'draft')
+  with check (auth.uid() = coach_id and is_coach_of(athlete_id) and status = 'draft' and published_at is null);
+
+drop policy if exists "plan_weeks: coach descarta borradores" on plan_weeks;
+create policy "plan_weeks: coach descarta borradores" on plan_weeks for delete
+  using (auth.uid() = coach_id and status = 'draft');
+
+create unique index if not exists plan_weeks_one_draft_per_week
+  on plan_weeks (athlete_id, coach_id, week_start) where status = 'draft';
+create index if not exists plan_weeks_coach_week_idx on plan_weeks (coach_id, iso_week);
+create index if not exists plan_weeks_athlete_week_idx on plan_weeks (athlete_id, week_start);
+
+-- El coach lee lo que sus atletas tienen agendado (para armar el borrador).
+-- No lo escribe directo: solo a través de publish_plan_week().
+drop policy if exists "workouts: coach lee los de sus atletas" on workouts;
+create policy "workouts: coach lee los de sus atletas" on workouts for select
+  using (is_coach_of(user_id));
+
+-- Publicar: todo en una transacción. Escribe los entrenamientos del
+-- borrador en `workouts` del atleta, borra solo los que el coach quitó (de
+-- base_workout_ids) y archiva la versión publicada anterior de esa semana.
+create or replace function publish_plan_week(p_week_id uuid) returns timestamptz
+language plpgsql volatile security definer set search_path = public as $$
+declare
+  w plan_weeks%rowtype;
+  item jsonb;
+  wid text;
+  day_key text;
+  keep text[] := '{}';
+  ts timestamptz := now();
+begin
+  select * into w from plan_weeks where id = p_week_id for update;
+  if not found or w.coach_id is distinct from auth.uid() then
+    raise exception 'No encontramos ese borrador.';
+  end if;
+  if not is_coach_of(w.athlete_id) then
+    raise exception 'Este atleta ya no está vinculado contigo.';
+  end if;
+  if w.status <> 'draft' then
+    raise exception 'Esta semana ya se publicó. Recarga para ver la versión actual.';
+  end if;
+
+  for item in select value from jsonb_array_elements(w.items) loop
+    wid := item -> 'workout' ->> 'id';
+    day_key := item -> 'workout' ->> 'scheduledDate';
+    if wid is null or wid !~ '^[0-9a-fA-F-]{36}$' then
+      raise exception 'Hay un entrenamiento sin identificador válido.';
+    end if;
+    if day_key is null or day_key !~ '^\d{4}-\d{2}-\d{2}$'
+       or day_key::date < w.week_start or day_key::date > w.week_start + 6 then
+      raise exception 'Hay un entrenamiento fuera de esta semana.';
+    end if;
+    if exists (select 1 from workouts where id = wid::uuid and user_id <> w.athlete_id) then
+      raise exception 'Un entrenamiento del borrador no pertenece a este atleta.';
+    end if;
+    insert into workouts (id, user_id, data, updated_at)
+      values (wid::uuid, w.athlete_id, item -> 'workout', ts)
+      on conflict (id) do update set data = excluded.data, updated_at = excluded.updated_at;
+    keep := keep || wid;
+  end loop;
+
+  delete from workouts
+    where user_id = w.athlete_id
+      and id::text = any (w.base_workout_ids)
+      and not (id::text = any (keep));
+
+  update plan_weeks set status = 'superseded', updated_at = ts
+    where athlete_id = w.athlete_id and week_start = w.week_start and status = 'published';
+  update plan_weeks set status = 'published', published_at = ts, updated_at = ts
+    where id = w.id;
+  return ts;
+end;
+$$;
+
+revoke execute on function publish_plan_week(uuid) from public, anon;
+grant execute on function publish_plan_week(uuid) to authenticated;
