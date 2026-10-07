@@ -57,9 +57,13 @@ function zoneBars(zones: { zone: number; seconds: number }[]): string {
     .join('')}</div>`;
 }
 
-function downloadFit(): void {
-  const session = appState.lastSession;
-  if (!session) return;
+// Antes leía appState.lastSession en vez de recibir la sesión que de
+// verdad se está mostrando — eso es null por definición cuando el resumen
+// viene de una sesión reconstruida de la nube (ver renderSummary: esa rama
+// SOLO corre si appState.lastSession ya es falsy), así que el botón no
+// hacía nada en silencio para cualquier sesión que no fuera la recién
+// terminada en este mismo dispositivo. Encontrado en producción.
+function downloadFit(session: SessionRecord): void {
   const bytes = encodeFitActivity(new Date(session.startedAt), session.samples, profileForSession(session));
   const blob = new Blob([bytes as unknown as ArrayBuffer], { type: 'application/octet-stream' });
   const url = URL.createObjectURL(blob);
@@ -316,7 +320,7 @@ function renderFullSummary(container: HTMLElement, session: SessionRecord, cloud
 
   drawSummaryGraph(container.querySelector('#g')!, session);
 
-  container.querySelector('#download-fit')?.addEventListener('click', downloadFit);
+  container.querySelector('#download-fit')?.addEventListener('click', () => downloadFit(session));
 
   const stravaResultEl = container.querySelector<HTMLElement>('#strava-upload-result');
   container.querySelector('#strava-upload')?.addEventListener('click', async () => {
