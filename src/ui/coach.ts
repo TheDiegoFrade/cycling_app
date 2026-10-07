@@ -6,6 +6,8 @@ import { appState } from './state';
 import { isCoachProfileComplete, openOnboardingForm } from './onboarding';
 import { computePmc } from '../engine/pmc';
 import { listSessions } from '../storage/session-store';
+import type { SessionRecord } from '../storage/session-store';
+import { isAiEligibleSession } from '../core/session-source';
 import { computeSessionAnalytics } from '../engine/analytics';
 import { estimateWorkout } from '../core/workout-estimate';
 import { deleteWorkout } from '../storage/workout-store';
@@ -13,6 +15,25 @@ import { escapeHtml } from './workout-cover';
 
 const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'M', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
 const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+
+/** Sesiones que SÍ pueden entrar al contexto del coach de IA: todo menos lo
+ * que llegó de Strava (sus términos prohíben usar sus datos en modelos de
+ * IA, ver core/session-source.ts y docs/coach-view/README.md). Cada
+ * función de abajo que arma contexto para coach-chat pasa por aquí — nunca
+ * leer listSessions()/appState.cloudSessions directo para eso. La
+ * deduplicación local/nube usa los ids de TODAS las locales (sin filtrar),
+ * así una sesión de Strava local tampoco se cuela por el lado de la nube. */
+async function aiEligibleSessions(): Promise<{
+  localSessions: SessionRecord[];
+  cloudOnly: typeof appState.cloudSessions;
+}> {
+  const allLocal = await listSessions();
+  const localIds = new Set(allLocal.map((s) => s.id));
+  return {
+    localSessions: allLocal.filter(isAiEligibleSession),
+    cloudOnly: appState.cloudSessions.filter((s) => !localIds.has(s.id) && isAiEligibleSession(s)),
+  };
+}
 
 // La llamada real a Claude tarda ~1-2 minutos — un texto estático ("Armando
 // tu plan…") se siente roto a ese tiempo. Rotan cada pocos segundos para
@@ -400,15 +421,13 @@ interface RecentHistory {
 /** Calcula el historial real del atleta con el mismo motor que ya usa Forma
  * (computePmc) — null genuino si no hay ninguna sesión, nunca inventado. */
 async function computeRecentHistory(): Promise<RecentHistory | null> {
-  const localSessions = await listSessions();
-  const localIds = new Set(localSessions.map((s) => s.id));
+  const { localSessions, cloudOnly } = await aiEligibleSessions();
   const localEntries = localSessions.map((s) => ({
     dateKey: s.startedAt.slice(0, 10),
     tss: computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp }).trainingStressScore ?? 0,
     durationS: s.samples.length,
   }));
-  const cloudEntries = appState.cloudSessions
-    .filter((s) => !localIds.has(s.id))
+  const cloudEntries = cloudOnly
     .map((s) => ({
       dateKey: s.startedAt.slice(0, 10),
       tss: s.trainingStressScore ?? 0,
@@ -449,11 +468,11 @@ async function computeOccupiedDates(startDate: string, weeksAhead: number): Prom
 
   const scheduled = appState.workouts.filter((w) => w.scheduledDate && inRange(w.scheduledDate)).map((w) => w.scheduledDate!);
 
-  const localSessions = await listSessions();
-  const localIds = new Set(localSessions.map((s) => s.id));
+  // occupiedDates también le llega al modelo (ver prompt.ts), así que las
+  // fechas de sesiones de Strava tampoco van.
+  const { localSessions, cloudOnly } = await aiEligibleSessions();
   const localDates = localSessions.map((s) => s.startedAt.slice(0, 10)).filter(inRange);
-  const cloudDates = appState.cloudSessions
-    .filter((s) => !localIds.has(s.id))
+  const cloudDates = cloudOnly
     .map((s) => s.startedAt.slice(0, 10))
     .filter(inRange);
 
@@ -495,8 +514,7 @@ async function computeWeekEvalContext(
   const weeks = plan.data.weeks;
   if (weeks.length === 0) return null;
 
-  const localSessions = await listSessions();
-  const localIds = new Set(localSessions.map((s) => s.id));
+  const { localSessions, cloudOnly } = await aiEligibleSessions();
   const localEntries = localSessions.map((s) => ({
     dateKey: s.startedAt.slice(0, 10),
     tss: computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp }).trainingStressScore ?? 0,
@@ -507,9 +525,11 @@ async function computeWeekEvalContext(
   // preciso de completedWorkouts (ver más abajo). Simplificación conocida:
   // un workout de Torq entrenado en otro dispositivo sin volver a sincronizar
   // localmente no se cuenta como "completado" en ese conteo preciso.
-  const cloudEntries = appState.cloudSessions
-    .filter((s) => !localIds.has(s.id))
-    .map((s) => ({ dateKey: s.startedAt.slice(0, 10), tss: s.trainingStressScore ?? 0, workoutId: null as string | null }));
+  const cloudEntries = cloudOnly.map((s) => ({
+    dateKey: s.startedAt.slice(0, 10),
+    tss: s.trainingStressScore ?? 0,
+    workoutId: null as string | null,
+  }));
   const allEntries = [...localEntries, ...cloudEntries];
   if (allEntries.length === 0) return null;
 

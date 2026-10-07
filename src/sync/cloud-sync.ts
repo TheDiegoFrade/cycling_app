@@ -1,6 +1,8 @@
 import { computeSessionAnalytics } from '../engine/analytics';
 import { encodeFitActivity } from '../export/fit';
 import { parseFitActivity } from '../core/fit-activity-parser';
+import { sessionSourceOf } from '../core/session-source';
+import type { SessionSource } from '../core/session-source';
 import type { Profile, Sample } from '../core/types';
 import type { SessionRecord } from '../storage/session-store';
 import { supabase } from '../supabase/client';
@@ -35,6 +37,9 @@ export interface CloudSessionSummary {
   /** 'fit-import' si esta sesión se subió a mano desde un .fit, o el id del
    * workout original si se grabó en vivo con la app. */
   workoutId: string | null;
+  /** De dónde llegó (ver core/session-source.ts) — 'strava' nunca entra al
+   * contexto del coach de IA. */
+  source: SessionSource;
 }
 
 /** Sube el .fit a Storage y el resumen a la tabla `sessions`. Best-effort:
@@ -78,6 +83,9 @@ export async function pushSessionToCloud(session: SessionRecord, profile: Profil
       fit_path: fitPath,
       strava_activity_id: session.stravaActivityId ?? null,
       workout_id: session.workoutId,
+      // el trigger sessions_set_source de schema.sql fuerza 'strava' igual
+      // si trae strava_activity_id — esto es lo mismo, del lado del cliente.
+      source: sessionSourceOf(session),
       // picos de potencia (mejor promedio sostenido) — guardados aparte del
       // resto para poder calcular récords históricos de TODA la cuenta sin
       // tener que descargar y decodificar el .fit de cada sesión, ver
@@ -111,7 +119,7 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
   const { data, error } = await supabase
     .from('sessions')
     .select(
-      'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id, fit_path, workout_id',
+      'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id, fit_path, workout_id, source',
     )
     .eq('user_id', userId)
     .order('started_at', { ascending: false });
@@ -142,6 +150,7 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
     stravaActivityId: row.strava_activity_id,
     fitPath: row.fit_path,
     workoutId: row.workout_id,
+    source: sessionSourceOf({ source: row.source, workoutId: row.workout_id, stravaActivityId: row.strava_activity_id }),
   }));
 }
 

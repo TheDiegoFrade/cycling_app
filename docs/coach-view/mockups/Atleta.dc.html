@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Coach · Análisis de atleta</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&amp;family=Barlow+Condensed:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000;color:#f2f4f7;font-family:'Archivo',sans-serif}
+a{color:#3d8bff;text-decoration:none}a:hover{color:#8fbfff}
+.disp{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.01em}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:500;border:1px solid #2f343d;color:#c5cad3;white-space:nowrap}
+.navlink{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-radius:10px;color:#c5cad3;font-size:15px;min-height:44px;box-sizing:border-box}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:10px;border:1px solid #2f343d;background:transparent;color:#f2f4f7;font:inherit;font-weight:500;font-size:14px;cursor:pointer;white-space:nowrap}
+.btn-primary{background:#3d8bff;border-color:#3d8bff;color:#000}
+.card{background:#15171b;border:1px solid #1c1f25;border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.h2{margin:0;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:24px;letter-spacing:0.01em}
+.muted{color:#8b93a1;font-size:13px}
+.td{padding:12px 10px;border-bottom:1px solid #1c1f25;font-size:14px;vertical-align:middle}
+.th{font-size:12px;font-weight:500;color:#8b93a1;text-transform:uppercase;letter-spacing:0.06em;text-align:left;padding:10px;border-bottom:1px solid #1c1f25;white-space:nowrap}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #000000">
+  <nav aria-label="Navegación del coach" style="flex: 1 1 240px; max-width: 100%; background: #0e0f12; border-right: 1px solid #1c1f25; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 6px">
+      <span class="disp" style="font-size: 30px; font-weight: 700; letter-spacing: 0.04em">TORQ</span>
+      <span class="pill" style="border-color: #3d8bff; color: #8fbfff">Coach</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <a class="navlink" href="Main.dc.html" style="background: #1a1d23; color: #f2f4f7"><span>Atletas</span><span class="disp" style="font-size: 16px; color: #8b93a1">8</span></a>
+      <a class="navlink" href="Semanas.dc.html"><span>Semanas</span><span class="disp" style="font-size: 15px; background: #3d8bff; color: #000; border-radius: 999px; padding: 1px 9px">3</span></a>
+      <a class="navlink" href="#biblioteca"><span>Biblioteca</span></a>
+      <a class="navlink" href="Invitar.dc.html"><span>Invitar atleta</span></a>
+    </div>
+    <div style="margin-top: auto; padding: 14px; border: 1px solid #1c1f25; border-radius: 14px; display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 14px; font-weight: 600">Joe</span>
+      <span style="font-size: 13px; color: #8b93a1">UR Training · León</span>
+    </div>
+  </nav>
+
+  <main style="flex: 999 1 640px; min-width: 0; padding: 28px 40px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+    <a href="Main.dc.html" style="font-size: 14px; display: inline-flex; align-items: center; gap: 6px; min-height: 32px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Atletas
+    </a>
+
+    <header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h1 class="disp" style="margin: 0; font-size: 52px; line-height: 1">Mariana R.</h1>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <span class="pill" style="border-color: #3d8bff; color: #8fbfff">IA + Revisión de Joe</span>
+          <span class="pill">Ruta</span>
+          <span class="pill">FTP 248 W · confirmado 21 sep</span>
+          <span class="pill">Altitud de entrenamiento ~2,200 m</span>
+          <span class="pill" style="border-color: #f5c518; color: #f5c518">Objetivo: [CARRERA] · 16 nov · faltan 5 semanas</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px">
+        <a class="btn" href="#nota">Agregar nota</a>
+        <a class="btn btn-primary" href="Semana.dc.html">Revisar semana 42 propuesta</a>
+      </div>
+    </header>
+
+    <section aria-label="Indicadores" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px">
+      <sc-for list="{{kpis}}" as="k" hint-placeholder-count="5">
+        <div style="background: #15171b; border: 1px solid #1c1f25; border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; min-width: 0">
+          <span style="font-size: 13px; color: #8b93a1">{{k.label}}</span>
+          <span class="disp" style="font-size: 36px; line-height: 1; color: {{k.color}}">{{k.value}}</span>
+          <span style="font-size: 12px; color: #8b93a1">{{k.sub}}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <div style="flex: 2 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+        <section class="card" aria-label="Fitness, fatiga y forma">
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 10px">
+            <h2 class="h2">Fitness, fatiga y forma · 12 semanas</h2>
+            <div style="display: flex; gap: 16px; font-size: 12px; color: #c5cad3">
+              <span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 3px; background: #3d8bff; border-radius: 2px"></span>Fitness (CTL)</span>
+              <span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 3px; background: #ff8a3d; border-radius: 2px"></span>Fatiga (ATL)</span>
+              <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; background: #2f343d; border-radius: 2px"></span>Forma (TSB)</span>
+            </div>
+          </div>
+          <svg viewBox="0 0 720 220" width="100%" role="img" aria-label="Fitness sube de 62 a 71 en 12 semanas; la fatiga cerró en 77; la forma está en menos 6." style="display: block">
+            <g stroke="#1c1f25" stroke-width="1"><line x1="0" y1="40" x2="720" y2="40"></line><line x1="0" y1="100" x2="720" y2="100"></line><line x1="0" y1="160" x2="720" y2="160"></line></g>
+            <g fill="#2f343d">
+              <rect x="20" y="160" width="34" height="8"></rect><rect x="80" y="152" width="34" height="8"></rect><rect x="140" y="160" width="34" height="14"></rect><rect x="200" y="160" width="34" height="20"></rect><rect x="260" y="156" width="34" height="4"></rect><rect x="320" y="160" width="34" height="16"></rect><rect x="380" y="160" width="34" height="24"></rect><rect x="440" y="150" width="34" height="10"></rect><rect x="500" y="160" width="34" height="12"></rect><rect x="560" y="160" width="34" height="18"></rect><rect x="620" y="160" width="34" height="10"></rect><rect x="680" y="160" width="30" height="8"></rect>
+            </g>
+            <polyline fill="none" stroke="#ff8a3d" stroke-width="2.5" stroke-linejoin="round" points="37,96 97,88 157,74 217,64 277,84 337,66 397,52 457,74 517,60 577,48 637,58 695,50"></polyline>
+            <polyline fill="none" stroke="#3d8bff" stroke-width="3" stroke-linejoin="round" points="37,104 97,101 157,96 217,90 277,90 337,86 397,80 457,80 517,76 577,70 637,68 695,64"></polyline>
+            <g fill="#8b93a1" font-size="11" font-family="Archivo, sans-serif"><text x="4" y="36">90</text><text x="4" y="96">60</text><text x="4" y="156">0</text><text x="24" y="214">S30</text><text x="324" y="214">S35</text><text x="680" y="214">S41</text></g>
+          </svg>
+        </section>
+
+        <section class="card" aria-label="Plan contra realizado">
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 10px">
+            <h2 class="h2">Plan vs. realizado por semana</h2>
+            <span class="muted">Barra hueca = TSS planeado · relleno = TSS hecho · puntos = sesiones de fuerza/movilidad</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; align-items: end; height: 170px">
+            <sc-for list="{{weeks}}" as="w" hint-placeholder-count="6">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end">
+                <span class="disp" style="font-size: 15px; color: #c5cad3">{{w.pct}}</span>
+                <div style="position: relative; width: 44px; height: {{w.planH}}px; border: 1.5px dashed #2f343d; border-radius: 6px; box-sizing: border-box">
+                  <div style="position: absolute; left: 3px; right: 3px; bottom: 3px; height: {{w.doneH}}px; background: {{w.color}}; border-radius: 4px"></div>
+                </div>
+                <div style="display: flex; gap: 4px; height: 8px">
+                  <sc-for list="{{w.gym}}" as="g" hint-placeholder-count="2"><span style="width: 8px; height: 8px; border-radius: 999px; background: {{g.c}}"></span></sc-for>
+                </div>
+                <span style="font-size: 12px; color: #8b93a1">{{w.label}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section class="card" aria-label="Sesiones recientes">
+          <h2 class="h2">Sesiones recientes</h2>
+          <div style="overflow-x: auto">
+            <table style="width: 100%; border-collapse: collapse; min-width: 640px">
+              <thead><tr><th class="th" scope="col">Día</th><th class="th" scope="col">Sesión</th><th class="th" scope="col">Duración</th><th class="th" scope="col">Carga</th><th class="th" scope="col">RPE</th><th class="th" scope="col">Fuente</th><th class="th" scope="col">Vs. plan</th></tr></thead>
+              <tbody>
+                <sc-for list="{{sessions}}" as="s" hint-placeholder-count="7">
+                  <tr>
+                    <td class="td" style="color: #c5cad3; white-space: nowrap">{{s.day}}</td>
+                    <td class="td"><span style="display: flex; align-items: center; gap: 10px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{s.dot}}; flex: none"></span><span>{{s.name}}</span></span></td>
+                    <td class="td">{{s.dur}}</td>
+                    <td class="td"><span class="disp" style="font-size: 17px">{{s.load}}</span> <span style="font-size: 12px; color: #8b93a1">{{s.unit}}</span></td>
+                    <td class="td">{{s.rpe}}</td>
+                    <td class="td" style="color: #8b93a1">{{s.src}}</td>
+                    <td class="td"><span class="pill" style="border-color: {{s.chipC}}; color: {{s.chipC}}">{{s.chip}}</span></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <span class="muted">La carga de fuerza y movilidad se mide como RPE × minutos y se muestra aparte: no se suma al TSS de la bici.</span>
+        </section>
+      </div>
+
+      <aside style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+        <section class="card" aria-label="Señales detectadas por la IA">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+            <h2 class="h2">Lo que detectó la IA</h2>
+            <span class="muted">para ti, no para el atleta</span>
+          </div>
+          <sc-for list="{{signals}}" as="g" hint-placeholder-count="4">
+            <div style="display: flex; gap: 12px; padding-top: 12px; border-top: 1px solid #1c1f25">
+              <span style="width: 8px; height: 8px; margin-top: 6px; border-radius: 999px; background: {{g.c}}; flex: none"></span>
+              <div style="display: flex; flex-direction: column; gap: 4px">
+                <span style="font-size: 14px; font-weight: 600">{{g.title}}</span>
+                <span style="font-size: 13px; color: #c5cad3; line-height: 1.45">{{g.body}}</span>
+              </div>
+            </div>
+          </sc-for>
+        </section>
+
+        <section class="card" aria-label="Revisión mensual" style="border-color: #3d8bff">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+            <h2 class="h2">Revisión mensual</h2>
+            <span class="pill" style="border-color: #3d8bff; color: #8fbfff">Vence 14 oct</span>
+          </div>
+          <span style="font-size: 14px; color: #c5cad3; line-height: 1.5">El reporte del mes ya está armado: tendencia de FTP, desacople, cumplimiento y preparación para la carrera. Tú validas y dejas 2–3 comentarios.</span>
+          <a class="btn btn-primary" href="#revision">Empezar revisión · ~15 min</a>
+        </section>
+
+        <section class="card" aria-label="Notas del coach" id="nota">
+          <h2 class="h2">Notas</h2>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #8b93a1">Nota privada (la IA la toma en cuenta al proponer semanas)
+            <textarea rows="3" placeholder="Ej. viaja el 25 oct, sin rodillo esa semana" style="background: #0b0c0f; border: 1px solid #2f343d; border-radius: 10px; color: #f2f4f7; font: inherit; font-size: 14px; padding: 10px 12px; resize: vertical"></textarea>
+          </label>
+          <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 10px; border-top: 1px solid #1c1f25">
+            <span style="font-size: 12px; color: #8b93a1">29 sep</span>
+            <span style="font-size: 14px; color: #c5cad3">Molestia leve en rodilla izquierda. Nada de sentadilla profunda dos semanas.</span>
+          </div>
+        </section>
+      </aside>
+    </div>
+    <p style="margin: 0; font-size: 12px; color: #8b93a1">Datos de ejemplo.</p>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1320}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var green = '#22c58b', yellow = '#f5c518', red = '#ff6b6b', blue = '#3d8bff', orange = '#ff8a3d', gym = '#b9a4ff', mob = '#c5cad3', muted = '#8b93a1';
+    var wk = [
+      { label: 'S36', plan: 380, done: 360, gym: [gym, mob] },
+      { label: 'S37', plan: 420, done: 410, gym: [gym, gym] },
+      { label: 'S38', plan: 300, done: 270, gym: [mob] },
+      { label: 'S39', plan: 450, done: 455, gym: [gym, gym, mob] },
+      { label: 'S40', plan: 470, done: 400, gym: [gym] },
+      { label: 'S41', plan: 480, done: 445, gym: [gym, mob] }
+    ];
+    var weeks = wk.map(function (w) {
+      var pct = Math.round((w.done / w.plan) * 100);
+      return { label: w.label, pct: pct + '%', planH: Math.round(w.plan / 4), doneH: Math.max(4, Math.round(w.done / 4) - 6), color: pct >= 90 ? green : (pct >= 75 ? yellow : red), gym: w.gym.map(function (c) { return { c: c }; }) };
+    });
+    return {
+      kpis: [
+        { label: 'Fitness (CTL)', value: '71', sub: '+9 en 6 semanas', color: '#3d8bff' },
+        { label: 'Fatiga (ATL)', value: '77', sub: 'Semana de carga', color: '#ff8a3d' },
+        { label: 'Forma (TSB)', value: '−6', sub: 'Normal en bloque de construcción', color: '#f2f4f7' },
+        { label: 'Cumplimiento 4 sem', value: '92%', sub: '18 de 20 sesiones de bici', color: '#22c58b' },
+        { label: 'Horas por semana', value: '7.4', sub: 'Promedio 4 semanas', color: '#f2f4f7' }
+      ],
+      weeks: weeks,
+      sessions: [
+        { day: 'Mar 7', name: 'Sweet spot 3×15', dur: '1:10', load: '84', unit: 'TSS', rpe: '7', src: 'Torq', chip: 'Cumplido', chipC: green, dot: green },
+        { day: 'Lun 6', name: 'Fuerza · tren inferior', dur: '0:45', load: '270', unit: 'sRPE', rpe: '6', src: 'Registrado', chip: 'Cumplido', chipC: green, dot: gym },
+        { day: 'Dom 5', name: 'Rodada larga Z2', dur: '3:05', load: '162', unit: 'TSS', rpe: '5', src: 'Garmin vía intervals.icu', chip: 'Cumplido', chipC: green, dot: blue },
+        { day: 'Sáb 4', name: 'Movilidad 25 min', dur: '0:25', load: '75', unit: 'sRPE', rpe: '3', src: 'Registrado', chip: 'Extra', chipC: muted, dot: mob },
+        { day: 'Jue 2', name: 'VO2 5×4 min', dur: '1:05', load: '79', unit: 'TSS', rpe: '9', src: 'Torq', chip: 'Parcial · 4 de 5', chipC: yellow, dot: orange },
+        { day: 'Mié 1', name: 'Fuerza · core y tren superior', dur: '—', load: '—', unit: '', rpe: '—', src: '—', chip: 'Faltó', chipC: red, dot: gym },
+        { day: 'Mar 30', name: 'Tempo 4×10', dur: '1:15', load: '76', unit: 'TSS', rpe: '6', src: 'Torq', chip: 'Cumplido', chipC: green, dot: yellow }
+      ],
+      signals: [
+        { c: green, title: 'La base aeróbica mejora', body: 'El desacople de pulso contra potencia en Z2 bajó de 6.1% a 3.8% en 4 semanas, con la misma potencia.' },
+        { c: yellow, title: 'Cadencia cae al final del umbral', body: 'En 3 de 4 sesiones de umbral la cadencia baja más de 8 rpm en el último intervalo. Puede ser fatiga muscular más que aeróbica.' },
+        { c: orange, title: 'VO2 incompleto después de fuerza', body: 'El jueves no terminó el 5º intervalo; el miércoles faltó a fuerza pero el lunes reportó RPE 6 en pierna. Considerar separar fuerza y VO2 por 48 h.' },
+        { c: muted, title: 'Sin datos de sueño', body: 'No conectó su reloj a intervals.icu, así que la IA no puede relacionar descanso con rendimiento.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

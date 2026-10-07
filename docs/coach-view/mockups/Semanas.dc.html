@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Coach · Semanas de todos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&amp;family=Barlow+Condensed:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000;color:#f2f4f7;font-family:'Archivo',sans-serif}
+a{color:#3d8bff;text-decoration:none}a:hover{color:#8fbfff}
+.disp{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.01em}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:500;border:1px solid #2f343d;color:#c5cad3;white-space:nowrap}
+.navlink{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-radius:10px;color:#c5cad3;font-size:15px;min-height:44px;box-sizing:border-box}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid #2f343d;background:transparent;color:#f2f4f7;font:inherit;font-weight:500;font-size:14px;cursor:pointer;white-space:nowrap}
+.btn-light{background:#f2f4f7;border-color:#f2f4f7;color:#000}
+.chip{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:4px;width:100%;padding:6px;border-radius:8px;background:#15171b;cursor:pointer;text-align:left}
+.chip:focus-visible{outline:2px solid #3d8bff;outline-offset:2px}
+.flabel{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#8b93a1}
+.field{min-height:44px;background:#0b0c0f;border:1px solid #2f343d;border-radius:10px;color:#f2f4f7;font:inherit;font-size:14px;padding:0 12px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #000000">
+  <nav aria-label="Navegación del coach" style="flex: 1 1 220px; max-width: 100%; background: #0e0f12; border-right: 1px solid #1c1f25; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 6px">
+      <span class="disp" style="font-size: 30px; font-weight: 700; letter-spacing: 0.04em">TORQ</span>
+      <span class="pill" style="border-color: #3d8bff; color: #8fbfff">Coach</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <a class="navlink" href="Main.dc.html"><span>Atletas</span><span class="disp" style="font-size: 16px; color: #8b93a1">8</span></a>
+      <a class="navlink" href="Semanas.dc.html" style="background: #1a1d23; color: #f2f4f7"><span>Semanas</span><span class="disp" style="font-size: 15px; background: #3d8bff; color: #000; border-radius: 999px; padding: 1px 9px">{{pendingCount}}</span></a>
+      <a class="navlink" href="#biblioteca"><span>Biblioteca</span></a>
+      <a class="navlink" href="Invitar.dc.html"><span>Invitar atleta</span></a>
+    </div>
+    <div style="margin-top: auto; padding: 14px; border: 1px solid #1c1f25; border-radius: 14px; display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 14px; font-weight: 600">Joe</span>
+      <span style="font-size: 13px; color: #8b93a1">UR Training · León</span>
+    </div>
+  </nav>
+
+  <main style="flex: 999 1 640px; min-width: 0; padding: 28px 32px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+    <header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <button type="button" class="btn" style="min-height: 40px; width: 40px; padding: 0" aria-label="Semana anterior"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+          <h1 class="disp" style="margin: 0; font-size: 44px; line-height: 1">Semana 42 · 13–19 oct</h1>
+          <button type="button" class="btn" style="min-height: 40px; width: 40px; padding: 0" aria-label="Semana siguiente"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
+        </div>
+        <span style="font-size: 14px; color: #8b93a1">Todos tus atletas en una pantalla. Toca una sesión para editarla; nada llega al atleta hasta que publicas su fila.</span>
+      </div>
+      <button type="button" class="btn btn-light" onClick="{{publishAll}}">{{publishAllLabel}}</button>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <section aria-label="Semanas por atleta" style="flex: 999 1 640px; min-width: 0; overflow-x: auto; background: #0e0f12; border: 1px solid #1c1f25; border-radius: 14px">
+        <div style="min-width: 900px">
+          <div style="display: grid; grid-template-columns: 168px repeat(7, minmax(0, 1fr)) 104px; gap: 6px; padding: 12px 12px 8px; border-bottom: 1px solid #1c1f25">
+            <span style="font-size: 12px; color: #8b93a1; text-transform: uppercase; letter-spacing: 0.06em">Atleta</span>
+            <sc-for list="{{dayHeads}}" as="h" hint-placeholder-count="7">
+              <span style="font-size: 12px; color: #8b93a1; text-transform: uppercase; letter-spacing: 0.06em">{{h}}</span>
+            </sc-for>
+            <span></span>
+          </div>
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+            <div style="display: grid; grid-template-columns: 168px repeat(7, minmax(0, 1fr)) 104px; gap: 6px; padding: 10px 12px; border-bottom: 1px solid #1c1f25; align-items: stretch; background: {{r.rowBg}}">
+              <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0; justify-content: center">
+                <a href="Atleta.dc.html" style="font-size: 14px; font-weight: 600; color: #f2f4f7">{{r.name}}</a>
+                <span class="pill" style="align-self: flex-start; border-color: {{r.stC}}; color: {{r.stC}}">{{r.stLabel}}</span>
+                <span style="font-size: 12px; color: #8b93a1">{{r.tssLine}}</span>
+                <sc-if value="{{r.hasFlag}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; color: #ff8a3d">{{r.flag}}</span></sc-if>
+              </div>
+              <sc-for list="{{r.days}}" as="d" hint-placeholder-count="7">
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; min-height: 64px">
+                  <sc-for list="{{d.items}}" as="it" hint-placeholder-count="1">
+                    <button type="button" class="chip" onClick="{{it.pick}}" aria-pressed="{{it.on}}" aria-label="{{it.aria}}" style="border: 1.5px solid {{it.border}}">
+                      <sc-if value="{{it.isBike}}" hint-placeholder-val="{{true}}">
+                        <span aria-hidden="true" style="height: 18px; display: flex; align-items: flex-end; gap: 1px">
+                          <sc-for list="{{it.segs}}" as="s" hint-placeholder-count="4"><span style="flex: {{s.w}}; height: {{s.h}}%; background: {{s.c}}; border-radius: 1px"></span></sc-for>
+                        </span>
+                      </sc-if>
+                      <sc-if value="{{it.isGym}}" hint-placeholder-val="{{false}}">
+                        <span aria-hidden="true" style="height: 18px; display: flex; align-items: center; gap: 5px; color: {{it.tint}}; font-size: 11px; font-weight: 600">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"></path></svg>{{it.kind}}
+                        </span>
+                      </sc-if>
+                      <span style="font-size: 12px; line-height: 1.25; color: #f2f4f7; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical">{{it.name}}</span>
+                      <span class="disp" style="font-size: 13px; color: #8b93a1">{{it.meta}}</span>
+                    </button>
+                  </sc-for>
+                  <sc-if value="{{d.empty}}" hint-placeholder-val="{{false}}">
+                    <button type="button" aria-label="Agregar sesión" style="flex: 1; min-height: 44px; border: 1px dashed #2f343d; border-radius: 8px; background: transparent; color: #8b93a1; font: inherit; font-size: 16px; cursor: pointer">+</button>
+                  </sc-if>
+                </div>
+              </sc-for>
+              <div style="display: flex; align-items: center; justify-content: flex-end">
+                <sc-if value="{{r.canPublish}}" hint-placeholder-val="{{true}}">
+                  <button type="button" class="btn" onClick="{{r.publish}}" style="min-height: 40px; padding: 0 12px; font-size: 13px; border-color: #3d8bff; color: #8fbfff">Publicar</button>
+                </sc-if>
+                <sc-if value="{{r.isPublished}}" hint-placeholder-val="{{false}}">
+                  <span style="font-size: 13px; color: #22c58b; display: inline-flex; align-items: center; gap: 4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Publicada</span>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <aside aria-label="Editar sesión" style="flex: 1 1 300px; min-width: 0; background: #15171b; border: 1px solid #3d8bff; border-radius: 14px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; color: #8b93a1; text-transform: uppercase; letter-spacing: 0.06em">Editando</span>
+          <span style="font-size: 14px; color: #c5cad3">{{sel.who}}</span>
+          <span class="disp" style="font-size: 26px; line-height: 1.05">{{sel.name}}</span>
+        </div>
+        <label class="flabel">Cambiar por
+          <select class="field">
+            <option>{{sel.name}}</option>
+            <option>Sweet spot 3×15</option>
+            <option>Umbral 2×20</option>
+            <option>Over-unders 4×8</option>
+            <option>Z2 90 min</option>
+            <option>Fuerza · tren inferior</option>
+            <option>Movilidad · cadera</option>
+          </select>
+        </label>
+        <label class="flabel">Mover a
+          <select class="field">
+            <sc-for list="{{dayHeads}}" as="h" hint-placeholder-count="7"><option>{{h}}</option></sc-for>
+          </select>
+        </label>
+        <sc-if value="{{sel.isBike}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span class="flabel" id="lbl-int">Intensidad</span>
+            <div role="group" aria-labelledby="lbl-int" style="display: flex; align-items: center; gap: 8px">
+              <button type="button" class="btn" onClick="{{down}}" aria-label="Bajar 5%" style="width: 44px; padding: 0">−</button>
+              <span class="disp" style="font-size: 28px; min-width: 76px; text-align: center">{{sel.pct}}%</span>
+              <button type="button" class="btn" onClick="{{up}}" aria-label="Subir 5%" style="width: 44px; padding: 0">+</button>
+              <span style="font-size: 13px; color: #8b93a1">{{sel.meta}}</span>
+            </div>
+          </div>
+        </sc-if>
+        <label class="flabel">Nota para el atleta
+          <textarea rows="2" placeholder="Ej. si llegas cansado, quédate en 4 intervalos" style="background: #0b0c0f; border: 1px solid #2f343d; border-radius: 10px; color: #f2f4f7; font: inherit; font-size: 14px; padding: 10px 12px; resize: vertical"></textarea>
+        </label>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <button type="button" class="btn" style="flex: 1 1 auto">Copiar a otros atletas</button>
+          <button type="button" class="btn" style="flex: 1 1 auto; color: #ff6b6b">Quitar</button>
+        </div>
+        <span style="font-size: 12px; color: #8b93a1; line-height: 1.45">Cada cambio queda en borrador hasta que publiques la fila de ese atleta.</span>
+      </aside>
+    </div>
+
+    <section id="biblioteca" aria-label="Biblioteca" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+      <span style="font-size: 13px; color: #8b93a1; margin-right: 4px">Arrastra a cualquier día:</span>
+      <sc-for list="{{library}}" as="l" hint-placeholder-count="8"><span class="pill" style="padding: 7px 11px; font-size: 13px; border-color: {{l.c}}">{{l.name}}</span></sc-for>
+    </section>
+    <p style="margin: 0; font-size: 12px; color: #8b93a1">Datos de ejemplo.</p>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1080}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: '0-3-0', pct: {}, status: { 0: 'draft', 1: 'published', 2: 'draft', 3: 'published', 4: 'draft', 5: 'published', 6: 'published', 7: 'published' } };
+  }
+  renderVals() {
+    var self = this, st = this.state;
+    var Z = { 1: '#6b7280', 2: '#3d8bff', 3: '#22c58b', 4: '#f5c518', 5: '#ff8a3d', 6: '#ff4d4d' };
+    var H = { 1: 30, 2: 48, 3: 62, 4: 76, 5: 90, 6: 100 };
+    var P = {
+      thr: [[2, 3], [4, 4], [1, 1], [4, 4], [1, 1], [4, 4], [2, 2]],
+      vo2: [[2, 3], [5, 2], [1, 1], [5, 2], [1, 1], [5, 2], [1, 1], [5, 2], [2, 2]],
+      z2: [[2, 10]], rec: [[1, 10]], ss: [[2, 2], [3, 5], [1, 1], [3, 5], [2, 2]],
+      long: [[2, 6], [3, 2], [2, 2], [3, 2], [2, 4]], tempo: [[2, 2], [3, 3], [2, 1], [3, 3], [2, 2]], ou: [[2, 2], [4, 2], [5, 1], [4, 2], [5, 1], [2, 2]]
+    };
+    function b(name, shape, tss, min) { return { t: 'bike', name: name, shape: shape, tss: tss, min: min }; }
+    function g(kind, name) { return { t: 'gym', kind: kind, name: name }; }
+    var plan = [
+      { name: 'Mariana R.', last: 445, days: [[g('Fuerza', 'Tren inferior')], [b('Umbral 3×12', 'thr', 95, 80)], [b('Z2 cadencia 95', 'z2', 60, 75), g('Movilidad', 'Cadera')], [b('VO2 5×4 min', 'vo2', 82, 65)], [], [b('Larga con tempo', 'long', 210, 210)], [b('Recuperación', 'rec', 30, 50), g('Fuerza', 'Core')]] },
+      { name: 'Luis G.', last: 512, flag: 'Fatiga alta · bajó carga', days: [[b('Recuperación', 'rec', 30, 50)], [g('Movilidad', 'Espalda')], [b('Z2 75 min', 'z2', 55, 75)], [b('Tempo 3×10', 'tempo', 70, 70)], [], [b('Larga Z2', 'long', 170, 180)], [g('Fuerza', 'Tren inferior')]] },
+      { name: 'Sofía M.', last: 380, days: [[], [b('Sweet spot 3×15', 'ss', 84, 70)], [g('Fuerza', 'Tren inferior')], [b('Z2 60 min', 'z2', 45, 60)], [b('Over-unders 4×8', 'ou', 88, 70)], [b('Gravel largo', 'long', 180, 190)], [g('Movilidad', 'Cadera')]] },
+      { name: 'Andrés T.', last: 210, days: [[b('Z2 60 min', 'z2', 45, 60)], [], [b('Tempo 3×10', 'tempo', 70, 70)], [], [b('Z2 60 min', 'z2', 45, 60)], [b('Larga Z2', 'long', 150, 165)], []] },
+      { name: 'Carla V.', last: 420, days: [[g('Fuerza', 'Tren inferior')], [b('VO2 5×4 min', 'vo2', 82, 65)], [b('Z2 75 min', 'z2', 55, 75)], [], [b('Umbral 2×20', 'thr', 90, 75)], [b('MTB técnica', 'long', 160, 170)], [g('Movilidad', 'Cadera')]] },
+      { name: 'Jorge H.', last: 470, days: [[], [b('Umbral 2×20', 'thr', 90, 75)], [b('Z2 90 min', 'z2', 65, 90)], [b('VO2 5×4 min', 'vo2', 82, 65)], [g('Fuerza', 'Core')], [b('Larga con tempo', 'long', 200, 200)], [b('Recuperación', 'rec', 30, 50)]] },
+      { name: 'Paola S.', last: 540, days: [[g('Fuerza', 'Tren inferior')], [b('Over-unders 4×8', 'ou', 88, 70)], [b('Z2 90 min', 'z2', 65, 90)], [b('Sweet spot 3×15', 'ss', 84, 70)], [], [b('MTB larga', 'long', 230, 230)], [b('Z2 75 min', 'z2', 55, 75)]] },
+      { name: 'Ricardo N.', last: 330, days: [[], [b('Tempo 4×10', 'tempo', 76, 75)], [b('Z2 60 min', 'z2', 45, 60)], [g('Fuerza', 'Core')], [b('Sweet spot 3×15', 'ss', 84, 70)], [b('Larga Z2', 'long', 140, 150)], []] }
+    ];
+    var heads = ['Lun 13', 'Mar 14', 'Mié 15', 'Jue 16', 'Vie 17', 'Sáb 18', 'Dom 19'];
+    var STL = { draft: ['Borrador IA', '#f5c518'], edited: ['Editado · sin publicar', '#3d8bff'], published: ['Publicada', '#22c58b'] };
+    var selInfo = null, pending = 0;
+    var rows = plan.map(function (p, ri) {
+      var status = st.status[ri], total = 0;
+      if (status !== 'published') pending++;
+      var days = p.days.map(function (items, di) {
+        return {
+          empty: items.length === 0,
+          items: items.map(function (it, ii) {
+            var key = ri + '-' + di + '-' + ii, on = st.sel === key;
+            var pct = st.pct[key] || 100;
+            var tss = it.t === 'bike' ? Math.round(it.tss * (pct / 100) * (pct / 100)) : 0;
+            total += tss;
+            var meta = it.t === 'bike' ? (tss + ' TSS' + (pct !== 100 ? ' · ' + pct + '%' : '')) : 'sRPE';
+            var o = {
+              isBike: it.t === 'bike', isGym: it.t === 'gym', kind: it.kind, tint: it.kind === 'Fuerza' ? '#b9a4ff' : '#c5cad3',
+              name: it.name, meta: meta, on: on ? 'true' : 'false', border: on ? '#3d8bff' : '#1c1f25',
+              aria: p.name + ', ' + heads[di] + ': ' + it.name,
+              segs: it.t === 'bike' ? P[it.shape].map(function (s) { return { w: s[1], h: H[s[0]], c: Z[s[0]] }; }) : [],
+              pick: function () { self.setState({ sel: key }); }
+            };
+            if (on) selInfo = { who: p.name + ' · ' + heads[di], name: it.name, isBike: it.t === 'bike', pct: pct, meta: it.t === 'bike' ? tss + ' TSS' : '', key: key, ri: ri };
+            return o;
+          })
+        };
+      });
+      var diff = Math.round((total / p.last - 1) * 100);
+      return {
+        name: p.name, days: days, flag: p.flag || '', hasFlag: !!p.flag,
+        stLabel: STL[status][0], stC: STL[status][1],
+        rowBg: status === 'published' ? 'transparent' : '#0b0c0f',
+        tssLine: total + ' TSS · ' + (diff >= 0 ? '+' : '') + diff + '% vs S41',
+        canPublish: status !== 'published', isPublished: status === 'published',
+        publish: function () { var s = Object.assign({}, self.state.status); s[ri] = 'published'; self.setState({ status: s }); }
+      };
+    });
+    function bump(d) {
+      if (!selInfo || !selInfo.isBike) return;
+      var k = selInfo.key, ri = selInfo.ri, pc = Object.assign({}, st.pct), s = Object.assign({}, st.status);
+      pc[k] = Math.max(70, Math.min(120, (pc[k] || 100) + d));
+      s[ri] = 'edited';
+      self.setState({ pct: pc, status: s });
+    }
+    return {
+      rows: rows, dayHeads: heads, pendingCount: String(pending),
+      publishAllLabel: pending > 0 ? 'Publicar ' + pending + ' pendientes' : 'Todo publicado',
+      publishAll: function () { var s = {}; plan.forEach(function (_, i) { s[i] = 'published'; }); self.setState({ status: s }); },
+      sel: selInfo || { who: 'Elige una sesión', name: '—', isBike: false, pct: 100, meta: '' },
+      up: function () { bump(5); }, down: function () { bump(-5); },
+      library: [
+        { name: 'Sweet spot 3×15', c: '#22c58b' }, { name: 'Umbral 2×20', c: '#f5c518' }, { name: 'VO2 5×4 min', c: '#ff8a3d' }, { name: 'Over-unders 4×8', c: '#ff8a3d' },
+        { name: 'Z2 90 min', c: '#3d8bff' }, { name: 'Recuperación', c: '#6b7280' }, { name: 'Fuerza · tren inferior', c: '#b9a4ff' }, { name: 'Movilidad · cadera', c: '#c5cad3' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

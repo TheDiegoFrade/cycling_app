@@ -233,7 +233,8 @@ function buildUserMessage(mode: Mode, context: Record<string, unknown>): string 
  *  - weekly_eval: solo una vez por semana ISO por plan activo.
  *  - publish_block: solo si el bloque actual ya agotó sus semanas.
  *  - finished_training_eval_comment: solo si esa sesión no tiene ya un
- *    comentario guardado — evita pedirlo dos veces para la misma sesión.
+ *    comentario guardado — evita pedirlo dos veces para la misma sesión — y
+ *    nunca si vino de Strava.
  */
 async function checkModeAllowed(
   admin: AdminClient,
@@ -246,11 +247,19 @@ async function checkModeAllowed(
     if (!sessionId) return { ok: false, reason: 'falta context.sessionId' };
     const { data: session } = await admin
       .from('sessions')
-      .select('coach_comment')
+      .select('coach_comment, source, strava_activity_id')
       .eq('id', sessionId)
       .eq('user_id', userId)
       .maybeSingle();
     if (!session) return { ok: false, reason: 'sesión no encontrada' };
+    // Regla de Strava: sus términos prohíben usar sus datos en modelos de
+    // IA. Esta función corre con service role (ignora RLS), así que el
+    // filtro tiene que vivir aquí también, no solo en el cliente — ver
+    // docs/coach-view/README.md. strava_activity_id es redundante con el
+    // trigger sessions_set_source de schema.sql, pero no cuesta nada.
+    if (session.source === 'strava' || session.strava_activity_id !== null) {
+      return { ok: false, reason: 'las sesiones importadas de Strava no pueden pasar por el coach de IA' };
+    }
     if (session.coach_comment) return { ok: false, reason: 'esta sesión ya tiene comentario' };
     return { ok: true };
   }

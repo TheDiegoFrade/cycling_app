@@ -368,3 +368,51 @@ drop policy if exists "fit-files: actualizar lo propio" on storage.objects;
 create policy "fit-files: actualizar lo propio" on storage.objects for update
   using (bucket_id = 'fit-files' and (storage.foldername(name)) [1] = auth.uid()::text)
   with check (bucket_id = 'fit-files' and (storage.foldername(name)) [1] = auth.uid()::text);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- sessions.source: de dónde llegó cada sesión (vista del coach, paso 1 —
+-- ver docs/coach-view/README.md). Es la llave de la regla de Strava: sus
+-- términos prohíben usar sus datos en modelos de IA y mostrarlos a otras
+-- personas, así que lo que tenga source = 'strava' no entra al contexto del
+-- coach de IA (ver src/core/session-source.ts y coach-chat/index.ts) ni,
+-- más adelante, a la vista del coach.
+--   torq: grabada en vivo con la app · fit_upload: .fit subido a mano ·
+--   intervals: llegó de intervals.icu · strava: importada de Strava ·
+--   manual: registrada a mano sin archivo
+-- ─────────────────────────────────────────────────────────────────────────
+alter table sessions add column if not exists source text;
+
+alter table sessions drop constraint if exists sessions_source_check;
+alter table sessions add constraint sessions_source_check
+  check (source in ('torq', 'fit_upload', 'intervals', 'strava', 'manual'));
+
+-- Filas de antes de esta columna: se deduce igual que sessionSourceOf()
+-- en src/core/session-source.ts.
+update sessions set source = case
+  when strava_activity_id is not null or workout_id = 'strava-import' then 'strava'
+  when workout_id = 'fit-import' then 'fit_upload'
+  else 'torq'
+end
+where source is null;
+
+-- Strava gana siempre, lo mande o no el cliente: si la fila trae id de
+-- actividad de Strava, es 'strava'. Cubre también versiones viejas de la app
+-- (PWA en caché) que todavía no mandan `source` — sin esto una importación
+-- de Strava desde una de esas quedaría como 'torq' y se colaría a la IA.
+create or replace function sessions_set_source() returns trigger
+language plpgsql as $$
+begin
+  if new.strava_activity_id is not null or new.workout_id = 'strava-import' then
+    new.source := 'strava';
+  elsif new.source is null then
+    new.source := case when new.workout_id = 'fit-import' then 'fit_upload' else 'torq' end;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists sessions_set_source on sessions;
+create trigger sessions_set_source before insert or update on sessions
+  for each row execute function sessions_set_source();
+
+alter table sessions alter column source set not null;
