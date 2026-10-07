@@ -385,6 +385,7 @@ function toSyntheticSession(s: CloudSessionSummary, samples: SessionRecord['samp
     rpe: s.rpe ?? undefined,
     note: s.note ?? undefined,
     stravaActivityId: s.stravaActivityId ?? undefined,
+    source: s.source,
   };
 }
 

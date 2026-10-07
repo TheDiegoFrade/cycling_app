@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Coach · Semana propuesta</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&amp;family=Barlow+Condensed:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000;color:#f2f4f7;font-family:'Archivo',sans-serif}
+a{color:#3d8bff;text-decoration:none}a:hover{color:#8fbfff}
+.disp{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.01em}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:500;border:1px solid #2f343d;color:#c5cad3;white-space:nowrap}
+.navlink{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-radius:10px;color:#c5cad3;font-size:15px;min-height:44px;box-sizing:border-box}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:10px;border:1px solid #2f343d;background:transparent;color:#f2f4f7;font:inherit;font-weight:500;font-size:14px;cursor:pointer;white-space:nowrap}
+.btn-light{background:#f2f4f7;border-color:#f2f4f7;color:#000}
+.card{background:#15171b;border:1px solid #1c1f25;border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.h2{margin:0;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:24px;letter-spacing:0.01em}
+.muted{color:#8b93a1;font-size:13px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #000000">
+  <nav aria-label="Navegación del coach" style="flex: 1 1 240px; max-width: 100%; background: #0e0f12; border-right: 1px solid #1c1f25; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 6px">
+      <span class="disp" style="font-size: 30px; font-weight: 700; letter-spacing: 0.04em">TORQ</span>
+      <span class="pill" style="border-color: #3d8bff; color: #8fbfff">Coach</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <a class="navlink" href="Main.dc.html"><span>Atletas</span><span class="disp" style="font-size: 16px; color: #8b93a1">8</span></a>
+      <a class="navlink" href="Semanas.dc.html" style="background: #1a1d23; color: #f2f4f7"><span>Semanas</span><span class="disp" style="font-size: 15px; background: #3d8bff; color: #000; border-radius: 999px; padding: 1px 9px">3</span></a>
+      <a class="navlink" href="#biblioteca"><span>Biblioteca</span></a>
+      <a class="navlink" href="Invitar.dc.html"><span>Invitar atleta</span></a>
+    </div>
+    <div style="margin-top: auto; padding: 14px; border: 1px solid #1c1f25; border-radius: 14px; display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 14px; font-weight: 600">Joe</span>
+      <span style="font-size: 13px; color: #8b93a1">UR Training · León</span>
+    </div>
+  </nav>
+
+  <main style="flex: 999 1 640px; min-width: 0; padding: 28px 40px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+    <a href="Atleta.dc.html" style="font-size: 14px; display: inline-flex; align-items: center; gap: 6px; min-height: 32px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Mariana R.
+    </a>
+
+    <header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span class="pill" style="align-self: flex-start; border-color: #f5c518; color: #f5c518">Borrador de la IA · el atleta aún no lo ve</span>
+        <h1 class="disp" style="margin: 0; font-size: 52px; line-height: 1">Semana 42 · 13–19 oct</h1>
+        <span style="font-size: 14px; color: #c5cad3">Bloque de construcción, semana 3 de 4 · faltan 5 semanas para [CARRERA]</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px">
+        <a class="btn" href="#regenerar">Regenerar con indicación</a>
+        <button type="button" class="btn btn-light">Aprobar y publicar</button>
+      </div>
+    </header>
+
+    <section aria-label="Totales de la semana" style="display: flex; flex-wrap: wrap; gap: 12px">
+      <sc-for list="{{totals}}" as="t" hint-placeholder-count="4">
+        <div style="flex: 1 1 180px; background: #15171b; border: 1px solid #1c1f25; border-radius: 14px; padding: 14px 18px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13px; color: #8b93a1">{{t.label}}</span>
+          <span class="disp" style="font-size: 32px; line-height: 1">{{t.value}}</span>
+          <span style="font-size: 12px; color: #8b93a1">{{t.sub}}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section aria-label="Días de la semana" style="overflow-x: auto">
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; min-width: 980px">
+        <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+          <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 0 2px">
+              <span class="disp" style="font-size: 20px">{{d.name}}</span>
+              <span style="font-size: 12px; color: #8b93a1">{{d.date}}</span>
+            </div>
+            <sc-for list="{{d.items}}" as="it" hint-placeholder-count="1">
+              <div style="background: #15171b; border: 1px solid {{it.border}}; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-height: 150px">
+                <sc-if value="{{it.isBike}}" hint-placeholder-val="{{true}}">
+                  <div aria-hidden="true" style="height: 44px; display: flex; align-items: flex-end; gap: 2px; background: #0b0c0f; border-radius: 8px; padding: 4px">
+                    <sc-for list="{{it.segs}}" as="s" hint-placeholder-count="6"><span style="flex: {{s.w}}; height: {{s.h}}%; background: {{s.c}}; border-radius: 2px"></span></sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{it.isGym}}" hint-placeholder-val="{{false}}">
+                  <div aria-hidden="true" style="height: 44px; display: flex; align-items: center; gap: 8px; background: #0b0c0f; border-radius: 8px; padding: 0 10px; color: {{it.tint}}">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"></path></svg>
+                    <span style="font-size: 12px; font-weight: 500">{{it.kind}}</span>
+                  </div>
+                </sc-if>
+                <span style="font-size: 14px; font-weight: 600; line-height: 1.3">{{it.title}}</span>
+                <span style="font-size: 12px; color: #8b93a1">{{it.meta}}</span>
+                <span class="pill" style="align-self: flex-start; margin-top: auto; border-color: {{it.tagC}}; color: {{it.tagC}}">{{it.tag}}</span>
+              </div>
+            </sc-for>
+            <sc-if value="{{d.rest}}" hint-placeholder-val="{{false}}">
+              <div style="border: 1.5px dashed #2f343d; border-radius: 12px; min-height: 150px; display: flex; align-items: center; justify-content: center; color: #8b93a1; font-size: 14px">Descanso</div>
+            </sc-if>
+            <button type="button" class="btn" style="min-height: 40px; font-size: 13px; color: #8b93a1; border-style: dashed" aria-label="Agregar sesión el {{d.name}}">+ Agregar</button>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <section class="card" aria-label="Por qué esta semana" style="flex: 3 1 480px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+          <h2 class="h2">Por qué la IA propone esta semana</h2>
+          <span class="muted">Basado en tu método y en tus notas</span>
+        </div>
+        <sc-for list="{{reasons}}" as="r" hint-placeholder-count="4">
+          <div style="display: flex; gap: 12px; align-items: flex-start">
+            <span class="disp" style="font-size: 18px; color: #3d8bff; width: 18px; flex: none">{{r.n}}</span>
+            <span style="font-size: 14px; color: #c5cad3; line-height: 1.5">{{r.text}}</span>
+          </div>
+        </sc-for>
+      </section>
+
+      <section class="card" aria-label="Regenerar con indicación" id="regenerar" style="flex: 2 1 340px">
+        <h2 class="h2">Pedir otra versión</h2>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #8b93a1">Indicación para la IA
+          <textarea rows="3" placeholder="Ej. tiene boda el sábado: mueve la rodada larga al domingo y bájale 30 min" style="background: #0b0c0f; border: 1px solid #2f343d; border-radius: 10px; color: #f2f4f7; font: inherit; font-size: 14px; padding: 10px 12px; resize: vertical"></textarea>
+        </label>
+        <button type="button" class="btn" style="align-self: flex-start">Regenerar borrador</button>
+        <span class="muted">Tus ediciones manuales se conservan; la IA solo reacomoda lo demás.</span>
+      </section>
+    </div>
+
+    <section class="card" aria-label="Biblioteca de Joe" id="biblioteca">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 10px">
+        <h2 class="h2">Arrastra desde tu biblioteca</h2>
+        <div role="tablist" aria-label="Tipo de plantilla" style="display: flex; gap: 6px">
+          <button type="button" role="tab" aria-selected="true" class="btn" style="min-height: 36px; padding: 0 14px; background: #f2f4f7; color: #000; border-color: #f2f4f7">Bici</button>
+          <button type="button" role="tab" aria-selected="false" class="btn" style="min-height: 36px; padding: 0 14px">Fuerza</button>
+          <button type="button" role="tab" aria-selected="false" class="btn" style="min-height: 36px; padding: 0 14px">Movilidad</button>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{library}}" as="l" hint-placeholder-count="6">
+          <span class="pill" style="padding: 8px 12px; font-size: 13px">{{l}}</span>
+        </sc-for>
+      </div>
+    </section>
+    <p style="margin: 0; font-size: 12px; color: #8b93a1">Datos de ejemplo.</p>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var Z = { 1: '#6b7280', 2: '#3d8bff', 3: '#22c58b', 4: '#f5c518', 5: '#ff8a3d', 6: '#ff4d4d' };
+    var H = { 1: 30, 2: 48, 3: 62, 4: 76, 5: 90, 6: 100 };
+    function shape(spec) { return spec.map(function (p) { return { w: p[1], h: H[p[0]], c: Z[p[0]] }; }); }
+    var ai = { tag: 'IA', tagC: '#8b93a1', border: '#1c1f25' };
+    var joe = { tag: 'Editado por Joe', tagC: '#3d8bff', border: '#3d8bff' };
+    function bike(title, meta, spec, who) { return Object.assign({ isBike: true, isGym: false, title: title, meta: meta, segs: shape(spec) }, who); }
+    function gym(kind, title, meta, tint, who) { return Object.assign({ isBike: false, isGym: true, kind: kind, title: title, meta: meta, tint: tint }, who); }
+    var days = [
+      { name: 'Lun', date: '13', items: [gym('Fuerza', 'Tren inferior sin sentadilla profunda', 'Plantilla UR · 45 min · RPE 6', '#b9a4ff', joe)] },
+      { name: 'Mar', date: '14', items: [bike('Umbral 3×12 con cadencia alta al final', '1:20 · 95 TSS', [[2, 3], [4, 4], [1, 1], [4, 4], [1, 1], [4, 4], [2, 2]], ai)] },
+      { name: 'Mié', date: '15', items: [bike('Z2 con cadencia 95', '1:15 · 60 TSS', [[2, 10]], ai), gym('Movilidad', 'Cadera y espalda baja', 'Plantilla UR · 20 min', '#c5cad3', ai)] },
+      { name: 'Jue', date: '16', items: [bike('VO2 5×4 min', '1:05 · 82 TSS', [[2, 3], [5, 2], [1, 1], [5, 2], [1, 1], [5, 2], [1, 1], [5, 2], [1, 1], [5, 2], [2, 2]], ai)] },
+      { name: 'Vie', date: '17', rest: true, items: [] },
+      { name: 'Sáb', date: '18', items: [bike('Rodada larga con 3×10 tempo', '3:30 · 210 TSS', [[2, 6], [3, 2], [2, 2], [3, 2], [2, 2], [3, 2], [2, 4]], ai)] },
+      { name: 'Dom', date: '19', items: [bike('Recuperación activa', '0:50 · 30 TSS', [[1, 10]], ai), gym('Fuerza', 'Core y tren superior', 'Plantilla UR · 35 min · RPE 5', '#b9a4ff', ai)] }
+    ];
+    days.forEach(function (d) { d.rest = !!d.rest; });
+    return {
+      days: days,
+      totals: [
+        { label: 'TSS de bici planeado', value: '477', sub: '+7% vs. lo hecho en S41 (445)' },
+        { label: 'Horas', value: '9.7', sub: 'Bici 8.0 · fuerza y movilidad 1.7' },
+        { label: 'Sesiones', value: '5 + 3', sub: 'Bici + fuerza/movilidad' },
+        { label: 'Forma esperada el domingo', value: '−14', sub: 'Dentro del rango del bloque' }
+      ],
+      reasons: [
+        { n: '1', text: 'Es la semana 3 de 4 del bloque: sube la carga ~7% antes de la semana de descarga.' },
+        { n: '2', text: 'El VO2 pasa al jueves, a 72 horas de la fuerza de pierna, porque la semana pasada no completó el 5º intervalo después de fuerza.' },
+        { n: '3', text: 'El umbral del martes termina con cadencia alta para trabajar la caída de cadencia que se ve en sus últimos intervalos.' },
+        { n: '4', text: 'Respeta tu nota del 29 sep: nada de sentadilla profunda (tú ya ajustaste la sesión del lunes).' }
+      ],
+      library: ['Sweet spot 3×15', 'Umbral 2×20', 'VO2 5×4 min', 'Over-unders 4×8', 'Z2 90 min', 'Rampa de FTP', 'Sprints 8×15 s', 'Rodada larga con tempo']
+    };
+  }
+}
+</script>
+</body>
+</html>

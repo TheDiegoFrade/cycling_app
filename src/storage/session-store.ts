@@ -1,3 +1,4 @@
+import type { SessionSource } from '../core/session-source';
 import type { RuleLevel, Sample } from '../core/types';
 import { dbDelete, dbGetAll, dbPut, STORES } from './db';
 
@@ -18,6 +19,9 @@ export interface SessionRecord {
   /** Si esta sesión vino de importar una actividad de Strava, su id ahí —
    * evita importar la misma dos veces. Ver sync/strava.ts. */
   stravaActivityId?: number;
+  /** De dónde llegó (ver core/session-source.ts). Sesiones guardadas antes
+   * de este campo no lo traen — usar sessionSourceOf, nunca leerlo directo. */
+  source?: SessionSource;
 }
 
 export function listSessions(): Promise<SessionRecord[]> {

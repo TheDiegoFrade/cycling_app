@@ -53,6 +53,7 @@ export async function buildCompletedSessionFromFit(
     samples: parsed.samples,
     alerts: [],
     intensityChanges: [],
+    source: 'fit_upload',
   };
   return { session, errors: [] };
 }

@@ -131,6 +131,7 @@ export async function importStravaActivity(activity: StravaActivitySummary, prof
     alerts: [],
     intensityChanges: [],
     stravaActivityId: activity.id,
+    source: 'strava',
   };
 
   await saveSession(record);

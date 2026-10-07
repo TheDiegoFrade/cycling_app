@@ -726,6 +726,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       samples: history,
       alerts,
       intensityChanges,
+      source: 'torq',
     };
     await saveSession(record);
     void clearDraft(sessionId);
