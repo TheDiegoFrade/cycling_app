@@ -54,6 +54,14 @@ const THINKING_MESSAGES = [
   '✍️ Escribiendo las notas del coach…',
 ];
 
+/** Con coach humano, lo que genera la IA del atleta llega como borrador a
+ * su coach (ver sendWeekToCoachDraft en coach-chat) — hay que decirlo, si
+ * no el atleta busca en su Plan algo que todavía no está. */
+function sentToCoachHtml(): string {
+  const name = humanCoachName() ?? 'tu coach';
+  return `<p class="coach-human-note" style="margin-top:10px">Esta propuesta le llegó a <strong>${escapeHtml(name)}</strong> como borrador. La verás en tu Plan cuando la revise y la publique.</p>`;
+}
+
 /** "Tu coach" a secas confunde si el atleta también tiene coach humano. */
 function aiCoachTitle(): string {
   return humanCoachName() ? 'Coach de IA' : 'Tu coach';
@@ -308,6 +316,7 @@ function wireWeeklyEvalButton(slot: HTMLElement, plan: ActivePlanRow, onChange: 
     status.textContent = '';
     form.querySelectorAll('label, #coach-eval-submit').forEach((el) => ((el as HTMLElement).style.display = 'none'));
     status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.reasoning));
+    if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
     status.insertAdjacentHTML(
       'afterend',
       '<button class="btn-light" id="coach-eval-done" style="margin-top:12px">Entendido</button>',
@@ -739,6 +748,7 @@ function openCreateModal(onChange: () => void): void {
     const form = backdrop.querySelectorAll('label, .plan-chip-row, #coach-submit');
     form.forEach((el) => ((el as HTMLElement).style.display = 'none'));
     status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.coachNote));
+    if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
     status.insertAdjacentHTML(
       'afterend',
       '<button class="btn-light" id="coach-done" style="margin-top:12px">Entendido</button>',

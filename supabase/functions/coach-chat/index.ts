@@ -216,6 +216,18 @@ function buildUserMessage(mode: Mode, context: Record<string, unknown>): string 
     publish_block: 'Modo: publish_block. Concretiza el siguiente bloque con base en cómo fue el anterior completo.',
     finished_training_eval_comment:
       'Modo: finished_training_eval_comment. Un comentario corto (1-2 líneas) sobre la sesión que se acaba de terminar. No es una evaluación, no cambia nada del plan.',
+    coach_week: [
+      'Modo: coach_week. Trabajas para el COACH HUMANO de este atleta: él decide y aprueba, tú propones.',
+      'Reacomoda la semana que empieza en `weekStart` siguiendo la `instruction` del coach (si viene vacía, propón la mejor semana con los datos).',
+      'Reglas duras:',
+      '- Solo pon entrenamientos en días de `openDays` (de hoy en adelante). Nunca en días pasados.',
+      '- `lockedItems` ya están decididos y no se tocan ni se repiten: cuéntalos en la carga de la semana y no pongas otro entrenamiento de bici el mismo día que uno bloqueado de bici.',
+      '- Máximo un entrenamiento de bici por día. Respeta `maxSessionMinutes` si viene.',
+      '- Si hay fuerza de pierna bloqueada, sepárala al menos 48 h de intervalos duros (umbral, VO2, sprints).',
+      '- Respeta las lesiones del atleta (`athlete.injuries`).',
+      '- `rationale`: 2-5 razones cortas en español, dirigidas al coach, hablando del atleta en tercera persona. El atleta no las ve.',
+      '- `workouts` puede venir vacío si la indicación pide descanso.',
+    ].join('\n'),
   };
   // El contrato de Workout solo aplica a los modos que generan entrenamientos
   // — mandárselo a finished_training_eval_comment es tokens tirados, nunca
@@ -242,6 +254,20 @@ async function checkModeAllowed(
   mode: Mode,
   context: Record<string, unknown>,
 ): Promise<{ ok: true } | { ok: false; reason: string }> {
+  if (mode === 'coach_week') {
+    // Solo el coach con vínculo ACTIVO con ese atleta — misma regla que
+    // is_coach_of() en schema.sql. El userId es del JWT, nunca del body.
+    const { data: link } = await admin
+      .from('coach_athletes')
+      .select('id')
+      .eq('coach_id', userId)
+      .eq('athlete_id', context.athleteId as string)
+      .eq('status', 'active')
+      .maybeSingle();
+    if (!link) return { ok: false, reason: 'ese atleta no está vinculado contigo' };
+    return { ok: true };
+  }
+
   if (mode === 'finished_training_eval_comment') {
     const sessionId = context.sessionId as string | undefined;
     if (!sessionId) return { ok: false, reason: 'falta context.sessionId' };
@@ -347,8 +373,13 @@ async function materializeWeek(
   // consultar la base, ya se calculó una vez del lado del cliente.
   // (Encontrado en producción: create_plan duplicaba días ya completados.)
   occupiedDates: Set<string>,
+  // Con coach humano activo, los workouts van a su borrador de la semana en
+  // vez de a `workouts` — mismos ids, así training_plans los sigue
+  // referenciando cuando el coach los publique sin cambios.
+  coachId: string | null = null,
 ): Promise<string[]> {
   const ids: string[] = [];
+  const forCoach: Record<string, unknown>[] = [];
   for (const w of workouts) {
     const scheduledDate = dateForWeek(startDate, weekIndex, w.dayOfWeek);
     if (occupiedDates.has(scheduledDate)) continue;
@@ -362,12 +393,92 @@ async function materializeWeek(
       created_at: new Date().toISOString(),
       scheduledDate,
     };
-    const { error } = await admin.from('workouts').insert({ id, user_id: userId, data: workoutDoc });
-    if (error) throw new Error(`no se pudo guardar el workout generado: ${error.message}`);
+    if (coachId) {
+      forCoach.push(workoutDoc);
+    } else {
+      const { error } = await admin.from('workouts').insert({ id, user_id: userId, data: workoutDoc });
+      if (error) throw new Error(`no se pudo guardar el workout generado: ${error.message}`);
+    }
     ids.push(id);
     occupiedDates.add(scheduledDate); // no insertes dos del lote actual el mismo día tampoco
   }
+  if (coachId && forCoach.length > 0) await sendWeekToCoachDraft(admin, userId, coachId, forCoach);
   return ids;
+}
+
+/** Coach humano con vínculo activo de este atleta, o null. */
+async function activeCoachOf(admin: AdminClient, athleteId: string): Promise<string | null> {
+  const { data } = await admin.from('coach_athletes').select('coach_id').eq('athlete_id', athleteId).eq('status', 'active').maybeSingle();
+  return (data?.coach_id as string | undefined) ?? null;
+}
+
+function isoWeekOf(mondayKey: string): string {
+  const target = new Date(`${mondayKey}T00:00:00Z`);
+  target.setUTCDate(target.getUTCDate() + 3); // jueves de esa semana
+  const firstThursday = new Date(Date.UTC(target.getUTCFullYear(), 0, 4));
+  const week = 1 + Math.round(((target.getTime() - firstThursday.getTime()) / 86400000 - 3) / 7);
+  return `${target.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
+}
+
+/** Manda lo que generó la IA del atleta al borrador de su coach, una semana
+ * (lunes a domingo) a la vez. Si el coach ya tiene borrador de esa semana,
+ * se reemplaza solo lo que había propuesto la IA antes (origin 'ai') — lo
+ * que el coach editó o agregó se queda. Si no hay borrador, se crea con lo
+ * que el atleta ya tiene agendado más la propuesta. */
+async function sendWeekToCoachDraft(admin: AdminClient, athleteId: string, coachId: string, docs: Record<string, unknown>[]): Promise<void> {
+  const byMonday = new Map<string, Record<string, unknown>[]>();
+  for (const d of docs) {
+    const monday = mondayOf(new Date(`${d.scheduledDate as string}T00:00:00Z`)).toISOString().slice(0, 10);
+    byMonday.set(monday, [...(byMonday.get(monday) ?? []), d]);
+  }
+  for (const [monday, weekDocs] of byMonday) {
+    const sunday = new Date(`${monday}T00:00:00Z`);
+    sunday.setUTCDate(sunday.getUTCDate() + 6);
+    const sundayKey = sunday.toISOString().slice(0, 10);
+    const aiItems = weekDocs.map((workout) => ({ workout, origin: 'ai', edited: false }));
+
+    const { data: draft } = await admin
+      .from('plan_weeks')
+      .select('id, items')
+      .eq('athlete_id', athleteId)
+      .eq('coach_id', coachId)
+      .eq('week_start', monday)
+      .eq('status', 'draft')
+      .maybeSingle();
+
+    if (draft) {
+      const kept = ((draft.items as { origin?: string }[]) ?? []).filter((i) => i.origin !== 'ai');
+      const { error } = await admin
+        .from('plan_weeks')
+        .update({ items: [...kept, ...aiItems], updated_at: new Date().toISOString() })
+        .eq('id', draft.id);
+      if (error) throw new Error(`no se pudo mandar la semana a tu coach: ${error.message}`);
+      continue;
+    }
+
+    const [{ data: existing }, { data: routines }] = await Promise.all([
+      admin.from('workouts').select('id, data').eq('user_id', athleteId).gte('data->>scheduledDate', monday).lte('data->>scheduledDate', sundayKey),
+      admin.from('planned_routines').select('id, kind, name, payload, scheduled_date').eq('athlete_id', athleteId).gte('scheduled_date', monday).lte('scheduled_date', sundayKey),
+    ]);
+    const athleteItems = [
+      ...(existing ?? []).map((r: { data: unknown }) => ({ workout: r.data, origin: 'athlete', edited: false })),
+      ...(routines ?? []).map((r: { id: string; kind: string; name: string; payload: unknown; scheduled_date: string }) => ({
+        routine: { id: r.id, kind: r.kind, name: r.name, payload: r.payload, scheduledDate: r.scheduled_date },
+        origin: 'athlete',
+        edited: false,
+      })),
+    ];
+    const baseIds = [...(existing ?? []).map((r: { id: string }) => r.id), ...(routines ?? []).map((r: { id: string }) => r.id)];
+    const { error } = await admin.from('plan_weeks').insert({
+      athlete_id: athleteId,
+      coach_id: coachId,
+      week_start: monday,
+      iso_week: isoWeekOf(monday),
+      items: [...athleteItems, ...aiItems],
+      base_workout_ids: baseIds,
+    });
+    if (error) throw new Error(`no se pudo mandar la semana a tu coach: ${error.message}`);
+  }
 }
 
 function dateForWeek(startDate: string, weekIndex: number, dayOfWeek: string): string {
@@ -404,11 +515,27 @@ async function applyModeEffects(
   // deno-lint-ignore no-explicit-any
   output: any,
 ): Promise<unknown> {
+  if (mode === 'coach_week') {
+    // No escribe nada: la propuesta se aplica en el borrador del coach
+    // (plan_weeks) desde el cliente. Red de seguridad: se descarta
+    // cualquier entrenamiento fuera de openDays (días pasados o no pedidos).
+    const open = new Set((context.openDays as string[]) ?? []);
+    return {
+      rationale: output.rationale,
+      workouts: (output.workouts as { dayOfWeek: string }[]).filter((w) => open.has(w.dayOfWeek)),
+    };
+  }
+
   if (mode === 'finished_training_eval_comment') {
     const sessionId = context.sessionId as string;
     await admin.from('sessions').update({ coach_comment: output.comment }).eq('id', sessionId).eq('user_id', userId);
     return output;
   }
+
+  // Atleta con coach humano activo: lo que genera su IA no va directo a su
+  // calendario, llega como borrador al coach (ver sendWeekToCoachDraft) —
+  // el atleta nunca ve una semana que su coach no publicó.
+  const coachId = await activeCoachOf(admin, userId);
 
   if (mode === 'create_plan') {
     const startDate = context.startDate as string | undefined;
@@ -417,7 +544,7 @@ async function applyModeEffects(
     const occupiedDates = new Set((context.occupiedDates as string[] | undefined) ?? []);
     const weeks: { weekIndex: number; workoutIds: string[] }[] = [];
     for (let i = 0; i < output.firstBlockWeeks.length; i++) {
-      const ids = await materializeWeek(admin, userId, startDate, i, output.firstBlockWeeks[i].workouts, occupiedDates);
+      const ids = await materializeWeek(admin, userId, startDate, i, output.firstBlockWeeks[i].workouts, occupiedDates, coachId);
       weeks.push({ weekIndex: i, workoutIds: ids });
     }
 
@@ -462,7 +589,7 @@ async function applyModeEffects(
     });
     if (error) throw new Error(`no se pudo guardar el plan: ${error.message}`);
 
-    return { planId, coachNote: output.coachNote, weeks };
+    return { planId, coachNote: output.coachNote, weeks, sentToCoach: coachId !== null };
   }
 
   // weekly_eval y publish_block parten del plan activo existente.
@@ -505,7 +632,7 @@ async function applyModeEffects(
     }
 
     const weeklyEvalOccupiedDates = new Set((context.occupiedDates as string[] | undefined) ?? []);
-    const ids = await materializeWeek(admin, userId, planData.startDate, nextWeekIndex, output.nextWeekWorkouts, weeklyEvalOccupiedDates);
+    const ids = await materializeWeek(admin, userId, planData.startDate, nextWeekIndex, output.nextWeekWorkouts, weeklyEvalOccupiedDates, coachId);
     const weeks = isRefresh
       ? planData.weeks.map((w, i) => (i === nextWeekIndex ? { weekIndex: nextWeekIndex, workoutIds: ids } : w))
       : [...planData.weeks, { weekIndex: nextWeekIndex, workoutIds: ids }];
@@ -537,6 +664,7 @@ async function applyModeEffects(
       recurringPatternFlag: output.recurringPatternFlag,
       weekIndex: nextWeekIndex,
       workoutIds: ids,
+      sentToCoach: coachId !== null,
     };
   }
 
@@ -552,7 +680,7 @@ async function applyModeEffects(
   const newWeeks: { weekIndex: number; workoutIds: string[] }[] = [];
   for (let i = 0; i < output.weeks.length; i++) {
     const weekIndex = weeksBeforeBlock + i;
-    const ids = await materializeWeek(admin, userId, planData.startDate, weekIndex, output.weeks[i].workouts, publishBlockOccupiedDates);
+    const ids = await materializeWeek(admin, userId, planData.startDate, weekIndex, output.weeks[i].workouts, publishBlockOccupiedDates, coachId);
     newWeeks.push({ weekIndex, workoutIds: ids });
   }
 
@@ -568,7 +696,7 @@ async function applyModeEffects(
     .eq('id', plan.id);
   if (error) throw new Error(`no se pudo actualizar el plan: ${error.message}`);
 
-  return { blockName: output.blockName, coachNote: output.coachNote, weeks: newWeeks };
+  return { blockName: output.blockName, coachNote: output.coachNote, weeks: newWeeks, sentToCoach: coachId !== null };
 }
 
 async function getMonthlyTokens(admin: AdminClient, userId: string): Promise<number> {

@@ -79,6 +79,12 @@ Reglas adicionales:
 4. Al aprobarlo se publica (`published`) y el atleta ya la ve.
 5. Si el coach la vuelve a editar después, se publica una versión nueva y la anterior queda `superseded`.
 
+Reglas de la IA cuando hay coach humano (paso 6b):
+
+- **IA del coach** ("Ajustar con IA" en la semana de un atleta): solo propone de hoy en adelante, nunca en días pasados. Lo que el coach agregó o editó a mano y las rutinas de fuerza/movilidad se quedan; la IA solo reacomoda lo demás. Su razonamiento lo ve solo el coach. Los cambios a días pasados el coach los hace a mano.
+- **IA del atleta** (crear plan, evaluar la semana): con coach activo, lo que genera llega como borrador a su coach en vez de ir directo al calendario del atleta, y se le avisa al atleta. Si el coach ya tenía borrador de esa semana, solo se reemplaza lo que había propuesto la IA antes.
+- El atleta sí puede mover, agregar o borrar entrenamientos a mano; se le avisa con tono amable que su coach lo verá.
+
 ## Carga de fuerza y movilidad
 
 Las sesiones sin potencia se miden con sRPE (RPE × minutos) y se muestran en su propia línea; no se suman al TSS ni al CTL de la bici, porque son escalas distintas.

@@ -9,6 +9,7 @@ import {
   TEMPLATE_KIND_LABELS,
   bikePayloadFromWorkout,
   isRoutineKind,
+  personalWorkoutFromBikeTemplate,
   routineSummary,
   safeVideoUrl,
   validateBikeTemplate,
@@ -21,6 +22,9 @@ import { estimateWorkout } from '../../core/workout-estimate';
 import { importWorkoutFile } from '../../core/workout-file-import';
 import { deleteTemplate, listTemplates, saveTemplate } from '../../sync/session-templates';
 import { appState } from '../state';
+import { navigate } from '../router';
+import { saveWorkout } from '../../storage/workout-store';
+import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 
 const INTERVAL_TYPE_LABELS: Record<IntervalType, string> = {
@@ -104,6 +108,7 @@ export function renderCoachLibrary(container: HTMLElement): void {
               <div class="hint">${TEMPLATE_KIND_LABELS[t.kind]} · ${escapeHtml(meta)}</div>
             </div>
             <div class="row-actions" style="margin:0">
+              ${t.kind === 'bike' ? `<button type="button" data-train="${t.id}" title="Copiarla a tus entrenamientos y entrenarla tú">Entrenar</button>` : ''}
               <button type="button" data-edit="${t.id}">Editar</button>
               <button type="button" data-duplicate="${t.id}">Duplicar</button>
               <button type="button" data-delete="${t.id}" class="week-remove">Borrar</button>
@@ -135,6 +140,11 @@ export function renderCoachLibrary(container: HTMLElement): void {
     return `
       <label>Descripción (opcional)<textarea id="tpl-desc" rows="2" maxlength="500">${escapeHtml(d.bike.description ?? '')}</textarea></label>
       <div class="block-preview">${d.bike.intervals.length ? renderWorkoutCover(d.bike.intervals, 'sm') : ''}<span class="hint">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS (con tu FTP)</span></div>
+      ${
+        d.bike.comments?.length
+          ? `<div class="tpl-comments"><span class="hint">Trae ${d.bike.comments.length} ${d.bike.comments.length === 1 ? 'mensaje' : 'mensajes'} del archivo, que aparecen durante el entrenamiento. Si cambias los bloques y ya no cuadran, quítalos.</span><button type="button" id="tpl-clear-comments">Quitar mensajes</button></div>`
+          : ''
+      }
       <div class="block-list">${rows}</div>
       <div class="row-actions" style="margin:0"><button type="button" id="tpl-add-block">+ Bloque</button></div>`;
   }
@@ -308,6 +318,20 @@ export function renderCoachLibrary(container: HTMLElement): void {
         render();
       }),
     );
+    // El coach también entrena: copia la plantilla a SUS entrenamientos (sin
+    // fecha, como cualquier importado) y lo lleva a Antes de empezar.
+    container.querySelectorAll<HTMLButtonElement>('[data-train]').forEach((btn) =>
+      btn.addEventListener('click', async () => {
+        const t = templates?.find((x) => x.id === btn.dataset.train);
+        if (!t || t.kind !== 'bike') return;
+        const workout = personalWorkoutFromBikeTemplate(t);
+        await saveWorkout(workout);
+        if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
+        appState.workouts = [...appState.workouts, workout];
+        appState.selectedWorkoutId = workout.id;
+        navigate('prepare');
+      }),
+    );
     container.querySelectorAll<HTMLButtonElement>('[data-delete]').forEach((btn) =>
       btn.addEventListener('click', async () => {
         const t = templates?.find((x) => x.id === btn.dataset.delete);
@@ -361,6 +385,7 @@ export function renderCoachLibrary(container: HTMLElement): void {
     container.querySelectorAll<HTMLButtonElement>('[data-b-up]').forEach((b) => b.addEventListener('click', () => edit((d) => move(d.bike.intervals, Number(b.dataset.bUp), -1))));
     container.querySelectorAll<HTMLButtonElement>('[data-b-down]').forEach((b) => b.addEventListener('click', () => edit((d) => move(d.bike.intervals, Number(b.dataset.bDown), 1))));
     container.querySelectorAll<HTMLButtonElement>('[data-b-del]').forEach((b) => b.addEventListener('click', () => edit((d) => d.bike.intervals.splice(Number(b.dataset.bDel), 1))));
+    container.querySelector('#tpl-clear-comments')?.addEventListener('click', () => edit((d) => delete d.bike.comments));
     container.querySelector('#tpl-add-exercise')?.addEventListener('click', () => edit((d) => d.routine.exercises.push({ name: '', dose: '' })));
     container.querySelectorAll<HTMLButtonElement>('[data-e-up]').forEach((b) => b.addEventListener('click', () => edit((d) => move(d.routine.exercises, Number(b.dataset.eUp), -1))));
     container.querySelectorAll<HTMLButtonElement>('[data-e-down]').forEach((b) => b.addEventListener('click', () => edit((d) => move(d.routine.exercises, Number(b.dataset.eDown), 1))));

@@ -4,14 +4,48 @@ import type { PlannedRoutine } from './coach-templates';
 import type { Interval, Workout } from './types';
 import type { WorkoutTemplate } from './workout-templates';
 
+/** De dónde salió un elemento: lo que el atleta ya tenía agendado, algo
+ * que agregó el coach, o una propuesta de la IA (la del coach o la del
+ * atleta, paso 6b). */
+export type PlanWeekItemOrigin = 'athlete' | 'coach' | 'ai';
+
 /** Un elemento del borrador: un entrenamiento de bici (`workout`) o una
  * rutina de fuerza/movilidad (`routine`, paso 5) — exactamente uno de los
- * dos. `origin` dice de dónde salió (lo que el atleta ya tenía agendado, o
- * algo que agregó el coach); `edited` marca lo que el coach tocó a mano —
- * la IA (paso 6b) no debe pisarlo. */
+ * dos. `edited` marca lo que el coach tocó a mano — la IA no lo pisa. */
 export type PlanWeekItem =
-  | { workout: Workout; routine?: undefined; origin: 'athlete' | 'coach'; edited: boolean }
-  | { routine: PlannedRoutine; workout?: undefined; origin: 'athlete' | 'coach'; edited: boolean };
+  | { workout: Workout; routine?: undefined; origin: PlanWeekItemOrigin; edited: boolean }
+  | { routine: PlannedRoutine; workout?: undefined; origin: PlanWeekItemOrigin; edited: boolean };
+
+/** ¿La IA del coach puede reemplazar este elemento? Nunca lo pasado, lo que
+ * el coach agregó o editó, ni las rutinas de fuerza/movilidad. */
+export function isLockedForAi(item: PlanWeekItem, todayKey: string): boolean {
+  const day = itemDate(item) ?? '';
+  return day < todayKey || item.routine !== undefined || item.origin === 'coach' || item.edited;
+}
+
+const DAY_CODES = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+export type DayCode = (typeof DAY_CODES)[number];
+
+/** "mon".."sun" de cada día de la semana que empieza en `mondayKey`. */
+export function dayCodeOf(dateKey: string, mondayKey: string): DayCode {
+  return DAY_CODES[weekDays(mondayKey).indexOf(dateKey)] ?? 'mon';
+}
+
+export function dateOfDayCode(code: string, mondayKey: string): string | null {
+  const i = DAY_CODES.indexOf(code as DayCode);
+  return i < 0 ? null : weekDays(mondayKey)[i];
+}
+
+/** Días de esa semana en los que la IA puede poner algo: de hoy en adelante. */
+export function openDayCodes(mondayKey: string, todayKey: string): DayCode[] {
+  return weekDays(mondayKey).flatMap((d, i) => (d >= todayKey ? [DAY_CODES[i]] : []));
+}
+
+/** Aplica la propuesta de la IA: se queda todo lo bloqueado (ver
+ * isLockedForAi) y lo demás se reemplaza por lo que propuso. */
+export function applyAiProposal(items: readonly PlanWeekItem[], proposed: readonly Workout[], todayKey: string): PlanWeekItem[] {
+  return [...items.filter((i) => isLockedForAi(i, todayKey)), ...proposed.map((workout): PlanWeekItem => ({ workout, origin: 'ai', edited: false }))];
+}
 
 export function itemDate(item: PlanWeekItem): string | undefined {
   return item.workout ? item.workout.scheduledDate : item.routine.scheduledDate;

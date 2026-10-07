@@ -213,7 +213,54 @@ export const FinishedTrainingEvalCommentInputContextSchema = z.object({
   }),
 });
 
-export type Mode = 'create_plan' | 'weekly_eval' | 'publish_block' | 'finished_training_eval_comment';
+// Vista del coach, paso 6b: el COACH humano le pide a la IA que reacomode
+// la semana de uno de sus atletas. Solo días de hoy en adelante
+// (openDays); lo pasado, lo que el coach editó a mano y las rutinas de
+// fuerza/movilidad llegan como lockedItems y no se tocan. El cliente arma
+// todo con lo que el coach PUEDE leer (RLS ya quitó lo de Strava); la
+// función no escribe nada, solo regresa la propuesta.
+const DayOfWeekSchema = z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
+
+export const CoachWeekInputContextSchema = z.object({
+  athleteId: z.string().uuid(),
+  weekStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // lunes
+  instruction: z.string().max(1000),
+  openDays: z.array(DayOfWeekSchema).min(1),
+  lockedItems: z
+    .array(
+      z.object({
+        dayOfWeek: DayOfWeekSchema,
+        name: z.string(),
+        kind: z.enum(['bike', 'strength', 'mobility', 'flexibility']),
+        minutes: z.number().nonnegative().nullable(),
+        tss: z.number().nonnegative().nullable(),
+        reason: z.enum(['past', 'coach_edit', 'routine']),
+      }),
+    )
+    .max(40),
+  athlete: z.object({
+    name: z.string().nullable(),
+    ftp: z.number().positive().nullable(),
+    ftpConfirmed: z.boolean().nullable(),
+    discipline: z.string().nullable(),
+    injuries: z.string().nullable(),
+    goal: z.string().nullable(),
+  }),
+  pmc: z.object({ ctl: z.number(), atl: z.number(), tsb: z.number() }).nullable(),
+  recentWeeks: z
+    .array(z.object({ weekStart: z.string(), bikeTss: z.number().nonnegative(), nonBikeSessions: z.number().int().nonnegative() }))
+    .max(12),
+  maxSessionMinutes: z.number().positive().nullable(),
+});
+
+export const CoachWeekOutputSchema = z.object({
+  // 2-5 razones cortas, dirigidas al coach (el atleta no las ve)
+  rationale: z.array(z.string()).min(1).max(6),
+  // puede venir vacío si la indicación pide descanso
+  workouts: z.array(GeneratedWorkoutSchema),
+});
+
+export type Mode = 'create_plan' | 'weekly_eval' | 'publish_block' | 'finished_training_eval_comment' | 'coach_week';
 
 export function schemaForMode(mode: Mode) {
   switch (mode) {
@@ -225,6 +272,8 @@ export function schemaForMode(mode: Mode) {
       return PublishBlockOutputSchema;
     case 'finished_training_eval_comment':
       return FinishedTrainingEvalCommentSchema;
+    case 'coach_week':
+      return CoachWeekOutputSchema;
   }
 }
 
@@ -238,5 +287,7 @@ export function inputContextSchemaForMode(mode: Mode) {
       return PublishBlockInputContextSchema;
     case 'finished_training_eval_comment':
       return FinishedTrainingEvalCommentInputContextSchema;
+    case 'coach_week':
+      return CoachWeekInputContextSchema;
   }
 }

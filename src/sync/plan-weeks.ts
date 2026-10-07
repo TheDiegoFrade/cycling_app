@@ -13,6 +13,8 @@ export interface PlanWeekDraft {
   items: PlanWeekItem[];
   baseWorkoutIds: string[];
   updatedAt: string;
+  /** Por qué la IA propuso esta semana (una razón por línea); solo el coach. */
+  aiRationale: string | null;
 }
 
 function client() {
@@ -62,14 +64,16 @@ export async function fetchPlannedRoutines(athleteId: string, fromKey: string, t
 export async function fetchDraft(coachId: string, athleteId: string, mondayKey: string): Promise<PlanWeekDraft | null> {
   const { data, error } = await client()
     .from('plan_weeks')
-    .select('id, items, base_workout_ids, updated_at')
+    .select('id, items, base_workout_ids, updated_at, ai_rationale')
     .eq('coach_id', coachId)
     .eq('athlete_id', athleteId)
     .eq('week_start', mondayKey)
     .eq('status', 'draft')
     .maybeSingle();
   if (error) throw error;
-  return data ? { id: data.id, items: data.items as PlanWeekItem[], baseWorkoutIds: data.base_workout_ids, updatedAt: data.updated_at } : null;
+  return data
+    ? { id: data.id, items: data.items as PlanWeekItem[], baseWorkoutIds: data.base_workout_ids, updatedAt: data.updated_at, aiRationale: data.ai_rationale }
+    : null;
 }
 
 /** Cuándo se publicó por última vez esa semana (de cualquier coach), o null. */
@@ -91,6 +95,7 @@ export async function createDraft(
   mondayKey: string,
   items: PlanWeekItem[],
   baseWorkoutIds: string[],
+  aiRationale: string | null = null,
 ): Promise<PlanWeekDraft> {
   const { data, error } = await client()
     .from('plan_weeks')
@@ -101,15 +106,18 @@ export async function createDraft(
       iso_week: isoWeekLabel(mondayKey),
       items,
       base_workout_ids: baseWorkoutIds,
+      ai_rationale: aiRationale,
     })
-    .select('id, items, base_workout_ids, updated_at')
+    .select('id, items, base_workout_ids, updated_at, ai_rationale')
     .single();
   if (error) throw error;
-  return { id: data.id, items: data.items as PlanWeekItem[], baseWorkoutIds: data.base_workout_ids, updatedAt: data.updated_at };
+  return { id: data.id, items: data.items as PlanWeekItem[], baseWorkoutIds: data.base_workout_ids, updatedAt: data.updated_at, aiRationale: data.ai_rationale };
 }
 
-export async function saveDraftItems(draftId: string, items: PlanWeekItem[]): Promise<void> {
-  const { error } = await client().from('plan_weeks').update({ items, updated_at: new Date().toISOString() }).eq('id', draftId).eq('status', 'draft');
+/** `aiRationale`: undefined = no tocarlo; string/null = reemplazarlo. */
+export async function saveDraftItems(draftId: string, items: PlanWeekItem[], aiRationale?: string | null): Promise<void> {
+  const patch = { items, updated_at: new Date().toISOString(), ...(aiRationale !== undefined ? { ai_rationale: aiRationale } : {}) };
+  const { error } = await client().from('plan_weeks').update(patch).eq('id', draftId).eq('status', 'draft');
   if (error) throw error;
 }
 

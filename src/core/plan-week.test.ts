@@ -81,3 +81,26 @@ describe('rutinas en el borrador', () => {
     expect(routine.scheduledDate).toBe('2026-10-05');
   });
 });
+
+describe('IA del coach', () => {
+  it('solo reemplaza lo no bloqueado y solo propone de hoy en adelante', async () => {
+    const m = await import('./plan-week');
+    const monday = '2026-10-05';
+    const today = '2026-10-07'; // miércoles
+    const routine = { id: 'r', kind: 'strength' as const, name: 'F', payload: { exercises: [] }, scheduledDate: '2026-10-09' };
+    const items: import('./plan-week').PlanWeekItem[] = [
+      { workout: workout('pasado', '2026-10-06'), origin: 'athlete', edited: false }, // pasado -> se queda
+      { workout: workout('libre', '2026-10-08'), origin: 'athlete', edited: false }, // futuro sin editar -> lo reemplaza
+      { workout: workout('editado', '2026-10-10'), origin: 'athlete', edited: true }, // editado -> se queda
+      { workout: workout('ia-vieja', '2026-10-11'), origin: 'ai', edited: false }, // propuesta vieja -> se reemplaza
+      { routine, origin: 'coach', edited: true }, // rutina -> se queda
+    ];
+    expect(m.openDayCodes(monday, today)).toEqual(['wed', 'thu', 'fri', 'sat', 'sun']);
+    expect(m.dayCodeOf('2026-10-09', monday)).toBe('fri');
+    expect(m.dateOfDayCode('sat', monday)).toBe('2026-10-10');
+    expect(m.dateOfDayCode('xyz', monday)).toBeNull();
+    const next = m.applyAiProposal(items, [workout('nuevo', '2026-10-08')], today);
+    expect(next.map(m.itemName).sort()).toEqual(['F', 'editado', 'nuevo', 'pasado'].sort());
+    expect(next.find((i) => m.itemName(i) === 'nuevo')?.origin).toBe('ai');
+  });
+});

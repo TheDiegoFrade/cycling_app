@@ -2,7 +2,7 @@
 // session_templates). Lógica pura: tipos, validación y cómo una plantilla
 // se convierte en algo agendable. Al agendar se COPIA el contenido (nuevo
 // id): editar o borrar la plantilla después nunca cambia lo ya publicado.
-import type { Interval, Workout } from './types';
+import type { Comment, Interval, Workout } from './types';
 import { validateWorkout } from './validator';
 
 /** Rutinas que no son de bici (se registran en Registrar, se miden con
@@ -39,6 +39,9 @@ export interface RoutinePayload {
 export interface BikePayload {
   description?: string;
   intervals: Interval[];
+  /** Mensajes durante el entrenamiento (los `textevent` de un .zwo, o los
+   * comentarios de un .json de Torq). Se copian tal cual al agendar. */
+  comments?: Comment[];
 }
 
 export type SessionTemplate =
@@ -110,6 +113,7 @@ function toWorkout(name: string, payload: BikePayload, dateKey: string, id: stri
     name,
     ...(payload.description ? { description: payload.description } : {}),
     intervals: payload.intervals.map((iv) => ({ ...iv })),
+    ...(payload.comments?.length ? { comments: payload.comments.map((c) => ({ ...c })) } : {}),
     created_at: new Date().toISOString(),
     scheduledDate: dateKey,
   };
@@ -136,7 +140,18 @@ export function routineFromTemplate(t: Extract<SessionTemplate, { kind: RoutineK
 
 /** Plantilla de bici a partir de un workout importado (.zwo/.mrc/.erg/.json). */
 export function bikePayloadFromWorkout(w: Workout): BikePayload {
-  return { ...(w.description ? { description: w.description } : {}), intervals: w.intervals.map((iv) => ({ ...iv })) };
+  return {
+    ...(w.description ? { description: w.description } : {}),
+    intervals: w.intervals.map((iv) => ({ ...iv })),
+    ...(w.comments?.length ? { comments: w.comments.map((c) => ({ ...c })) } : {}),
+  };
+}
+
+/** Copia de una plantilla de bici para la biblioteca PROPIA del coach (sin
+ * fecha): así él también la puede entrenar en su rodillo. */
+export function personalWorkoutFromBikeTemplate(t: Extract<SessionTemplate, { kind: 'bike' }>): Workout {
+  const { scheduledDate: _unused, ...workout } = toWorkout(t.name, t.payload, '2000-01-01', crypto.randomUUID());
+  return workout;
 }
 
 /** "3 ejercicios · 45 min · RPE 6" */

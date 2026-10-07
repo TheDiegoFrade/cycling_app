@@ -10,6 +10,13 @@ import { editedItem, itemDate, itemId, itemName, itemsFromWorkouts, localDateKey
 import { TEMPLATE_KIND_LABELS, routineFromTemplate, routineSummary, workoutFromBikeTemplate } from '../../core/coach-templates';
 import type { SessionTemplate } from '../../core/coach-templates';
 import { listTemplates } from '../../sync/session-templates';
+import { applyAiProposal, dateOfDayCode, dayCodeOf, isLockedForAi, openDayCodes } from '../../core/plan-week';
+import { summarizeAthlete, weeklyLoads } from '../../core/coach-metrics';
+import type { Interval, Workout } from '../../core/types';
+import { listAthleteSessions } from '../../sync/coach-athletes';
+import { requestCoachWeek } from '../../sync/coach-ai';
+import type { CoachWeekContext } from '../../sync/coach-ai';
+import { COACH_OVERVIEW_DAYS, sinceIso, todayUtcKey } from '../coach-ui';
 import type { PlanWeekItem } from '../../core/plan-week';
 import { validateWorkout } from '../../core/validator';
 import { listCoachAthletes } from '../../sync/coach-athletes';
@@ -77,6 +84,9 @@ export function renderCoachWeek(container: HTMLElement): void {
   /** Biblioteca del coach (paso 5); null mientras carga. */
   let templates: SessionTemplate[] | null = null;
   let addTab: 'library' | 'torq' = 'library';
+  let aiInstruction = '';
+  let aiBusy = false;
+  let aiNote = '';
   /** Cola de guardados: cada cambio espera al anterior, así nunca se pisan. */
   let saving: Promise<void> = Promise.resolve();
 
@@ -122,15 +132,17 @@ export function renderCoachWeek(container: HTMLElement): void {
     render();
   }
 
-  /** Aplica un cambio: crea el borrador con el primero, luego lo actualiza. */
-  function change(next: PlanWeekItem[]): void {
+  /** Aplica un cambio: crea el borrador con el primero, luego lo actualiza.
+   * `aiRationale` solo se pasa cuando viene de la IA (reemplaza el anterior). */
+  function change(next: PlanWeekItem[], aiRationale?: string | null): void {
     items = next;
     status = 'Guardando…';
+    if (draft && aiRationale !== undefined) draft = { ...draft, aiRationale };
     render();
     saving = saving.then(async () => {
       try {
-        if (draft) await saveDraftItems(draft.id, items);
-        else draft = await createDraft(coachId!, athleteId!, monday, items, baseIds);
+        if (draft) await saveDraftItems(draft.id, items, aiRationale);
+        else draft = await createDraft(coachId!, athleteId!, monday, items, baseIds, aiRationale ?? null);
         status = 'Borrador guardado';
       } catch (err) {
         error = `No se pudo guardar: ${err instanceof Error ? err.message : String(err)}`;
@@ -142,7 +154,7 @@ export function renderCoachWeek(container: HTMLElement): void {
 
   function itemHtml(item: PlanWeekItem, index: number, day: string): string {
     const mine = item.origin === 'coach' || item.edited;
-    const tag = item.origin === 'coach' ? 'Agregado por ti' : item.edited ? 'Editado por ti' : 'Del atleta';
+    const tag = item.origin === 'coach' ? 'Agregado por ti' : item.edited ? 'Editado por ti' : item.origin === 'ai' ? 'Propuesto por IA' : 'Del atleta';
     const moveOptions = weekDays(monday)
       .map((d, i) => `<option value="${d}"${d === day ? ' selected' : ''}>${DAY_NAMES[i]} ${fmtDayNum(d)}</option>`)
       .join('');
@@ -204,6 +216,73 @@ export function renderCoachWeek(container: HTMLElement): void {
         </button>`,
       )
       .join('')}</div>`;
+  }
+
+  function aiPanelHtml(): string {
+    const open = openDayCodes(monday, todayKey);
+    const rationale = draft?.aiRationale?.split('\n').filter(Boolean) ?? [];
+    return `
+      ${
+        rationale.length
+          ? `<section class="panel coach-card" aria-label="Por qué la IA propone esta semana">
+              <div class="coach-card-head"><h2 class="perfil-h2" style="margin:0">Por qué la IA propone esta semana</h2><span class="hint">Solo para ti, el atleta no lo ve</span></div>
+              <ol class="week-rationale">${rationale.map((r) => `<li>${escapeHtml(r)}</li>`).join('')}</ol>
+            </section>`
+          : ''
+      }
+      <section class="panel coach-card" aria-label="Ajustar con IA">
+        <h2 class="perfil-h2" style="margin:0">Ajustar con IA</h2>
+        ${
+          open.length === 0
+            ? '<p class="hint">Esta semana ya pasó: la IA solo propone de hoy en adelante. Los cambios a días pasados hazlos a mano.</p>'
+            : `
+        <label>Indicación para la IA (opcional)<textarea id="week-ai-instruction" rows="3" maxlength="1000" placeholder="Ej. viaja el jueves: mueve la rodada larga al domingo y bájale 30 min">${escapeHtml(aiInstruction)}</textarea></label>
+        <div class="row-actions" style="margin:0;align-items:center">
+          <button type="button" id="week-ai-run"${aiBusy || busy ? ' disabled' : ''}>${aiBusy ? 'La IA está armando la semana…' : 'Proponer con IA'}</button>
+        </div>
+        <span class="hint">Solo cambia de hoy en adelante. Lo pasado, lo que agregaste o editaste a mano y las rutinas de fuerza/movilidad se quedan. Queda como borrador: tú decides si publicas.</span>`
+        }
+        ${aiNote ? `<p class="hint">${escapeHtml(aiNote)}</p>` : ''}
+      </section>`;
+  }
+
+  /** Arma el contexto con lo que el coach puede leer (RLS ya quitó Strava). */
+  async function buildAiContext(): Promise<CoachWeekContext> {
+    const rows = await listAthleteSessions([athleteId!], sinceIso(COACH_OVERVIEW_DAYS));
+    const utcToday = todayUtcKey();
+    const summary = summarizeAthlete(rows, utcToday, athlete?.ftpConfirmed ?? null);
+    const loads = weeklyLoads(rows, utcToday, 6);
+    return {
+      athleteId: athleteId!,
+      weekStart: monday,
+      instruction: aiInstruction.trim(),
+      openDays: openDayCodes(monday, todayKey),
+      lockedItems: items
+        .filter((i) => isLockedForAi(i, todayKey))
+        .map((i) => {
+          const day = itemDate(i) ?? monday;
+          const est = i.workout ? estimateWorkout(i.workout.intervals, ftp()) : null;
+          return {
+            dayOfWeek: dayCodeOf(day, monday),
+            name: itemName(i),
+            kind: i.workout ? ('bike' as const) : i.routine.kind,
+            minutes: est ? Math.round(est.durationS / 60) : (i.routine?.payload.durationMin ?? null),
+            tss: est?.tss ?? null,
+            reason: day < todayKey ? ('past' as const) : i.routine ? ('routine' as const) : ('coach_edit' as const),
+          };
+        }),
+      athlete: {
+        name: athlete?.name ?? null,
+        ftp: athlete?.ftp ?? null,
+        ftpConfirmed: athlete?.ftpConfirmed ?? null,
+        discipline: athlete?.discipline ?? null,
+        injuries: athlete?.injuries ?? null,
+        goal: athlete?.goal ?? null,
+      },
+      pmc: rows.length ? { ctl: Math.round(summary.ctl * 10) / 10, atl: Math.round(summary.atl * 10) / 10, tsb: Math.round(summary.tsb * 10) / 10 } : null,
+      recentWeeks: loads.map((w) => ({ weekStart: w.mondayKey, bikeTss: Math.round(w.tss), nonBikeSessions: w.nonBike.length })),
+      maxSessionMinutes: null,
+    };
   }
 
   function addPanelHtml(): string {
@@ -289,7 +368,8 @@ export function renderCoachWeek(container: HTMLElement): void {
       </section>
       <div class="week-grid-wrap"><div class="week-grid">${dayCols}</div></div>
       <p class="hint" id="week-status">${escapeHtml(status || (draft ? 'Tus cambios se guardan solos en el borrador. Publica cuando esté lista para que el atleta la vea en su Plan.' : 'Cualquier cambio crea un borrador; el atleta no lo ve hasta que publiques.'))}</p>
-      ${addPanelHtml()}`
+      ${addPanelHtml()}
+      ${aiPanelHtml()}`
       }
     `);
     wire();
@@ -378,6 +458,43 @@ export function renderCoachWeek(container: HTMLElement): void {
       const workout = workoutFromTemplate(t, Number(minutesInput?.value) || t.defaultMinutes, addDay);
       addDay = null;
       change([...items, { workout, origin: 'coach', edited: true }]);
+    });
+
+    const instructionInput = container.querySelector<HTMLTextAreaElement>('#week-ai-instruction');
+    instructionInput?.addEventListener('input', () => (aiInstruction = instructionInput.value));
+    container.querySelector('#week-ai-run')?.addEventListener('click', async () => {
+      if (aiBusy) return;
+      aiBusy = true;
+      aiNote = '';
+      error = '';
+      render();
+      try {
+        const proposal = await requestCoachWeek(await buildAiContext());
+        const proposed: Workout[] = [];
+        let dropped = 0;
+        for (const w of proposal.workouts) {
+          const date = dateOfDayCode(w.dayOfWeek, monday);
+          const workout: Workout = {
+            format_version: 1,
+            id: crypto.randomUUID(),
+            name: w.name,
+            description: w.description,
+            intervals: w.intervals as Interval[],
+            created_at: new Date().toISOString(),
+            ...(date ? { scheduledDate: date } : {}),
+          };
+          // red de seguridad: nada en días pasados ni inválido
+          if (!date || date < todayKey || !validateWorkout(workout).valid) dropped++;
+          else proposed.push(workout);
+        }
+        change(applyAiProposal(items, proposed, todayKey), proposal.rationale.join('\n'));
+        aiNote = `La IA propuso ${proposed.length} ${proposed.length === 1 ? 'entrenamiento' : 'entrenamientos'}${dropped ? ` (descarté ${dropped} que no ${dropped === 1 ? 'era válido' : 'eran válidos'})` : ''}. Revísalos y publica cuando esté lista.`;
+      } catch (err) {
+        aiNote = '';
+        error = `La IA no pudo proponer la semana: ${err instanceof Error ? err.message : String(err)}`;
+      }
+      aiBusy = false;
+      render();
     });
 
     container.querySelector('#week-discard')?.addEventListener('click', async () => {
