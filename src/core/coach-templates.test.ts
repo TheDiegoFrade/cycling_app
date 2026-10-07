@@ -71,3 +71,27 @@ describe('copias agendables', () => {
     expect(routineSummary(routine)).toBe('2 ejercicios · 45 min · RPE 6');
   });
 });
+
+describe('mensajes del .zwo', () => {
+  it('se conservan al importar a la biblioteca y al agendar', async () => {
+    const { bikePayloadFromWorkout, personalWorkoutFromBikeTemplate } = await import('./coach-templates');
+    const imported = {
+      format_version: 1 as const,
+      id: 'x',
+      name: 'Over-unders',
+      intervals: [{ name: 'SS', type: 'steady' as const, duration_s: 600, power_pct: 90 }],
+      comments: [{ at_s: 30, message: '¡Arriba la cadencia!' }],
+      created_at: '',
+    };
+    const payload = bikePayloadFromWorkout(imported);
+    expect(payload.comments).toEqual([{ at_s: 30, message: '¡Arriba la cadencia!' }]);
+    const t: SessionTemplate = { id: 't', name: 'Over-unders', kind: 'bike', payload, updatedAt: '' };
+    const scheduled = workoutFromBikeTemplate(t, '2026-10-14');
+    expect(scheduled.comments?.[0].message).toBe('¡Arriba la cadencia!');
+    expect(validateWorkout(scheduled).valid).toBe(true);
+    const mine = personalWorkoutFromBikeTemplate(t);
+    expect(mine.scheduledDate).toBeUndefined();
+    expect(mine.comments).toHaveLength(1);
+    expect(mine.id).not.toBe('t');
+  });
+});
