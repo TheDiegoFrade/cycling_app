@@ -1081,3 +1081,7 @@ $$;
 drop trigger if exists monthly_reviews_stamp on monthly_reviews;
 create trigger monthly_reviews_stamp before insert or update on monthly_reviews
   for each row execute function monthly_reviews_stamp();
+
+-- Paso 7c: envío por correo (Edge Function send-review-email, con Resend).
+-- La función pone emailed_at con service role; el coach solo lo lee.
+alter table monthly_reviews add column if not exists emailed_at timestamptz;

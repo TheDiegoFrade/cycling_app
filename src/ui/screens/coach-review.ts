@@ -8,10 +8,10 @@ import type { MonthlyReport, ReviewFinding, ReviewVerdict } from '../../core/mon
 import { requestMonthlyReviewDraft } from '../../sync/coach-ai';
 import { listCoachAthletes } from '../../sync/coach-athletes';
 import type { CoachAthlete } from '../../sync/coach-athletes';
-import { fetchCoachReview, loadMonthlyReport, saveReview, setReviewStatus } from '../../sync/monthly-reviews';
+import { fetchCoachReview, loadMonthlyReport, saveReview, sendReviewEmail, setReviewStatus } from '../../sync/monthly-reviews';
 import type { MonthlyReview, ReviewContent } from '../../sync/monthly-reviews';
 import { athleteName, disciplineLabel, todayUtcKey, errorMessage } from '../coach-ui';
-import { renderReportSheet } from '../monthly-report-view';
+import { emailKpis, renderReportSheet } from '../monthly-report-view';
 import { getRouteParam, navigate } from '../router';
 import { appState } from '../state';
 import { escapeHtml } from '../workout-cover';
@@ -37,6 +37,7 @@ export function renderCoachReview(container: HTMLElement): () => void {
   let status = '';
   let busy = false;
   let drafting = false;
+  let emailing = false;
   let aiMessage: string | null = null;
   let disposed = false;
 
@@ -74,7 +75,10 @@ export function renderCoachReview(container: HTMLElement): () => void {
   }
 
   function statusPill(): string {
-    if (published()) return '<span class="coach-pill coach-pill-success">Publicada · tu atleta ya la ve</span>';
+    if (published())
+      return `<span class="coach-pill coach-pill-success">Publicada · tu atleta ya la ve</span>${
+        review?.emailedAt ? `<span class="coach-pill">Enviada por correo el ${new Date(review.emailedAt).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>` : ''
+      }`;
     if (review) return '<span class="coach-pill coach-pill-accent">Borrador · tu atleta aún no la ve</span>';
     return '<span class="coach-pill">Sin empezar</span>';
   }
@@ -97,7 +101,8 @@ export function renderCoachReview(container: HTMLElement): () => void {
           <button type="button" id="rv-print">Descargar PDF</button>
           ${
             published()
-              ? `<button type="button" id="rv-unpublish"${busy ? ' disabled' : ''}>Regresar a borrador</button>`
+              ? `<button type="button" class="btn-light" id="rv-email"${emailing || busy ? ' disabled' : ''}>${emailing ? 'Enviando…' : review?.emailedAt ? 'Reenviar por correo' : 'Enviar por correo'}</button>
+                 <button type="button" id="rv-unpublish"${busy ? ' disabled' : ''}>Regresar a borrador</button>`
               : `<button type="button" class="btn-light" id="rv-publish"${busy ? ' disabled' : ''}>Publicar al atleta</button>`
           }
         </div>
@@ -169,6 +174,7 @@ export function renderCoachReview(container: HTMLElement): () => void {
     });
     container.querySelector('#rv-publish')?.addEventListener('click', () => void publish());
     container.querySelector('#rv-ai')?.addEventListener('click', () => void draftWithAi());
+    container.querySelector('#rv-email')?.addEventListener('click', () => void emailReview());
     container.querySelector('#rv-unpublish')?.addEventListener('click', () => void unpublish());
     wireSheet();
   }
@@ -271,6 +277,25 @@ export function renderCoachReview(container: HTMLElement): () => void {
     } catch (err) {
       drafting = false;
       status = `La IA no pudo redactar: ${errorMessage(err)}`;
+      if (!stale()) render();
+    }
+  }
+
+  async function emailReview(): Promise<void> {
+    if (!review || !report || !published()) return;
+    const again = review.emailedAt ? ' Ya se había enviado antes.' : '';
+    if (!window.confirm(`¿Enviar la revisión de ${monthLabel(monthKey)} por correo?${again}`)) return;
+    emailing = true;
+    setStatus('Enviando…');
+    render();
+    try {
+      const res = await sendReviewEmail(review.id, emailKpis(report));
+      review = { ...review, emailedAt: res.emailedAt };
+      status = res.test ? `Enviado en modo de prueba a ${res.sentTo} (tu atleta no lo recibe todavía).` : 'Enviado por correo a tu atleta.';
+    } catch (err) {
+      status = `No se pudo enviar: ${errorMessage(err)}`;
+    } finally {
+      emailing = false;
       if (!stale()) render();
     }
   }

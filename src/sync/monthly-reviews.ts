@@ -31,9 +31,11 @@ export interface MonthlyReview {
   coachName: string | null;
   publishedAt: string | null;
   updatedAt: string;
+  /** Última vez que se envió por correo (paso 7c). */
+  emailedAt: string | null;
 }
 
-const REVIEW_COLUMNS = 'id, athlete_id, coach_id, month, status, verdict, coach_message, findings, goals, coach_name, published_at, updated_at';
+const REVIEW_COLUMNS = 'id, athlete_id, coach_id, month, status, verdict, coach_message, findings, goals, coach_name, published_at, updated_at, emailed_at';
 
 interface ReviewRow {
   id: string;
@@ -48,6 +50,7 @@ interface ReviewRow {
   coach_name: string | null;
   published_at: string | null;
   updated_at: string;
+  emailed_at?: string | null;
 }
 
 function fromRow(r: ReviewRow): MonthlyReview {
@@ -64,6 +67,7 @@ function fromRow(r: ReviewRow): MonthlyReview {
     coachName: r.coach_name,
     publishedAt: r.published_at,
     updatedAt: r.updated_at,
+    emailedAt: r.emailed_at ?? null,
   };
 }
 
@@ -199,4 +203,28 @@ export async function loadMonthlyReport(athleteId: string, monthKey: string, ftp
     fetchPlannedRoutines(athleteId, prevStart, end),
   ]);
   return buildMonthlyReport({ monthKey, todayKey, sessions, workouts, routines, ftp });
+}
+
+export interface EmailKpi {
+  label: string;
+  value: string;
+  delta: string;
+}
+
+/** Envía por correo una revisión publicada (Edge Function send-review-email).
+ * Mientras la función esté en modo de prueba, llega solo al dueño de la app. */
+export async function sendReviewEmail(reviewId: string, kpis: EmailKpi[]): Promise<{ test: boolean; sentTo: string; emailedAt: string }> {
+  const { data, error } = await client().functions.invoke('send-review-email', { body: { reviewId, kpis } });
+  if (error || data?.error) {
+    let message = data?.error as string | undefined;
+    if (!message && error && 'context' in error) {
+      try {
+        message = (await (error as unknown as { context: Response }).context.json())?.error;
+      } catch {
+        // sin JSON: nos quedamos con error.message
+      }
+    }
+    throw new Error(message ?? error?.message ?? 'error desconocido');
+  }
+  return data as { test: boolean; sentTo: string; emailedAt: string };
 }
