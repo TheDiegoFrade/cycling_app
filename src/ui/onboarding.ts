@@ -100,8 +100,8 @@ function modalHtml(p: Profile): string {
         </label>
         <p class="hint" style="margin-top:4px">No pasa nada si no los sabes — el coach arma un protocolo para calibrarlos con seguridad.</p>
 
-        <label class="live-col-label" style="margin-top:12px;display:block">¿Entrenaste en otro lado las últimas 1-2 semanas? (opcional)</label>
-        <p class="hint">Sube tus archivos .fit — así el coach arranca con tu condición real en vez de a ciegas.</p>
+        <label class="live-col-label" style="margin-top:12px;display:block">¿Entrenaste en OTRA app o dispositivo (no en Torq) las últimas 1-2 semanas? (opcional)</label>
+        <p class="hint">Sube esos archivos .fit para darle contexto real al coach desde el inicio. Solo actividades de FUERA de Torq — las que ya grabaste aquí no hace falta subirlas, el coach ya las ve solo.</p>
         <label class="plan-import-link">Elegir archivos .fit<input type="file" id="ob-fit-files" accept=".fit" multiple style="display:none"></label>
         <p class="hint" id="ob-fit-status" style="margin-top:4px"></p>
 
