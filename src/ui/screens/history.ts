@@ -133,7 +133,7 @@ function formaColor(tsb: number): string {
  * futureTssEntries en engine/pmc.ts para cómo se calcula esa proyección.
  * Sin `todayIndex` (o si es el último punto) dibuja todo sólido, igual que
  * antes de este cambio. */
-function drawFitnessFatigueChart(canvas: HTMLCanvasElement, points: ReturnType<typeof computePmc>, todayIndex?: number): void {
+export function drawFitnessFatigueChart(canvas: HTMLCanvasElement, points: ReturnType<typeof computePmc>, todayIndex?: number): void {
   if (points.length < 2) return;
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;

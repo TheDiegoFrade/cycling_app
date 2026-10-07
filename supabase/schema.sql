@@ -477,6 +477,9 @@ $$;
 --   update profiles set is_coach = true
 --   where user_id = (select id from auth.users where email = 'coach@ejemplo.com');
 -- El atleta ve el nombre del coach (profiles.name) al abrir la invitación.
+-- El coach NO es otro tipo de cuenta: es un usuario normal con un permiso
+-- extra. Entrena con la app como cualquier atleta (Inicio, Plan, Historial,
+-- Forma…) y además ve las secciones del coach en la barra lateral.
 -- ─────────────────────────────────────────────────────────────────────────
 alter table profiles add column if not exists is_coach boolean not null default false;
 
@@ -683,3 +686,42 @@ grant execute on function preview_coach_invite(text) to authenticated;
 grant execute on function accept_coach_invite(text) to authenticated;
 grant execute on function my_coach() to authenticated;
 grant execute on function end_my_coach_link() to authenticated;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Vista del coach, paso 4: lectura de los atletas (solo lectura). Todo se
+-- apoya en coach_athletes / is_coach_of del paso 3: al desvincularse, el
+-- coach deja de ver todo esto en ese mismo instante.
+-- ─────────────────────────────────────────────────────────────────────────
+
+-- sessions: el coach lee las de sus atletas, EXCEPTO las que llegaron por
+-- Strava (sus términos prohíben mostrar sus datos a otras personas). No
+-- escribe nada: no hay policy de insert/update/delete para él.
+drop policy if exists "sessions: coach lee las de sus atletas" on sessions;
+create policy "sessions: coach lee las de sus atletas" on sessions for select
+  using (is_coach_of(user_id) and source <> 'strava');
+
+-- El coach no lee `profiles` directo (trae fecha de nacimiento, peso,
+-- etc.): lee esta vista, solo con campos de entrenamiento y solo de SUS
+-- atletas activos. La vista corre con los permisos de su dueño (como una
+-- función security definer) — por eso el filtro por coach_id = auth.uid()
+-- va adentro y es lo único que decide qué filas salen. La meta viene del
+-- plan activo (training_plans.goal), que el coach tampoco lee directo.
+create or replace view coach_athlete_profiles with (security_barrier) as
+  select
+    ca.athlete_id as user_id,
+    ca.tier,
+    ca.started_at as linked_at,
+    p.name,
+    p.ftp,
+    p.ftp_confirmed,
+    p.hr_max,
+    p.hr_max_confirmed,
+    p.discipline,
+    p.injuries,
+    (select tp.goal from training_plans tp where tp.user_id = ca.athlete_id and tp.status = 'active' limit 1) as goal
+  from coach_athletes ca
+  left join profiles p on p.user_id = ca.athlete_id
+  where ca.coach_id = auth.uid() and ca.status = 'active';
+
+revoke all on coach_athlete_profiles from public, anon;
+grant select on coach_athlete_profiles to authenticated;

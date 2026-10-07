@@ -7,7 +7,7 @@ import { escapeHtml } from './workout-cover';
 
 /** Las secciones que viven en la barra lateral (ver TORQ_DESIGN.md,
  * "Navegación"). Sesión en vivo y Antes de empezar no la usan. */
-export type SidebarScreen = 'home' | 'plan' | 'library' | 'form' | 'profile' | 'coach-invite';
+export type SidebarScreen = 'home' | 'plan' | 'library' | 'form' | 'profile' | 'coach-invite' | 'coach-athletes';
 
 const ITEMS: { screen: SidebarScreen; route: Screen; label: string; icon: string }[] = [
   {
@@ -50,10 +50,16 @@ const STATE_LABEL: Record<ConnectionState, string> = {
   error: 'Error',
 };
 
-/** Solo para cuentas con profiles.is_coach (ver sync/coach-link). Las demás
- * secciones del coach (Atletas, Semanas, Biblioteca) llegan en los
- * siguientes pasos de docs/coach-view/README.md. */
+/** Solo para cuentas con profiles.is_coach (ver sync/coach-link). Se
+ * AGREGAN a las del atleta: el coach también entrena con la app. Semanas y
+ * Biblioteca llegan en los siguientes pasos de docs/coach-view/README.md. */
 const COACH_ITEMS: typeof ITEMS = [
+  {
+    screen: 'coach-athletes',
+    route: 'coach-athletes',
+    label: 'Atletas',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 2.9-5.5 6.5-5.5s6.5 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14.5c2.7 0 4.5 1.6 4.5 4.5"/></svg>',
+  },
   {
     screen: 'coach-invite',
     route: 'coach-invite',
@@ -63,11 +69,11 @@ const COACH_ITEMS: typeof ITEMS = [
 ];
 
 function sidebarHtml(active: SidebarScreen | null): string {
-  const items = appState.coach.isCoach ? [...ITEMS, ...COACH_ITEMS] : ITEMS;
-  const links = items.map(
-    (i) => `
-    <a href="#/${i.route}" class="sidebar-link${i.screen === active ? ' active' : ''}">${i.icon}${i.label}</a>`,
-  ).join('');
+  const linkHtml = (i: (typeof ITEMS)[number]) => `
+    <a href="#/${i.route}" class="sidebar-link${i.screen === active ? ' active' : ''}">${i.icon}${i.label}</a>`;
+  const links =
+    ITEMS.map(linkHtml).join('') +
+    (appState.coach.isCoach ? `<div class="sidebar-group-title">Coach</div>${COACH_ITEMS.map(linkHtml).join('')}` : '');
   return `
     <nav class="sidebar">
       <div class="sidebar-brand">TORQ</div>

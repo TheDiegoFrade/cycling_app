@@ -10,6 +10,7 @@ Decisiones ya tomadas:
 - **La IA propone y el coach aprueba**: el atleta nunca ve una semana que el coach no haya publicado.
 - **Vinculación por link de invitación**, de un solo uso y con vencimiento.
 - **Lo que llega por Strava no entra** ni a la IA ni a la vista del coach (los términos de la API de Strava prohíben usar sus datos en modelos de IA y mostrarlos a otras personas).
+- **El coach es un usuario con un permiso extra, no otro tipo de cuenta**: `profiles.is_coach`, que solo se activa a mano desde el SQL Editor (la app no puede cambiarlo). El coach entrena con Torq como cualquier atleta y además ve las secciones del coach en la barra lateral; nunca se le quita nada de la app de atleta. Un coach puede tener muchos atletas; cada atleta, máximo un coach activo.
 
 ## Pantallas
 
