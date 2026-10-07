@@ -16,6 +16,7 @@ import { renderCoachAthletes } from './ui/screens/coach-athletes';
 import { renderCoachAthlete } from './ui/screens/coach-athlete';
 import { renderCoachWeek } from './ui/screens/coach-week';
 import { renderCoachLibrary } from './ui/screens/coach-library';
+import { renderCoachWeeks } from './ui/screens/coach-weeks';
 import { renderPerfil } from './ui/screens/perfil';
 import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
@@ -54,6 +55,7 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['coach-athlete', withSidebar('coach-athletes', renderCoachAthlete)],
   ['coach-week', withSidebar('coach-athletes', renderCoachWeek)],
   ['coach-library', withSidebar('coach-library', renderCoachLibrary)],
+  ['coach-weeks', withSidebar('coach-weeks', renderCoachWeeks)],
 ];
 
 SCREENS_TO_GUARD.forEach(([screen, render]) => registerScreen(screen, guarded(render)));

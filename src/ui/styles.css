@@ -3550,3 +3550,200 @@ a {
   padding: 10px 12px;
   resize: vertical;
 }
+
+/* ---------- Vista del coach: semanas de todos (coach-weeks.ts) ---------- */
+.coach-pill-success {
+  border-color: var(--success);
+  color: var(--success);
+}
+.weeks-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.weeks-nav h1 {
+  margin: 0;
+}
+.weeks-nav button {
+  padding: 4px 10px;
+}
+.weeks-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+}
+.weeks-grid-wrap {
+  flex: 999 1 640px;
+  min-width: 0;
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.weeks-grid {
+  min-width: 860px;
+}
+.weeks-row {
+  display: grid;
+  grid-template-columns: 160px repeat(7, minmax(96px, 1fr));
+  border-bottom: 1px solid var(--border);
+}
+.weeks-row:last-child {
+  border-bottom: none;
+}
+.weeks-row.pending .weeks-athlete {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.weeks-head > span {
+  padding: 10px 8px;
+}
+.weeks-today-label {
+  color: var(--accent-light);
+}
+.weeks-athlete {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 12px;
+}
+.weeks-athlete a {
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+.weeks-athlete a:hover {
+  text-decoration: underline;
+}
+.weeks-athlete .hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.weeks-error {
+  font-size: 12px;
+  color: var(--danger-text);
+}
+.weeks-publish {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+.weeks-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 6px;
+  border-left: 1px solid var(--border);
+}
+.weeks-cell.today {
+  background: var(--surface-sunken);
+}
+.weeks-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 6px;
+  text-align: left;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.weeks-chip .week-routine-kind {
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.weeks-chip[class*='kind-'] {
+  border-left: 3px solid var(--kind-color);
+}
+.weeks-chip.mine {
+  border-color: var(--accent);
+}
+.weeks-chip.ai {
+  border-style: dashed;
+}
+.weeks-chip.on {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 1px;
+}
+.weeks-chip .workout-cover {
+  width: 100%;
+  height: 22px;
+}
+.weeks-chip-name {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.weeks-chip .hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.weeks-add {
+  padding: 2px 0;
+  border-style: dashed;
+  font-size: 14px;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+.weeks-add:hover,
+.weeks-add.on {
+  opacity: 1;
+  color: var(--text-soft);
+}
+.weeks-add.on {
+  border-color: var(--accent);
+}
+.weeks-panel {
+  flex: 1 1 260px;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  top: 16px;
+}
+.weeks-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.weeks-panel-name {
+  font-size: 18px;
+}
+.weeks-intensity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.weeks-intensity .live-col-label {
+  margin-right: auto;
+}
+.weeks-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.weeks-panel .weeks-copy-opt {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 720px) {
+  .weeks-panel {
+    max-width: none;
+    position: static;
+  }
+}

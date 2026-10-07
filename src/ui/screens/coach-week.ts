@@ -6,7 +6,7 @@
 // días futuros).
 import { estimateWorkout } from '../../core/workout-estimate';
 import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
-import { editedItem, itemDate, itemId, itemName, itemsFromWorkouts, localDateKey, movedItem, scaleIntensity, weekDays, weekStartOf, addDaysKey, workoutFromTemplate } from '../../core/plan-week';
+import { editedItem, itemDate, itemName, localDateKey, movedItem, scaleIntensity, weekDays, weekStartOf, addDaysKey, workoutFromTemplate } from '../../core/plan-week';
 import { TEMPLATE_KIND_LABELS, routineFromTemplate, routineSummary, workoutFromBikeTemplate } from '../../core/coach-templates';
 import type { SessionTemplate } from '../../core/coach-templates';
 import { listTemplates } from '../../sync/session-templates';
@@ -21,8 +21,8 @@ import type { PlanWeekItem } from '../../core/plan-week';
 import { validateWorkout } from '../../core/validator';
 import { listCoachAthletes } from '../../sync/coach-athletes';
 import type { CoachAthlete } from '../../sync/coach-athletes';
-import { createDraft, discardDraft, fetchAthleteWeekWorkouts, fetchDraft, fetchLastPublishedAt, fetchPlannedRoutines, publishDraft, saveDraftItems } from '../../sync/plan-weeks';
 import type { PlanWeekDraft } from '../../sync/plan-weeks';
+import { AthleteWeek } from '../../sync/athlete-week';
 import { athleteName } from '../coach-ui';
 import { getRouteParam } from '../router';
 import { appState } from '../state';
@@ -72,8 +72,10 @@ export function renderCoachWeek(container: HTMLElement): void {
   const todayKey = localDateKey(new Date());
   let monday = lastWeekByAthlete.get(athleteId) ?? weekStartOf(todayKey);
   let athlete: CoachAthlete | null = null;
+  /** Estado y guardado de la semana (sync/athlete-week.ts); `items` y
+   * `draft` son su copia para pintar. */
+  let week: AthleteWeek | null = null;
   let items: PlanWeekItem[] = [];
-  let baseIds: string[] = [];
   let draft: PlanWeekDraft | null = null;
   let publishedAt: string | null = null;
   let loading = true;
@@ -87,8 +89,6 @@ export function renderCoachWeek(container: HTMLElement): void {
   let aiInstruction = '';
   let aiBusy = false;
   let aiNote = '';
-  /** Cola de guardados: cada cambio espera al anterior, así nunca se pisan. */
-  let saving: Promise<void> = Promise.resolve();
 
   const ftp = () => athlete?.ftp ?? appState.profile.ftp;
 
@@ -106,25 +106,12 @@ export function renderCoachWeek(container: HTMLElement): void {
           return;
         }
       }
-      const week = monday;
-      const [workouts, routines, existingDraft, lastPublished, library] = await Promise.all([
-        fetchAthleteWeekWorkouts(athleteId!, week),
-        fetchPlannedRoutines(athleteId!, week, addDaysKey(week, 6)),
-        fetchDraft(coachId!, athleteId!, week),
-        fetchLastPublishedAt(athleteId!, week),
-        templates ? Promise.resolve(templates) : listTemplates(coachId!),
-      ]);
+      const next = new AthleteWeek(coachId!, athleteId!, monday);
+      const [, library] = await Promise.all([next.load(), templates ? Promise.resolve(templates) : listTemplates(coachId!)]);
       templates = library;
-      if (week !== monday || getRouteParam() !== athleteId) return; // cambió de semana o de pantalla mientras cargaba
-      draft = existingDraft;
-      publishedAt = lastPublished;
-      if (existingDraft) {
-        items = existingDraft.items;
-        baseIds = existingDraft.baseWorkoutIds;
-      } else {
-        items = itemsFromWorkouts(workouts, week, routines);
-        baseIds = items.map(itemId);
-      }
+      if (next.monday !== monday || getRouteParam() !== athleteId) return; // cambió de semana o de pantalla mientras cargaba
+      week = next;
+      syncFromWeek();
     } catch (err) {
       error = `No se pudo cargar la semana: ${err instanceof Error ? err.message : String(err)}`;
     }
@@ -132,24 +119,35 @@ export function renderCoachWeek(container: HTMLElement): void {
     render();
   }
 
-  /** Aplica un cambio: crea el borrador con el primero, luego lo actualiza.
+  function syncFromWeek(): void {
+    if (!week) return;
+    items = week.items;
+    draft = week.draft;
+    publishedAt = week.publishedAt;
+  }
+
+  /** Aplica un cambio y lo guarda en el borrador (ver AthleteWeek.change).
    * `aiRationale` solo se pasa cuando viene de la IA (reemplaza el anterior). */
   function change(next: PlanWeekItem[], aiRationale?: string | null): void {
-    items = next;
+    if (!week) return;
+    const current = week;
     status = 'Guardando…';
-    if (draft && aiRationale !== undefined) draft = { ...draft, aiRationale };
+    const saved = current.change(next, aiRationale);
+    syncFromWeek();
     render();
-    saving = saving.then(async () => {
-      try {
-        if (draft) await saveDraftItems(draft.id, items, aiRationale);
-        else draft = await createDraft(coachId!, athleteId!, monday, items, baseIds, aiRationale ?? null);
+    saved
+      .then(() => {
         status = 'Borrador guardado';
-      } catch (err) {
+      })
+      .catch((err) => {
         error = `No se pudo guardar: ${err instanceof Error ? err.message : String(err)}`;
         status = '';
-      }
-      render();
-    });
+      })
+      .finally(() => {
+        if (week !== current) return; // ya cambió de semana
+        syncFromWeek();
+        render();
+      });
   }
 
   function itemHtml(item: PlanWeekItem, index: number, day: string): string {
@@ -378,6 +376,7 @@ export function renderCoachWeek(container: HTMLElement): void {
   function goToWeek(next: string): void {
     monday = next;
     lastWeekByAthlete.set(athleteId!, next);
+    week = null;
     draft = null;
     void load();
   }
@@ -498,22 +497,21 @@ export function renderCoachWeek(container: HTMLElement): void {
     });
 
     container.querySelector('#week-discard')?.addEventListener('click', async () => {
-      if (!draft || !window.confirm('¿Descartar los cambios de esta semana? Se vuelve a lo que el atleta tiene agendado.')) return;
+      if (!week || !draft || !window.confirm('¿Descartar los cambios de esta semana? Se vuelve a lo que el atleta tiene agendado.')) return;
       busy = true;
       render();
       try {
-        await saving;
-        await discardDraft(draft.id);
-        draft = null;
+        await week.discard();
+        syncFromWeek();
       } catch (err) {
         error = `No se pudo descartar: ${err instanceof Error ? err.message : String(err)}`;
       }
       busy = false;
-      await load();
+      render();
     });
 
     container.querySelector('#week-publish')?.addEventListener('click', async () => {
-      if (!draft) return;
+      if (!week || !draft) return;
       const invalid = items.flatMap((i) => {
         if (!i.workout) return [];
         const r = validateWorkout(i.workout);
@@ -528,11 +526,9 @@ export function renderCoachWeek(container: HTMLElement): void {
       busy = true;
       render();
       try {
-        await saving;
-        await publishDraft(draft.id);
-        draft = null;
+        await week.publish();
+        syncFromWeek();
         busy = false;
-        await load();
         status = 'Semana publicada: el atleta ya la ve en su Plan.';
         render();
         return;
