@@ -101,7 +101,7 @@ export function renderPerfil(container: HTMLElement): void {
                 <label>Nombre<input type="text" id="profile-name" autocomplete="name" value="${appState.profile.name ?? ''}"></label>
                 <label>Fecha de nacimiento<input type="date" id="profile-birth-date" value="${appState.profile.birth_date ?? ''}"></label>
                 <label>Altura<span class="perfil-numfield-row"><input type="number" id="profile-height" min="0" step="1" value="${appState.profile.height_cm ?? ''}"><span class="live-col-label">cm</span></span></label>
-                <label>Peso<span class="perfil-numfield-row"><input type="number" id="profile-weight" min="0" step="0.1" value="${appState.profile.weight_kg ?? ''}"><span class="live-col-label">kg</span></span></label>
+                <label>Peso${appState.coach.myCoach ? ' <span class="perfil-alert-hint">· tu coach lo ve para calcular tus W/kg</span>' : ''}<span class="perfil-numfield-row"><input type="number" id="profile-weight" min="0" step="0.1" value="${appState.profile.weight_kg ?? ''}"><span class="live-col-label">kg</span></span></label>
                 <label>Sexo
                   <select id="profile-sex">
                     <option value="" ${!appState.profile.sex ? 'selected' : ''}>Prefiero no decir</option>
@@ -188,6 +188,7 @@ export function renderPerfil(container: HTMLElement): void {
                 <div><div>${escapeHtml(appState.coach.myCoach.coachName ?? 'Tu coach')}</div><div class="perfil-alert-hint">Plan: ${COACH_TIER_LABELS[appState.coach.myCoach.tier]} · desde ${new Date(appState.coach.myCoach.startedAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}</div></div>
                 <button id="coach-unlink" class="perfil-danger-link" style="margin:0">Desvincularme</button>
               </div>
+              <a href="#/review" class="perfil-coach-reports">Reportes mensuales de tu coach →</a>
               <div id="coach-unlink-result"></div>
             </div>`
                 : ''

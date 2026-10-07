@@ -7,7 +7,9 @@ import { athletePmc, sessionDateKey, summarizeAthlete, weeklyLoads } from '../..
 import type { AthleteSummary, CoachSessionRow, WeekLoad } from '../../core/coach-metrics';
 import { COACH_TIER_LABELS } from '../../core/coach-invite';
 import { COMPLETION_LABELS, NON_BIKE_KIND_LABELS, isNonBikeKind } from '../../core/session-kind';
+import { defaultReviewMonth, monthLabel } from '../../core/monthly-report';
 import { listAthleteSessions, listCoachAthletes } from '../../sync/coach-athletes';
+import { fetchCoachReview } from '../../sync/monthly-reviews';
 import type { CoachAthlete } from '../../sync/coach-athletes';
 import {
   COACH_DETAIL_DAYS,
@@ -145,7 +147,11 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
         shell('<p class="hint">Este atleta no está vinculado contigo (o se desvinculó).</p>');
         return;
       }
-      const rows = await listAthleteSessions([athleteId], sinceIso(COACH_DETAIL_DAYS));
+      const reviewMonth = defaultReviewMonth(todayKey);
+      const [rows, review] = await Promise.all([
+        listAthleteSessions([athleteId], sinceIso(COACH_DETAIL_DAYS)),
+        appState.user ? fetchCoachReview(appState.user.id, athleteId, reviewMonth).catch(() => null) : Promise.resolve(null),
+      ]);
       if (getRouteParam() !== athleteId) return;
 
       const summary = summarizeAthlete(rows, todayKey, athlete.ftpConfirmed);
@@ -167,6 +173,21 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
         ${athlete.injuries ? `<div class="panel coach-injuries"><span class="live-col-label">Lesiones o molestias que registró</span><span>${escapeHtml(athlete.injuries)}</span></div>` : ''}
 
         <section class="coach-tiles coach-tiles-5" aria-label="Indicadores">${kpisHtml(summary)}</section>
+
+        <section class="panel coach-card coach-review-card" aria-label="Revisión mensual">
+          <div class="coach-card-head">
+            <h2 class="perfil-h2" style="margin:0">Revisión mensual · ${monthLabel(reviewMonth)}</h2>
+            ${
+              review?.status === 'published'
+                ? '<span class="coach-pill coach-pill-success">Publicada</span>'
+                : review
+                  ? '<span class="coach-pill coach-pill-accent">Borrador</span>'
+                  : '<span class="coach-pill coach-pill-caution">Pendiente</span>'
+            }
+          </div>
+          <span class="hint">El reporte del mes ya está armado: carga, cumplimiento, mejores potencias y base aeróbica. Tú validas, escribes el mensaje y dejas 2 o 3 objetivos.</span>
+          <div><a href="#/coach-review/${athlete.userId}/${reviewMonth}" class="coach-btn coach-btn-primary">${review?.status === 'published' ? 'Ver reporte' : review ? 'Continuar revisión' : 'Empezar revisión · ~15 min'}</a></div>
+        </section>
 
         <section class="panel coach-card" aria-label="Fitness y fatiga">
           <div class="coach-card-head">

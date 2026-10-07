@@ -17,6 +17,8 @@ import { renderCoachAthlete } from './ui/screens/coach-athlete';
 import { renderCoachWeek } from './ui/screens/coach-week';
 import { renderCoachLibrary } from './ui/screens/coach-library';
 import { renderCoachWeeks } from './ui/screens/coach-weeks';
+import { renderCoachReview } from './ui/screens/coach-review';
+import { renderReview } from './ui/screens/review';
 import { renderPerfil } from './ui/screens/perfil';
 import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
@@ -56,6 +58,10 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['coach-week', withSidebar('coach-athletes', renderCoachWeek)],
   ['coach-library', withSidebar('coach-library', renderCoachLibrary)],
   ['coach-weeks', withSidebar('coach-weeks', renderCoachWeeks)],
+  // Revisión mensual: el coach en #/coach-review/:atleta/:mes; el atleta ve
+  // las publicadas en #/review (se llega desde Perfil).
+  ['coach-review', withSidebar('coach-athletes', renderCoachReview)],
+  ['review', withSidebar('profile', renderReview)],
 ];
 
 SCREENS_TO_GUARD.forEach(([screen, render]) => registerScreen(screen, guarded(render)));
