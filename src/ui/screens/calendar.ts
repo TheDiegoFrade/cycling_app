@@ -23,6 +23,8 @@ import { renderCoachSection } from '../coach';
 import { isSupabaseConfigured } from '../../supabase/client';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
 import { notifyPlanChange } from '../coach-notice';
+import { TEMPLATE_KIND_LABELS, routineSummary } from '../../core/coach-templates';
+import type { PlannedRoutine } from '../../core/coach-templates';
 
 const STRAVA_IMPORT_WINDOW_DAYS = 60;
 // Tope de entrenamientos (agendados + completados, combinados) que puede
@@ -190,6 +192,13 @@ export function renderCalendar(container: HTMLElement): () => void {
    * a cuáles pedirles el cover de verdad en vez de dejarlas en texto plano.
    * Arreglo por si un día tiene más de una sesión cloud-only. */
   let cloudOnlyByDate = new Map<string, CloudSessionSummary[]>();
+  /** Rutinas agendadas por el coach que ya se registraron (alguna sesión
+   * local o de la nube trae su plannedItemId) — esas ya no se muestran
+   * como pendientes, se ve la sesión registrada. */
+  let loggedRoutineIds = new Set<string>();
+  function pendingRoutines(key: string): PlannedRoutine[] {
+    return appState.plannedRoutines.filter((r) => r.scheduledDate === key && !loggedRoutineIds.has(r.id));
+  }
   /** Evita re-pedir el .fit de una fecha ya intentada (con o sin éxito) cada
    * vez que se repinta — paint() llama a loadVisibleCloudCovers en cada
    * render, incluido el que dispara la propia descarga al terminar. */
@@ -261,11 +270,15 @@ export function renderCalendar(container: HTMLElement): () => void {
       </div>`;
   }
 
-  type DayEntry = { kind: 'scheduled'; workout: Workout } | { kind: 'completed'; done: CalendarDone };
+  type DayEntry =
+    | { kind: 'scheduled'; workout: Workout }
+    | { kind: 'completed'; done: CalendarDone }
+    | { kind: 'routine'; routine: PlannedRoutine };
 
-  function dayEntries(scheduledList: Workout[], completedList: CalendarDone[]): DayEntry[] {
+  function dayEntries(scheduledList: Workout[], completedList: CalendarDone[], routines: PlannedRoutine[] = []): DayEntry[] {
     return [
       ...scheduledList.map((workout): DayEntry => ({ kind: 'scheduled', workout })),
+      ...routines.map((routine): DayEntry => ({ kind: 'routine', routine })),
       ...completedList.map((done): DayEntry => ({ kind: 'completed', done })),
     ];
   }
@@ -276,13 +289,14 @@ export function renderCalendar(container: HTMLElement): () => void {
    * que mutar. */
   function dragAttrs(entry: DayEntry): string {
     if (entry.kind === 'scheduled') return `draggable="true" data-drag-kind="workout" data-drag-id="${entry.workout.id}"`;
+    if (entry.kind === 'routine') return ''; // la mueve el coach desde su editor
     const c = entry.done;
     if (!c.sessionId || c.isStrava) return '';
     return `draggable="true" data-drag-kind="session" data-drag-id="${c.sessionId}"`;
   }
 
   function weekCellHtml(d: Date, key: string, isToday: boolean, scheduledList: Workout[], completedList: CalendarDone[]): string {
-    const entries = dayEntries(scheduledList, completedList);
+    const entries = dayEntries(scheduledList, completedList, pendingRoutines(key));
     const anyCompleted = completedList.length > 0;
     const entryHtml = (entry: DayEntry): string => {
       if (entry.kind === 'scheduled') {
@@ -293,6 +307,17 @@ export function renderCalendar(container: HTMLElement): () => void {
             <button class="plan-day-cover" data-workout-id="${w.id}" title="${escapeHtml(w.name)} — Ver detalle">${renderWorkoutCover(w.intervals, 'sm')}</button>
             <div class="plan-day-name">${escapeHtml(w.name)}</div>
             <div class="live-col-label">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS</div>
+          </div>`;
+      }
+      if (entry.kind === 'routine') {
+        const r = entry.routine;
+        return `
+          <div class="plan-day-entry">
+            <button class="plan-day-log plan-day-routine kind-${r.kind}" data-routine-id="${r.id}" title="Ver rutina y registrar">
+              <span class="plan-day-name">${escapeHtml(r.name)}</span>
+              <span class="live-col-label">${TEMPLATE_KIND_LABELS[r.kind]} · ${escapeHtml(routineSummary(r.payload))}</span>
+              <span class="plan-routine-cta">Registrar</span>
+            </button>
           </div>`;
       }
       const c = entry.done;
@@ -326,12 +351,15 @@ export function renderCalendar(container: HTMLElement): () => void {
   }
 
   function monthCellHtml(d: Date, key: string, isToday: boolean, inCurrentMonth: boolean, scheduledList: Workout[], completedList: CalendarDone[]): string {
-    const entries = dayEntries(scheduledList, completedList);
+    const entries = dayEntries(scheduledList, completedList, pendingRoutines(key));
     const anyCompleted = completedList.length > 0;
     const entryHtml = (entry: DayEntry): string => {
       if (entry.kind === 'scheduled') {
         const w = entry.workout;
         return `<button class="plan-month-cover" data-workout-id="${w.id}" ${dragAttrs(entry)} title="${escapeHtml(w.name)} — Ver detalle">${renderWorkoutCover(w.intervals, 'sm')}</button>`;
+      }
+      if (entry.kind === 'routine') {
+        return `<button class="plan-month-done-label plan-month-log kind-${entry.routine.kind}" data-routine-id="${entry.routine.id}" title="${escapeHtml(entry.routine.name)} — registrar">${escapeHtml(entry.routine.name)}</button>`;
       }
       const c = entry.done;
       if (c.nonBikeKind) {
@@ -727,6 +755,9 @@ export function renderCalendar(container: HTMLElement): () => void {
     container.querySelectorAll<HTMLButtonElement>('[data-log-id]').forEach((btn) => {
       btn.addEventListener('click', () => navigate('log', btn.dataset.logId!));
     });
+    container.querySelectorAll<HTMLButtonElement>('[data-routine-id]').forEach((btn) => {
+      btn.addEventListener('click', () => navigate('log', `r-${btn.dataset.routineId!}`));
+    });
 
     container.querySelectorAll<HTMLButtonElement>('[data-create-date]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -811,6 +842,9 @@ export function renderCalendar(container: HTMLElement): () => void {
     // igual para que coincidan.
     completedByDate = new Map();
     sessionsById = new Map();
+    loggedRoutineIds = new Set(
+      [...sessions.map((s) => s.plannedItemId), ...appState.cloudSessions.map((s) => s.plannedItemId)].filter((id): id is string => Boolean(id)),
+    );
     sessions.forEach((s) => {
       if (!wasTrained(s)) return; // "No la hice": se ve en Historial, no marca el día como hecho
       const key = toDateKey(new Date(s.startedAt));

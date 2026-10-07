@@ -12,6 +12,8 @@ import { isSupabaseConfigured, supabase } from '../supabase/client';
 import { listCloudSessions, pushSessionToCloud } from '../sync/cloud-sync';
 import type { CloudSessionSummary } from '../sync/cloud-sync';
 import { EMPTY_COACH_CONTEXT, fetchCoachContext } from '../sync/coach-link';
+import { fetchPlannedRoutines } from '../sync/plan-weeks';
+import type { PlannedRoutine } from '../core/coach-templates';
 import type { CoachContext } from '../sync/coach-link';
 import { fetchCloudProfile, pushProfileToCloud } from '../sync/profile-sync';
 import { fetchCloudSettings, pushSettingsToCloud } from '../sync/settings-sync';
@@ -61,6 +63,9 @@ class AppState {
   cloudSessions: CloudSessionSummary[] = [];
   /** ¿Es coach? ¿Quién es su coach? (vista del coach, ver sync/coach-link). */
   coach: CoachContext = EMPTY_COACH_CONTEXT;
+  /** Rutinas de fuerza/movilidad que le agendó su coach (planned_routines).
+   * Solo viven en la nube: sin conexión simplemente no se muestran. */
+  plannedRoutines: PlannedRoutine[] = [];
   private readonly authListeners = new Set<() => void>();
 
   get selectedWorkout(): Workout | null {
@@ -118,6 +123,7 @@ class AppState {
         } else {
           this.cloudSessions = [];
           this.coach = EMPTY_COACH_CONTEXT;
+          this.plannedRoutines = [];
         }
         this.setUser(user);
       });
@@ -131,15 +137,21 @@ class AppState {
    * que había local una sola vez, cubriendo tanto usuarios nuevos como la
    * migración de quien ya usaba la app solo en este navegador. */
   private async syncFromCloud(userId: string): Promise<void> {
-    const [cloudSessions, cloudProfile, cloudSettings, cloudWorkouts, coach] = await Promise.all([
+    const [cloudSessions, cloudProfile, cloudSettings, cloudWorkouts, coach, plannedRoutines] = await Promise.all([
       listCloudSessions(userId),
       fetchCloudProfile(userId),
       fetchCloudSettings(userId),
       fetchCloudWorkouts(userId),
       fetchCoachContext(userId),
+      // best-effort: si la tabla no existe todavía o falla, sin rutinas
+      fetchPlannedRoutines(userId, '2000-01-01', '2999-12-31').catch((err) => {
+        console.error('[state] no se pudieron leer las rutinas agendadas', err);
+        return [] as PlannedRoutine[];
+      }),
     ]);
     this.cloudSessions = cloudSessions;
     this.coach = coach;
+    this.plannedRoutines = plannedRoutines;
 
     if (cloudProfile) {
       this.profile = cloudProfile;
@@ -211,6 +223,7 @@ class AppState {
     this.workouts = [];
     this.cloudSessions = [];
     this.coach = EMPTY_COACH_CONTEXT;
+    this.plannedRoutines = [];
     this.setUser(null);
   }
 

@@ -388,6 +388,7 @@ function toSyntheticSession(s: CloudSessionSummary, samples: SessionRecord['samp
     source: s.source,
     kind: s.kind ?? undefined,
     completion: s.completion ?? undefined,
+    plannedItemId: s.plannedItemId ?? undefined,
   };
 }
 

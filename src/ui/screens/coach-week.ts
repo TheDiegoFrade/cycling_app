@@ -6,12 +6,15 @@
 // días futuros).
 import { estimateWorkout } from '../../core/workout-estimate';
 import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
-import { editedItem, itemsFromWorkouts, localDateKey, scaleIntensity, weekDays, weekStartOf, addDaysKey, workoutFromTemplate } from '../../core/plan-week';
+import { editedItem, itemDate, itemId, itemName, itemsFromWorkouts, localDateKey, movedItem, scaleIntensity, weekDays, weekStartOf, addDaysKey, workoutFromTemplate } from '../../core/plan-week';
+import { TEMPLATE_KIND_LABELS, routineFromTemplate, routineSummary, workoutFromBikeTemplate } from '../../core/coach-templates';
+import type { SessionTemplate } from '../../core/coach-templates';
+import { listTemplates } from '../../sync/session-templates';
 import type { PlanWeekItem } from '../../core/plan-week';
 import { validateWorkout } from '../../core/validator';
 import { listCoachAthletes } from '../../sync/coach-athletes';
 import type { CoachAthlete } from '../../sync/coach-athletes';
-import { createDraft, discardDraft, fetchAthleteWeekWorkouts, fetchDraft, fetchLastPublishedAt, publishDraft, saveDraftItems } from '../../sync/plan-weeks';
+import { createDraft, discardDraft, fetchAthleteWeekWorkouts, fetchDraft, fetchLastPublishedAt, fetchPlannedRoutines, publishDraft, saveDraftItems } from '../../sync/plan-weeks';
 import type { PlanWeekDraft } from '../../sync/plan-weeks';
 import { athleteName } from '../coach-ui';
 import { getRouteParam } from '../router';
@@ -71,6 +74,9 @@ export function renderCoachWeek(container: HTMLElement): void {
   let status = '';
   let error = '';
   let busy = false;
+  /** Biblioteca del coach (paso 5); null mientras carga. */
+  let templates: SessionTemplate[] | null = null;
+  let addTab: 'library' | 'torq' = 'library';
   /** Cola de guardados: cada cambio espera al anterior, así nunca se pisan. */
   let saving: Promise<void> = Promise.resolve();
 
@@ -91,11 +97,14 @@ export function renderCoachWeek(container: HTMLElement): void {
         }
       }
       const week = monday;
-      const [workouts, existingDraft, lastPublished] = await Promise.all([
+      const [workouts, routines, existingDraft, lastPublished, library] = await Promise.all([
         fetchAthleteWeekWorkouts(athleteId!, week),
+        fetchPlannedRoutines(athleteId!, week, addDaysKey(week, 6)),
         fetchDraft(coachId!, athleteId!, week),
         fetchLastPublishedAt(athleteId!, week),
+        templates ? Promise.resolve(templates) : listTemplates(coachId!),
       ]);
+      templates = library;
       if (week !== monday || getRouteParam() !== athleteId) return; // cambió de semana o de pantalla mientras cargaba
       draft = existingDraft;
       publishedAt = lastPublished;
@@ -103,8 +112,8 @@ export function renderCoachWeek(container: HTMLElement): void {
         items = existingDraft.items;
         baseIds = existingDraft.baseWorkoutIds;
       } else {
-        items = itemsFromWorkouts(workouts, week);
-        baseIds = items.map((i) => i.workout.id);
+        items = itemsFromWorkouts(workouts, week, routines);
+        baseIds = items.map(itemId);
       }
     } catch (err) {
       error = `No se pudo cargar la semana: ${err instanceof Error ? err.message : String(err)}`;
@@ -132,27 +141,69 @@ export function renderCoachWeek(container: HTMLElement): void {
   }
 
   function itemHtml(item: PlanWeekItem, index: number, day: string): string {
-    const w = item.workout;
-    const est = estimateWorkout(w.intervals, ftp());
+    const mine = item.origin === 'coach' || item.edited;
     const tag = item.origin === 'coach' ? 'Agregado por ti' : item.edited ? 'Editado por ti' : 'Del atleta';
     const moveOptions = weekDays(monday)
       .map((d, i) => `<option value="${d}"${d === day ? ' selected' : ''}>${DAY_NAMES[i]} ${fmtDayNum(d)}</option>`)
       .join('');
-    return `
-      <div class="week-item${item.origin === 'coach' || item.edited ? ' week-item-coach' : ''}">
-        ${renderWorkoutCover(w.intervals, 'sm')}
-        <div class="week-item-name">${escapeHtml(w.name)}</div>
-        <div class="hint">${fmtHM(est.durationS)} · ${est.tss ?? '—'} TSS</div>
-        <span class="coach-pill${item.origin === 'coach' || item.edited ? ' coach-pill-accent' : ''}">${tag}</span>
+    const actions = `
         <div class="week-item-actions">
           <label class="week-move">Mover a<select data-move="${index}" aria-label="Mover a otro día">${moveOptions}</select></label>
           <div class="week-item-buttons">
-            <button type="button" data-intensity="${index}" data-delta="-${INTENSITY_STEP}" title="Bajar intensidad ${INTENSITY_STEP}%">−${INTENSITY_STEP}%</button>
-            <button type="button" data-intensity="${index}" data-delta="${INTENSITY_STEP}" title="Subir intensidad ${INTENSITY_STEP}%">+${INTENSITY_STEP}%</button>
+            ${
+              item.workout
+                ? `<button type="button" data-intensity="${index}" data-delta="-${INTENSITY_STEP}" title="Bajar intensidad ${INTENSITY_STEP}%">−${INTENSITY_STEP}%</button>
+            <button type="button" data-intensity="${index}" data-delta="${INTENSITY_STEP}" title="Subir intensidad ${INTENSITY_STEP}%">+${INTENSITY_STEP}%</button>`
+                : ''
+            }
             <button type="button" data-remove="${index}" class="week-remove">Quitar</button>
           </div>
-        </div>
+        </div>`;
+    const pill = `<span class="coach-pill${mine ? ' coach-pill-accent' : ''}">${tag}</span>`;
+    if (item.routine) {
+      const r = item.routine;
+      return `
+      <div class="week-item week-item-routine kind-${r.kind}${mine ? ' week-item-coach' : ''}">
+        <div class="week-routine-kind">${TEMPLATE_KIND_LABELS[r.kind]}</div>
+        <div class="week-item-name">${escapeHtml(r.name)}</div>
+        <div class="hint">${escapeHtml(routineSummary(r.payload))}</div>
+        ${pill}
+        ${actions}
       </div>`;
+    }
+    const w = item.workout;
+    const est = estimateWorkout(w.intervals, ftp());
+    return `
+      <div class="week-item${mine ? ' week-item-coach' : ''}">
+        ${renderWorkoutCover(w.intervals, 'sm')}
+        <div class="week-item-name">${escapeHtml(w.name)}</div>
+        <div class="hint">${fmtHM(est.durationS)} · ${est.tss ?? '—'} TSS</div>
+        ${pill}
+        ${actions}
+      </div>`;
+  }
+
+  function libraryHtml(): string {
+    if (templates === null) return '<p class="hint">Cargando tu biblioteca…</p>';
+    if (templates.length === 0)
+      return '<p class="hint">Todavía no tienes plantillas. Créalas o impórtalas en <a href="#/coach-library">Biblioteca</a>, o usa las plantillas de Torq.</p>';
+    return `<div class="week-library">${templates
+      .map(
+        (t) => `
+        <button type="button" class="week-library-item kind-${t.kind}" data-add-template="${t.id}">
+          <span class="week-routine-kind">${TEMPLATE_KIND_LABELS[t.kind]}</span>
+          <span class="week-item-name">${escapeHtml(t.name)}</span>
+          <span class="hint">${
+            t.kind === 'bike'
+              ? (() => {
+                  const est = estimateWorkout(t.payload.intervals, ftp());
+                  return `${fmtHM(est.durationS)} · ${est.tss ?? '—'} TSS`;
+                })()
+              : escapeHtml(routineSummary(t.payload))
+          }</span>
+        </button>`,
+      )
+      .join('')}</div>`;
   }
 
   function addPanelHtml(): string {
@@ -165,12 +216,21 @@ export function renderCoachWeek(container: HTMLElement): void {
           <h2 class="perfil-h2" style="margin:0">Agregar el ${DAY_NAMES[dayIndex]} ${fmtDayNum(addDay)}</h2>
           <button type="button" id="week-add-close">Cerrar</button>
         </div>
+        <div class="coach-filters" role="tablist">
+          <button type="button" role="tab" class="log-choice${addTab === 'library' ? ' on' : ''}" aria-selected="${addTab === 'library'}" data-add-tab="library">Mi biblioteca</button>
+          <button type="button" role="tab" class="log-choice${addTab === 'torq' ? ' on' : ''}" aria-selected="${addTab === 'torq'}" data-add-tab="torq">Plantillas de Torq</button>
+        </div>
+        ${
+          addTab === 'library'
+            ? libraryHtml()
+            : `
         <div class="log-row">
           <label>Plantilla<select id="week-add-template">${WORKOUT_TEMPLATES.map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('')}</select></label>
           <label>Minutos<input type="number" id="week-add-minutes" min="${first.minMinutes}" max="${first.maxMinutes}" value="${first.defaultMinutes}"></label>
         </div>
         <p class="hint" id="week-add-desc">${escapeHtml(first.description)}</p>
-        <div class="row-actions" style="margin:0"><button type="button" class="primary" id="week-add-confirm">Agregar</button></div>
+        <div class="row-actions" style="margin:0"><button type="button" class="primary" id="week-add-confirm">Agregar</button></div>`
+        }
       </section>`;
   }
 
@@ -180,7 +240,8 @@ export function renderCoachWeek(container: HTMLElement): void {
       return;
     }
     const days = weekDays(monday);
-    const ests = items.map((i) => estimateWorkout(i.workout.intervals, ftp()));
+    const ests = items.flatMap((i) => (i.workout ? [estimateWorkout(i.workout.intervals, ftp())] : []));
+    const routineCount = items.length - ests.length;
     const totalTss = ests.reduce((s, e) => s + (e.tss ?? 0), 0);
     const totalS = ests.reduce((s, e) => s + e.durationS, 0);
     const pill = draft
@@ -191,7 +252,7 @@ export function renderCoachWeek(container: HTMLElement): void {
 
     const dayCols = days
       .map((day, i) => {
-        const dayItems = items.map((item, index) => ({ item, index })).filter((x) => x.item.workout.scheduledDate === day);
+        const dayItems = items.map((item, index) => ({ item, index })).filter((x) => itemDate(x.item) === day);
         return `
           <div class="week-day${day === todayKey ? ' week-day-today' : ''}${day < todayKey ? ' week-day-past' : ''}">
             <div class="week-day-head"><span class="num">${DAY_NAMES[i]}</span><span class="hint">${fmtDayNum(day)}${day === todayKey ? ' · hoy' : ''}</span></div>
@@ -223,8 +284,8 @@ export function renderCoachWeek(container: HTMLElement): void {
           : `
       <section class="coach-tiles" aria-label="Totales de la semana">
         <div class="coach-tile"><span class="live-col-label">TSS de bici planeado</span><span class="coach-tile-value num">${Math.round(totalTss)}</span><span class="hint">Con el FTP del atleta</span></div>
-        <div class="coach-tile"><span class="live-col-label">Horas</span><span class="coach-tile-value num">${(totalS / 3600).toFixed(1)}</span><span class="hint">Planeadas</span></div>
-        <div class="coach-tile"><span class="live-col-label">Sesiones</span><span class="coach-tile-value num">${items.length}</span><span class="hint">${items.filter((i) => i.origin === 'coach' || i.edited).length} tuyas o editadas</span></div>
+        <div class="coach-tile"><span class="live-col-label">Horas de bici</span><span class="coach-tile-value num">${(totalS / 3600).toFixed(1)}</span><span class="hint">Planeadas</span></div>
+        <div class="coach-tile"><span class="live-col-label">Sesiones</span><span class="coach-tile-value num">${ests.length}${routineCount ? ` + ${routineCount}` : ''}</span><span class="hint">Bici${routineCount ? ' + fuerza/movilidad' : ''} · ${items.filter((i) => i.origin === 'coach' || i.edited).length} tuyas o editadas</span></div>
       </section>
       <div class="week-grid-wrap"><div class="week-grid">${dayCols}</div></div>
       <p class="hint" id="week-status">${escapeHtml(status || (draft ? 'Tus cambios se guardan solos en el borrador. Publica cuando esté lista para que el atleta la vea en su Plan.' : 'Cualquier cambio crea un borrador; el atleta no lo ve hasta que publiques.'))}</p>
@@ -250,22 +311,24 @@ export function renderCoachWeek(container: HTMLElement): void {
       sel.addEventListener('change', () => {
         const i = Number(sel.dataset.move);
         const next = [...items];
-        next[i] = editedItem(next[i], { ...next[i].workout, scheduledDate: sel.value });
+        next[i] = movedItem(next[i], sel.value);
         change(next);
       });
     });
     container.querySelectorAll<HTMLButtonElement>('[data-intensity]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const i = Number(btn.dataset.intensity);
+        const current = items[i].workout;
+        if (!current) return;
         const next = [...items];
-        next[i] = editedItem(next[i], scaleIntensity(next[i].workout, Number(btn.dataset.delta)));
+        next[i] = editedItem(next[i], scaleIntensity(current, Number(btn.dataset.delta)));
         change(next);
       });
     });
     container.querySelectorAll<HTMLButtonElement>('[data-remove]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const i = Number(btn.dataset.remove);
-        if (!window.confirm(`¿Quitar "${items[i].workout.name}" de la semana?`)) return;
+        if (!window.confirm(`¿Quitar "${itemName(items[i])}" de la semana?`)) return;
         change(items.filter((_, j) => j !== i));
       });
     });
@@ -280,6 +343,24 @@ export function renderCoachWeek(container: HTMLElement): void {
     container.querySelector('#week-add-close')?.addEventListener('click', () => {
       addDay = null;
       render();
+    });
+    container.querySelectorAll<HTMLButtonElement>('[data-add-tab]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        addTab = btn.dataset.addTab as typeof addTab;
+        render();
+      });
+    });
+    container.querySelectorAll<HTMLButtonElement>('[data-add-template]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const t = templates?.find((x) => x.id === btn.dataset.addTemplate);
+        if (!t || !addDay) return;
+        const day = addDay;
+        addDay = null;
+        // copia de la plantilla con id nuevo: editarla después no cambia esto
+        const item: PlanWeekItem =
+          t.kind === 'bike' ? { workout: workoutFromBikeTemplate(t, day), origin: 'coach', edited: true } : { routine: routineFromTemplate(t, day), origin: 'coach', edited: true };
+        change([...items, item]);
+      });
     });
     const templateSel = container.querySelector<HTMLSelectElement>('#week-add-template');
     const minutesInput = container.querySelector<HTMLInputElement>('#week-add-minutes');
@@ -317,6 +398,7 @@ export function renderCoachWeek(container: HTMLElement): void {
     container.querySelector('#week-publish')?.addEventListener('click', async () => {
       if (!draft) return;
       const invalid = items.flatMap((i) => {
+        if (!i.workout) return [];
         const r = validateWorkout(i.workout);
         return r.valid ? [] : [`${i.workout.name}: ${r.errors.join(', ')}`];
       });

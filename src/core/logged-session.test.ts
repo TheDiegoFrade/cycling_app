@@ -88,3 +88,13 @@ describe('buildLoggedSession', () => {
     expect(edited.workoutName).toBe('Movilidad');
   });
 });
+
+describe('rutina agendada', () => {
+  it('guarda plannedItemId y lo conserva al editar', () => {
+    const s = buildLoggedSession(form({ plannedItemId: 'r1' }), null, 250, NOW);
+    expect(s.plannedItemId).toBe('r1');
+    const edited = buildLoggedSession(form({ minutes: 30 }), s, 250, NOW);
+    expect(edited.plannedItemId).toBe('r1');
+    expect(buildLoggedSession(form(), null, 250, NOW).plannedItemId).toBeUndefined();
+  });
+});

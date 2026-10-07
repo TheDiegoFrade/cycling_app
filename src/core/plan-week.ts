@@ -1,15 +1,35 @@
 // Lógica pura del editor de la semana de un atleta (vista del coach, paso
 // 6a — ver supabase/schema.sql, plan_weeks). Sin red ni DOM.
+import type { PlannedRoutine } from './coach-templates';
 import type { Interval, Workout } from './types';
 import type { WorkoutTemplate } from './workout-templates';
 
-/** Un entrenamiento del borrador. `origin` dice de dónde salió (lo que el
- * atleta ya tenía agendado, o algo que agregó el coach); `edited` marca lo
- * que el coach tocó a mano — la IA (paso 6b) no debe pisarlo. */
-export interface PlanWeekItem {
-  workout: Workout;
-  origin: 'athlete' | 'coach';
-  edited: boolean;
+/** Un elemento del borrador: un entrenamiento de bici (`workout`) o una
+ * rutina de fuerza/movilidad (`routine`, paso 5) — exactamente uno de los
+ * dos. `origin` dice de dónde salió (lo que el atleta ya tenía agendado, o
+ * algo que agregó el coach); `edited` marca lo que el coach tocó a mano —
+ * la IA (paso 6b) no debe pisarlo. */
+export type PlanWeekItem =
+  | { workout: Workout; routine?: undefined; origin: 'athlete' | 'coach'; edited: boolean }
+  | { routine: PlannedRoutine; workout?: undefined; origin: 'athlete' | 'coach'; edited: boolean };
+
+export function itemDate(item: PlanWeekItem): string | undefined {
+  return item.workout ? item.workout.scheduledDate : item.routine.scheduledDate;
+}
+
+export function itemId(item: PlanWeekItem): string {
+  return item.workout ? item.workout.id : item.routine.id;
+}
+
+export function itemName(item: PlanWeekItem): string {
+  return item.workout ? item.workout.name : item.routine.name;
+}
+
+/** El mismo item movido a otro día (marcado como editado). */
+export function movedItem(item: PlanWeekItem, dateKey: string): PlanWeekItem {
+  return item.workout
+    ? { ...item, workout: { ...item.workout, scheduledDate: dateKey }, edited: true }
+    : { ...item, routine: { ...item.routine, scheduledDate: dateKey }, edited: true };
 }
 
 /** Límites del ajuste de intensidad, en % de FTP de cada bloque. */
@@ -57,14 +77,15 @@ export function isoWeekLabel(mondayKey: string): string {
   return `${thursday.getFullYear()}-W${pad(week)}`;
 }
 
-/** Lo que el atleta ya tiene agendado esa semana, como punto de partida
- * del borrador (ordenado por día). */
-export function itemsFromWorkouts(workouts: readonly Workout[], mondayKey: string): PlanWeekItem[] {
+/** Lo que el atleta ya tiene agendado esa semana (entrenamientos y
+ * rutinas), como punto de partida del borrador (ordenado por día). */
+export function itemsFromWorkouts(workouts: readonly Workout[], mondayKey: string, routines: readonly PlannedRoutine[] = []): PlanWeekItem[] {
   const days = new Set(weekDays(mondayKey));
-  return workouts
-    .filter((w) => w.scheduledDate && days.has(w.scheduledDate))
-    .sort((a, b) => (a.scheduledDate ?? '').localeCompare(b.scheduledDate ?? ''))
-    .map((workout) => ({ workout, origin: 'athlete', edited: false }));
+  const items: PlanWeekItem[] = [
+    ...workouts.filter((w) => w.scheduledDate && days.has(w.scheduledDate)).map((workout): PlanWeekItem => ({ workout, origin: 'athlete', edited: false })),
+    ...routines.filter((r) => days.has(r.scheduledDate)).map((routine): PlanWeekItem => ({ routine, origin: 'athlete', edited: false })),
+  ];
+  return items.sort((a, b) => (itemDate(a) ?? '').localeCompare(itemDate(b) ?? ''));
 }
 
 /** Entrenamiento nuevo desde una plantilla de Torq, agendado ese día. */
@@ -98,7 +119,7 @@ export function scaleIntensity(workout: Workout, deltaPct: number): Workout {
   return { ...workout, intervals };
 }
 
-/** Marca un item como editado por el coach, con el workout ya cambiado. */
+/** Marca un item de bici como editado por el coach, con el workout ya cambiado. */
 export function editedItem(item: PlanWeekItem, workout: Workout): PlanWeekItem {
-  return { ...item, workout, edited: true };
+  return { workout, origin: item.origin, edited: true };
 }

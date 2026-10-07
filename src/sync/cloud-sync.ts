@@ -47,6 +47,8 @@ export interface CloudSessionSummary {
   completion: SessionCompletion | null;
   /** RPE × minutos, solo sesiones que no son de bici. */
   srpeLoad: number | null;
+  /** Elemento planeado que registra (planned_routines.id), si aplica. */
+  plannedItemId: string | null;
 }
 
 /** Duración de reloj (fin - inicio) en minutos — la que usan las sesiones
@@ -112,6 +114,7 @@ export async function pushSessionToCloud(session: SessionRecord, profile: Profil
       source: sessionSourceOf(session),
       kind: session.kind ?? null,
       completion: session.completion ?? null,
+      planned_item_id: session.plannedItemId ?? null,
       srpe_load: srpeLoad(session.kind, session.completion, session.rpe, wallClockMinutes(session.startedAt, session.finishedAt)),
       // picos de potencia (mejor promedio sostenido) — guardados aparte del
       // resto para poder calcular récords históricos de TODA la cuenta sin
@@ -146,7 +149,7 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
   const { data, error } = await supabase
     .from('sessions')
     .select(
-      'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id, fit_path, workout_id, source, kind, completion, srpe_load',
+      'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id, fit_path, workout_id, source, kind, completion, srpe_load, planned_item_id',
     )
     .eq('user_id', userId)
     .order('started_at', { ascending: false });
@@ -181,6 +184,7 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
     kind: row.kind,
     completion: row.completion,
     srpeLoad: row.srpe_load,
+    plannedItemId: row.planned_item_id,
   }));
 }
 

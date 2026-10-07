@@ -61,7 +61,7 @@ Una sola función decide todo: `is_coach_of(athlete_id)` es verdadera solo si ex
 | `.fit` en Storage | Lee y sube lo suyo | Lee a través de una Edge Function que aplica la misma regla de Strava |
 | `profiles` | Lee y edita lo suyo | Lee una vista con solo campos de entrenamiento (nombre, FTP, pulso máximo, disciplina, meta, lesiones); no ve fecha de nacimiento ni correo |
 | `plan_weeks` | Lee solo semanas `published` | Lee todas, edita borradores y publica |
-| `session_templates` | Lee las plantillas que aparecen en sus semanas publicadas | Crea y edita las suyas |
+| `session_templates` | No las lee: al publicar, el contenido de la plantilla se copia a su semana (`workouts` o `planned_routines`) | Crea y edita las suyas |
 | `coach_notes` | No las ve | Lee y escribe las suyas |
 | `coach_invites` | Consume un link vía Edge Function | Crea y cancela los suyos |
 

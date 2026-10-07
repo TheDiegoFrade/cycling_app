@@ -37,7 +37,7 @@ describe('fechas de la semana', () => {
 describe('itemsFromWorkouts', () => {
   it('toma solo lo agendado en esa semana, ordenado por día', () => {
     const items = itemsFromWorkouts([workout('b', '2026-10-09'), workout('a', '2026-10-06'), workout('x', '2026-10-12'), workout('lib')], '2026-10-05');
-    expect(items.map((i) => i.workout.id)).toEqual(['a', 'b']);
+    expect(items.map((i) => i.workout?.id)).toEqual(['a', 'b']);
     expect(items.every((i) => i.origin === 'athlete' && !i.edited)).toBe(true);
   });
 });
@@ -65,5 +65,19 @@ describe('scaleIntensity', () => {
 
     const extreme = scaleIntensity({ ...workout('a'), intervals: [{ name: 'x', type: 'steady', duration_s: 60, power_pct: 31 }] }, -50);
     expect(extreme.intervals[0].power_pct).toBe(30);
+  });
+});
+
+describe('rutinas en el borrador', () => {
+  it('itemsFromWorkouts junta entrenamientos y rutinas de la semana, por día', async () => {
+    const { itemsFromWorkouts: build, itemDate, itemId, movedItem } = await import('./plan-week');
+    const routine = { id: 'r1', kind: 'strength' as const, name: 'Fuerza', payload: { exercises: [{ name: 'a', dose: '1' }] }, scheduledDate: '2026-10-05' };
+    const outside = { ...routine, id: 'r2', scheduledDate: '2026-10-20' };
+    const items = build([workout('w', '2026-10-07')], '2026-10-05', [routine, outside]);
+    expect(items.map(itemId)).toEqual(['r1', 'w']);
+    const moved = movedItem(items[0], '2026-10-09');
+    expect(itemDate(moved)).toBe('2026-10-09');
+    expect(moved.edited).toBe(true);
+    expect(routine.scheduledDate).toBe('2026-10-05');
   });
 });
