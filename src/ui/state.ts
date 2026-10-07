@@ -11,6 +11,8 @@ import { ensureLocalDataOwnership } from '../storage/local-owner';
 import { isSupabaseConfigured, supabase } from '../supabase/client';
 import { listCloudSessions, pushSessionToCloud } from '../sync/cloud-sync';
 import type { CloudSessionSummary } from '../sync/cloud-sync';
+import { EMPTY_COACH_CONTEXT, fetchCoachContext } from '../sync/coach-link';
+import type { CoachContext } from '../sync/coach-link';
 import { fetchCloudProfile, pushProfileToCloud } from '../sync/profile-sync';
 import { fetchCloudSettings, pushSettingsToCloud } from '../sync/settings-sync';
 import { fetchCloudWorkouts, pushWorkoutToCloud } from '../sync/workout-sync';
@@ -57,6 +59,8 @@ class AppState {
    * para las locales (con samples completos) y sync/cloud-sync para el porqué
    * de la separación. */
   cloudSessions: CloudSessionSummary[] = [];
+  /** ¿Es coach? ¿Quién es su coach? (vista del coach, ver sync/coach-link). */
+  coach: CoachContext = EMPTY_COACH_CONTEXT;
   private readonly authListeners = new Set<() => void>();
 
   get selectedWorkout(): Workout | null {
@@ -113,6 +117,7 @@ class AppState {
           await this.syncFromCloud(user.id);
         } else {
           this.cloudSessions = [];
+          this.coach = EMPTY_COACH_CONTEXT;
         }
         this.setUser(user);
       });
@@ -126,13 +131,15 @@ class AppState {
    * que había local una sola vez, cubriendo tanto usuarios nuevos como la
    * migración de quien ya usaba la app solo en este navegador. */
   private async syncFromCloud(userId: string): Promise<void> {
-    const [cloudSessions, cloudProfile, cloudSettings, cloudWorkouts] = await Promise.all([
+    const [cloudSessions, cloudProfile, cloudSettings, cloudWorkouts, coach] = await Promise.all([
       listCloudSessions(userId),
       fetchCloudProfile(userId),
       fetchCloudSettings(userId),
       fetchCloudWorkouts(userId),
+      fetchCoachContext(userId),
     ]);
     this.cloudSessions = cloudSessions;
+    this.coach = coach;
 
     if (cloudProfile) {
       this.profile = cloudProfile;
@@ -203,6 +210,7 @@ class AppState {
     this.settings = DEFAULT_SETTINGS;
     this.workouts = [];
     this.cloudSessions = [];
+    this.coach = EMPTY_COACH_CONTEXT;
     this.setUser(null);
   }
 

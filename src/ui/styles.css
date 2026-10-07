@@ -2799,3 +2799,129 @@ a {
   letter-spacing: 0.04em;
   color: var(--kind-color);
 }
+
+/* ---------- Vista del coach: invitaciones (coach-invite.ts, accept-invite.ts) ---------- */
+.sidebar-coach-card {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+.sidebar-coach-card + .sidebar-sensors {
+  margin-top: 12px;
+}
+.invite-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.invite-card {
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px 24px;
+  border-radius: var(--radius-lg);
+}
+.invite-card select {
+  max-width: 360px;
+  min-height: 44px;
+}
+.invite-link-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}
+.invite-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.invite-link-row input {
+  flex: 1 1 240px;
+  min-width: 0;
+  min-height: 44px;
+  font-size: 13px;
+}
+.invite-pending-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+.screen .invite-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.05;
+}
+.invite-pill {
+  align-self: flex-start;
+  padding: 4px 10px;
+  border: 1px solid var(--border-control);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+.invite-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.invite-columns > div {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.invite-li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-soft);
+}
+.invite-li svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.invite-note {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+.invite-note strong {
+  color: var(--text);
+  font-weight: 500;
+}
+.invite-done {
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+}
+
+/* .hint fuera de un <p> (Registrar, invitaciones): mismo gris que
+   .screen p.hint, sin su margen de párrafo. */
+.log-card .hint,
+.invite-card .hint {
+  color: var(--text-muted);
+  font-size: 13px;
+}
