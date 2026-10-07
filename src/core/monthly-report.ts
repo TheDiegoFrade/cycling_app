@@ -522,3 +522,74 @@ export function cleanGoals(list: readonly ReviewGoal[]): ReviewGoal[] {
     .filter((g) => g.title || g.detail)
     .slice(0, MAX_GOALS);
 }
+
+// ---------- Contexto para la IA (paso 7b) ----------
+
+export interface ReviewAiAthlete {
+  name: string | null;
+  ftp: number | null;
+  weightKg: number | null;
+  discipline: string | null;
+  injuries: string | null;
+  goal: string | null;
+}
+
+const round1 = (n: number) => Math.round(n * 10) / 10;
+const r1OrNull = (n: number | null) => (n === null ? null : round1(n));
+
+/** Lo que se le manda a la IA para redactar la revisión: solo números ya
+ * calculados (sin Strava, sin sesiones crudas) y redondeados. Mismo shape
+ * que MonthlyReviewInputContextSchema en supabase/functions/coach-chat. */
+export function reviewAiContext(r: MonthlyReport, athleteId: string, athlete: ReviewAiAthlete, coachDraft: string) {
+  const k = r.kpis;
+  return {
+    athleteId,
+    monthKey: r.monthKey,
+    inProgress: r.inProgress,
+    athlete: {
+      name: athlete.name,
+      ftp: athlete.ftp && athlete.ftp > 0 ? athlete.ftp : null,
+      weightKg: athlete.weightKg && athlete.weightKg > 0 ? athlete.weightKg : null,
+      discipline: athlete.discipline,
+      injuries: athlete.injuries?.slice(0, 500) ?? null,
+      goal: athlete.goal?.slice(0, 300) ?? null,
+    },
+    kpis: {
+      hours: round1(k.hours),
+      hoursPrev: round1(k.hoursPrev),
+      tss: k.tss,
+      tssPrev: k.tssPrev,
+      plannedCount: k.plannedCount,
+      doneCount: k.doneCount,
+      compliancePct: k.compliancePct,
+      compliancePrevPct: k.compliancePrevPct,
+      ctlStart: round1(k.ctlStart),
+      ctlEnd: round1(k.ctlEnd),
+      ftp: k.ftp,
+      ftpPrev: k.ftpPrev,
+      tsbEnd: round1(k.tsbEnd),
+    },
+    weeks: r.weeks.map((w) => ({ label: w.label, plannedTss: w.plannedTss, doneTss: w.doneTss })),
+    bests: r.bests.map((b) => ({ label: b.label, month: b.month, prev: b.prev, best90: b.best90 })),
+    intensityHours: Object.fromEntries(r.intensity.map((i) => [INTENSITY_LABELS[i.bucket], round1(i.hours)])),
+    hoursWithoutPower: round1(r.hoursWithoutPower),
+    aerobic: r.aerobic.map((a) => ({ label: a.label, decouplingPct: r1OrNull(a.decouplingPct), ef: a.ef === null ? null : Math.round(a.ef * 100) / 100 })),
+    routines: r.routines.map((x) => ({ kind: x.kind, planned: x.planned, done: x.done })),
+    srpeTotal: r.srpeTotal,
+    keySessions: r.keySessions.map((s) => ({
+      date: s.dateKey,
+      name: s.name.slice(0, 120),
+      minutes: Math.round(s.durationS / 60),
+      np: s.np === null ? null : Math.round(s.np),
+      intensityFactor: s.intensityFactor === null ? null : Math.round(s.intensityFactor * 100) / 100,
+      tss: s.tss === null ? null : Math.round(s.tss),
+      rpe: s.rpe,
+      note: s.note.slice(0, 200),
+    })),
+    missedDays: r.days.filter((d) => d.status === 'miss').length,
+    partialDays: r.days.filter((d) => d.status === 'part').length,
+    coachDraft: coachDraft.slice(0, 4000),
+  };
+}
+
+export type ReviewAiContext = ReturnType<typeof reviewAiContext>;
