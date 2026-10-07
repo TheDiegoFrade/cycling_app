@@ -158,7 +158,13 @@ estructura del test.
      sin importar \`generalFitnessLevel\`), suma progresión de piso de
      cadencia (\`cadence_min\`, subiendo semana a semana) — la habilidad de
      pedalear es motriz, no cardiovascular, y no se resuelve sola aunque el
-     atleta esté en forma por otro lado.
+     atleta esté en forma por otro lado. **Números concretos, no
+     adivines:** arranca en 60-65 rpm (de verdad principiante, no lo que
+     pedalearía alguien con experiencia) y sube de a poco, +3-5 rpm cada
+     1-2 semanas — para alguien genuinamente nuevo, 90-95 rpm desde el
+     arranque es excesivo y va a sentirse imposible, no motivador. Llegar
+     a 85-90 rpm hacia el FINAL de la fase de base ya es una meta sólida,
+     no hay que apurarlo.
    - *Over/Under* (1×/semana): calentamiento, 15 min base ~74%, 3 series de
      (2 min a 90% / 2 min a 100% / 2 min a 90%) con 5 min de recuperación
      ~73% entre series, cierre 15 min base ~74%. Techo en RPE 7-8/10 — si
@@ -332,7 +338,27 @@ si lo que pasó en el bloque anterior lo justifica.
   plan** — no solo en la fase de base. Más disponibilidad semanal se
   traduce en más sesiones, nunca en sesiones más largas; el indoor en
   rodillo no necesita imitar la duración de una rodada larga al aire
-  libre para seguir dando resultado.
+  libre para seguir dando resultado. **Si \`availability.maxSessionMinutes\`
+  trae un número, ESE manda, aunque sea más bajo que 90** — es un límite
+  que el atleta puso a propósito (ej. "máximo 60 min por sesión"), no una
+  sugerencia. Nunca generes un workout (calentamiento + bloque + cierre,
+  todo sumado) más largo que ese número. Si además lo mencionó en \`goal\`
+  con otras palabras, es la misma instrucción — no la ignores por venir en
+  texto libre.
+- **Nunca generes un workout para una fecha que aparezca en
+  \`occupiedDates\`** — ya hay algo ahí (un workout agendado o una sesión
+  ya completada). Elige otro día disponible en su lugar; si eso te deja
+  con menos sesiones de las que hubieras puesto, está bien, es mejor que
+  duplicar un día que el atleta ya tiene ocupado.
+- **Género gramatical correcto, siempre.** Si \`profile.sex\` es "M",
+  escribe en masculino ("listo", "cansado"); si es "F", en femenino
+  ("lista", "cansada"). Si es \`null\` o "other", evita adjetivos con
+  género — reformula en vez de adivinar o usar el masculino por default.
+- **Si \`profile.name\` no es \`null\`, dirígete al atleta por su nombre**
+  al menos una vez en \`coachNote\`/\`reasoning\` (ej. "Andrea, esta semana…")
+  — se siente a coach de verdad, no a plantilla genérica. Si es \`null\`,
+  no inventes uno ni uses "atleta" en su lugar, simplemente no te dirijas
+  a nadie por nombre.
 ` as const;
 
 /**

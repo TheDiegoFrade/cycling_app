@@ -53,10 +53,32 @@ export const CreatePlanInputContextSchema = z.object({
   yearsRiding: z.number().nonnegative(),
   competes: z.boolean(),
   category: z.string().nullable(), // solo tiene sentido si competes=true
-  availability: z.object({ hoursPerWeek: z.number().positive(), days: z.array(z.string()) }),
+  availability: z.object({
+    hoursPerWeek: z.number().positive(),
+    days: z.array(z.string()),
+    // null = sin tope explícito del atleta — igual aplica el techo general
+    // de 90 min (ver "Disciplina de salida"). Si el atleta SÍ da un
+    // número, este manda aunque sea más bajo que el general.
+    maxSessionMinutes: z.number().positive().nullable(),
+  }),
+  // Fechas (YYYY-MM-DD) que YA tienen un workout agendado o una sesión
+  // completada dentro de las próximas semanas — nunca generes un workout
+  // para estas fechas, el atleta ya tiene algo ahí (evita duplicar un día
+  // que ya se entrenó o que ya tenía algo agendado de antes).
+  occupiedDates: z.array(z.string()),
   // ftp null = el atleta no sabe su FTP todavía (no inventar un default aquí
   // ni en el cliente — un número falso es peor que admitir que no se sabe).
-  profile: z.object({ ftp: z.number().positive().nullable(), hr_max: z.number().positive() }),
+  profile: z.object({
+    ftp: z.number().positive().nullable(),
+    hr_max: z.number().positive(),
+    // null = no dijo/prefiere no decir — en ese caso nunca uses lenguaje
+    // con género gramatical (ver "Disciplina de salida").
+    sex: z.enum(['M', 'F', 'other']).nullable(),
+    // null = no lo puso en Perfil — en ese caso no inventes un nombre ni
+    // uses genéricos como "atleta" en su lugar, simplemente no te dirijas
+    // a nadie por nombre (ver "Disciplina de salida").
+    name: z.string().nullable(),
+  }),
   recentHistory: z
     .object({
       weeksOfData: z.number().int().nonnegative(), // cuántas semanas atrás hay sesiones reales EN TORQ
@@ -95,6 +117,13 @@ export const CreatePlanOutputSchema = z.object({
 // huecos recurrentes) que la jerarquía de evidencia del prompt necesita
 // para no repetir el error de leer una semana aislada fuera de contexto.
 export const WeeklyEvalInputContextSchema = z.object({
+  // Mismos campos que create_plan y por la misma razón — generar la
+  // semana siguiente necesita el mismo tope de duración y el mismo
+  // cuidado de género gramatical que la primera vez, y evitar fechas que
+  // ya tengan algo agendado/completado.
+  profile: z.object({ sex: z.enum(['M', 'F', 'other']).nullable(), name: z.string().nullable() }),
+  maxSessionMinutes: z.number().positive().nullable(),
+  occupiedDates: z.array(z.string()),
   weekJustFinished: z.object({
     plannedTSS: z.number().nonnegative(),
     actualTSS: z.number().nonnegative(),

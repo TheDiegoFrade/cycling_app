@@ -330,9 +330,19 @@ async function materializeWeek(
   startDate: string,
   weekIndex: number,
   workouts: { name: string; description?: string; intervals: unknown[]; dayOfWeek: string }[],
+  // Red de seguridad — aunque el prompt ya le pide al modelo evitar estas
+  // fechas, esto nunca deja que se inserte un workout en un día que el
+  // atleta ya tiene ocupado, pase lo que pase con lo que decidió el
+  // modelo. Mismo set que ya se validó y mandó en el context (ver
+  // CreatePlanInputContextSchema.occupiedDates) — no hace falta volver a
+  // consultar la base, ya se calculó una vez del lado del cliente.
+  // (Encontrado en producción: create_plan duplicaba días ya completados.)
+  occupiedDates: Set<string>,
 ): Promise<string[]> {
   const ids: string[] = [];
   for (const w of workouts) {
+    const scheduledDate = dateForWeek(startDate, weekIndex, w.dayOfWeek);
+    if (occupiedDates.has(scheduledDate)) continue;
     const id = crypto.randomUUID();
     const workoutDoc = {
       format_version: 1,
@@ -341,11 +351,12 @@ async function materializeWeek(
       description: w.description,
       intervals: w.intervals,
       created_at: new Date().toISOString(),
-      scheduledDate: dateForWeek(startDate, weekIndex, w.dayOfWeek),
+      scheduledDate,
     };
     const { error } = await admin.from('workouts').insert({ id, user_id: userId, data: workoutDoc });
     if (error) throw new Error(`no se pudo guardar el workout generado: ${error.message}`);
     ids.push(id);
+    occupiedDates.add(scheduledDate); // no insertes dos del lote actual el mismo día tampoco
   }
   return ids;
 }
@@ -394,9 +405,10 @@ async function applyModeEffects(
     const startDate = context.startDate as string | undefined;
     if (!startDate) throw new Error('falta context.startDate');
 
+    const occupiedDates = new Set((context.occupiedDates as string[] | undefined) ?? []);
     const weeks: { weekIndex: number; workoutIds: string[] }[] = [];
     for (let i = 0; i < output.firstBlockWeeks.length; i++) {
-      const ids = await materializeWeek(admin, userId, startDate, i, output.firstBlockWeeks[i].workouts);
+      const ids = await materializeWeek(admin, userId, startDate, i, output.firstBlockWeeks[i].workouts, occupiedDates);
       weeks.push({ weekIndex: i, workoutIds: ids });
     }
 
@@ -426,12 +438,17 @@ async function applyModeEffects(
           }
         : null;
 
+    // Se guarda para que weekly_eval lo vuelva a mandar después — si no,
+    // el tope que el atleta puso una sola vez al crear el plan (ej. "máximo
+    // 60 min") se perdía apenas tocaba evaluar la semana siguiente.
+    const maxSessionMinutes = (context.availability as { maxSessionMinutes?: number | null } | undefined)?.maxSessionMinutes ?? null;
+
     const { error } = await admin.from('training_plans').insert({
       id: planId,
       user_id: userId,
       status: 'active',
       goal: output.planName,
-      data: { startDate, blocks, weeks, startingPmc },
+      data: { startDate, blocks, weeks, startingPmc, maxSessionMinutes },
       current_block_exhausted: firstBlockExhausted,
     });
     if (error) throw new Error(`no se pudo guardar el plan: ${error.message}`);
@@ -478,7 +495,8 @@ async function applyModeEffects(
       }
     }
 
-    const ids = await materializeWeek(admin, userId, planData.startDate, nextWeekIndex, output.nextWeekWorkouts);
+    const weeklyEvalOccupiedDates = new Set((context.occupiedDates as string[] | undefined) ?? []);
+    const ids = await materializeWeek(admin, userId, planData.startDate, nextWeekIndex, output.nextWeekWorkouts, weeklyEvalOccupiedDates);
     const weeks = isRefresh
       ? planData.weeks.map((w, i) => (i === nextWeekIndex ? { weekIndex: nextWeekIndex, workoutIds: ids } : w))
       : [...planData.weeks, { weekIndex: nextWeekIndex, workoutIds: ids }];
@@ -518,10 +536,14 @@ async function applyModeEffects(
   if (nextBlockIdx === -1) throw new Error('no hay bloque siguiente por publicar');
   const weeksBeforeBlock = planData.blocks.slice(0, nextBlockIdx).reduce((s, b) => s + b.weeks, 0);
 
+  // TODO: publish_block todavía no tiene UI ni occupiedDates en su schema
+  // (ver PublishBlockInputContextSchema) — cuando se conecte, pasar el
+  // mismo set real que create_plan/weekly_eval en vez de uno vacío.
+  const publishBlockOccupiedDates = new Set<string>();
   const newWeeks: { weekIndex: number; workoutIds: string[] }[] = [];
   for (let i = 0; i < output.weeks.length; i++) {
     const weekIndex = weeksBeforeBlock + i;
-    const ids = await materializeWeek(admin, userId, planData.startDate, weekIndex, output.weeks[i].workouts);
+    const ids = await materializeWeek(admin, userId, planData.startDate, weekIndex, output.weeks[i].workouts, publishBlockOccupiedDates);
     newWeeks.push({ weekIndex, workoutIds: ids });
   }
 

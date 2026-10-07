@@ -51,6 +51,9 @@ interface ActivePlanRow {
     // Lo último que dijo el coach en una weekly_eval — sin esto se perdía
     // apenas se recargaba la página (ver applyModeEffects en coach-chat).
     lastEvalNote?: string;
+    // El tope que el atleta puso al crear el plan (ej. "máximo 60 min") —
+    // se guarda acá para que weekly_eval lo siga respetando después.
+    maxSessionMinutes?: number | null;
   };
   current_block_exhausted: boolean;
   last_eval_iso_week: string | null;
@@ -347,6 +350,9 @@ function modalHtml(): string {
         <label class="live-col-label" style="margin-top:10px;display:block">Horas por semana disponibles
           <input type="number" id="coach-hours" value="6" min="1" max="20" style="width:100%">
         </label>
+        <label class="live-col-label" style="margin-top:10px;display:block">Minutos máximos por sesión (opcional)
+          <input type="number" id="coach-max-minutes" placeholder="Ej. 60 — déjalo vacío si no te importa" min="20" max="90" style="width:100%">
+        </label>
         <label class="live-col-label" style="margin-top:10px;display:block">Días disponibles</label>
         <div class="plan-chip-row" id="coach-days">${days}</div>
         <button class="btn-light" id="coach-submit" style="margin-top:14px">Crear plan</button>
@@ -430,6 +436,30 @@ async function computeRecentHistory(): Promise<RecentHistory | null> {
   };
 }
 
+/** Fechas (YYYY-MM-DD) entre startDate y startDate+weeksAhead semanas que
+ * YA tienen un workout agendado o una sesión completada — create_plan y
+ * weekly_eval las mandan como `occupiedDates` para que el coach nunca
+ * duplique un día que el atleta ya tiene ocupado (encontrado en
+ * producción: create_plan duplicaba entrenamientos ya completados). */
+async function computeOccupiedDates(startDate: string, weeksAhead: number): Promise<string[]> {
+  const end = new Date(`${startDate}T00:00:00Z`);
+  end.setUTCDate(end.getUTCDate() + weeksAhead * 7);
+  const endKey = end.toISOString().slice(0, 10);
+  const inRange = (d: string) => d >= startDate && d <= endKey;
+
+  const scheduled = appState.workouts.filter((w) => w.scheduledDate && inRange(w.scheduledDate)).map((w) => w.scheduledDate!);
+
+  const localSessions = await listSessions();
+  const localIds = new Set(localSessions.map((s) => s.id));
+  const localDates = localSessions.map((s) => s.startedAt.slice(0, 10)).filter(inRange);
+  const cloudDates = appState.cloudSessions
+    .filter((s) => !localIds.has(s.id))
+    .map((s) => s.startedAt.slice(0, 10))
+    .filter(inRange);
+
+  return Array.from(new Set([...scheduled, ...localDates, ...cloudDates]));
+}
+
 interface WeekSummary {
   weekIndex: number;
   plannedTSS: number;
@@ -458,6 +488,9 @@ async function computeWeekEvalContext(
   pmcTrend: { ctl: number; atl: number; tsb: number; ctlRampLast4Weeks: number };
   recentGapPattern: { startDate: string; endDate: string; days: number }[] | null;
   recentWeeksSummary: WeekSummary[] | null;
+  profile: { sex: 'M' | 'F' | 'other' | null; name: string | null };
+  maxSessionMinutes: number | null;
+  occupiedDates: string[];
 } | null> {
   const weeks = plan.data.weeks;
   if (weeks.length === 0) return null;
@@ -531,6 +564,8 @@ async function computeWeekEvalContext(
     }
   }
 
+  const occupiedDates = await computeOccupiedDates(new Date().toISOString().slice(0, 10), 1);
+
   return {
     weekJustFinished: {
       plannedTSS: lastWeek.plannedTSS,
@@ -552,6 +587,9 @@ async function computeWeekEvalContext(
     },
     recentGapPattern: gaps.length > 0 ? gaps.slice(-5) : null,
     recentWeeksSummary: weekSummaries.length > 1 ? weekSummaries : null,
+    profile: { sex: appState.profile.sex ?? null, name: appState.profile.name ?? null },
+    maxSessionMinutes: plan.data.maxSessionMinutes ?? null,
+    occupiedDates,
   };
 }
 
@@ -608,9 +646,12 @@ function openCreateModal(onChange: () => void): void {
     // Todo lo de abajo ya vive en el Perfil (llenado por el cuestionario
     // inicial, ver onboarding.ts) — nunca se vuelve a preguntar aquí.
     const p = appState.profile;
-    const recentHistory = await computeRecentHistory();
+    const startDate = new Date().toISOString().slice(0, 10);
+    const maxMinutesInput = (backdrop.querySelector<HTMLInputElement>('#coach-max-minutes')!).value.trim();
+    const maxSessionMinutes = maxMinutesInput ? Number(maxMinutesInput) : null;
+    const [recentHistory, occupiedDates] = await Promise.all([computeRecentHistory(), computeOccupiedDates(startDate, 3)]);
     const context = {
-      startDate: new Date().toISOString().slice(0, 10),
+      startDate,
       goal,
       experienceLevel: p.experienceLevel!,
       generalFitnessLevel: p.generalFitnessLevel!,
@@ -618,8 +659,9 @@ function openCreateModal(onChange: () => void): void {
       yearsRiding: p.yearsRiding ?? 0,
       competes: p.competes ?? false,
       category: p.competes ? (p.category ?? null) : null,
-      availability: { hoursPerWeek, days: Array.from(selectedDays) },
-      profile: { ftp: p.ftpConfirmed ? p.ftp : null, hr_max: p.hr_max },
+      availability: { hoursPerWeek, days: Array.from(selectedDays), maxSessionMinutes },
+      occupiedDates,
+      profile: { ftp: p.ftpConfirmed ? p.ftp : null, hr_max: p.hr_max, sex: p.sex ?? null, name: p.name ?? null },
       recentHistory,
     };
 
