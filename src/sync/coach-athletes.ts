@@ -19,6 +19,8 @@ export interface CoachAthlete {
   injuries: string | null;
   /** Meta del plan activo del atleta, si tiene. */
   goal: string | null;
+  /** Peso de su Perfil (para W/kg en el reporte mensual). */
+  weightKg: number | null;
 }
 
 /** Filas por página — PostgREST de Supabase regresa máximo 1000 por
@@ -29,7 +31,7 @@ export async function listCoachAthletes(): Promise<CoachAthlete[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from('coach_athlete_profiles')
-    .select('user_id, tier, linked_at, name, ftp, ftp_confirmed, hr_max, hr_max_confirmed, discipline, injuries, goal')
+    .select('user_id, tier, linked_at, name, ftp, ftp_confirmed, hr_max, hr_max_confirmed, discipline, injuries, goal, weight_kg')
     .order('linked_at', { ascending: true });
   if (error) throw error;
   return (data ?? []).map((r) => ({
@@ -44,6 +46,7 @@ export async function listCoachAthletes(): Promise<CoachAthlete[]> {
     discipline: r.discipline,
     injuries: r.injuries,
     goal: r.goal,
+    weightKg: r.weight_kg,
   }));
 }
 

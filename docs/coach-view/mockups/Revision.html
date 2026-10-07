@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reporte mensual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Mockup del paso 7 (revisión mensual). El reporte es una "hoja" clara a
+   propósito: se lee igual en la app, impreso / PDF y, más adelante, en un
+   correo. Datos de ejemplo. */
+:root {
+  --paper: #ffffff;
+  --desk: #e9ebef;
+  --ink: #0f1115;
+  --ink-soft: #3c424d;
+  --muted: #6b7380;
+  --rule: #e3e6eb;
+  --rule-strong: #c9ced6;
+  --accent: #2f6fe0;
+  --ctl: #2f6fe0;
+  --atl: #e0532f;
+  --tsb: #e0a92f;
+  --good: #149a62;
+  --warn: #c98a00;
+  --bad: #c8372d;
+  --z1: #9aa3af; --z2: #2f6fe0; --z3: #14a3a0; --z4: #e0a92f; --z5: #e0532f;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--desk); color: var(--ink); font-family: 'Archivo', system-ui, sans-serif; font-size: 14px; line-height: 1.45; }
+.disp { font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.01em; }
+.toolbar { max-width: 940px; margin: 24px auto 0; padding: 0 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.toolbar .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.toolbar button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--rule-strong); background: #fff; color: var(--ink); cursor: pointer; }
+.toolbar button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+.sheet { max-width: 940px; margin: 12px auto 40px; background: var(--paper); border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 8px 30px rgba(0,0,0,.06); padding: 48px 56px 40px; }
+@media (max-width: 720px) { .sheet { padding: 28px 18px; border-radius: 0; } }
+
+/* Encabezado */
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: flex-start; padding-bottom: 20px; border-bottom: 2px solid var(--ink); }
+.brand { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 26px; letter-spacing: .06em; line-height: 1; }
+.brand small { display: block; font-family: 'Archivo', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.head-meta { text-align: right; font-size: 13px; color: var(--ink-soft); display: grid; gap: 2px; }
+.head-meta b { color: var(--ink); }
+.title { margin: 28px 0 6px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 46px; line-height: 1; }
+.subtitle { color: var(--ink-soft); font-size: 15px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.tag { font-size: 12px; padding: 3px 9px; border: 1px solid var(--rule-strong); border-radius: 999px; color: var(--ink-soft); }
+.tag.goal { border-color: var(--warn); color: #8a5e00; background: #fff8e6; }
+
+/* Secciones */
+section { margin-top: 34px; break-inside: avoid; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--rule); padding-bottom: 6px; margin-bottom: 14px; }
+.sec-head h2 { margin: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 22px; letter-spacing: .01em; }
+.sec-num { color: var(--muted); font-weight: 500; margin-right: 6px; }
+.sec-head .hint { font-size: 12px; color: var(--muted); }
+.why { font-style: italic; color: var(--muted); font-size: 13px; margin: -4px 0 12px; max-width: 70ch; }
+
+/* Mensaje del coach */
+.coach-note { display: grid; grid-template-columns: 4px 1fr; gap: 0 18px; margin-top: 28px; }
+.coach-note .bar { background: var(--accent); border-radius: 2px; }
+.coach-note h2 { margin: 0 0 6px; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 600; }
+.coach-note p { margin: 0 0 10px; font-size: 15px; color: var(--ink-soft); max-width: 72ch; }
+.coach-note .sign { font-size: 13px; color: var(--muted); }
+.verdict { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--good); margin-bottom: 8px; }
+.verdict::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+/* KPIs */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+.kpi { padding: 14px 16px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin: 0 -1px -1px 0; }
+.kpi .lbl { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.kpi .val { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 34px; line-height: 1.05; margin-top: 4px; }
+.kpi .val small { font-size: 16px; color: var(--muted); font-weight: 500; margin-left: 2px; }
+.kpi .delta { font-size: 12px; font-weight: 500; }
+.up { color: var(--good); } .down { color: var(--bad); } .flat { color: var(--muted); }
+
+/* Gráficas */
+.chart { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.legend i.box { height: 10px; width: 10px; border-radius: 2px; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; }
+.two > section { margin-top: 0; }
+.two-wrap { margin-top: 34px; }
+
+/* Tablas */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: #f5f6f8; padding: 8px 10px; border-bottom: 1px solid var(--rule); }
+td { padding: 9px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tbl-wrap { overflow-x: auto; }
+
+/* Calendario de cumplimiento */
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal .dow { font-size: 11px; color: var(--muted); text-align: center; text-transform: uppercase; letter-spacing: .05em; }
+.cal .d { aspect-ratio: 1.6; border-radius: 4px; font-size: 11px; padding: 3px 5px; color: var(--ink-soft); background: #f3f4f6; position: relative; }
+.cal .d.done { background: #d5f2e4; color: #0b5e3b; }
+.cal .d.part { background: #fff0c7; color: #7a5600; }
+.cal .d.miss { background: #fde0dd; color: #8f241c; }
+.cal .d.extra { background: #e1ebfd; color: #1d4fa8; }
+.cal .d.off { visibility: hidden; }
+.cal .d b { position: absolute; right: 5px; bottom: 3px; font-weight: 600; font-size: 10px; }
+
+/* Barras horizontales */
+.hbar { display: grid; grid-template-columns: 120px 1fr 54px; gap: 10px; align-items: center; font-size: 13px; margin-bottom: 8px; }
+.hbar .track { height: 12px; background: #f1f2f5; border-radius: 3px; overflow: hidden; }
+.hbar .fill { height: 100%; border-radius: 3px; }
+.hbar .v { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+
+/* Hallazgos */
+.findings { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.findings li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; font-size: 14px; color: var(--ink-soft); }
+.findings .ico { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; }
+.ico.g { background: var(--good); } .ico.w { background: var(--warn); } .ico.b { background: var(--bad); }
+.findings b { color: var(--ink); }
+
+/* Objetivos */
+.goals { counter-reset: g; display: grid; gap: 12px; }
+.goal-row { display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: start; }
+.goal-row::before { counter-increment: g; content: counter(g); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 26px; line-height: 1; color: var(--accent); }
+.goal-row b { display: block; }
+.goal-row span { color: var(--muted); font-size: 13px; }
+
+.race { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.race > div { border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; }
+.race .lbl { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.race .val { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 600; }
+.race .sub { font-size: 12px; color: var(--muted); }
+
+.foot { margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; font-size: 11px; color: var(--muted); }
+
+/* Anotaciones del mockup (no van en el reporte real) */
+.note-mock { max-width: 940px; margin: 0 auto 40px; padding: 0 16px; font-size: 13px; color: var(--ink-soft); }
+.note-mock h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; margin: 0 0 8px; }
+.note-mock li { margin-bottom: 6px; }
+
+@media print {
+  body { background: #fff; }
+  .toolbar, .note-mock { display: none; }
+  .sheet { box-shadow: none; margin: 0; max-width: none; padding: 0; }
+  section { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar" aria-label="Acciones del coach (no se imprimen)">
+  <span>Borrador · solo tú lo ves hasta publicarlo</span>
+  <div class="btns">
+    <button type="button">Editar comentarios</button>
+    <button type="button">Descargar PDF</button>
+    <button type="button" class="primary">Publicar al atleta</button>
+  </div>
+</div>
+
+<article class="sheet" aria-label="Reporte mensual de Mariana R.">
+  <header class="head">
+    <div class="brand">TORQ<small>Reporte de entrenamiento</small></div>
+    <div class="head-meta">
+      <span>Deportista: <b>Mariana R.</b></span>
+      <span>Coach: <b>Joe · UR Training</b></span>
+      <span>Periodo: 1 – 30 sep 2026</span>
+    </div>
+  </header>
+
+  <h1 class="title">Reporte mensual · Septiembre</h1>
+  <div class="subtitle">Bloque de construcción 2 de 3 · Semanas 36 – 40</div>
+  <div class="tags">
+    <span class="tag">Ruta</span>
+    <span class="tag">FTP 252 W · 4.0 W/kg</span>
+    <span class="tag goal">Objetivo: Gran Fondo León · 16 nov · faltan 7 semanas</span>
+  </div>
+
+  <!-- La "intención" (lo que hace bueno al reporte de NUA): el coach
+       explica, en sus palabras, qué pasó y por qué importa. Va primero. -->
+  <div class="coach-note">
+    <div class="bar"></div>
+    <div>
+      <span class="verdict">Mes bien encaminado</span>
+      <h2>Mensaje de tu coach</h2>
+      <p>Muy buen mes, Mariana. Cumpliste 18 de 20 sesiones y tu Fitness subió de 63 a 71 sin pasarte de fatiga: es justo la progresión que buscábamos para este bloque. Tu mejor 20 min subió 9 W, así que ajustamos tu FTP a 252 W.</p>
+      <p>Lo que más me gustó: el desacople en las rodadas largas bajó a 3.8 %. Tu base aeróbica está respondiendo. A mejorar: dos semanas seguidas saltaste la fuerza del jueves; en octubre la movemos al martes para que no compita con el trabajo.</p>
+      <span class="sign">— Joe, 2 oct 2026</span>
+    </div>
+  </div>
+
+  <section aria-label="Resumen del mes">
+    <div class="sec-head"><h2><span class="sec-num">01</span>Resumen del mes</h2><span class="hint">vs. agosto</span></div>
+    <div class="kpis">
+      <div class="kpi"><div class="lbl">Horas</div><div class="val">38.5<small>h</small></div><div class="delta up">▲ 4.2 h</div></div>
+      <div class="kpi"><div class="lbl">Carga (TSS)</div><div class="val">2,140</div><div class="delta up">▲ 12 %</div></div>
+      <div class="kpi"><div class="lbl">Cumplimiento</div><div class="val">90<small>%</small></div><div class="delta up">▲ 8 pts</div></div>
+      <div class="kpi"><div class="lbl">Fitness (CTL)</div><div class="val">71</div><div class="delta up">▲ 8 desde 63</div></div>
+      <div class="kpi"><div class="lbl">FTP</div><div class="val">252<small>W</small></div><div class="delta up">▲ 9 W</div></div>
+      <div class="kpi"><div class="lbl">Forma (TSB) hoy</div><div class="val">−6</div><div class="delta flat">Zona productiva</div></div>
+    </div>
+  </section>
+
+  <section aria-label="Gráfica de rendimiento">
+    <div class="sec-head"><h2><span class="sec-num">02</span>Fitness, fatiga y forma</h2><span class="hint">últimos 60 días</span></div>
+    <p class="why">Fitness (CTL) es tu carga promedio de 6 semanas; Fatiga (ATL), la de la última semana. Forma (TSB) es la diferencia: entre −10 y −30 construyes; arriba de +5 llegas fresca a una carrera.</p>
+    <svg id="pmc" class="chart" viewBox="0 0 820 260" role="img" aria-label="Gráfica de Fitness, Fatiga y Forma"></svg>
+    <div class="legend">
+      <span><i style="background:var(--ctl)"></i>Fitness (CTL)</span>
+      <span><i style="background:var(--atl)"></i>Fatiga (ATL)</span>
+      <span><i style="background:var(--tsb)"></i>Forma (TSB)</span>
+      <span><i class="box" style="background:#dfe3ea"></i>TSS diario</span>
+    </div>
+  </section>
+
+  <div class="two two-wrap">
+    <section aria-label="Volumen semanal">
+      <div class="sec-head"><h2><span class="sec-num">03</span>Volumen por semana</h2><span class="hint">TSS planeado vs. hecho</span></div>
+      <svg id="weeks" class="chart" viewBox="0 0 400 220" role="img" aria-label="TSS planeado contra realizado por semana"></svg>
+      <div class="legend">
+        <span><i class="box" style="background:#dfe3ea"></i>Planeado</span>
+        <span><i class="box" style="background:var(--ctl)"></i>Hecho</span>
+      </div>
+    </section>
+    <section aria-label="Cumplimiento">
+      <div class="sec-head"><h2><span class="sec-num">04</span>Cumplimiento</h2><span class="hint">18 de 20 sesiones</span></div>
+      <div class="cal" id="cal"></div>
+      <div class="legend">
+        <span><i class="box" style="background:#d5f2e4"></i>Completa</span>
+        <span><i class="box" style="background:#fff0c7"></i>Parcial</span>
+        <span><i class="box" style="background:#fde0dd"></i>Faltó</span>
+        <span><i class="box" style="background:#e1ebfd"></i>Extra</span>
+      </div>
+    </section>
+  </div>
+
+  <section aria-label="Mejores potencias">
+    <div class="sec-head"><h2><span class="sec-num">05</span>Mejores potencias</h2><span class="hint">en Torq y Garmin · sin Strava</span></div>
+    <p class="why">Tu mejor esfuerzo del mes en cada duración. Si sube el de 20 min, sube tu FTP; si sube el de 1 min, mejora tu capacidad para ataques y repechos.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Duración</th><th class="num">Septiembre</th><th class="num">W/kg</th><th class="num">Agosto</th><th class="num">Cambio</th><th class="num">Mejor 90 días</th></tr></thead>
+        <tbody>
+          <tr><td>1 min</td><td class="num"><b>468 W</b></td><td class="num">7.4</td><td class="num">471 W</td><td class="num flat">−3 W</td><td class="num">482 W</td></tr>
+          <tr><td>5 min</td><td class="num"><b>318 W</b></td><td class="num">5.0</td><td class="num">306 W</td><td class="num up">▲ 12 W</td><td class="num">318 W ★</td></tr>
+          <tr><td>20 min</td><td class="num"><b>265 W</b></td><td class="num">4.2</td><td class="num">256 W</td><td class="num up">▲ 9 W</td><td class="num">265 W ★</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="two two-wrap">
+    <section aria-label="Distribución de intensidad">
+      <div class="sec-head"><h2><span class="sec-num">06</span>Distribución de intensidad</h2><span class="hint">horas por tipo de sesión</span></div>
+      <div class="hbar"><span>Recuperación</span><div class="track"><div class="fill" style="width:12%;background:var(--z1)"></div></div><span class="v">4.6 h</span></div>
+      <div class="hbar"><span>Resistencia</span><div class="track"><div class="fill" style="width:58%;background:var(--z2)"></div></div><span class="v">22.3 h</span></div>
+      <div class="hbar"><span>Tempo / SS</span><div class="track"><div class="fill" style="width:16%;background:var(--z3)"></div></div><span class="v">6.2 h</span></div>
+      <div class="hbar"><span>Umbral</span><div class="track"><div class="fill" style="width:9%;background:var(--z4)"></div></div><span class="v">3.5 h</span></div>
+      <div class="hbar"><span>VO2 / anaeróbico</span><div class="track"><div class="fill" style="width:5%;background:var(--z5)"></div></div><span class="v">1.9 h</span></div>
+      <p class="why" style="margin-top:10px">70 % fácil y 14 % duro: buena polarización para un bloque de construcción.</p>
+    </section>
+    <section aria-label="Calidad aeróbica">
+      <div class="sec-head"><h2><span class="sec-num">07</span>Base aeróbica</h2><span class="hint">rodadas largas y parejas</span></div>
+      <svg id="aero" class="chart" viewBox="0 0 400 200" role="img" aria-label="Desacople y factor de eficiencia por semana"></svg>
+      <div class="legend">
+        <span><i style="background:var(--atl)"></i>Desacople Pw:HR (meta &lt; 5 %)</span>
+        <span><i style="background:var(--ctl)"></i>Factor de eficiencia</span>
+      </div>
+    </section>
+  </div>
+
+  <section aria-label="Sesiones clave">
+    <div class="sec-head"><h2><span class="sec-num">08</span>Sesiones clave</h2><span class="hint">las que más dicen del mes</span></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Fecha</th><th>Sesión</th><th class="num">Duración</th><th class="num">NP</th><th class="num">IF</th><th class="num">TSS</th><th class="num">RPE</th><th>Nota</th></tr></thead>
+        <tbody>
+          <tr><td>27 sep</td><td><b>Umbral 3×12</b></td><td class="num">1:30</td><td class="num">231 W</td><td class="num">0.92</td><td class="num">118</td><td class="num">7</td><td>Mejor 20 min del mes (265 W).</td></tr>
+          <tr><td>21 sep</td><td><b>Rodada larga</b><br><span style="color:var(--muted);font-size:12px">Garmin</span></td><td class="num">3:40</td><td class="num">178 W</td><td class="num">0.71</td><td class="num">186</td><td class="num">6</td><td>Desacople 3.8 % en 3 h 40.</td></tr>
+          <tr><td>16 sep</td><td><b>VO2 5×4</b></td><td class="num">1:15</td><td class="num">224 W</td><td class="num">0.89</td><td class="num">99</td><td class="num">9</td><td>Último intervalo cayó 8 %: RPE alto.</td></tr>
+          <tr><td>10 sep</td><td><b>Fuerza · tren inferior</b><br><span style="color:var(--muted);font-size:12px">Registrada</span></td><td class="num">0:45</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">7</td><td>sRPE 315.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-label="Hallazgos">
+    <div class="sec-head"><h2><span class="sec-num">09</span>Lo que muestran los datos</h2><span class="hint">la IA lo propone · tu coach lo valida</span></div>
+    <ul class="findings">
+      <li><span class="ico g">✓</span><span><b>Progresión de carga sana.</b> El Fitness subió 8 puntos (≈ 2 por semana), dentro del rango que se puede sostener sin sobreentrenar.</span></li>
+      <li><span class="ico g">✓</span><span><b>Base aeróbica mejorando.</b> El desacople en rodadas largas bajó de 6.1 % a 3.8 %, y el factor de eficiencia subió 4 %.</span></li>
+      <li><span class="ico w">!</span><span><b>Fuerza inconsistente.</b> 2 de 4 sesiones de fuerza: las dos que faltaron cayeron en jueves después de intervalos.</span></li>
+      <li><span class="ico w">!</span><span><b>Sueño / fatiga en la semana 38.</b> El RPE de las sesiones de umbral fue 1–2 puntos más alto de lo esperado.</span></li>
+    </ul>
+  </section>
+
+  <section aria-label="Fuerza y movilidad">
+    <div class="sec-head"><h2><span class="sec-num">10</span>Fuerza y movilidad</h2><span class="hint">medidas con sRPE (RPE × minutos)</span></div>
+    <div class="kpis">
+      <div class="kpi"><div class="lbl">Fuerza</div><div class="val">2<small>/ 4</small></div><div class="delta down">▼ 2 vs. plan</div></div>
+      <div class="kpi"><div class="lbl">Movilidad</div><div class="val">6<small>/ 6</small></div><div class="delta up">Completo</div></div>
+      <div class="kpi"><div class="lbl">Carga sRPE</div><div class="val">1,080</div><div class="delta flat">≈ 8 % del total</div></div>
+    </div>
+  </section>
+
+  <section aria-label="Camino a la carrera">
+    <div class="sec-head"><h2><span class="sec-num">11</span>Camino a la carrera</h2><span class="hint">Gran Fondo León · 16 nov</span></div>
+    <div class="race">
+      <div><div class="lbl">Fitness hoy</div><div class="val">71</div><div class="sub">Meta para el día: 80–85</div></div>
+      <div><div class="lbl">Ritmo necesario</div><div class="val">+2 / sem</div><div class="sub">Igual que en septiembre</div></div>
+      <div><div class="lbl">Forma proyectada</div><div class="val">+8</div><div class="sub">Con 10 días de afinación</div></div>
+      <div><div class="lbl">Estado</div><div class="val" style="color:var(--good)">En camino</div><div class="sub">Sin cambios al plan</div></div>
+    </div>
+  </section>
+
+  <section aria-label="Objetivos para octubre">
+    <div class="sec-head"><h2><span class="sec-num">12</span>Enfoque para octubre</h2><span class="hint">lo que acordamos</span></div>
+    <div class="goals">
+      <div class="goal-row"><div><b>Subir el umbral: 2 sesiones de 2×20 a la semana.</b><span>Meta: sostener 255 W en el segundo bloque con RPE ≤ 7.</span></div></div>
+      <div class="goal-row"><div><b>Fuerza los martes, no los jueves.</b><span>Dos sesiones por semana hasta la semana 44; después solo mantenimiento.</span></div></div>
+      <div class="goal-row"><div><b>Una rodada larga con ritmo de carrera.</b><span>3 h 30 con los últimos 45 min en tempo, para practicar la nutrición del día.</span></div></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>Datos de Torq, Garmin y sesiones registradas. Las actividades de Strava no se incluyen.</span>
+    <span>Generado el 1 oct 2026 · Revisado por Joe el 2 oct 2026</span>
+  </footer>
+</article>
+
+<div class="note-mock">
+  <h3>Notas del mockup (no son parte del reporte)</h3>
+  <ul>
+    <li><b>Flujo:</b> el 1 de cada mes Torq arma el borrador con los datos y la sección 09 la propone la IA. El coach lo revisa (unos 15 min), escribe el mensaje, ajusta los hallazgos y los objetivos de octubre, y lo publica. El atleta lo ve en la app hasta que se publica.</li>
+    <li><b>Todo lo numérico ya existe en Supabase:</b> TSS, NP, IF, FTP de cada sesión, factor de eficiencia, desacople y mejores 1/5/20 min. La "distribución de intensidad" se calcula con el IF de cada sesión (no segundo a segundo).</li>
+    <li><b>W/kg</b> necesita que el coach vea el peso del atleta (hoy no lo ve). Se puede quitar o pedir permiso.</li>
+    <li><b>Correo (después):</b> la hoja clara está pensada para que la misma plantilla sirva para el PDF y para enviarla por mail al publicar.</li>
+  </ul>
+</div>
+
+<script>
+// Gráficas de ejemplo (en la app se calculan con los datos reales).
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+const txt = (s, attrs, parent) => { const t = el('text', attrs, parent); t.textContent = s; return t; };
+const FONT = { 'font-family': 'Archivo, sans-serif', 'font-size': 11, fill: '#6b7380' };
+
+// --- PMC: 60 días, CTL/ATL con constantes de 42 y 7 días.
+(function pmc() {
+  const svg = document.getElementById('pmc');
+  const days = 60, rng = (i) => (Math.sin(i * 12.9898) * 43758.5453) % 1;
+  const tss = []; for (let i = 0; i < days; i++) { const dow = i % 7; const base = dow === 0 ? 0 : dow === 6 ? 160 : dow === 3 ? 30 : 70 + Math.abs(rng(i)) * 50; tss.push(Math.round(base * (i > 30 ? 1.12 : 1) * (i % 21 > 17 ? 0.5 : 1))); }
+  let ctl = 55, atl = 55; const C = [], A = [], T = [];
+  tss.forEach((t) => { T.push(ctl - atl); ctl += (t - ctl) / 42; atl += (t - atl) / 7; C.push(ctl); A.push(atl); });
+  const L = 40, R = 765, top = 14, bot = 196, mid = 226;
+  const x = (i) => L + (i / (days - 1)) * (R - L);
+  const yL = (v) => bot - (v / 120) * (bot - top);
+  const yB = (v) => bot - (v / 250) * (bot - top) * 0.6;
+  const yT = (v) => mid - v * 0.9;
+  [0, 40, 80, 120].forEach((v) => { el('line', { x1: L, x2: R, y1: yL(v), y2: yL(v), stroke: '#eef0f3' }, svg); txt(v, { ...FONT, x: L - 8, y: yL(v) + 4, 'text-anchor': 'end' }, svg); });
+  // inicio del mes del reporte
+  const m0 = 30; el('rect', { x: x(m0), y: top, width: R - x(m0), height: bot - top, fill: '#f6f8fc' }, svg);
+  txt('Septiembre', { ...FONT, x: x(m0) + 6, y: top + 12, 'font-weight': 600, fill: '#2f6fe0' }, svg);
+  tss.forEach((t, i) => t && el('rect', { x: x(i) - 4, y: yB(t), width: 8, height: bot - yB(t), fill: '#dfe3ea', rx: 1 }, svg));
+  const line = (arr, y, color, w) => el('polyline', { points: arr.map((v, i) => `${x(i)},${y(v)}`).join(' '), fill: 'none', stroke: color, 'stroke-width': w, 'stroke-linejoin': 'round' }, svg);
+  line(A, yL, '#e0532f', 1.6); line(C, yL, '#2f6fe0', 2.6);
+  el('line', { x1: L, x2: R, y1: yT(0), y2: yT(0), stroke: '#c9ced6', 'stroke-dasharray': '3 3' }, svg);
+  txt('TSB 0', { ...FONT, x: L - 8, y: yT(0) + 4, 'text-anchor': 'end' }, svg);
+  line(T, yT, '#e0a92f', 1.8);
+  txt(`CTL ${Math.round(C[days - 1])}`, { ...FONT, x: R + 4, y: yL(C[days - 1]) + 4, fill: '#2f6fe0', 'font-weight': 600 }, svg);
+  ['1 ago', '15 ago', '1 sep', '15 sep', '30 sep'].forEach((s, k) => txt(s, { ...FONT, x: x([0, 14, 30, 44, 59][k]), y: 254, 'text-anchor': 'middle' }, svg));
+})();
+
+// --- Volumen semanal: planeado vs hecho.
+(function weeks() {
+  const svg = document.getElementById('weeks');
+  const data = [['S36', 480, 470], ['S37', 520, 540], ['S38', 560, 455], ['S39', 600, 610], ['S40', 300, 290]];
+  const L = 36, R = 395, top = 10, bot = 190, max = 700;
+  const y = (v) => bot - (v / max) * (bot - top);
+  [0, 200, 400, 600].forEach((v) => { el('line', { x1: L, x2: R, y1: y(v), y2: y(v), stroke: '#eef0f3' }, svg); txt(v, { ...FONT, x: L - 6, y: y(v) + 4, 'text-anchor': 'end' }, svg); });
+  const bw = (R - L) / data.length;
+  data.forEach(([w, plan, done], i) => {
+    const cx = L + bw * i + bw / 2;
+    el('rect', { x: cx - 22, y: y(plan), width: 44, height: bot - y(plan), fill: '#dfe3ea', rx: 2 }, svg);
+    el('rect', { x: cx - 13, y: y(done), width: 26, height: bot - y(done), fill: done < plan * 0.85 ? '#e0a92f' : '#2f6fe0', rx: 2 }, svg);
+    txt(w, { ...FONT, x: cx, y: 206, 'text-anchor': 'middle' }, svg);
+    txt(`${Math.round((done / plan) * 100)}%`, { ...FONT, x: cx, y: Math.min(y(plan), y(done)) - 5, 'text-anchor': 'middle', fill: '#3c424d', 'font-weight': 600 }, svg);
+  });
+  txt('Semana de descarga', { ...FONT, x: L + bw * 4.5, y: 218, 'text-anchor': 'middle', 'font-size': 9 }, svg);
+})();
+
+// --- Calendario.
+(function cal() {
+  const c = document.getElementById('cal');
+  ['L', 'M', 'M', 'J', 'V', 'S', 'D'].forEach((d) => { const s = document.createElement('div'); s.className = 'dow'; s.textContent = d; c.appendChild(s); });
+  const status = { 1: 'done', 2: 'done', 4: 'part', 5: 'done', 6: 'done', 8: 'done', 9: 'done', 10: 'done', 11: 'miss', 12: 'done', 13: 'done', 15: 'done', 16: 'done', 17: 'done', 18: 'miss', 19: 'done', 20: 'extra', 21: 'done', 22: 'done', 23: 'done', 25: 'done', 26: 'done', 27: 'done', 29: 'part', 30: 'done' };
+  const tss = { 1: 72, 2: 95, 4: 40, 5: 88, 6: 172, 8: 70, 9: 104, 10: 35, 12: 92, 13: 168, 15: 75, 16: 99, 17: 30, 19: 101, 20: 60, 21: 186, 22: 70, 23: 112, 25: 80, 26: 118, 27: 118, 29: 25, 30: 60 };
+  for (let i = 0; i < 1; i++) { const s = document.createElement('div'); s.className = 'd off'; c.appendChild(s); } // 1 sep 2026 = martes
+  for (let d = 1; d <= 30; d++) { const s = document.createElement('div'); s.className = `d ${status[d] ?? ''}`; s.innerHTML = `${d}${tss[d] ? `<b>${tss[d]}</b>` : ''}`; c.appendChild(s); }
+})();
+
+// --- Base aeróbica por semana.
+(function aero() {
+  const svg = document.getElementById('aero');
+  const dec = [6.1, 5.4, 4.9, 4.2, 3.8], ef = [1.38, 1.40, 1.41, 1.43, 1.44];
+  const L = 36, R = 335, top = 12, bot = 170;
+  const x = (i) => L + (i / (dec.length - 1)) * (R - L);
+  const yD = (v) => bot - (v / 8) * (bot - top);
+  const yE = (v) => bot - ((v - 1.3) / 0.2) * (bot - top);
+  [0, 2, 4, 6, 8].forEach((v) => { el('line', { x1: L, x2: R, y1: yD(v), y2: yD(v), stroke: '#eef0f3' }, svg); txt(`${v}%`, { ...FONT, x: L - 6, y: yD(v) + 4, 'text-anchor': 'end' }, svg); });
+  el('rect', { x: L, y: yD(5), width: R - L, height: yD(0) - yD(5), fill: '#149a62', opacity: 0.06 }, svg);
+  txt('meta', { ...FONT, x: R - 2, y: yD(5) + 12, 'text-anchor': 'end', fill: '#149a62' }, svg);
+  const line = (arr, y, color) => { el('polyline', { points: arr.map((v, i) => `${x(i)},${y(v)}`).join(' '), fill: 'none', stroke: color, 'stroke-width': 2.2 }, svg); arr.forEach((v, i) => el('circle', { cx: x(i), cy: y(v), r: 3.2, fill: '#fff', stroke: color, 'stroke-width': 2 }, svg)); };
+  line(dec, yD, '#e0532f'); line(ef, yE, '#2f6fe0');
+  txt(`${dec[dec.length - 1]}%`, { ...FONT, x: R + 6, y: yD(dec[dec.length - 1]) + 4, fill: '#e0532f', 'font-weight': 600 }, svg);
+  txt(`EF ${ef[ef.length - 1]}`, { ...FONT, x: R + 6, y: yE(ef[ef.length - 1]) + 4, fill: '#2f6fe0', 'font-weight': 600 }, svg);
+  ['S36', 'S37', 'S38', 'S39', 'S40'].forEach((s, i) => txt(s, { ...FONT, x: x(i), y: 190, 'text-anchor': 'middle' }, svg));
+})();
+</script>
+</body>
+</html>

@@ -700,8 +700,8 @@ drop policy if exists "sessions: coach lee las de sus atletas" on sessions;
 create policy "sessions: coach lee las de sus atletas" on sessions for select
   using (is_coach_of(user_id) and source <> 'strava');
 
--- El coach no lee `profiles` directo (trae fecha de nacimiento, peso,
--- etc.): lee esta vista, solo con campos de entrenamiento y solo de SUS
+-- El coach no lee `profiles` directo (trae fecha de nacimiento, etc.): lee
+-- esta vista, solo con campos de entrenamiento y solo de SUS
 -- atletas activos. La vista corre con los permisos de su dueño (como una
 -- función security definer) — por eso el filtro por coach_id = auth.uid()
 -- va adentro y es lo único que decide qué filas salen. La meta viene del
@@ -718,7 +718,8 @@ create or replace view coach_athlete_profiles with (security_barrier) as
     p.hr_max_confirmed,
     p.discipline,
     p.injuries,
-    (select tp.goal from training_plans tp where tp.user_id = ca.athlete_id and tp.status = 'active' limit 1) as goal
+    (select tp.goal from training_plans tp where tp.user_id = ca.athlete_id and tp.status = 'active' limit 1) as goal,
+    p.weight_kg -- paso 7: W/kg en el reporte mensual (columna nueva siempre al final)
   from coach_athletes ca
   left join profiles p on p.user_id = ca.athlete_id
   where ca.coach_id = auth.uid() and ca.status = 'active';
@@ -1003,3 +1004,80 @@ $$;
 
 revoke execute on function publish_plan_week(uuid) from public, anon;
 grant execute on function publish_plan_week(uuid) to authenticated;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Vista del coach, paso 7: revisión mensual (docs/coach-view/mockups/
+-- Revision.html). Los NÚMEROS del reporte no se guardan: coach y atleta los
+-- calculan con las mismas sesiones (sin Strava). Aquí solo vive lo que
+-- escribe el coach: veredicto, mensaje, hallazgos y objetivos.
+--   findings: [{ tone: 'good'|'warn'|'bad', title, body }]
+--   goals:    [{ title, detail }]
+-- El atleta solo ve las publicadas, y las sigue viendo aunque después se
+-- desvincule del coach (son suyas). Para corregir una publicada, el coach la
+-- regresa a borrador (el atleta deja de verla) y la vuelve a publicar.
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists monthly_reviews (
+  id uuid primary key default gen_random_uuid(),
+  athlete_id uuid not null references auth.users (id) on delete cascade,
+  coach_id uuid not null references auth.users (id) on delete cascade,
+  month date not null check (extract(day from month) = 1), -- primer día del mes
+  status text not null default 'draft' check (status in ('draft', 'published')),
+  verdict text check (verdict in ('on_track', 'attention', 'off_track')),
+  coach_message text not null default '' check (char_length(coach_message) <= 4000),
+  findings jsonb not null default '[]'::jsonb check (jsonb_typeof(findings) = 'array' and jsonb_array_length(findings) <= 6),
+  goals jsonb not null default '[]'::jsonb check (jsonb_typeof(goals) = 'array' and jsonb_array_length(goals) <= 5),
+  coach_name text check (char_length(coach_name) <= 120), -- firma, para cuando ya no estén vinculados
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  published_at timestamptz,
+  unique (athlete_id, coach_id, month)
+);
+
+alter table monthly_reviews enable row level security;
+
+drop policy if exists "monthly_reviews: coach lee las de sus atletas" on monthly_reviews;
+create policy "monthly_reviews: coach lee las de sus atletas" on monthly_reviews for select
+  using (auth.uid() = coach_id and is_coach_of(athlete_id));
+
+drop policy if exists "monthly_reviews: atleta lee las publicadas" on monthly_reviews;
+create policy "monthly_reviews: atleta lee las publicadas" on monthly_reviews for select
+  using (auth.uid() = athlete_id and status = 'published');
+
+drop policy if exists "monthly_reviews: coach crea" on monthly_reviews;
+create policy "monthly_reviews: coach crea" on monthly_reviews for insert
+  with check (auth.uid() = coach_id and is_coach_of(athlete_id));
+
+drop policy if exists "monthly_reviews: coach edita" on monthly_reviews;
+create policy "monthly_reviews: coach edita" on monthly_reviews for update
+  using (auth.uid() = coach_id and is_coach_of(athlete_id))
+  with check (auth.uid() = coach_id and is_coach_of(athlete_id));
+
+drop policy if exists "monthly_reviews: coach borra borradores" on monthly_reviews;
+create policy "monthly_reviews: coach borra borradores" on monthly_reviews for delete
+  using (auth.uid() = coach_id and status = 'draft');
+
+create index if not exists monthly_reviews_athlete_idx on monthly_reviews (athlete_id, month);
+
+-- Las fechas las pone la base (no el navegador) y el atleta, el coach y el
+-- mes de una revisión no cambian nunca.
+create or replace function monthly_reviews_stamp() returns trigger
+language plpgsql set search_path = public as $$
+begin
+  if tg_op = 'UPDATE' then
+    if new.athlete_id <> old.athlete_id or new.coach_id <> old.coach_id or new.month <> old.month then
+      raise exception 'No se puede cambiar el atleta, el coach ni el mes de una revisión.';
+    end if;
+  end if;
+  new.updated_at := now();
+  if new.status = 'published' then
+    new.published_at := case when tg_op = 'UPDATE' and old.status = 'published' then old.published_at else now() end;
+  else
+    new.published_at := null;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists monthly_reviews_stamp on monthly_reviews;
+create trigger monthly_reviews_stamp before insert or update on monthly_reviews
+  for each row execute function monthly_reviews_stamp();

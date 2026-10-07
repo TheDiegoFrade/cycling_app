@@ -1,6 +1,6 @@
-export type Screen = 'home' | 'plan' | 'library' | 'prepare' | 'train' | 'session' | 'form' | 'profile' | 'limits' | 'login' | 'log' | 'invite' | 'coach-invite' | 'coach-athletes' | 'coach-athlete' | 'coach-week' | 'coach-library' | 'coach-weeks';
+export type Screen = 'home' | 'plan' | 'library' | 'prepare' | 'train' | 'session' | 'form' | 'profile' | 'limits' | 'login' | 'log' | 'invite' | 'coach-invite' | 'coach-athletes' | 'coach-athlete' | 'coach-week' | 'coach-library' | 'coach-weeks' | 'coach-review' | 'review';
 
-const SCREENS: readonly Screen[] = ['home', 'plan', 'library', 'prepare', 'train', 'session', 'form', 'profile', 'limits', 'login', 'log', 'invite', 'coach-invite', 'coach-athletes', 'coach-athlete', 'coach-week', 'coach-library', 'coach-weeks'];
+const SCREENS: readonly Screen[] = ['home', 'plan', 'library', 'prepare', 'train', 'session', 'form', 'profile', 'limits', 'login', 'log', 'invite', 'coach-invite', 'coach-athletes', 'coach-athlete', 'coach-week', 'coach-library', 'coach-weeks', 'coach-review', 'review'];
 
 /** Rutas viejas → nuevas, ver TORQ_DESIGN.md ("Rutas: de la app actual a la
  * nueva"). Cualquier hash viejo se reescribe al nuevo antes de resolver la
@@ -45,10 +45,11 @@ export function getPreviousHash(): string | null {
 
 function resolveHash(): { screen: Screen; param: string | null } {
   const raw = location.hash.replace(/^#\/?/, '');
-  const [first, second] = raw.split('/');
+  // el param puede tener varios segmentos (#/coach-review/:atleta/:mes)
+  const [first, ...rest] = raw.split('/');
   const legacy = LEGACY_REDIRECTS[first];
   if (legacy) return { screen: legacy, param: null };
-  if ((SCREENS as readonly string[]).includes(first)) return { screen: first as Screen, param: second ?? null };
+  if ((SCREENS as readonly string[]).includes(first)) return { screen: first as Screen, param: rest.filter(Boolean).join('/') || null };
   return { screen: 'home', param: null };
 }
 
