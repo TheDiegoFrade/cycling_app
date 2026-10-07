@@ -22,6 +22,7 @@ import {
   sourceLabel,
   todayUtcKey,
   tsbColor,
+  errorMessage,
 } from '../coach-ui';
 import { getRouteParam } from '../router';
 import { appState } from '../state';
@@ -228,7 +229,7 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
         window.addEventListener('resize', resizeHandler);
       }
     } catch (err) {
-      shell(`<div class="error-box">No se pudo cargar el atleta: ${escapeHtml(err instanceof Error ? err.message : String(err))}</div>`);
+      shell(`<div class="error-box">No se pudo cargar el atleta: ${escapeHtml(errorMessage(err))}</div>`);
     }
   })();
 

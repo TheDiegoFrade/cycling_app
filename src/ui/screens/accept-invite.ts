@@ -2,6 +2,7 @@
 // docs/coach-view/mockups/Invitar.dc.html. Se llega con #/invite/:token
 // (el link que comparte el coach). Si no hay sesión, el login la pide
 // primero y luego regresa aquí solo (el hash se conserva).
+import { errorMessage } from '../coach-ui';
 import { COACH_TIER_LABELS, looksLikeInviteToken } from '../../core/coach-invite';
 import { acceptInvite, previewInvite } from '../../sync/coach-link';
 import type { InvitePreview } from '../../sync/coach-link';
@@ -83,7 +84,7 @@ export function renderAcceptInvite(container: HTMLElement): void {
             <div class="row-actions" style="margin:0"><a href="#/home" class="btn-light invite-done">Ir a Inicio</a></div>
           </section>`);
       } catch (err) {
-        renderPreview(p, err instanceof Error ? err.message : String(err));
+        renderPreview(p, errorMessage(err));
       }
     });
   }
@@ -98,5 +99,5 @@ export function renderAcceptInvite(container: HTMLElement): void {
       else if (p.status === 'expired') dead('Este link ya venció. Pídele a tu coach uno nuevo.');
       else dead('Este es tu propio link de invitación — compártelo con tu atleta.');
     })
-    .catch((err) => dead(`No se pudo revisar la invitación: ${escapeHtml(err instanceof Error ? err.message : String(err))}`));
+    .catch((err) => dead(`No se pudo revisar la invitación: ${escapeHtml(errorMessage(err))}`));
 }

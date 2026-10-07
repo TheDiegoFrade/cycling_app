@@ -2,6 +2,7 @@
 // Solo para cuentas con profiles.is_coach. El link es de un solo uso y vence
 // en INVITE_TTL_DAYS; la base guarda solo el hash del token, así que el link
 // solo se puede copiar justo después de crearlo.
+import { errorMessage } from '../coach-ui';
 import { COACH_TIERS, COACH_TIER_LABELS, INVITE_TTL_DAYS, inviteLink } from '../../core/coach-invite';
 import type { CoachTier } from '../../core/coach-invite';
 import { cancelInvite, countActiveAthletes, createInvite, listPendingInvites } from '../../sync/coach-link';
@@ -112,7 +113,7 @@ export function renderCoachInvite(container: HTMLElement): void {
         link = inviteLink(location.origin, token);
         await loadPending();
       } catch (err) {
-        message = `No se pudo crear el link: ${err instanceof Error ? err.message : String(err)}`;
+        message = `No se pudo crear el link: ${errorMessage(err)}`;
       }
       busy = false;
       render();
@@ -142,7 +143,7 @@ export function renderCoachInvite(container: HTMLElement): void {
           await cancelInvite(btn.dataset.cancel!);
           await loadPending();
         } catch (err) {
-          message = `No se pudo cancelar: ${err instanceof Error ? err.message : String(err)}`;
+          message = `No se pudo cancelar: ${errorMessage(err)}`;
         }
         render();
       });
@@ -154,7 +155,7 @@ export function renderCoachInvite(container: HTMLElement): void {
       [pending, athletes] = await Promise.all([listPendingInvites(coachId), countActiveAthletes(coachId)]);
     } catch (err) {
       pending = [];
-      message = `No se pudieron cargar tus invitaciones: ${err instanceof Error ? err.message : String(err)}`;
+      message = `No se pudieron cargar tus invitaciones: ${errorMessage(err)}`;
     }
   }
 

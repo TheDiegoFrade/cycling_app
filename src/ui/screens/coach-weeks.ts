@@ -16,7 +16,7 @@ import { AthleteWeek } from '../../sync/athlete-week';
 import { listCoachAthletes } from '../../sync/coach-athletes';
 import type { CoachAthlete } from '../../sync/coach-athletes';
 import { listTemplates } from '../../sync/session-templates';
-import { athleteName } from '../coach-ui';
+import { athleteName, errorMessage } from '../coach-ui';
 import { appState } from '../state';
 import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 
@@ -89,14 +89,14 @@ export function renderCoachWeeks(container: HTMLElement): void {
             await w.load();
             return { athlete, week: w, error: '', saving: false };
           } catch (err) {
-            return { athlete, week: null, error: `No se pudo cargar: ${err instanceof Error ? err.message : String(err)}`, saving: false };
+            return { athlete, week: null, error: `No se pudo cargar: ${errorMessage(err)}`, saving: false };
           }
         }),
       );
       if (week !== monday) return; // cambió de semana mientras cargaba
       rows = loaded;
     } catch (err) {
-      error = `No se pudieron cargar tus atletas: ${err instanceof Error ? err.message : String(err)}`;
+      error = `No se pudieron cargar tus atletas: ${errorMessage(err)}`;
       rows = [];
     }
     render();
@@ -111,7 +111,7 @@ export function renderCoachWeeks(container: HTMLElement): void {
     render();
     saved
       .catch((err) => {
-        row.error = `No se pudo guardar: ${err instanceof Error ? err.message : String(err)}`;
+        row.error = `No se pudo guardar: ${errorMessage(err)}`;
       })
       .finally(() => {
         row.saving = false;
@@ -312,7 +312,7 @@ export function renderCoachWeeks(container: HTMLElement): void {
       r.error = '';
       return true;
     } catch (err) {
-      r.error = err instanceof Error ? err.message : String(err);
+      r.error = errorMessage(err);
       return false;
     }
   }

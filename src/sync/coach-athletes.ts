@@ -23,18 +23,36 @@ export interface CoachAthlete {
   weightKg: number | null;
 }
 
+interface ProfileRow {
+  user_id: string;
+  tier: CoachTier;
+  linked_at: string;
+  name: string | null;
+  ftp: number | null;
+  ftp_confirmed: boolean | null;
+  hr_max: number | null;
+  hr_max_confirmed: boolean | null;
+  discipline: CoachAthlete['discipline'];
+  injuries: string | null;
+  goal: string | null;
+  weight_kg?: number | null;
+}
+
 /** Filas por página — PostgREST de Supabase regresa máximo 1000 por
  * request por defecto. */
 const PAGE = 1000;
 
+const PROFILE_COLUMNS = 'user_id, tier, linked_at, name, ftp, ftp_confirmed, hr_max, hr_max_confirmed, discipline, injuries, goal';
+
 export async function listCoachAthletes(): Promise<CoachAthlete[]> {
   if (!supabase) return [];
-  const { data, error } = await supabase
-    .from('coach_athlete_profiles')
-    .select('user_id, tier, linked_at, name, ftp, ftp_confirmed, hr_max, hr_max_confirmed, discipline, injuries, goal, weight_kg')
-    .order('linked_at', { ascending: true });
+  const query = (columns: string) => supabase!.from('coach_athlete_profiles').select(columns).order('linked_at', { ascending: true });
+  let { data, error } = await query(`${PROFILE_COLUMNS}, weight_kg`);
+  // weight_kg llegó con el paso 7: si la vista de Supabase todavía no lo
+  // tiene (columna inexistente, 42703), se carga sin él y no hay W/kg.
+  if (error?.code === '42703') ({ data, error } = await query(PROFILE_COLUMNS));
   if (error) throw error;
-  return (data ?? []).map((r) => ({
+  return ((data ?? []) as unknown as ProfileRow[]).map((r) => ({
     userId: r.user_id,
     tier: r.tier,
     linkedAt: r.linked_at,
@@ -46,7 +64,7 @@ export async function listCoachAthletes(): Promise<CoachAthlete[]> {
     discipline: r.discipline,
     injuries: r.injuries,
     goal: r.goal,
-    weightKg: r.weight_kg,
+    weightKg: r.weight_kg ?? null,
   }));
 }
 
