@@ -144,7 +144,7 @@ export function renderCoachSession(container: HTMLElement): () => void {
           ? `<div class="panel">
               <div class="legend" style="position:static;display:flex;gap:20px;flex-wrap:wrap;margin-bottom:8px;font-size:13px">
                 <span><i style="background:rgba(242,244,247,.9);display:inline-block;width:18px;height:3px;margin-right:6px"></i>Potencia avg <b class="num">${n0(a.avgPower)}</b> · máx <b class="num">${n0(a.maxPower)}</b> W</span>
-                <span>Cadencia avg <b class="num">${n0(a.avgCadence)}</b> · máx <b class="num">${n0(a.maxCadence)}</b> rpm</span>
+                <span><i style="background:var(--z2);display:inline-block;width:18px;height:3px;margin-right:6px"></i>Cadencia avg <b class="num">${n0(a.avgCadence)}</b> · máx <b class="num">${n0(a.maxCadence)}</b> rpm</span>
                 <span><i style="background:#ff4d4d;display:inline-block;width:18px;height:3px;margin-right:6px"></i>Pulso avg <b class="num">${n0(a.avgHr)}</b> · máx <b class="num">${n0(a.maxHr)}</b> lpm</span>
               </div>
               <canvas id="cs-graph" style="width:100%;height:240px;display:block"></canvas>

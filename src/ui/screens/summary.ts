@@ -79,7 +79,7 @@ function downloadFit(session: SessionRecord): void {
   URL.revokeObjectURL(url);
 }
 
-/** Dibuja potencia + pulso (nunca cadencia, ver TORQ_DESIGN.md) con los
+/** Dibuja potencia, cadencia y pulso con los
  * bloques planeados de fondo en color de zona — solo si el workout original
  * sigue en la biblioteca (una sesión importada de Strava/.fit no tiene uno). */
 function drawSummaryGraph(canvas: HTMLCanvasElement, session: SessionRecord): void {
@@ -117,10 +117,10 @@ export function drawSessionGraph(canvas: HTMLCanvasElement, samples: SessionReco
   }
 
   const yOf = (v: number, min: number, max: number) => h - pad - ((v - min) / (max - min)) * (h - 2 * pad);
-  const line = (key: 'power' | 'hr', min: number, max: number, color: string) => {
+  const line = (key: 'power' | 'hr' | 'cadence', min: number, max: number, color: string, width = 2) => {
     g.beginPath();
     g.strokeStyle = color;
-    g.lineWidth = 2;
+    g.lineWidth = width;
     samples.forEach((s, j) => {
       const x = X(s.t);
       const y = yOf(s[key], min, max);
@@ -130,6 +130,10 @@ export function drawSessionGraph(canvas: HTMLCanvasElement, samples: SessionReco
   };
   const POWER_COLOR = 'rgba(242,244,247,.9)';
   const HR_COLOR = '#ff4d4d';
+  const CADENCE_COLOR = getComputedStyle(document.documentElement).getPropertyValue('--z2').trim() || '#3d8bff';
+  const CADENCE_RANGE: [number, number] = [0, 140];
+  // la cadencia va primero y más delgada: potencia y pulso quedan encima
+  if (samples.some((s) => s.cadence > 0)) line('cadence', CADENCE_RANGE[0], CADENCE_RANGE[1], CADENCE_COLOR, 1.5);
   line('power', 0, ftp * 1.3, POWER_COLOR);
   line('hr', 80, 190, HR_COLOR);
 
@@ -148,6 +152,7 @@ export function drawSessionGraph(canvas: HTMLCanvasElement, samples: SessionReco
     dots: (i) => {
       const s = samples[i];
       const dots = [{ y: clampY(yOf(s.power, 0, ftp * 1.3)), color: POWER_COLOR }];
+      if (s.cadence > 0) dots.push({ y: clampY(yOf(s.cadence, CADENCE_RANGE[0], CADENCE_RANGE[1])), color: CADENCE_COLOR });
       if (s.hr > 0) dots.push({ y: clampY(yOf(s.hr, 80, 190)), color: HR_COLOR });
       return dots;
     },
@@ -166,7 +171,7 @@ export function drawSessionGraph(canvas: HTMLCanvasElement, samples: SessionReco
         tipRow('Potencia', `${Math.round(s.power)} W`, POWER_COLOR) +
         (target ? tipRow('Objetivo', `${target} W`) : '') +
         (s.hr > 0 ? tipRow('Pulso', `${Math.round(s.hr)} lpm`, HR_COLOR) : '') +
-        (s.cadence > 0 ? tipRow('Cadencia', `${Math.round(s.cadence)} rpm`) : '')
+        (s.cadence > 0 ? tipRow('Cadencia', `${Math.round(s.cadence)} rpm`, CADENCE_COLOR) : '')
       );
     },
   });
