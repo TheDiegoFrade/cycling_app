@@ -15,6 +15,7 @@ import { appState } from '../state';
 import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { wireDatePicker } from '../date-picker';
 import { notifyPlanChange, planChangeNotice } from '../coach-notice';
+import { openSessionDetail } from '../open-session';
 
 type LibraryTab = 'library' | 'activity';
 
@@ -378,30 +379,13 @@ export function renderLibrary(container: HTMLElement): () => void {
   }
 
   function wireActivity(): void {
-    let localById = new Map<string, SessionRecord>();
     container.querySelectorAll<HTMLElement>('[data-action="view"]').forEach((el) => {
       const openSession = (): void => {
         if (el.dataset.log) {
           navigate('log', el.dataset.sessionId!);
           return;
         }
-        const origin = el.dataset.origin as 'local' | 'cloud';
-        if (origin === 'cloud') {
-          const cloud = appState.cloudSessions.find((s) => s.id === el.dataset.sessionId);
-          if (!cloud) return;
-          appState.lastSession = null;
-          appState.lastCloudSession = cloud;
-          navigate('session');
-          return;
-        }
-        listSessions().then((sessions) => {
-          localById = new Map(sessions.map((s) => [s.id, s]));
-          const session = localById.get(el.dataset.sessionId!);
-          if (!session) return;
-          appState.lastSession = session;
-          appState.lastCloudSession = null;
-          navigate('session');
-        });
+        void openSessionDetail(el.dataset.sessionId!, el.dataset.origin as 'local' | 'cloud');
       };
       el.addEventListener('click', (e) => {
         if ((e.target as HTMLElement).closest('[data-action="delete"]')) return;

@@ -13,6 +13,7 @@ import { downloadSessionSamples } from '../../sync/cloud-sync';
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
 import { checkAndCelebrateAchievements } from '../achievement-toast';
 import { escapeHtml } from '../workout-cover';
+import { bindChartHover, fmtClock, nearestSorted, tipRow, tipTitle } from '../chart-hover';
 
 const RPE_LABELS: Record<number, string> = {
   1: 'muy, muy fácil',
@@ -104,8 +105,8 @@ export function drawSessionGraph(canvas: HTMLCanvasElement, samples: SessionReco
   const X = (t: number) => pad + (t / total) * (w - 2 * pad);
   g.clearRect(0, 0, w, h);
 
-  if (intervals?.length) {
-    const plan = buildPlan(intervals);
+  const plan = intervals?.length ? buildPlan(intervals) : null;
+  if (intervals?.length && plan) {
     intervals.forEach((iv, i) => {
       const zone = powerZone(iv.power_pct);
       g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(`--z${zone}`).trim();
@@ -115,25 +116,60 @@ export function drawSessionGraph(canvas: HTMLCanvasElement, samples: SessionReco
     g.globalAlpha = 1;
   }
 
+  const yOf = (v: number, min: number, max: number) => h - pad - ((v - min) / (max - min)) * (h - 2 * pad);
   const line = (key: 'power' | 'hr', min: number, max: number, color: string) => {
     g.beginPath();
     g.strokeStyle = color;
     g.lineWidth = 2;
     samples.forEach((s, j) => {
       const x = X(s.t);
-      const y = h - pad - ((s[key] - min) / (max - min)) * (h - 2 * pad);
+      const y = yOf(s[key], min, max);
       j ? g.lineTo(x, y) : g.moveTo(x, y);
     });
     g.stroke();
   };
-  line('power', 0, ftp * 1.3, 'rgba(242,244,247,.9)');
-  line('hr', 80, 190, '#ff4d4d');
+  const POWER_COLOR = 'rgba(242,244,247,.9)';
+  const HR_COLOR = '#ff4d4d';
+  line('power', 0, ftp * 1.3, POWER_COLOR);
+  line('hr', 80, 190, HR_COLOR);
 
   g.strokeStyle = 'rgba(242,244,247,.15)';
   g.beginPath();
   g.moveTo(pad, h - pad);
   g.lineTo(w - pad, h - pad);
   g.stroke();
+
+  const times = samples.map((s) => s.t);
+  const clampY = (y: number) => Math.max(pad, Math.min(h - pad, y));
+  bindChartHover(canvas, {
+    count: samples.length,
+    indexAt: (x) => nearestSorted(times, ((x - pad) / Math.max(1, w - 2 * pad)) * total),
+    xOf: (i) => X(samples[i].t),
+    dots: (i) => {
+      const s = samples[i];
+      const dots = [{ y: clampY(yOf(s.power, 0, ftp * 1.3)), color: POWER_COLOR }];
+      if (s.hr > 0) dots.push({ y: clampY(yOf(s.hr, 80, 190)), color: HR_COLOR });
+      return dots;
+    },
+    html: (i) => {
+      const s = samples[i];
+      let block = '';
+      let target = s.target > 0 ? Math.round(s.target) : null;
+      if (plan && intervals) {
+        let b = 0;
+        while (b < intervals.length - 1 && s.t >= plan.segStart[b + 1]) b++;
+        block = ` · ${escapeHtml(intervals[b].name)}`;
+        target = Math.round(targetWattsAt(plan, s.t, ftp, 1));
+      }
+      return (
+        tipTitle(`${fmtClock(s.t)}${block}`) +
+        tipRow('Potencia', `${Math.round(s.power)} W`, POWER_COLOR) +
+        (target ? tipRow('Objetivo', `${target} W`) : '') +
+        (s.hr > 0 ? tipRow('Pulso', `${Math.round(s.hr)} lpm`, HR_COLOR) : '') +
+        (s.cadence > 0 ? tipRow('Cadencia', `${Math.round(s.cadence)} rpm`) : '')
+      );
+    },
+  });
 }
 
 function metricCard(label: string, value: string, sub: string): string {

@@ -1,5 +1,6 @@
 import type { Interval } from '../core/types';
 import { powerZone, powerPctToHeightPct } from '../core/zones';
+import { fmtMinutes, tipRow, tipTitle } from './chart-hover';
 
 export type WorkoutCoverSize = 'lg' | 'md' | 'sm';
 
@@ -19,7 +20,9 @@ export function renderWorkoutCover(intervals: readonly Interval[], size: Workout
   const bars = intervals
     .map((iv) => {
       const zone = powerZone(iv.power_pct);
-      return `<div class="workout-cover-bar" style="height:${powerPctToHeightPct(iv.power_pct)}%;background:var(--z${zone})"></div>`;
+      const pct = iv.ramp_to_pct !== undefined ? `${Math.round(iv.power_pct)}→${Math.round(iv.ramp_to_pct)}%` : `${Math.round(iv.power_pct)}%`;
+      const tip = tipTitle(escapeHtml(iv.name)) + tipRow('Duración', fmtMinutes(iv.duration_s), `var(--z${zone})`) + tipRow('FTP', pct);
+      return `<div class="workout-cover-bar" style="height:${powerPctToHeightPct(iv.power_pct)}%;background:var(--z${zone})" data-tip="${escapeHtml(tip)}"></div>`;
     })
     .join('');
   const label = title ? ` title="${escapeHtml(title)}"` : '';

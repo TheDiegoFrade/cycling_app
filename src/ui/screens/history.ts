@@ -16,6 +16,7 @@ import { backfillPowerRecords, getPowerRecords } from '../../sync/cloud-sync';
 import type { PowerRecords } from '../../sync/cloud-sync';
 import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { markAchievementsSeen } from '../achievement-toast';
+import { bindChartHover, evenIndexAt, tipRow, tipTitle } from '../chart-hover';
 
 const CHART_WEEKS = 6;
 
@@ -64,6 +65,11 @@ function fmtDateEsMx(iso: string): string {
  * (mismo problema que ya se resolvió en completed-session-import.ts). */
 function fmtDateKeyEsMx(dateKey: string): string {
   return new Date(`${dateKey}T00:00:00Z`).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
+/** "mié 7 oct" — para las etiquetas al pasar el cursor por una gráfica. */
+export function fmtDayKeyShort(dateKey: string): string {
+  return new Date(`${dateKey}T00:00:00Z`).toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
 }
 
 function analyticsOf(session: SessionRecord) {
@@ -209,6 +215,26 @@ export function drawFitnessFatigueChart(canvas: HTMLCanvasElement, points: Retur
     g.font = '10px sans-serif';
     g.fillText('hoy', x + 4, pad + 10);
   }
+
+  bindChartHover(canvas, {
+    count: points.length,
+    indexAt: (x) => evenIndexAt(x, points.length, w, pad),
+    xOf: X,
+    dots: (i) => [
+      { y: Y(points[i].ctl), color: accent },
+      { y: Y(points[i].atl), color: '#8b93a1' },
+    ],
+    html: (i) => {
+      const p = points[i];
+      const projected = i > splitAt;
+      return (
+        tipTitle(`${fmtDayKeyShort(p.dateKey)}${projected ? ' · proyección' : ''}`) +
+        tipRow('Fitness', String(Math.round(p.ctl)), accent) +
+        tipRow('Fatiga', String(Math.round(p.atl)), '#5a6272') +
+        tipRow('Forma', `${p.tsb >= 0 ? '+' : ''}${Math.round(p.tsb)}`)
+      );
+    },
+  });
 }
 
 function drawEfChart(canvas: HTMLCanvasElement, points: { dateKey: string; ef: number }[]): void {
@@ -247,6 +273,14 @@ function drawEfChart(canvas: HTMLCanvasElement, points: { dateKey: string; ef: n
     g.fillStyle = accent;
     g.arc(X(i), Y(p.ef), 2.5, 0, Math.PI * 2);
     g.fill();
+  });
+
+  bindChartHover(canvas, {
+    count: points.length,
+    indexAt: (x) => evenIndexAt(x, points.length, w, pad),
+    xOf: X,
+    dots: (i) => [{ y: Y(points[i].ef), color: accent }],
+    html: (i) => tipTitle(fmtDayKeyShort(points[i].dateKey)) + tipRow('EF', points[i].ef.toFixed(2), accent),
   });
 }
 

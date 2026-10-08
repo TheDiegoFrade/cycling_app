@@ -5418,3 +5418,131 @@ a {
     padding: 16px 16px 0;
   }
 }
+
+/* ── Hover en gráficas (chart-hover.ts) ── */
+.chart-hover-wrap {
+  position: relative;
+}
+.chart-hover-wrap canvas {
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+.chart-hover-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.chart-hover-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(242, 244, 247, 0.35);
+}
+.chart-hover-dot {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  box-sizing: content-box;
+}
+.chart-hover-tip,
+.chart-tip-float {
+  background: var(--surface-active);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm, 6px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.35;
+  padding: 7px 9px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.chart-hover-tip {
+  position: absolute;
+  top: 6px;
+}
+.chart-tip-float {
+  position: fixed;
+  z-index: 1000;
+}
+.chart-tip-float[hidden],
+.chart-hover-overlay[hidden] {
+  display: none;
+}
+.chart-tip-title {
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+.chart-tip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.chart-tip-row strong {
+  margin-left: auto;
+  padding-left: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.chart-tip-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+[data-tip] {
+  cursor: default;
+}
+.home-week-zonebar > div:hover,
+.home-week-day:hover .home-week-daybar {
+  filter: brightness(1.25);
+}
+
+/* ── Plan: un día hecho es una sola tarjeta que abre la sesión ── */
+.plan-day-done {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.plan-day-done:hover .plan-day-name,
+.plan-day-done:focus-visible .plan-day-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.plan-day-done .plan-day-cover {
+  display: block;
+}
+.plan-day-done-badge {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--success);
+}
+.plan-month-done {
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+button.plan-month-done-label {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-soft);
+  font-size: 11px;
+}
