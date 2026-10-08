@@ -18,6 +18,7 @@ import type { CoachContext } from '../sync/coach-link';
 import { fetchCloudProfile, pushProfileToCloud } from '../sync/profile-sync';
 import { fetchCloudSettings, pushSettingsToCloud } from '../sync/settings-sync';
 import { fetchCloudWorkouts, pushWorkoutToCloud } from '../sync/workout-sync';
+import { syncWellnessFromIcu } from '../sync/wellness-sync';
 
 export interface AuthUser {
   id: string;
@@ -212,6 +213,8 @@ class AppState {
     // Métricas de la ficha del atleta para sesiones subidas antes de que
     // existieran: desde los samples de este dispositivo, en segundo plano.
     void backfillMetricsFromLocal(userId, localSessions);
+    // VFC/pulso en reposo/sueño de intervals.icu, si conectó su cuenta.
+    void syncWellnessFromIcu(userId, this.settings.intervalsIcu);
   }
 
   async signOut(): Promise<void> {

@@ -21,8 +21,10 @@ import { ruleTriggersOf } from '../core/rule-triggers';
 import { readTest } from '../core/test-reading';
 import type { LastTest } from '../core/test-reading';
 import { isTestWorkoutDoc, mainZoneOf } from '../core/workout-zone';
-import { computeAthleteState } from '../engine/athlete-state';
+import { addDays, computeAthleteState } from '../engine/athlete-state';
 import type { AthleteState } from '../engine/athlete-state';
+import { wellnessSummary } from '../engine/wellness';
+import { fetchWellnessDays, syncWellnessFromIcu, WELLNESS_DAYS } from '../sync/wellness-sync';
 import { stateSessionFromCloud, stateSessionFromLocal } from './athlete-state-data';
 import type { WorkoutZone } from '../core/workout-zone';
 import type { CoachPlanContext, PlannedTest, StoredPlanData } from '../core/plan-context';
@@ -565,7 +567,14 @@ async function computeSelfAthleteState(): Promise<AthleteState> {
   const planned = appState.workouts
     .filter((w) => w.scheduledDate && w.scheduledDate >= sinceKey && w.scheduledDate <= todayKey)
     .map((w) => ({ id: w.id, dateKey: w.scheduledDate! }));
-  return computeAthleteState(sessions, planned, todayKey);
+  const state = computeAthleteState(sessions, planned, todayKey);
+  if (appState.user) {
+    await syncWellnessFromIcu(appState.user.id, appState.settings.intervalsIcu);
+    const days = await fetchWellnessDays(appState.user.id, addDays(todayKey, -(WELLNESS_DAYS - 1)));
+    const wellness = wellnessSummary(days, todayKey);
+    if (wellness) state.wellness = wellness;
+  }
+  return state;
 }
 
 interface RecentHistory {

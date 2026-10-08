@@ -141,6 +141,19 @@ const AthleteStateSchema = z
     historyWeeks: z.number().int().nonnegative(),
     lastGap: z.object({ days: z.number().int(), endedOn: z.string() }).nullable(),
     windows: z.object({ d7: WindowStateSchema, d28: WindowStateSchema, d90: WindowStateSchema, d180: WindowStateSchema }),
+    // VFC de reposo, pulso en reposo y sueño (intervals.icu); ausente o null
+    // si el atleta no conectó nada. Ver src/engine/wellness.ts.
+    wellness: z
+      .object({
+        hrv7d: z.number().nullable(),
+        hrvBaseline60d: z.number().nullable(),
+        hrvStatus: z.enum(['low', 'normal', 'high']).nullable(),
+        restingHr7d: z.number().nullable(),
+        restingHrBaseline60d: z.number().nullable(),
+        sleepH7d: z.number().nullable(),
+      })
+      .nullable()
+      .optional(),
   })
   .optional();
 

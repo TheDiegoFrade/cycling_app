@@ -18,6 +18,9 @@ import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { markAchievementsSeen } from '../achievement-toast';
 import { bindChartHover, evenIndexAt, tipRow, tipTitle } from '../chart-hover';
 import { renderAnalysisPanel } from '../analysis-panel';
+import { addDays } from '../../engine/athlete-state';
+import { wellnessSummary } from '../../engine/wellness';
+import { fetchWellnessDays, WELLNESS_DAYS } from '../../sync/wellness-sync';
 import { stateSessionFromCloud, stateSessionFromLocal } from '../athlete-state-data';
 
 const CHART_WEEKS = 6;
@@ -628,7 +631,7 @@ export function renderForma(container: HTMLElement): () => void {
       const analysisRoot = container.querySelector<HTMLElement>('#forma-analysis');
       if (analysisRoot) {
         const workoutsById = new Map(appState.workouts.map((w) => [w.id, w]));
-        renderAnalysisPanel(analysisRoot, {
+        const panel = renderAnalysisPanel(analysisRoot, {
           sessions: [
             ...localSessions.filter(wasTrained).map((s) => stateSessionFromLocal(s, appState.profile, workoutsById.get(s.workoutId))),
             ...appState.cloudSessions.filter((s) => !localById.has(s.id) && isBikeSession(s) && wasTrained(s)).map(stateSessionFromCloud),
@@ -638,6 +641,12 @@ export function renderForma(container: HTMLElement): () => void {
           ftp: appState.profile.ftp,
           storageKey: 'torq.formaAnalysisDays',
         });
+        if (appState.user) {
+          void fetchWellnessDays(appState.user.id, addDays(todayKey, -(WELLNESS_DAYS - 1))).then((d) => {
+            const w = wellnessSummary(d, todayKey);
+            if (w) panel.setWellness(w);
+          });
+        }
       }
 
       // marca en silencio (sin celebrar) los logros que ya se tenían antes de

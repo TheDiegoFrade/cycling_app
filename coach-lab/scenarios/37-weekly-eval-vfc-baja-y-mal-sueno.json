@@ -1,0 +1,272 @@
+{
+  "id": "37-weekly-eval-vfc-baja-y-mal-sueno",
+  "mode": "weekly_eval",
+  "title": "TSB tranquilo, pero VFC de 7 días bajo su normal, pulso en reposo +6 y dormir poco: la carga no lo explica todo",
+  "expect": [
+    "Lee athleteState.wellness como tendencia contra SU línea base (VFC 7 d 41 ms vs 55 ms, 'low'; pulso en reposo 54 vs 48; sueño 5.9 h), no contra valores de otros atletas.",
+    "Junta esa señal con lo que reporta (mal sueño, estrés de trabajo): dos señales juntas → actúa aunque el TSB (−5) se vea bien.",
+    "decision deload/absorción o maintain sin intensidad: nada por encima de 75 % esta semana, o al menos quita la sesión más dura; no progress.",
+    "ftpAction keep o null: la fatiga no es motivo para bajar el FTP.",
+    "No promete diagnosticar nada médico; si sigue así otra semana, sugiere revisarlo."
+  ],
+  "context": {
+    "profile": {
+      "sex": "M",
+      "name": "Diego",
+      "ftp": 285,
+      "ftpSource": "test_20min",
+      "ftpUpdatedAt": "2026-07-20T08:00:00.000Z",
+      "provisionalFtp": null,
+      "ageYears": 41,
+      "weightKg": 74,
+      "injuries": null
+    },
+    "maxSessionMinutes": null,
+    "occupiedDates": [],
+    "recentGapPattern": null,
+    "weekJustFinished": {
+      "plannedTSS": 430,
+      "actualTSS": 395,
+      "completedWorkouts": 4,
+      "missedWorkouts": 0,
+      "ruleTriggers": [],
+      "athleteNote": "Semana pesada en el trabajo, he dormido fatal. Las piernas más o menos. ¿Sigo con lo que toca?"
+    },
+    "pmcTrend": {
+      "ctl": 74,
+      "atl": 79,
+      "tsb": -5,
+      "ctlRampLast4Weeks": 3.0
+    },
+    "recentWeeksSummary": [
+      {
+        "weekIndex": 0,
+        "plannedTSS": 360,
+        "actualTSS": 355,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 1,
+        "plannedTSS": 400,
+        "actualTSS": 410,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      }
+    ],
+    "athleteState": {
+      "historyWeeks": 26,
+      "lastGap": null,
+      "windows": {
+        "d7": {
+          "hours": 7.1,
+          "tss": 395,
+          "kJ": 5200,
+          "sessions": 4,
+          "compliancePct": 100,
+          "zoneHours": [
+            0.9,
+            4.1,
+            0.9,
+            1.0,
+            0.2,
+            0.0
+          ],
+          "aerobic": null,
+          "threshold": {
+            "longestMin": 15,
+            "weeklyMin": 41
+          },
+          "lowCadenceMinPerWeek": 6.0
+        },
+        "d28": {
+          "hours": 28.4,
+          "tss": 1620,
+          "kJ": 20900,
+          "sessions": 17,
+          "compliancePct": 94,
+          "zoneHours": [
+            3.8,
+            16.2,
+            4.1,
+            3.6,
+            0.6,
+            0.1
+          ],
+          "aerobic": {
+            "decouplingPct": 3.4,
+            "ef": 1.62,
+            "n": 5
+          },
+          "threshold": {
+            "longestMin": 16,
+            "weeklyMin": 38
+          },
+          "lowCadenceMinPerWeek": 5.5,
+          "peaks": {
+            "s30": [
+              610,
+              "09-30",
+              "incidental"
+            ],
+            "m1": [
+              440,
+              "09-30",
+              "incidental"
+            ],
+            "m5": [
+              318,
+              "10-02",
+              "incidental"
+            ],
+            "m8": [
+              301,
+              "09-23",
+              "incidental"
+            ],
+            "m20": [
+              262,
+              "10-05",
+              "erg_fixed"
+            ],
+            "m60": [
+              238,
+              "09-27",
+              "incidental"
+            ]
+          }
+        },
+        "d90": {
+          "hours": 84.0,
+          "tss": 4890,
+          "kJ": 61500,
+          "sessions": 51,
+          "compliancePct": 91,
+          "zoneHours": [
+            11.0,
+            48.5,
+            12.0,
+            10.4,
+            1.8,
+            0.3
+          ],
+          "aerobic": {
+            "decouplingPct": 3.0,
+            "ef": 1.6,
+            "n": 14
+          },
+          "threshold": {
+            "longestMin": 24,
+            "weeklyMin": 35
+          },
+          "lowCadenceMinPerWeek": 5.0,
+          "peaks": {
+            "s30": [
+              655,
+              "08-14",
+              "max_effort"
+            ],
+            "m1": [
+              470,
+              "08-14",
+              "max_effort"
+            ],
+            "m5": [
+              352,
+              "07-20",
+              "max_effort"
+            ],
+            "m8": [
+              331,
+              "08-21",
+              "incidental"
+            ],
+            "m20": [
+              300,
+              "07-20",
+              "max_effort"
+            ],
+            "m60": [
+              262,
+              "08-09",
+              "incidental"
+            ]
+          },
+          "cp": {
+            "cpW": 287,
+            "wPrimeKJ": 19.5,
+            "from": [
+              "07-20",
+              "07-20"
+            ]
+          }
+        },
+        "d180": {
+          "hours": 160.2,
+          "tss": 9100,
+          "kJ": 116000,
+          "sessions": 96,
+          "compliancePct": 89,
+          "zoneHours": [
+            21.0,
+            93.0,
+            22.5,
+            18.9,
+            3.5,
+            0.6
+          ],
+          "aerobic": {
+            "decouplingPct": 3.6,
+            "ef": 1.57,
+            "n": 27
+          },
+          "threshold": {
+            "longestMin": 24,
+            "weeklyMin": 31
+          },
+          "lowCadenceMinPerWeek": 4.0,
+          "peaks": {
+            "s30": [
+              655,
+              "08-14",
+              "max_effort"
+            ],
+            "m1": [
+              470,
+              "08-14",
+              "max_effort"
+            ],
+            "m5": [
+              352,
+              "07-20",
+              "max_effort"
+            ],
+            "m8": [
+              331,
+              "08-21",
+              "incidental"
+            ],
+            "m20": [
+              300,
+              "07-20",
+              "max_effort"
+            ],
+            "m60": [
+              262,
+              "08-09",
+              "incidental"
+            ]
+          }
+        }
+      },
+      "wellness": {
+        "hrv7d": 41,
+        "hrvBaseline60d": 55,
+        "hrvStatus": "low",
+        "restingHr7d": 54,
+        "restingHrBaseline60d": 48,
+        "sleepH7d": 5.9
+      }
+    }
+  }
+}

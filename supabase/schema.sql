@@ -1153,3 +1153,39 @@ create policy "athlete_notes: coach edita" on athlete_notes for update
 drop policy if exists "athlete_notes: atleta borra el suyo" on athlete_notes;
 create policy "athlete_notes: atleta borra el suyo" on athlete_notes for delete
   using (auth.uid() = athlete_id);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- wellness_days: VFC de reposo, pulso en reposo y sueño por día, que la app
+-- trae de intervals.icu con la clave del propio atleta (Perfil →
+-- intervals.icu). Nunca datos de Strava. Lo lee el coach de IA (resumen en
+-- athleteState.wellness) y el coach humano del atleta. Solo el atleta
+-- escribe.
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists wellness_days (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  day date not null,
+  hrv_ms real check (hrv_ms is null or hrv_ms > 0),
+  resting_hr smallint check (resting_hr is null or resting_hr between 20 and 150),
+  sleep_h real check (sleep_h is null or sleep_h between 0 and 24),
+  source text not null default 'intervals.icu' check (source in ('intervals.icu')),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, day)
+);
+
+alter table wellness_days enable row level security;
+
+drop policy if exists "wellness_days: atleta y su coach leen" on wellness_days;
+create policy "wellness_days: atleta y su coach leen" on wellness_days for select
+  using (auth.uid() = user_id or is_coach_of(user_id));
+
+drop policy if exists "wellness_days: atleta escribe" on wellness_days;
+create policy "wellness_days: atleta escribe" on wellness_days for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "wellness_days: atleta actualiza" on wellness_days;
+create policy "wellness_days: atleta actualiza" on wellness_days for update
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "wellness_days: atleta borra" on wellness_days;
+create policy "wellness_days: atleta borra" on wellness_days for delete
+  using (auth.uid() = user_id);
