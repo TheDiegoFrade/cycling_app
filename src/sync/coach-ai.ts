@@ -16,6 +16,8 @@ export interface CoachWeekContext {
   pmc: { ctl: number; atl: number; tsb: number } | null;
   recentWeeks: { weekStart: string; bikeTss: number; nonBikeSessions: number }[];
   maxSessionMinutes: number | null;
+  /** Plantillas de bici del coach — la IA las prefiere (copia o adapta). */
+  library: { id: string; name: string; minutes: number; tss: number | null; structure: string }[];
 }
 
 export interface ProposedWorkout {
@@ -24,6 +26,9 @@ export interface ProposedWorkout {
   intervals: unknown[];
   targetTSS: number;
   dayOfWeek: string;
+  /** null si la IA lo diseñó; si salió de la biblioteca, qué le cambió
+   * (`change` null = copia exacta). */
+  fromLibrary: { templateId: string; change: string | null } | null;
 }
 
 export interface CoachWeekProposal {

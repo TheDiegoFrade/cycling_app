@@ -24,6 +24,7 @@ import { getUserId } from '../_shared/strava.ts';
 import { COACH_SYSTEM_PROMPT, PLAN_WORKOUT_CONTRACT, WORKOUT_CONTRACT, WRITER_SYSTEM_PROMPT } from './prompt.ts';
 import { PLANNING_MODES, WorkoutDescriptionsSchema, schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
 import { summarizeSegments, toGeneratedWorkout, totalMinutes, type PlannedWorkout } from './expand.ts';
+import { resolveFromLibrary, type CoachWeekWorkout, type LibraryTemplate } from './library.ts';
 
 type AdminClient = ReturnType<typeof createClient>;
 
@@ -266,6 +267,11 @@ function buildUserMessage(mode: Mode, context: Record<string, unknown>): string 
       '- Respeta las lesiones del atleta (`athlete.injuries`).',
       '- `rationale`: 2-5 razones cortas en español, dirigidas al coach, hablando del atleta en tercera persona. El atleta no las ve.',
       '- `workouts` puede venir vacío si la indicación pide descanso.',
+      '- Biblioteca del coach (`library`): son SUS entrenamientos y tienen prioridad. Para cada día, si alguno encaja con lo que la semana necesita, úsalo antes de diseñar uno nuevo: pon su id en `fromLibraryId`.',
+      '  - Si sirve tal cual: `libraryChange` = null e `intervals` vacío (el sistema copia la plantilla exacta). Usa su nombre en `name`.',
+      '  - Si hace falta ajustarlo (fatiga, lesión, `maxSessionMinutes`, la indicación del coach): pon los `intervals` ya ajustados y en `libraryChange` una frase corta con qué cambiaste y por qué (ej. "De 5×5 a 4×5: TSB muy negativo"). Ajusta lo mínimo; no lo conviertas en otro entrenamiento.',
+      '  - Solo si ninguno encaja, diseña uno nuevo: `fromLibraryId` = null y `libraryChange` = null.',
+      '  - En `rationale`, menciona qué tomaste de su biblioteca y qué ajustaste.',
     ].join('\n'),
     monthly_review: [
       'Modo: monthly_review. Trabajas para el COACH HUMANO de este atleta: redactas un borrador de su revisión mensual; él la edita y decide si la publica.',
@@ -656,6 +662,18 @@ async function finishPlannedWorkouts(
   return withGeneratedWeeks(mode, output, generated);
 }
 
+/** coach_week: trae las plantillas que la IA citó (solo de bici y de ESTE
+ * coach, userId del JWT) y resuelve copia exacta vs. ajuste (library.ts). */
+async function resolveLibraryWorkouts(admin: AdminClient, coachId: string, workouts: CoachWeekWorkout[]): Promise<unknown[]> {
+  const ids = [...new Set(workouts.map((w) => w.fromLibraryId).filter((id): id is string => !!id))];
+  const templates = new Map<string, LibraryTemplate>();
+  if (ids.length > 0) {
+    const { data } = await admin.from('session_templates').select('id, name, payload').eq('coach_id', coachId).eq('kind', 'bike').in('id', ids);
+    for (const t of (data ?? []) as (LibraryTemplate & { id: string })[]) templates.set(t.id, t);
+  }
+  return resolveFromLibrary(workouts, templates);
+}
+
 /** Aplica los efectos de cada modo: materializa workouts reales y
  * actualiza/crea el estado del plan. Devuelve lo que se manda al cliente. */
 async function applyModeEffects(
@@ -673,7 +691,7 @@ async function applyModeEffects(
     const open = new Set((context.openDays as string[]) ?? []);
     return {
       rationale: output.rationale,
-      workouts: (output.workouts as { dayOfWeek: string }[]).filter((w) => open.has(w.dayOfWeek)),
+      workouts: await resolveLibraryWorkouts(admin, userId, (output.workouts as CoachWeekWorkout[]).filter((w) => open.has(w.dayOfWeek))),
     };
   }
 

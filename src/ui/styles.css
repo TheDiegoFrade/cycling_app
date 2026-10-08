@@ -5546,3 +5546,11 @@ button.plan-month-done-label {
   color: var(--text-soft);
   font-size: 11px;
 }
+
+/* Semana del coach: qué ajustó la IA a una plantilla de su biblioteca */
+.week-item-change {
+  font-size: 12px;
+  line-height: 1.35;
+  border-left: 2px solid var(--accent);
+  padding-left: 6px;
+}

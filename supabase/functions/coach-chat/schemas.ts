@@ -15,21 +15,10 @@ const IntervalSchema = z.object({
   cadence_max: z.number().int().positive().optional(),
 });
 
-const GeneratedWorkoutSchema = z.object({
-  name: z.string(),
-  // Ya no opcional — es lo único que el atleta lee antes de empezar (ver
-  // "antes de empezar" y el detalle en Plan), tiene que traer siempre
-  // objetivo + modo ERG recomendado + qué esperar (ver WORKOUT_CONTRACT).
-  description: z.string(),
-  intervals: z.array(IntervalSchema).min(1),
-  targetTSS: z.number().nonnegative(),
-  dayOfWeek: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
-});
-
 // Lo que decide el coach (Sonnet) en create_plan / weekly_eval /
 // publish_block: la serie en forma compacta (`repeat`) y una intención para
 // el redactor. Los intervalos los desenrolla expand.ts y la `description`
-// la escribe Haiku después (ver writeDescriptions en index.ts) — así la
+// la escribe Haiku después (ver finishPlannedWorkouts en index.ts) — así la
 // salida del coach es corta y no se pasa del tiempo límite.
 const SegmentSchema = z.object({
   repeat: z.number().int().min(1).max(30),
@@ -283,13 +272,41 @@ export const CoachWeekInputContextSchema = z.object({
     .array(z.object({ weekStart: z.string(), bikeTss: z.number().nonnegative(), nonBikeSessions: z.number().int().nonnegative() }))
     .max(12),
   maxSessionMinutes: z.number().positive().nullable(),
+  // Plantillas de bici de la biblioteca del coach: tienen prioridad al armar
+  // la semana (ver el header de coach_week en index.ts).
+  library: z
+    .array(
+      z.object({
+        id: z.string().max(64),
+        name: z.string().max(120),
+        minutes: z.number().nonnegative(),
+        tss: z.number().nonnegative().nullable(),
+        structure: z.string().max(600),
+      }),
+    )
+    .max(40)
+    .optional(),
+});
+
+// Un entrenamiento propuesto en coach_week. Si sale de la biblioteca del
+// coach: `fromLibraryId` + `libraryChange` null (copia exacta: `intervals`
+// puede venir vacío, la función copia los de la plantilla) o con el ajuste
+// que hizo y por qué (entonces `intervals` trae la versión ajustada).
+const CoachWeekWorkoutSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  intervals: z.array(IntervalSchema),
+  targetTSS: z.number().nonnegative(),
+  dayOfWeek: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
+  fromLibraryId: z.string().nullable(),
+  libraryChange: z.string().nullable(),
 });
 
 export const CoachWeekOutputSchema = z.object({
   // 2-5 razones cortas, dirigidas al coach (el atleta no las ve)
   rationale: z.array(z.string()).min(1).max(6),
   // puede venir vacío si la indicación pide descanso
-  workouts: z.array(GeneratedWorkoutSchema),
+  workouts: z.array(CoachWeekWorkoutSchema),
 });
 
 // Revisión mensual (vista del coach, paso 7b). El cliente manda los números
