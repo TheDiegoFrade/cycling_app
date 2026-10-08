@@ -4752,3 +4752,443 @@ a {
   padding: 6px 12px;
   font-size: 13px;
 }
+
+/* ---------- Celular: barra de pestañas y menú deslizable (sidebar.ts) ---------- */
+.tabbar,
+.drawer-backdrop,
+.drawer-close {
+  display: none;
+}
+@media (max-width: 760px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 60;
+    width: min(300px, 86vw);
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+    gap: 20px;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+  }
+  .app-shell.drawer-open .sidebar {
+    transform: none;
+  }
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .drawer-close {
+    display: block;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    padding: 6px 8px;
+  }
+  .app-shell.drawer-open .drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(0, 0, 0, 0.55);
+  }
+  .tabbar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    background: var(--surface-nav);
+    border-top: 1px solid var(--border);
+  }
+  .tabbar-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-height: 48px;
+    padding: 4px 2px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: none;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 11px;
+    text-decoration: none;
+  }
+  .tabbar-item.active {
+    color: var(--text);
+  }
+  .tabbar-item.active svg {
+    color: var(--accent-light);
+  }
+  .main-content > .screen,
+  .main-content .screen {
+    padding: 16px 16px calc(88px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- Celular: pantallas a una columna ----------
+   Todo lo de aquí solo aplica en pantallas angostas; en computadora no
+   cambia nada. */
+@media (max-width: 760px) {
+  h1 {
+    font-size: 26px;
+  }
+  /* Inicio */
+  .home-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .home-topline {
+    margin-bottom: 18px;
+    gap: 12px;
+  }
+  .home-topline .perfil-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+  /* Perfil */
+  .perfil-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  /* Plan: los 7 días uno debajo del otro */
+  .plan-head {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .plan-head .live-col-label {
+    width: auto !important;
+    min-width: 110px;
+  }
+  .plan-week-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .plan-day {
+    min-height: 0;
+    padding: 10px 12px;
+  }
+  .plan-day-add {
+    margin-top: 0;
+  }
+  .plan-day-cover .workout-cover {
+    height: 40px;
+  }
+  /* Historial: portada + nombre arriba, fecha y botones abajo */
+  .plan-lib-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .plan-lib-row .workout-cover {
+    width: 72px;
+    height: 36px;
+  }
+  .plan-lib-info {
+    flex: 1 1 calc(100% - 90px);
+  }
+  .plan-lib-date {
+    flex: 1 1 140px;
+    width: auto;
+  }
+  /* Resumen de sesión (atleta y coach) */
+  .summary-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .summary-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .summary-rpe-card {
+    gap: 12px;
+  }
+  .summary-rpe-card input {
+    min-width: 0;
+    width: 100%;
+  }
+  /* Encabezados del coach con flechas ‹ › : título arriba, controles abajo */
+  .weeks-nav h1 {
+    order: -1;
+    flex-basis: 100%;
+    font-size: 24px;
+  }
+  .coach-head-actions {
+    flex-wrap: wrap;
+  }
+  /* Semana de un atleta (coach): días en lista vertical */
+  .week-grid {
+    grid-template-columns: 1fr;
+    min-width: 0;
+  }
+  /* Semanas de todos: la columna del atleta queda fija al deslizar */
+  .weeks-row {
+    grid-template-columns: 118px repeat(7, minmax(96px, 1fr));
+  }
+  .weeks-grid {
+    min-width: 790px;
+  }
+  .weeks-athlete,
+  .weeks-head > span:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--surface);
+  }
+  .weeks-panel {
+    position: static;
+    max-width: none;
+    scroll-margin-top: 12px;
+  }
+  /* botones del editor de semana con tamaño de dedo */
+  .week-item-buttons button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .week-move select {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  .week-add {
+    min-height: 44px;
+  }
+  /* Análisis del atleta: barras semanales sin desbordarse */
+  .coach-weeks {
+    grid-template-columns: repeat(8, minmax(30px, 1fr));
+    gap: 6px;
+  }
+  .perfil-numfield-row input {
+    min-width: 0;
+  }
+  .perfil-zones {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px 10px;
+  }
+  .coach-tiles,
+  .coach-tiles-5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .coach-tile {
+    padding: 12px 14px;
+  }
+  .coach-week-track {
+    height: 90px;
+  }
+  .coach-week-tss {
+    font-size: 13px;
+  }
+}
+
+.prepare-no-ble {
+  border-color: var(--z4);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---------- Celular: sesión en vivo (train.ts) ----------
+   Vertical: zona + bloque + reloj en una línea, controles grandes en la
+   siguiente (botones de 44 px), números grandes al centro. Horizontal en
+   el manubrio: todo más compacto para que quepa sin scroll. */
+@media (max-width: 760px) {
+  .live {
+    height: 100dvh;
+    overflow-y: auto;
+  }
+  .live-topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px 0;
+  }
+  /* los hijos del bloque derecho se acomodan junto con los de la izquierda */
+  .live-topbar-right {
+    display: contents;
+  }
+  .live-zonepill {
+    order: 1;
+    font-size: 13px;
+    padding: 4px 8px;
+  }
+  .live-blockinfo {
+    order: 2;
+    flex: 1 1 0;
+    min-width: 0;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .live-topbar #trainer-dot,
+  .live-topbar #hr-dot {
+    order: 3;
+  }
+  .live-clock {
+    order: 3;
+    font-size: 20px;
+    margin-right: 0;
+    white-space: nowrap;
+  }
+  /* salto de línea: los controles van abajo */
+  .live-topbar::before {
+    content: '';
+    order: 4;
+    flex-basis: 100%;
+    height: 0;
+  }
+  .live-intensity {
+    order: 5;
+    height: 44px;
+  }
+  .live-intensity button {
+    width: 44px;
+    height: 44px;
+  }
+  .live-intensity .live-intensity-value {
+    font-size: 18px;
+    width: 48px;
+  }
+  .live-erg-quick {
+    order: 6;
+    height: 44px;
+  }
+  .live-pause-btn {
+    order: 7;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 44px;
+    padding: 0 12px;
+  }
+  .live-erg-quick {
+    padding: 0 12px;
+  }
+  .live-menu-wrap {
+    order: 8;
+  }
+  .live-menu-btn {
+    width: 44px;
+    height: 44px;
+  }
+  /* potencia arriba y tiempo del bloque abajo, grandes: se leen de lejos */
+  .live-center {
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: 22px;
+    padding: 12px 18px;
+  }
+  .live-block-col {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .live-col-label {
+    font-size: 13px;
+  }
+  .live-power-row {
+    align-items: baseline;
+    gap: 14px;
+  }
+  .live-power-num {
+    font-size: clamp(88px, 34vw, 170px);
+    letter-spacing: -3px;
+  }
+  .live-target-num {
+    font-size: 26px;
+  }
+  .live-target-label {
+    font-size: 12px;
+  }
+  .live-timeleft-num {
+    font-size: clamp(64px, 22vw, 120px);
+    letter-spacing: -2px;
+  }
+  .live-next {
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .live-bottom-row {
+    gap: 28px;
+    padding: 0 16px 10px;
+  }
+  .live-metric-label {
+    font-size: 13px;
+  }
+  .live-metric-num {
+    font-size: 44px;
+  }
+  .live-graph {
+    margin: 0 12px calc(12px + env(safe-area-inset-bottom));
+    height: 150px;
+  }
+  .live-message-overlay {
+    left: 12px;
+    right: 12px;
+  }
+}
+/* Celular acostado en el manubrio */
+@media (max-height: 520px) and (orientation: landscape) {
+  .live {
+    height: 100dvh;
+    overflow-y: auto;
+  }
+  .live-topbar {
+    padding: 8px 16px 0;
+    gap: 10px;
+  }
+  .live-zonepill,
+  .live-blockinfo {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .live-blockinfo {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .live-clock {
+    font-size: 20px;
+    white-space: nowrap;
+  }
+  .live-intensity,
+  .live-intensity button,
+  .live-pause-btn,
+  .live-erg-quick {
+    height: 40px;
+  }
+  .live-intensity button {
+    width: 40px;
+  }
+  .live-center {
+    padding: 4px 24px;
+    gap: 16px;
+  }
+  .live-power-num {
+    font-size: clamp(56px, 24vh, 130px);
+  }
+  .live-timeleft-num {
+    font-size: clamp(44px, 20vh, 110px);
+  }
+  .live-target-num {
+    font-size: 28px;
+  }
+  .live-bottom-row {
+    padding: 0 24px 6px;
+    gap: 32px;
+  }
+  .live-metric-num {
+    font-size: 36px;
+  }
+  .live-graph {
+    height: 90px;
+    margin: 0 16px 8px;
+  }
+}
