@@ -23,6 +23,9 @@ import { renderCoachSection } from '../coach';
 import { isSupabaseConfigured } from '../../supabase/client';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
 import { notifyPlanChange } from '../coach-notice';
+import { openSessionDetail } from '../open-session';
+import { fmtClock, tipRow, tipTitle } from '../chart-hover';
+import { pendingScheduled } from '../../core/plan-done';
 import { TEMPLATE_KIND_LABELS, routineSummary } from '../../core/coach-templates';
 import type { PlannedRoutine } from '../../core/coach-templates';
 
@@ -115,6 +118,9 @@ interface CalendarDone {
   nonBikeKind?: NonBikeKind;
   /** "Fuerza · 45 min · RPE 6" — solo con nonBikeKind. */
   logMeta?: string;
+  /** Workout agendado que se entrenó (si se grabó desde uno): ese día se
+   * muestra una sola tarjeta, la completada, en vez de agendado + hecho. */
+  workoutId?: string | null;
 }
 
 function logMeta(kind: NonBikeKind, durationS: number, rpe: number | null | undefined): string {
@@ -144,7 +150,11 @@ function renderSessionCover(samples: readonly Sample[], ftp: number): string {
     const avgPower = chunk.reduce((sum, s) => sum + s.power, 0) / chunk.length;
     const avgPct = (avgPower / ftp) * 100;
     const zone = powerZone(avgPct);
-    bars.push(`<div class="workout-cover-bar" style="height:${powerPctToHeightPct(avgPct)}%;background:var(--z${zone})"></div>`);
+    const tip =
+      tipTitle(`${fmtClock(chunk[0].t)} – ${fmtClock(chunk[chunk.length - 1].t + 1)}`) +
+      tipRow('Potencia prom.', `${Math.round(avgPower)} W`, `var(--z${zone})`) +
+      tipRow('FTP', `${Math.round(avgPct)}%`);
+    bars.push(`<div class="workout-cover-bar" style="height:${powerPctToHeightPct(avgPct)}%;background:var(--z${zone})" data-tip="${escapeHtml(tip)}"></div>`);
   }
   return `<div class="workout-cover workout-cover-sm">${bars.join('')}</div>`;
 }
@@ -159,13 +169,24 @@ function localToCalendarDone(s: SessionRecord): CalendarDone {
     coverHtml: renderSessionCover(s.samples, s.ftp),
     sessionId: s.id,
     isStrava: s.stravaActivityId !== undefined,
+    workoutId: s.workoutId,
   };
 }
 
 function cloudToCalendarDone(s: CloudSessionSummary): CalendarDone {
   if (isNonBikeKind(s.kind)) return nonBikeDone(s, s.kind, { cloudSessionId: s.id });
   const durationS = Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000);
-  return { workoutName: s.workoutName, durationS, tss: s.trainingStressScore ?? 0, cloudSessionId: s.id };
+  return { workoutName: s.workoutName, durationS, tss: s.trainingStressScore ?? 0, cloudSessionId: s.id, workoutId: s.workoutId };
+}
+
+function openAttrs(c: CalendarDone): string {
+  return c.sessionId ? `data-open-session="${c.sessionId}" data-origin="local"` : `data-open-session="${c.cloudSessionId}" data-origin="cloud"`;
+}
+
+function doneMeta(c: CalendarDone): string {
+  const parts = [`${Math.round(c.durationS / 60)} min`];
+  if (c.tss > 0) parts.push(`${Math.round(c.tss)} TSS`);
+  return parts.join(' · ');
 }
 
 function errorsHtml(errors: string[]): string {
@@ -276,8 +297,9 @@ export function renderCalendar(container: HTMLElement): () => void {
     | { kind: 'routine'; routine: PlannedRoutine };
 
   function dayEntries(scheduledList: Workout[], completedList: CalendarDone[], routines: PlannedRoutine[] = []): DayEntry[] {
+    const pending = pendingScheduled(scheduledList, completedList);
     return [
-      ...scheduledList.map((workout): DayEntry => ({ kind: 'scheduled', workout })),
+      ...pending.map((workout): DayEntry => ({ kind: 'scheduled', workout })),
       ...routines.map((routine): DayEntry => ({ kind: 'routine', routine })),
       ...completedList.map((done): DayEntry => ({ kind: 'completed', done })),
     ];
@@ -332,9 +354,12 @@ export function renderCalendar(container: HTMLElement): () => void {
       }
       return `
         <div class="plan-day-entry" ${dragAttrs(entry)}${c.isStrava ? ' title="Viene de Strava — su fecha no se puede mover aquí"' : ''}>
-          ${c.coverHtml ? `<div class="plan-day-cover">${c.coverHtml}</div>` : ''}
-          <div class="plan-day-name">${escapeHtml(c.workoutName)}</div>
-          <div class="live-col-label">completado${c.isStrava ? ' · Strava' : ''}</div>
+          <button class="plan-day-done" ${openAttrs(c)} title="${escapeHtml(c.workoutName)} — Ver sesión">
+            ${c.coverHtml ? `<span class="plan-day-cover">${c.coverHtml}</span>` : ''}
+            <span class="plan-day-name">${escapeHtml(c.workoutName)}</span>
+            <span class="live-col-label">${doneMeta(c)}</span>
+            <span class="plan-day-done-badge">✓ Completado${c.isStrava ? ' · Strava' : ''}</span>
+          </button>
         </div>`;
     };
     const body = entries.length > 0 ? entries.map(entryHtml).join('') : `<button class="plan-day-add" data-create-date="${key}">+ Crear nuevo</button>`;
@@ -366,8 +391,8 @@ export function renderCalendar(container: HTMLElement): () => void {
         return `<button class="plan-month-done-label plan-month-log kind-${c.nonBikeKind}" ${dragAttrs(entry)} data-log-id="${c.sessionId ?? c.cloudSessionId}" title="${escapeHtml(c.logMeta ?? c.workoutName)}">${escapeHtml(c.workoutName)}</button>`;
       }
       return c.coverHtml
-        ? `<div class="plan-month-cover" ${dragAttrs(entry)} title="${escapeHtml(c.workoutName)}">${c.coverHtml}</div>`
-        : `<div class="plan-month-done-label" ${dragAttrs(entry)} title="${escapeHtml(c.workoutName)}">${escapeHtml(c.workoutName)}</div>`;
+        ? `<button class="plan-month-cover plan-month-done" ${dragAttrs(entry)} ${openAttrs(c)} title="${escapeHtml(c.workoutName)} — Ver sesión">${c.coverHtml}</button>`
+        : `<button class="plan-month-done-label plan-month-done" ${dragAttrs(entry)} ${openAttrs(c)} title="${escapeHtml(c.workoutName)} — Ver sesión">✓ ${escapeHtml(c.workoutName)}</button>`;
     };
     const body =
       entries.length > 0
@@ -754,6 +779,9 @@ export function renderCalendar(container: HTMLElement): () => void {
 
     container.querySelectorAll<HTMLButtonElement>('[data-log-id]').forEach((btn) => {
       btn.addEventListener('click', () => navigate('log', btn.dataset.logId!));
+    });
+    container.querySelectorAll<HTMLButtonElement>('[data-open-session]').forEach((btn) => {
+      btn.addEventListener('click', () => void openSessionDetail(btn.dataset.openSession!, btn.dataset.origin as 'local' | 'cloud'));
     });
     container.querySelectorAll<HTMLButtonElement>('[data-routine-id]').forEach((btn) => {
       btn.addEventListener('click', () => navigate('log', `r-${btn.dataset.routineId!}`));

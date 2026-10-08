@@ -16,6 +16,9 @@ import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { wireDatePicker } from '../date-picker';
 import { isSupabaseConfigured } from '../../supabase/client';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
+import { fmtMinutes, tipRow, tipTitle } from '../chart-hover';
+import { ZONE_NAMES } from '../../core/zones';
+import type { PowerZone } from '../../core/zones';
 
 const DAY_LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S']; // índice = Date#getDay()
 const MONTH_NAMES_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -286,6 +289,7 @@ export function renderHome(container: HTMLElement): void {
     let totalTss = 0;
     const zoneSeconds = [0, 0, 0, 0, 0, 0];
     const minutesByDay = new Map<string, number>();
+    const tssByDay = new Map<string, number>();
     weekSessions.forEach((s: SessionRecord) => {
       const analytics = computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp });
       totalSeconds += s.samples.length;
@@ -293,6 +297,7 @@ export function renderHome(container: HTMLElement): void {
       analytics.powerZoneSeconds.forEach((z, i) => (zoneSeconds[i] += z.seconds));
       const key = s.startedAt.slice(0, 10);
       minutesByDay.set(key, (minutesByDay.get(key) ?? 0) + s.samples.length / 60);
+      tssByDay.set(key, (tssByDay.get(key) ?? 0) + (analytics.trainingStressScore ?? 0));
     });
 
     // Sesiones grabadas en OTRO dispositivo (o importadas ahí) que nunca
@@ -309,6 +314,7 @@ export function renderHome(container: HTMLElement): void {
       totalTss += s.trainingStressScore ?? 0;
       const key = s.startedAt.slice(0, 10);
       minutesByDay.set(key, (minutesByDay.get(key) ?? 0) + durationS / 60);
+      tssByDay.set(key, (tssByDay.get(key) ?? 0) + (s.trainingStressScore ?? 0));
     });
 
     // El desglose por zona sí necesita las samples segundo a segundo — para
@@ -344,9 +350,16 @@ export function renderHome(container: HTMLElement): void {
 
     const zoneTotal = zoneSeconds.reduce((a, b) => a + b, 0) || 1;
     container.querySelector('#week-zonebar')!.innerHTML = zoneSeconds
-      .map((secs, i) => (secs > 0 ? `<div style="width:${(secs / zoneTotal) * 100}%;background:var(--z${i + 1})"></div>` : ''))
+      .map((secs, i) => {
+        if (secs <= 0) return '';
+        const zone = (i + 1) as PowerZone;
+        const tip = tipTitle(`Z${zone} · ${ZONE_NAMES[zone]}`) + tipRow('Tiempo', fmtMinutes(secs), `var(--z${zone})`) + tipRow('Del total', `${Math.round((secs / zoneTotal) * 100)}%`);
+        return `<div style="width:${(secs / zoneTotal) * 100}%;background:var(--z${zone})" data-tip="${escapeHtml(tip)}"></div>`;
+      })
       .join('');
 
+    // la barra más alta de la semana llena 64 px; el resto, en proporción
+    const maxDayMinutes = Math.max(60, ...minutesByDay.values());
     const daysHtml: string[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(weekStart);
@@ -354,10 +367,15 @@ export function renderHome(container: HTMLElement): void {
       const key = toDateKey(d);
       const isToday = key === todayKey;
       const minutes = minutesByDay.get(key) ?? 0;
-      const heightPx = minutes > 0 ? Math.min(90, Math.max(6, minutes)) : 6;
+      const heightPx = minutes > 0 ? Math.max(6, Math.round((minutes / maxDayMinutes) * 64)) : 6;
       const barStyle = minutes > 0 ? `height:${heightPx}px;background:var(--text-soft)` : isToday ? `height:${heightPx}px;background:transparent;border:1.5px dashed var(--text-soft);box-sizing:border-box` : `height:${heightPx}px;background:var(--surface-active)`;
+      const dayTss = Math.round(tssByDay.get(key) ?? 0);
+      const dayName = d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric' });
+      const dayTip =
+        tipTitle(dayName.charAt(0).toUpperCase() + dayName.slice(1)) +
+        (minutes > 0 ? tipRow('Tiempo', fmtMinutes(minutes * 60)) + tipRow('TSS', String(dayTss)) : tipRow(key > todayKey ? 'Pendiente' : 'Descanso', '—'));
       daysHtml.push(`
-        <div class="home-week-day">
+        <div class="home-week-day" data-tip="${escapeHtml(dayTip)}">
           <div class="home-week-daybar" style="${barStyle}"></div>
           <div class="home-week-daylabel" style="${isToday ? 'color:var(--text);font-weight:500' : ''}">${isToday ? 'Hoy' : DAY_LETTERS[d.getDay()]}</div>
         </div>`);

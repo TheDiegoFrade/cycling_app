@@ -26,6 +26,7 @@ import { renderTrain } from './ui/screens/train';
 import { appState } from './ui/state';
 import { stopAmbientTrack } from './ui/ambient-audio';
 import { handleStravaRedirect } from './sync/strava';
+import { installDomTips } from './ui/chart-hover';
 
 type RenderFn = (container: HTMLElement) => (() => void) | void;
 
@@ -70,6 +71,7 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
 SCREENS_TO_GUARD.forEach(([screen, render]) => registerScreen(screen, guarded(render)));
 registerScreen('login', renderLogin); // nunca bloqueada: si no, nadie podría iniciar sesión
 
+installDomTips();
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = '<div class="screen"><p class="hint">Cargando…</p></div>';
 
