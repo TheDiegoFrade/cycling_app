@@ -18,6 +18,8 @@ import { confirmAiWithHumanCoach, humanCoachName } from './coach-notice';
 import { coachFtpFields, coachProfileExtras, ftpSourceOf, isMeasuredFtp, sourceForAcceptedSuggestion, withFtp } from '../core/coach-profile';
 import { planContextFor, plannedTestLabel, weekStartOf } from '../core/plan-context';
 import { ruleTriggersOf } from '../core/rule-triggers';
+import { readTest } from '../core/test-reading';
+import type { LastTest } from '../core/test-reading';
 import type { CoachPlanContext, PlannedTest, StoredPlanData } from '../core/plan-context';
 
 const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'M', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
@@ -516,6 +518,28 @@ export function renderCoachSection(container: HTMLElement, onChange: () => void)
   });
 }
 
+// Un test más viejo que esto ya no describe al atleta.
+const LAST_TEST_MAX_AGE_DAYS = 180;
+
+/** Lectura del test más reciente (ver core/test-reading.ts): la sesión cuyo
+ * workout es de test (kind 'test', o por nombre en workouts viejos; la
+ * escalera de ajuste no es test). Solo sesiones de este dispositivo: las de
+ * la nube no traen samples. null si no hay ninguna. */
+async function computeLastTest(): Promise<LastTest | null> {
+  const { localSessions } = await aiEligibleSessions(true);
+  const workouts = new Map(appState.workouts.map((w) => [w.id, w]));
+  const sinceKey = new Date(Date.now() - LAST_TEST_MAX_AGE_DAYS * 86400000).toISOString().slice(0, 10);
+  const tests = localSessions
+    .map((s) => ({ s, w: workouts.get(s.workoutId) }))
+    .filter(({ s, w }) => w && s.startedAt.slice(0, 10) >= sinceKey && (w.kind === 'test' || /test|rampa|ramp/i.test(w.name)) && !/escalera/i.test(w.name))
+    .sort((a, b) => b.s.startedAt.localeCompare(a.s.startedAt));
+  for (const { s, w } of tests) {
+    const reading = readTest(s, w!.intervals, appState.profile.hr_max);
+    if (reading) return reading;
+  }
+  return null;
+}
+
 interface RecentHistory {
   weeksOfData: number;
   avgHoursPerWeekLast4: number;
@@ -618,6 +642,7 @@ async function computeWeekEvalContext(
   occupiedDates: string[];
   plan: CoachPlanContext;
   nextWeekStart: string;
+  lastTest: LastTest | null;
 } | null> {
   const weeks = plan.data.weeks;
   if (weeks.length === 0) return null;
@@ -734,6 +759,7 @@ async function computeWeekEvalContext(
     occupiedDates,
     plan: planContextFor(plan, appState.profile, nextWeekIndex, workoutDays),
     nextWeekStart: weekStartOf(plan.data.startDate, nextWeekIndex),
+    lastTest: await computeLastTest(),
   };
 }
 
@@ -793,7 +819,7 @@ function openCreateModal(onChange: () => void): void {
     const startDate = new Date().toISOString().slice(0, 10);
     const maxMinutesInput = (backdrop.querySelector<HTMLInputElement>('#coach-max-minutes')!).value.trim();
     const maxSessionMinutes = maxMinutesInput ? Number(maxMinutesInput) : null;
-    const [recentHistory, occupiedDates] = await Promise.all([computeRecentHistory(), computeOccupiedDates(startDate, 3)]);
+    const [recentHistory, occupiedDates, lastTest] = await Promise.all([computeRecentHistory(), computeOccupiedDates(startDate, 3), computeLastTest()]);
     const context = {
       startDate,
       goal,
@@ -809,6 +835,7 @@ function openCreateModal(onChange: () => void): void {
       // core/coach-profile.ts). Edad en vez de fecha de nacimiento.
       profile: { ...coachFtpFields(p), hr_max: p.hr_max, sex: p.sex ?? null, name: p.name ?? null, ...coachProfileExtras(p) },
       recentHistory,
+      lastTest,
     };
 
     const { data, error } = await supabase.functions.invoke('coach-chat', { body: { mode: 'create_plan', context } });

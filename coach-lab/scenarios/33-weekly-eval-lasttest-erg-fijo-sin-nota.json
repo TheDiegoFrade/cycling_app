@@ -1,0 +1,53 @@
+{
+  "id": "33-weekly-eval-lasttest-erg-fijo-sin-nota",
+  "mode": "weekly_eval",
+  "title": "El caso real del test con ERG fijo, pero el coach solo lo ve en lastTest (la nota no lo cuenta)",
+  "expect": [
+    "Lee en lastTest que el test fue con ERG fijo (ergFixed true): no midió un máximo, no da 162 W (95 % de 170).",
+    "Con el pulso subiendo ~1 lpm/min hasta el 99 % de su máximo, 170 W estaba por encima de su umbral: FTP de trabajo ≈ 150 W (88-90 %).",
+    "ftpAction = \"change\" y suggestedFtp ≈ 150; reasoning da el mismo número.",
+    "Confirma el número en las semanas siguientes (bloques de 12-15 min al 90 %); nada de VO2 ni otro test máximo antes de 4 semanas.",
+    "Si propone repetir el test, es con el bloque libre (ERG suelto)."
+  ],
+  "context": {
+    "profile": {
+      "sex": "M",
+      "name": null
+    },
+    "maxSessionMinutes": 75,
+    "occupiedDates": [],
+    "weekJustFinished": {
+      "plannedTSS": 150,
+      "actualTSS": 141,
+      "completedWorkouts": 3,
+      "missedWorkouts": 0,
+      "ruleTriggers": [],
+      "athleteNote": "Hice el test que me tocaba. Terminé fundido."
+    },
+    "pmcTrend": {
+      "ctl": 9,
+      "atl": 20,
+      "tsb": -11,
+      "ctlRampLast4Weeks": 9
+    },
+    "recentGapPattern": null,
+    "recentWeeksSummary": null,
+    "lastTest": {
+      "date": "2026-10-07",
+      "type": "test20",
+      "ergFixed": true,
+      "blockMinutes": 20,
+      "avgPowerW": 170,
+      "best1MinW": 172,
+      "powerFadePct": null,
+      "hrStart": 162,
+      "hrEnd": 180,
+      "hrSlopeBpmPerMin": 1.0,
+      "hrHalvesDeltaPct": 6.0,
+      "hrEndPctOfMax": 99,
+      "cadenceDeltaRpm": -6,
+      "completed": true,
+      "ftpInUseW": 200
+    }
+  }
+}

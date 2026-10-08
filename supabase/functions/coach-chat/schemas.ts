@@ -97,6 +97,29 @@ const PlanContextSchema = z.object({
   nextTest: NextTestSchema,
 });
 
+// Cómo salió el test más reciente (ver src/core/test-reading.ts). El modelo
+// no ve samples: decide con esto si el test midió un máximo.
+const LastTestSchema = z
+  .object({
+    date: z.string(),
+    type: z.enum(['ramp', 'test20', 'other']),
+    ergFixed: z.boolean(),
+    blockMinutes: z.number().nonnegative(),
+    avgPowerW: z.number().nonnegative(),
+    best1MinW: z.number().nonnegative(),
+    powerFadePct: z.number().nullable(),
+    hrStart: z.number().nullable(),
+    hrEnd: z.number().nullable(),
+    hrSlopeBpmPerMin: z.number().nullable(),
+    hrHalvesDeltaPct: z.number().nullable(),
+    hrEndPctOfMax: z.number().nullable(),
+    cadenceDeltaRpm: z.number().nullable(),
+    completed: z.boolean(),
+    ftpInUseW: z.number().positive(),
+  })
+  .nullable()
+  .optional();
+
 // Forma esperada de `context` para create_plan — el cliente la arma antes de
 // llamar. `recentHistory` ("¿hay datos registrados en Torq?") y
 // `experienceLevel` ("¿qué tan nuevo es el atleta de verdad?") son dos ejes
@@ -153,6 +176,7 @@ export const CreatePlanInputContextSchema = z.object({
       tsb: z.number().optional(),
     })
     .nullable(), // null = sin historial registrado en Torq (no implica que sea principiante)
+  lastTest: LastTestSchema,
 });
 
 export const CreatePlanOutputSchema = z.object({
@@ -201,6 +225,7 @@ export const WeeklyEvalInputContextSchema = z.object({
   occupiedDates: z.array(z.string()),
   plan: PlanContextSchema.optional(),
   nextWeekStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), // lunes de la semana que se va a generar
+  lastTest: LastTestSchema,
   weekJustFinished: z.object({
     plannedTSS: z.number().nonnegative(),
     actualTSS: z.number().nonnegative(),
