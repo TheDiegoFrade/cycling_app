@@ -194,6 +194,16 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     latestHr = v;
     lastHrReadingAt = performance.now();
   });
+  // RR de la banda (si los manda), solo mientras corre la sesión: en pausa
+  // el reloj de la sesión no avanza y quedarían todos en el mismo segundo.
+  const rr: NonNullable<SessionRecord['rr']> = { t: [], ms: [] };
+  const unsubRr = hr?.onRr?.((values) => {
+    if (engine.currentState !== 'running') return;
+    for (const ms of values) {
+      rr.t.push(lastElapsedS);
+      rr.ms.push(ms);
+    }
+  });
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;
   let autoStartTimer: ReturnType<typeof setInterval> | null = null;
@@ -382,6 +392,10 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       history.push(...draft.samples);
       alerts.push(...draft.alerts);
       intensityChanges.push(...draft.intensityChanges);
+      if (draft.rr) {
+        rr.t.push(...draft.rr.t);
+        rr.ms.push(...draft.rr.ms);
+      }
       resumeAtS = draft.samples[draft.samples.length - 1].t + 1;
       currentIndex0 = intervalIndexAt(plan, resumeAtS);
       currentTimeLeft = workout.intervals[currentIndex0].duration_s - (resumeAtS - plan.segStart[currentIndex0]);
@@ -411,6 +425,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       samples: history,
       alerts,
       intensityChanges,
+      ...(rr.ms.length ? { rr } : {}),
     });
   }
   function onVisibilityChange(): void {
@@ -742,6 +757,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       samples: history,
       alerts,
       intensityChanges,
+      ...(rr.ms.length ? { rr } : {}),
       source: 'torq',
       kind: 'bike_indoor',
     };
@@ -1036,6 +1052,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     unsubHrState?.();
     unsubTrainerReading();
     unsubHrReading?.();
+    unsubRr?.();
     if (bannerTimer) clearTimeout(bannerTimer);
   };
 }

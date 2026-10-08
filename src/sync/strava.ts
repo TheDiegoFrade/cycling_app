@@ -75,7 +75,7 @@ function toBase64(bytes: Uint8Array): string {
 /** Sube una sesión ya grabada en Torq a la cuenta de Strava del usuario. */
 export async function uploadSessionToStrava(session: SessionRecord, profile: Profile): Promise<void> {
   if (!supabase) throw new Error('Supabase no configurado');
-  const bytes = encodeFitActivity(new Date(session.startedAt), session.samples, { ...profile, ftp: session.ftp });
+  const bytes = encodeFitActivity(new Date(session.startedAt), session.samples, { ...profile, ftp: session.ftp }, session.rr);
   const { error } = await supabase.functions.invoke('strava-upload', {
     body: { fitBase64: toBase64(bytes), filename: `${session.workoutName.replace(/[^\w-]+/g, '_')}.fit` },
   });

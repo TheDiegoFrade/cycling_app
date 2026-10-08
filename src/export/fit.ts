@@ -65,8 +65,13 @@ const ACTIVITY_FIELDS: FitFieldDef[] = [
   { num: 4, baseType: BASE_TYPE.enum }, // event_type: 1 = stop
 ];
 
-const LOCAL_TYPE = { fileId: 0, record: 1, lap: 2, session: 3, activity: 4 } as const;
-const GLOBAL_MESG = { fileId: 0, record: 20, lap: 19, session: 18, activity: 34 } as const;
+// hrv: hasta 5 intervalos RR por mensaje (campo 0, escala 1000 → el valor
+// crudo son ms), como los graba Garmin: intercalados entre los `record`.
+const HRV_PER_MESG = 5;
+const HRV_FIELDS: FitFieldDef[] = [{ num: 0, baseType: BASE_TYPE.uint16, count: HRV_PER_MESG }];
+
+const LOCAL_TYPE = { fileId: 0, record: 1, lap: 2, session: 3, activity: 4, hrv: 5 } as const;
+const GLOBAL_MESG = { fileId: 0, record: 20, lap: 19, session: 18, activity: 34, hrv: 78 } as const;
 
 interface Lap {
   intervalIndex: number;
@@ -95,7 +100,12 @@ function buildLaps(samples: readonly Sample[]): Lap[] {
  * muestras grabadas a 1 Hz. No verificado contra un parser FIT real
  * (Garmin Connect / Strava / intervals.icu) — antes de confiar en el
  * archivo, súbelo a alguno de esos servicios como prueba. */
-export function encodeFitActivity(startedAt: Date, samples: readonly Sample[], profile: Profile): Uint8Array {
+export function encodeFitActivity(
+  startedAt: Date,
+  samples: readonly Sample[],
+  profile: Profile,
+  rr?: { t: readonly number[]; ms: readonly number[] },
+): Uint8Array {
   const w = new FitWriter();
   const startTs = toFitTimestamp(startedAt);
   const laps = buildLaps(samples);
@@ -106,9 +116,23 @@ export function encodeFitActivity(startedAt: Date, samples: readonly Sample[], p
   w.writeData(LOCAL_TYPE.fileId, FILE_ID_FIELDS, [4, 255, 0, startTs]);
 
   w.writeDefinition(LOCAL_TYPE.record, GLOBAL_MESG.record, RECORD_FIELDS);
+  const rrData = rr && rr.ms.length > 0 ? rr : null;
+  if (rrData) w.writeDefinition(LOCAL_TYPE.hrv, GLOBAL_MESG.hrv, HRV_FIELDS);
+  let rrIdx = 0;
+  const writeRrUpTo = (t: number): void => {
+    if (!rrData) return;
+    const chunk: number[] = [];
+    for (; rrIdx < rrData.ms.length && rrData.t[rrIdx] <= t; rrIdx++) {
+      chunk.push(rrData.ms[rrIdx]);
+      if (chunk.length === HRV_PER_MESG) w.writeData(LOCAL_TYPE.hrv, HRV_FIELDS, [chunk.splice(0)]);
+    }
+    if (chunk.length) w.writeData(LOCAL_TYPE.hrv, HRV_FIELDS, [chunk]);
+  };
   for (const s of samples) {
     w.writeData(LOCAL_TYPE.record, RECORD_FIELDS, [startTs + s.t, s.hr, s.cadence, s.power]);
+    writeRrUpTo(s.t);
   }
+  writeRrUpTo(Infinity);
 
   w.writeDefinition(LOCAL_TYPE.lap, GLOBAL_MESG.lap, LAP_FIELDS);
   for (const lap of laps) {

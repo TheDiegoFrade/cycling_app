@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { encodeFitActivity } from './fit';
 import { fitCrc16 } from './fit-crc';
+import { parseFitActivity } from '../core/fit-activity-parser';
 import type { Profile, Sample } from '../core/types';
 
 const profile: Profile = { ftp: 250, hr_max: 190, cadence_floor: 70, hr_ceiling: 176, hr_min: 0, cadence_max: 999 };
@@ -91,5 +92,24 @@ describe('encodeFitActivity', () => {
     const counts = readMessageCounts(file);
     expect(counts[GLOBAL.record]).toBe(1);
     expect(counts[GLOBAL.lap]).toBe(1);
+  });
+});
+
+describe('encodeFitActivity — RR (mensajes hrv)', () => {
+  it('sin RR no escribe mensajes hrv', () => {
+    const file = encodeFitActivity(new Date('2026-10-08T10:00:00Z'), [sample(0, 0), sample(1, 0)], profile);
+    expect(readMessageCounts(file)[78]).toBeUndefined();
+  });
+
+  it('los RR vuelven iguales al leer el archivo, de 5 en 5 e intercalados', () => {
+    const samples = Array.from({ length: 4 }, (_, t) => sample(t, 0));
+    const rr = { t: [0, 0, 1, 1, 1, 1, 1, 1, 3], ms: [800, 810, 790, 805, 795, 800, 802, 798, 1000] };
+    const file = encodeFitActivity(new Date('2026-10-08T10:00:00Z'), samples, profile, rr);
+    // t=0: 1 mensaje (2 RR); t=1: 2 mensajes (5 + 1); t=3: 1 mensaje
+    expect(readMessageCounts(file)[78]).toBe(4);
+    const parsed = parseFitActivity(file.slice().buffer);
+    expect(parsed.errors).toEqual([]);
+    expect(parsed.rr).toEqual(rr);
+    expect(parsed.samples).toHaveLength(4);
   });
 });

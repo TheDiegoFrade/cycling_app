@@ -67,7 +67,7 @@ export function zoneBars(zones: { zone: number; seconds: number }[]): string {
 // hacía nada en silencio para cualquier sesión que no fuera la recién
 // terminada en este mismo dispositivo. Encontrado en producción.
 function downloadFit(session: SessionRecord): void {
-  const bytes = encodeFitActivity(new Date(session.startedAt), session.samples, profileForSession(session));
+  const bytes = encodeFitActivity(new Date(session.startedAt), session.samples, profileForSession(session), session.rr);
   const blob = new Blob([bytes as unknown as ArrayBuffer], { type: 'application/octet-stream' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -411,7 +411,7 @@ function renderFullSummary(container: HTMLElement, session: SessionRecord, cloud
     if (!creds || !icuResultEl) return;
     icuResultEl.innerHTML = '<p class="hint">Subiendo…</p>';
     try {
-      const bytes = encodeFitActivity(new Date(session.startedAt), session.samples, profileForSession(session));
+      const bytes = encodeFitActivity(new Date(session.startedAt), session.samples, profileForSession(session), session.rr);
       await uploadActivityFit(creds, bytes, `${session.workoutName}.fit`);
       icuResultEl.innerHTML = '<p class="hint">Subido. Revisa tu cuenta de intervals.icu para confirmar.</p>';
     } catch (err) {

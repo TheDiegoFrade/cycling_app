@@ -78,7 +78,7 @@ export async function pushSessionToCloud(session: SessionRecord, profile: Profil
     const hasSamples = session.samples.length > 0;
     let fitPath: string | null = null;
     if (hasSamples) {
-      const bytes = encodeFitActivity(new Date(session.startedAt), session.samples, sessionProfile);
+      const bytes = encodeFitActivity(new Date(session.startedAt), session.samples, sessionProfile, session.rr);
       fitPath = `${userId}/${session.id}.fit`;
       const { error: uploadError } = await supabase.storage
         .from('fit-files')

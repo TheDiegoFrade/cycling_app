@@ -51,6 +51,7 @@ export async function buildCompletedSessionFromFit(
     finishedAt,
     ftp: profile.ftp,
     samples: parsed.samples,
+    ...(parsed.rr ? { rr: parsed.rr } : {}),
     alerts: [],
     intensityChanges: [],
     source: 'fit_upload',

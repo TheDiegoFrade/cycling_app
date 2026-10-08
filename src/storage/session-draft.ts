@@ -7,7 +7,7 @@ import { dbDelete, dbGet, dbGetAll, dbPut, STORES } from './db';
  * segundos en vez de todo el entrenamiento. Se borra al terminar limpio
  * (ver train.ts). Si queda uno al arrancar la app, Inicio ofrece
  * recuperarlo. */
-export type SessionDraft = Pick<SessionRecord, 'id' | 'workoutId' | 'workoutName' | 'startedAt' | 'ftp' | 'samples' | 'alerts' | 'intensityChanges'>;
+export type SessionDraft = Pick<SessionRecord, 'id' | 'workoutId' | 'workoutName' | 'startedAt' | 'ftp' | 'samples' | 'alerts' | 'intensityChanges' | 'rr'>;
 
 export function saveDraft(draft: SessionDraft): Promise<IDBValidKey> {
   return dbPut(STORES.drafts, draft);

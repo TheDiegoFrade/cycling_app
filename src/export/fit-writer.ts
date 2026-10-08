@@ -18,7 +18,17 @@ const BASE_TYPE_SIZE: Record<number, number> = {
 export interface FitFieldDef {
   num: number;
   baseType: BaseType;
+  /** Campo arreglo (p. ej. los RR de `hrv`): cuántos valores. Default 1. */
+  count?: number;
 }
+
+/** Valor "inválido" de cada tipo base, para rellenar arreglos. */
+export const INVALID: Record<BaseType, number> = {
+  [BASE_TYPE.enum]: 0xff,
+  [BASE_TYPE.uint8]: 0xff,
+  [BASE_TYPE.uint16]: 0xffff,
+  [BASE_TYPE.uint32]: 0xffffffff,
+};
 
 /** Acumula bytes de mensajes de definición y de datos FIT. Un "mensaje" en
  * FIT es: header byte + payload; una Definition Message declara el layout
@@ -38,14 +48,19 @@ export class FitWriter {
   writeDefinition(localType: number, globalMesgNum: number, fields: FitFieldDef[]): void {
     this.bytes.push(0x40 | localType, 0x00, 0x00, globalMesgNum & 0xff, (globalMesgNum >> 8) & 0xff, fields.length);
     for (const f of fields) {
-      this.bytes.push(f.num, BASE_TYPE_SIZE[f.baseType], f.baseType);
+      this.bytes.push(f.num, BASE_TYPE_SIZE[f.baseType] * (f.count ?? 1), f.baseType);
     }
   }
 
-  writeData(localType: number, fields: FitFieldDef[], values: number[]): void {
+  writeData(localType: number, fields: FitFieldDef[], values: (number | number[])[]): void {
     this.bytes.push(localType & 0x0f);
     fields.forEach((f, i) => {
-      this.writeValue(f.baseType, values[i]);
+      const v = values[i];
+      if (Array.isArray(v)) {
+        for (let k = 0; k < (f.count ?? 1); k++) this.writeValue(f.baseType, v[k] ?? INVALID[f.baseType]);
+      } else {
+        this.writeValue(f.baseType, v);
+      }
     });
   }
 
