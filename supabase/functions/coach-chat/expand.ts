@@ -133,11 +133,25 @@ export function fitToCap(w: PlannedWorkout, capMinutes: number): { workout: Plan
   return { workout: { ...w, segments }, trimmedS, fits: excess <= 0 };
 }
 
+/** Red de seguridad para tests autodosificados: en un test que no va todo
+ * con ERG, el bloque máximo (≥ 5 min a ≥ 90 % FTP, sin rampa) se vuelve
+ * 'free' aunque el modelo lo haya puesto como 'interval' — la app suelta el
+ * ERG en 'free'. Con ERG fijo un test de 20 min solo mide que el atleta
+ * aguanta esa potencia (caso real: 170 W fijos con el pulso subiendo). */
+export function selfPacedTestSteps(w: PlannedWorkout, steps: Step[]): Step[] {
+  if (w.erg === 'on' || !isTestWorkout(w)) return steps;
+  return steps.map((st) =>
+    st.ramp_to_pct === undefined && st.power_pct >= 90 && st.duration_s >= 300 && (st.type === 'interval' || st.type === 'steady')
+      ? { ...st, type: 'free' as const }
+      : st,
+  );
+}
+
 export function toGeneratedWorkout(w: PlannedWorkout, description: string | null): GeneratedWorkout {
   return {
     name: w.name,
     description: description?.trim() || fallbackDescription(w),
-    intervals: expandSegments(w.segments),
+    intervals: selfPacedTestSteps(w, expandSegments(w.segments)),
     targetTSS: w.targetTSS,
     dayOfWeek: w.dayOfWeek,
   };

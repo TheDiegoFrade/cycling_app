@@ -204,6 +204,12 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const firedMotivation = new Set<string>();
   let cdShown = -1;
   let currentIndex0 = 0;
+  // Un bloque 'free' es autodosificado (el bloque máximo de un test de 20
+  // min): el atleta regula su potencia, así que el rodillo no puede quedarse
+  // en ERG aunque el atleta lo tenga prendido. Antes el ERG global mantenía
+  // el objetivo del bloque y el "test" medía solo que aguantaba esa potencia.
+  const isSelfPaced = (): boolean => workout.intervals[currentIndex0]?.type === 'free';
+  let ergReleasedForFree = false;
   let currentTimeLeft = workout.intervals[0]?.duration_s ?? 0;
   let ergEnabled = true;
   let lastTargetWatts = 0;
@@ -611,7 +617,13 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         }
 
         lastTargetWatts = event.sample.target;
-        if (ergEnabled) trainer.setTarget(lastTargetWatts);
+        if (ergEnabled && !isSelfPaced()) {
+          trainer.setTarget(lastTargetWatts); // también re-engancha el ERG al salir de un bloque libre
+          ergReleasedForFree = false;
+        } else if (ergEnabled && !ergReleasedForFree) {
+          trainer.setResistance(resistancePercent);
+          ergReleasedForFree = true;
+        }
         draw();
         maybeMotivate();
         ticksSinceDraftSave++;
@@ -632,7 +644,11 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         paintBlockHeader();
         paintTimeline();
         paintLimitsPanel();
-        showBanner('info', event.interval.name, `${event.targetWatts} W · ${event.interval.cadence_min ?? '—'}+ rpm`, 1800);
+        if (event.interval.type === 'free') {
+          showBanner('info', event.interval.name, 'Bloque libre: tú regulas la potencia, el ERG se suelta', 4000);
+        } else {
+          showBanner('info', event.interval.name, `${event.targetWatts} W · ${event.interval.cadence_min ?? '—'}+ rpm`, 1800);
+        }
         return;
       }
       case 'countdown': {
@@ -830,8 +846,14 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     $('erg-quick').classList.toggle('off', !ergEnabled);
     if (ergEnabled) {
       // al reactivarlo, vuelve a mandar el objetivo actual de inmediato en
-      // vez de esperar al próximo tick para que el rodillo enganche ya
-      trainer.setTarget(lastTargetWatts);
+      // vez de esperar al próximo tick para que el rodillo enganche ya —
+      // salvo en un bloque libre, que sigue suelto hasta que termine
+      if (isSelfPaced()) {
+        trainer.setResistance(resistancePercent);
+        ergReleasedForFree = true;
+      } else {
+        trainer.setTarget(lastTargetWatts);
+      }
       // repinta el % de intensidad sin pasar por paintBias: esa función
       // también registra un ajuste de intensidad y no queremos un renglón
       // falso en el historial solo por haber prendido el ERG de nuevo

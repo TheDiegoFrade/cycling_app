@@ -109,3 +109,31 @@ describe('fitToCap', () => {
     expect(r.fits).toBe(false);
   });
 });
+
+describe('selfPacedTestSteps', () => {
+  const test20: PlannedWorkout = {
+    name: 'Test de 20 min',
+    dayOfWeek: 'sat',
+    targetTSS: 70,
+    erg: 'mixed',
+    intent: 'Test de FTP: regula tú los 20 min.',
+    segments: [
+      { repeat: 1, steps: [{ name: 'Calentamiento', type: 'warmup', duration_s: 600, power_pct: 45, ramp_to_pct: 70 }] },
+      { repeat: 3, steps: [{ name: 'Activación', type: 'interval', duration_s: 60, power_pct: 100 }, { name: 'Suave', type: 'recovery', duration_s: 60, power_pct: 50 }] },
+      { repeat: 1, steps: [{ name: 'Test 20 min', type: 'interval', duration_s: 1200, power_pct: 100 }] },
+      { repeat: 1, steps: [{ name: 'Enfriamiento', type: 'cooldown', duration_s: 720, power_pct: 45 }] },
+    ],
+  };
+
+  it('el bloque máximo de un test sin ERG fijo corre como free; lo demás no cambia', () => {
+    const iv = toGeneratedWorkout(test20, null).intervals;
+    expect(iv.filter((i) => i.type === 'free').map((i) => i.name)).toEqual(['Test 20 min']);
+    expect(iv.find((i) => i.name === 'Activación 1/3')?.type).toBe('interval'); // 1 min: no es el bloque del test
+  });
+
+  it('no toca la rampa ni workouts que no son test o van con ERG', () => {
+    const ramp: PlannedWorkout = { ...test20, name: 'Test de rampa', erg: 'on' };
+    expect(toGeneratedWorkout(ramp, null).intervals.some((i) => i.type === 'free')).toBe(false);
+    expect(toGeneratedWorkout({ ...threshold, erg: 'off' }, null).intervals.some((i) => i.type === 'free')).toBe(false);
+  });
+});

@@ -185,8 +185,8 @@ No diagnosticas ni recetas: adaptas la carga y dices qué adaptaste.
   suave. FTP ≈ 75 % del mejor minuto (el cociente real va de 70 a 80 %).
 - **20 minutos** (ERG off; solo para quien ya sabe dosificarse).
   Calentamiento 10 min de 45 a 70 %, 3 × (1 min al 100 % / 1 min al 50 %),
-  5 min al 50 %, 20 min al máximo sostenible (\`power_pct\` 100 como
-  referencia), enfriamiento 12 min. FTP ≈ 90-95 % del promedio, no 95 %
+  5 min al 50 %, 20 min al máximo sostenible (\`type\` "free", \`power_pct\`
+  100 como referencia), enfriamiento 12 min. FTP ≈ 90-95 % del promedio, no 95 %
   fijo. Tip: los primeros 5 min deben sentirse contenidos.
 - **Rodada de deriva** (no es test máximo): 10 min de calentamiento, 30-45
   min a esfuerzo constante RPE 3-4 y 5 min suaves. Si puede hablar y la FC
@@ -591,6 +591,10 @@ Cada entrenamiento que generes tiene este contrato (forma compacta):
   "cooldown" | "free"), \`duration_s\` (segundos), \`power_pct\` (porcentaje
   del FTP del perfil, nunca watts), \`ramp_to_pct\` opcional (sube/baja
   lineal), \`cadence_min\`/\`cadence_max\` opcionales.
+- "free" = el atleta regula su potencia: la app suelta el ERG en ese step
+  aunque lo tenga prendido, y \`power_pct\` queda solo como referencia.
+  Úsalo en el bloque máximo de un test de 20 min y en esfuerzos que el
+  atleta dosifica (40:20s, sprints). Nunca en la rampa (esa va con ERG).
 - \`erg\`: "on" si la potencia fija ES el punto (el rodillo manda), y
   siempre mientras el FTP sea provisional; "off" si es un esfuerzo que el
   atleta regula solo (test de 20 min, 40:20s, sprints) o una rodada libre
