@@ -6,7 +6,7 @@ import { buildAchievementInput, evaluateAchievements } from '../../engine/achiev
 import { estimateWorkout } from '../../core/workout-estimate';
 import { findTemplate } from '../../core/workout-templates';
 import type { Workout } from '../../core/types';
-import { isBikeSession } from '../../core/session-kind';
+import { isBikeSession, wasTrained } from '../../core/session-kind';
 import type { SessionRecord } from '../../storage/session-store';
 import { listSessions } from '../../storage/session-store';
 import { saveWorkout } from '../../storage/workout-store';
@@ -17,6 +17,8 @@ import type { PowerRecords } from '../../sync/cloud-sync';
 import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { markAchievementsSeen } from '../achievement-toast';
 import { bindChartHover, evenIndexAt, tipRow, tipTitle } from '../chart-hover';
+import { renderAnalysisPanel } from '../analysis-panel';
+import { stateSessionFromCloud, stateSessionFromLocal } from '../athlete-state-data';
 
 const CHART_WEEKS = 6;
 
@@ -532,6 +534,10 @@ export function renderForma(container: HTMLElement): () => void {
             : ''
         }
 
+        <h2 class="perfil-h2" style="margin-top:28px">Análisis</h2>
+        <p class="hint" style="margin-top:-4px">Lo que mira un coach: tu curva de potencia contra la ventana anterior, picos, base aeróbica, tiempo a umbral y volumen.</p>
+        <div id="forma-analysis"></div>
+
         <h2 class="perfil-h2" style="margin-top:28px">Rachas y récords</h2>
         <div class="panel forma-records">
           <div class="forma-streak">
@@ -616,6 +622,23 @@ export function renderForma(container: HTMLElement): () => void {
       drawFitnessFatigueChart(container.querySelector('#pmc')!, pmcChart, todayIndexInChart);
       const efCanvas = container.querySelector<HTMLCanvasElement>('#ef');
       if (efCanvas) drawEfChart(efCanvas, efPoints);
+
+      // Análisis por ventana: las sesiones de este dispositivo con sus
+      // samples y las de la nube con sus métricas guardadas (sessions.metrics).
+      const analysisRoot = container.querySelector<HTMLElement>('#forma-analysis');
+      if (analysisRoot) {
+        const workoutsById = new Map(appState.workouts.map((w) => [w.id, w]));
+        renderAnalysisPanel(analysisRoot, {
+          sessions: [
+            ...localSessions.filter(wasTrained).map((s) => stateSessionFromLocal(s, appState.profile, workoutsById.get(s.workoutId))),
+            ...appState.cloudSessions.filter((s) => !localById.has(s.id) && isBikeSession(s) && wasTrained(s)).map(stateSessionFromCloud),
+          ],
+          planned: appState.workouts.filter((w) => w.scheduledDate && w.scheduledDate <= todayKey).map((w) => ({ id: w.id, dateKey: w.scheduledDate! })),
+          todayKey,
+          ftp: appState.profile.ftp,
+          storageKey: 'torq.formaAnalysisDays',
+        });
+      }
 
       // marca en silencio (sin celebrar) los logros que ya se tenían antes de
       // que existiera esta sección — así si alguien abre Forma antes de su

@@ -68,7 +68,7 @@ const GAP_DAYS = 7;
 const r1 = (x: number) => Math.round(x * 10) / 10;
 const r2 = (x: number) => Math.round(x * 100) / 100;
 
-function addDays(dateKey: string, days: number): string {
+export function addDays(dateKey: string, days: number): string {
   const d = new Date(`${dateKey}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
@@ -159,13 +159,25 @@ function windowState(sessions: StateSession[], planned: StatePlanned[], days: nu
   return state;
 }
 
+/** Lo que cae en los `days` días que terminan en `endKey` (inclusive). */
+export function inWindow<T extends { dateKey: string }>(xs: readonly T[], endKey: string, days: number): T[] {
+  const from = addDays(endKey, -(days - 1));
+  return xs.filter((x) => x.dateKey >= from && x.dateKey <= endKey);
+}
+
+/** Una ventana cualquiera (la usa también la pantalla Forma). */
+export function windowStateFor(
+  sessions: readonly StateSession[],
+  planned: readonly StatePlanned[],
+  endKey: string,
+  days: number,
+  opts: { peaks?: boolean; cp?: boolean } = {},
+): WindowState {
+  return windowState(inWindow(sessions, endKey, days), inWindow(planned, endKey, days), days, !!opts.peaks, !!opts.cp);
+}
+
 export function computeAthleteState(sessions: readonly StateSession[], planned: readonly StatePlanned[], todayKey: string): AthleteState {
-  const inWindow = <T extends { dateKey: string }>(xs: readonly T[], days: number) => {
-    const from = addDays(todayKey, -(days - 1));
-    return xs.filter((x) => x.dateKey >= from && x.dateKey <= todayKey);
-  };
-  const win = (days: number, withPeaks: boolean, withCp = false) =>
-    windowState(inWindow(sessions, days), inWindow(planned, days), days, withPeaks, withCp);
+  const win = (days: number, withPeaks: boolean, withCp = false) => windowStateFor(sessions, planned, todayKey, days, { peaks: withPeaks, cp: withCp });
 
   const dates = [...new Set(sessions.map((s) => s.dateKey))].filter((d) => d <= todayKey).sort();
   let lastGap: AthleteState['lastGap'] = null;

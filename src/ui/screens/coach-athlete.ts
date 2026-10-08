@@ -8,7 +8,9 @@ import type { AthleteSummary, CoachSessionRow, WeekLoad } from '../../core/coach
 import { COACH_TIER_LABELS } from '../../core/coach-invite';
 import { COMPLETION_LABELS, NON_BIKE_KIND_LABELS, isNonBikeKind } from '../../core/session-kind';
 import { defaultReviewMonth, monthLabel } from '../../core/monthly-report';
-import { listAthleteSessions, listCoachAthletes } from '../../sync/coach-athletes';
+import { listAthleteSessions, listAthleteStateSessions, listCoachAthletes } from '../../sync/coach-athletes';
+import { renderAnalysisPanel } from '../analysis-panel';
+import { stateSessionFromCloud } from '../athlete-state-data';
 import { fetchCoachReview } from '../../sync/monthly-reviews';
 import type { CoachAthlete } from '../../sync/coach-athletes';
 import {
@@ -149,9 +151,11 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
         return;
       }
       const reviewMonth = defaultReviewMonth(todayKey);
-      const [rows, review] = await Promise.all([
+      const [rows, review, stateRows] = await Promise.all([
         listAthleteSessions([athleteId], sinceIso(COACH_DETAIL_DAYS)),
         appState.user ? fetchCoachReview(appState.user.id, athleteId, reviewMonth).catch(() => null) : Promise.resolve(null),
+        // 6 meses con sus métricas: el análisis por ventana de abajo
+        listAthleteStateSessions(athleteId, sinceIso(360)).catch(() => []),
       ]);
       if (getRouteParam() !== athleteId) return;
 
@@ -201,6 +205,14 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
           ${pmc.length >= 2 ? '<canvas id="coach-pmc" style="width:100%;height:220px;display:block"></canvas>' : '<p class="hint">Todavía no hay sesiones de bici suficientes para la gráfica.</p>'}
         </section>
 
+        <section class="coach-card" aria-label="Análisis">
+          <div class="coach-card-head">
+            <h2 class="perfil-h2" style="margin:0">Análisis</h2>
+            <span class="hint">Curva de potencia contra la ventana anterior, picos con su calidad, base aeróbica, umbral y volumen</span>
+          </div>
+          <div id="coach-analysis"></div>
+        </section>
+
         <section class="panel coach-card" aria-label="Carga por semana">
           <div class="coach-card-head">
             <h2 class="perfil-h2" style="margin:0">Carga por semana</h2>
@@ -222,6 +234,17 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
           }
           <span class="hint">Toca una sesión para ver su detalle y descargar el .fit. La carga de fuerza y movilidad se mide como RPE × minutos y se muestra aparte: no se suma al TSS de la bici. Lo que llega por Strava no se muestra.</span>
         </section>`);
+
+      const analysisRoot = container.querySelector<HTMLElement>('#coach-analysis');
+      if (analysisRoot) {
+        renderAnalysisPanel(analysisRoot, {
+          sessions: stateRows.map(stateSessionFromCloud),
+          planned: [], // el plan agendado del atleta no se lee aquí: va sin cumplimiento
+          todayKey,
+          ftp: athlete.ftp ?? 0,
+          storageKey: 'torq.coachAnalysisDays',
+        });
+      }
 
       container.querySelector('#coach-show-all')?.addEventListener('click', (e) => {
         container.querySelectorAll<HTMLElement>('.coach-row-extra').forEach((tr) => (tr.hidden = false));
