@@ -70,6 +70,13 @@ alter table profiles add column if not exists recent_best_result text;
 -- sigue siendo el default sin tocar (ver core/types.ts Profile).
 alter table profiles add column if not exists ftp_confirmed boolean;
 alter table profiles add column if not exists hr_max_confirmed boolean;
+-- De dónde salió el FTP (ver core/coach-profile.ts): el coach no debe tomar
+-- los 200 W de fábrica ni un provisional por una medición.
+alter table profiles add column if not exists ftp_source text
+  check (ftp_source in ('default', 'provisional', 'manual', 'test_ramp', 'test_20min'));
+alter table profiles add column if not exists ftp_updated_at timestamptz;
+update profiles set ftp_source = case when ftp_confirmed then 'manual' else 'default' end
+  where ftp_source is null;
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- sessions: resumen de cada entrenamiento (sin los samples, ver Storage)

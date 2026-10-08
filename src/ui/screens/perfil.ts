@@ -2,6 +2,7 @@ import { supabase } from '../../supabase/client';
 import { disconnectStrava, getStravaConnection, isStravaConfigured, redirectToStravaAuthorize } from '../../sync/strava';
 import type { StravaConnection } from '../../sync/strava';
 import type { Profile } from '../../core/types';
+import { ageFromBirthDate, ftpSourceOf, isMeasuredFtp, withFtp } from '../../core/coach-profile';
 import { ZONE_NAMES } from '../../core/zones';
 import type { PowerZone } from '../../core/zones';
 import { beeper } from '../audio';
@@ -44,17 +45,20 @@ function switchHtml(id: string, checked: boolean): string {
   return `<button class="switch${checked ? ' on' : ''}" role="switch" aria-pressed="${checked}" data-switch="${id}"></button>`;
 }
 
-/** Edad calculada a partir de birth_date, solo como referencia junto al
- * campo — no se guarda como número aparte para no tener que actualizarla
- * cada año. */
-function ageFromBirthDate(birthDate: string): number | null {
-  const parsed = new Date(birthDate);
-  if (Number.isNaN(parsed.getTime())) return null;
-  const now = new Date();
-  let age = now.getFullYear() - parsed.getFullYear();
-  const beforeBirthdayThisYear = now.getMonth() < parsed.getMonth() || (now.getMonth() === parsed.getMonth() && now.getDate() < parsed.getDate());
-  if (beforeBirthdayThisYear) age--;
-  return age;
+/** De dónde salió el FTP, debajo del campo. */
+function ftpHint(p: Profile): string {
+  switch (ftpSourceOf(p)) {
+    case 'default':
+      return 'Valor de fábrica: ponle tu número o uno provisional';
+    case 'provisional':
+      return 'Provisional: se afina con tus sesiones';
+    case 'test_ramp':
+      return 'De tu test de rampa';
+    case 'test_20min':
+      return 'De tu test de 20 min';
+    default:
+      return 'Actualízalo después de cada test';
+  }
 }
 
 type AlertRow = {
@@ -111,15 +115,20 @@ export function renderPerfil(container: HTMLElement): void {
                   </select>
                 </label>
               </div>
-              ${appState.profile.birth_date && ageFromBirthDate(appState.profile.birth_date) !== null ? `<p class="hint" style="margin:6px 0 0">${ageFromBirthDate(appState.profile.birth_date)} años</p>` : ''}
+              ${ageFromBirthDate(appState.profile.birth_date) !== null ? `<p class="hint" style="margin:6px 0 0">${ageFromBirthDate(appState.profile.birth_date)} años</p>` : ''}
             </div>
 
             <div class="panel perfil-panel">
               <h2 class="perfil-h2">Tus números</h2>
               <div class="perfil-numbers">
-                <label class="perfil-numfield"><span class="live-col-label">FTP</span><span class="perfil-numfield-row"><input type="number" data-profile-field="ftp" value="${appState.profile.ftp}" aria-label="FTP en watts" class="perfil-numinput"><span class="live-col-label">W</span></span><span class="perfil-numfield-hint">Actualízalo después de cada test</span></label>
+                <label class="perfil-numfield"><span class="live-col-label">FTP</span><span class="perfil-numfield-row"><input type="number" data-profile-field="ftp" value="${appState.profile.ftp}" aria-label="FTP en watts" class="perfil-numinput"><span class="live-col-label">W</span></span><span class="perfil-numfield-hint">${ftpHint(appState.profile)}</span></label>
                 <label class="perfil-numfield"><span class="live-col-label">Pulso máximo</span><span class="perfil-numfield-row"><input type="number" data-profile-field="hr_max" value="${appState.profile.hr_max}" aria-label="Pulso máximo" class="perfil-numinput"><span class="live-col-label">lpm</span></span><span class="perfil-numfield-hint">Tu máximo real, no el de una sesión</span></label>
               </div>
+              <label class="ob-toggle" style="margin-bottom:14px">
+                <span class="ob-toggle-text"><span class="ob-toggle-title">Mi FTP es provisional</span><span class="ob-toggle-desc">Todavía no hago un test: el coach lo toma como punto de partida y te dice cuándo ajustarlo.</span></span>
+                <input type="checkbox" id="profile-ftp-provisional" class="ob-switch-input" ${isMeasuredFtp(ftpSourceOf(appState.profile)) ? '' : 'checked'}>
+                <span class="ob-switch" aria-hidden="true"></span>
+              </label>
               <div>
                 <div class="live-col-label" style="margin-bottom:8px">Tus zonas de potencia con FTP ${appState.profile.ftp}</div>
                 <div class="perfil-zones">
@@ -251,12 +260,28 @@ export function renderPerfil(container: HTMLElement): void {
       input.addEventListener('change', () => {
         const key = input.dataset.profileField as keyof Profile;
         const value = Number(input.value);
+        if (key === 'ftp' && Number.isFinite(value) && value > 0) {
+          const provisional = container.querySelector<HTMLInputElement>('#profile-ftp-provisional')?.checked ?? false;
+          appState.profile = withFtp(appState.profile, value, provisional ? 'provisional' : 'manual');
+          appState.persistProfile();
+          paint();
+          return;
+        }
         if (Number.isFinite(value)) {
           appState.profile = { ...appState.profile, [key]: value };
           appState.persistProfile();
           if (key === 'ftp') paint();
         }
       });
+    });
+
+    // Marcar/desmarcar sin cambiar el número: "este FTP es mío" o "es un
+    // punto de partida". Lo que el coach recibe depende de esto.
+    container.querySelector<HTMLInputElement>('#profile-ftp-provisional')?.addEventListener('change', (e) => {
+      const provisional = (e.target as HTMLInputElement).checked;
+      appState.profile = withFtp(appState.profile, appState.profile.ftp, provisional ? 'provisional' : 'manual');
+      appState.persistProfile();
+      paint();
     });
 
     container.querySelector<HTMLInputElement>('#profile-name')?.addEventListener('change', (e) => {

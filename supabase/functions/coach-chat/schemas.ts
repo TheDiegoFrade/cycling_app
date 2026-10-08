@@ -54,6 +54,20 @@ const PlanBlockOutlineSchema = z.object({
   targetHoursPerWeek: z.number().positive(),
 });
 
+// FTP, lesiones, peso y edad del perfil (ver src/core/coach-profile.ts).
+// Opcionales: la app los manda siempre, pero un context sin ellos (versión
+// vieja de la app, escenarios de coach-lab) sigue siendo válido.
+const FtpSourceSchema = z.enum(['default', 'provisional', 'manual', 'test_ramp', 'test_20min']);
+const ProfileExtrasSchema = {
+  // número sobre el que corre el rodillo cuando es un provisional; null si no
+  provisionalFtp: z.number().positive().nullable().optional(),
+  ftpSource: FtpSourceSchema.optional(),
+  ftpUpdatedAt: z.string().nullable().optional(), // ISO
+  injuries: z.string().max(1000).nullable().optional(),
+  weightKg: z.number().positive().nullable().optional(),
+  ageYears: z.number().int().nonnegative().nullable().optional(),
+};
+
 // Forma esperada de `context` para create_plan — el cliente la arma antes de
 // llamar. `recentHistory` ("¿hay datos registrados en Torq?") y
 // `experienceLevel` ("¿qué tan nuevo es el atleta de verdad?") son dos ejes
@@ -99,6 +113,7 @@ export const CreatePlanInputContextSchema = z.object({
     // uses genéricos como "atleta" en su lugar, simplemente no te dirijas
     // a nadie por nombre (ver "Disciplina de salida").
     name: z.string().nullable(),
+    ...ProfileExtrasSchema,
   }),
   recentHistory: z
     .object({
@@ -129,6 +144,9 @@ export const CreatePlanOutputSchema = z.object({
     // 3-6x más JSON del necesario en una sola llamada.
     .max(3),
   coachNote: z.string(), // 3-5 líneas, voz del coach explicando el plan
+  // FTP que el coach le propone poner en su perfil (provisional o tras un
+  // test); null si no hay cambio. La app ofrece un botón, el atleta decide.
+  suggestedFtp: z.number().positive().nullable(),
 });
 
 // Forma esperada de `context` para weekly_eval. `pmcTrend` y
@@ -142,7 +160,13 @@ export const WeeklyEvalInputContextSchema = z.object({
   // semana siguiente necesita el mismo tope de duración y el mismo
   // cuidado de género gramatical que la primera vez, y evitar fechas que
   // ya tengan algo agendado/completado.
-  profile: z.object({ sex: z.enum(['M', 'F', 'other']).nullable(), name: z.string().nullable() }),
+  profile: z.object({
+    sex: z.enum(['M', 'F', 'other']).nullable(),
+    name: z.string().nullable(),
+    // FTP medido (null si es el default o un provisional)
+    ftp: z.number().positive().nullable().optional(),
+    ...ProfileExtrasSchema,
+  }),
   maxSessionMinutes: z.number().positive().nullable(),
   occupiedDates: z.array(z.string()),
   weekJustFinished: z.object({
@@ -184,6 +208,10 @@ export const WeeklyEvalOutputSchema = z.object({
   contradictionFlag: z.string().nullable(), // si hubo señales contradictorias, explícalo aquí; si no, null
   recurringPatternFlag: z.string().nullable(), // si detectaste un patrón recurrente, pregunta concreta aquí; si no, null
   nextWeekWorkouts: z.array(PlannedWorkoutSchema).min(1),
+  // "change": debe cambiar su FTP a suggestedFtp · "keep": mantenerlo (tras
+  // un test, o si preguntó) · null: el FTP no viene al caso esta semana.
+  ftpAction: z.enum(['keep', 'change']).nullable(),
+  suggestedFtp: z.number().positive().nullable(),
 });
 
 // Forma esperada de `context` para publish_block — resumen del BLOQUE

@@ -735,12 +735,12 @@ async function applyModeEffects(
       user_id: userId,
       status: 'active',
       goal: output.planName,
-      data: { startDate, blocks, weeks, startingPmc, maxSessionMinutes },
+      data: { startDate, blocks, weeks, startingPmc, maxSessionMinutes, ftpSuggestion: ftpSuggestionOf(output.suggestedFtp, 'create_plan') },
       current_block_exhausted: firstBlockExhausted,
     });
     if (error) throw new Error(`no se pudo guardar el plan: ${error.message}`);
 
-    return { planId, coachNote: output.coachNote, weeks, sentToCoach: coachId !== null };
+    return { planId, coachNote: output.coachNote, weeks, sentToCoach: coachId !== null, suggestedFtp: output.suggestedFtp ?? null };
   }
 
   // weekly_eval y publish_block parten del plan activo existente.
@@ -799,7 +799,19 @@ async function applyModeEffects(
         // vivía en ningún lado después de eso — un reload (o solo volver
         // mañana) lo perdía por completo. Guardarlo acá hace que
         // planSummaryHtml lo pueda seguir mostrando después.
-        data: { ...planData, weeks, lastEvalNote: output.reasoning },
+        // ftpSuggestion: "change" la reemplaza, "keep" la borra (ya no
+        // aplica), null la deja como estaba (el FTP no vino al caso).
+        data: {
+          ...planData,
+          weeks,
+          lastEvalNote: output.reasoning,
+          ftpSuggestion:
+            output.ftpAction === 'change'
+              ? ftpSuggestionOf(output.suggestedFtp, 'weekly_eval')
+              : output.ftpAction === 'keep'
+                ? null
+                : ((planData as { ftpSuggestion?: unknown }).ftpSuggestion ?? null),
+        },
         last_eval_iso_week: currentIsoWeek(),
         eval_count_this_iso_week: isRefresh ? (plan.eval_count_this_iso_week ?? 1) + 1 : 1,
         current_block_exhausted: blockExhausted,
@@ -816,6 +828,8 @@ async function applyModeEffects(
       weekIndex: nextWeekIndex,
       workoutIds: ids,
       sentToCoach: coachId !== null,
+      ftpAction: output.ftpAction ?? null,
+      suggestedFtp: output.suggestedFtp ?? null,
     };
   }
 
@@ -848,6 +862,12 @@ async function applyModeEffects(
   if (error) throw new Error(`no se pudo actualizar el plan: ${error.message}`);
 
   return { blockName: output.blockName, coachNote: output.coachNote, weeks: newWeeks, sentToCoach: coachId !== null };
+}
+
+/** FTP que el coach propone poner en el perfil, guardado en el plan para que
+ * la app ofrezca el botón aunque se recargue la página. El atleta decide. */
+function ftpSuggestionOf(watts: number | null | undefined, from: 'create_plan' | 'weekly_eval') {
+  return watts ? { watts: Math.round(watts), from, at: new Date().toISOString() } : null;
 }
 
 async function getMonthlyTokens(admin: AdminClient, userId: string): Promise<number> {

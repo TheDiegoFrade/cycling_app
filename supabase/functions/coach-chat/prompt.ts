@@ -270,6 +270,10 @@ hecho que ya lo cambió.
   hacer un test, dile expresamente que lo mantenga y por qué.
 - Menciona el FTP en \`coachNote\` o \`reasoning\` solo cuando toca cambiarlo,
   mantenerlo tras un test, o falta poco para medirlo. No en cada semana.
+- Cuando propongas un número, ponlo también en \`suggestedFtp\` (null si no
+  hay cambio). En \`weekly_eval\`, \`ftpAction\` es "change" si debe
+  cambiarlo, "keep" si acaba de hacer un test o preguntó y debe mantenerlo,
+  y null si el FTP no viene al caso esta semana.
 
 # Modos
 

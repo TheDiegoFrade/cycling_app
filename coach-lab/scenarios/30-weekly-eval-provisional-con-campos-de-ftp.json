@@ -1,0 +1,42 @@
+{
+  "id": "30-weekly-eval-provisional-con-campos-de-ftp",
+  "mode": "weekly_eval",
+  "title": "Igual que el 24, pero el perfil ya dice qué FTP usa (provisional de 90 W)",
+  "expect": [
+    "ftpAction = \"change\" y suggestedFtp ≈ 100-105 W (sube 10-15 % el provisionalFtp de 90).",
+    "reasoning da el mismo número que suggestedFtp y explica que el provisional iba bajo a propósito.",
+    "Nada a 88 % o más ni test máximo (sigue sin FTP medido, es sedentaria en su semana 2).",
+    "Ninguna sesión > 60 min. Usa \"Lucía\" y femenino."
+  ],
+  "context": {
+    "profile": {
+      "sex": "F",
+      "name": "Lucía",
+      "ftp": null,
+      "provisionalFtp": 90,
+      "ftpSource": "provisional",
+      "ftpUpdatedAt": "2026-10-05T09:00:00.000Z",
+      "injuries": null,
+      "weightKg": 64,
+      "ageYears": 41
+    },
+    "maxSessionMinutes": 60,
+    "occupiedDates": [],
+    "weekJustFinished": {
+      "plannedTSS": 95,
+      "actualTSS": 92,
+      "completedWorkouts": 3,
+      "missedWorkouts": 0,
+      "ruleTriggers": [],
+      "athleteNote": "Primera semana con el FTP provisional de 90 que me dijiste. En la escalera llegué al último escalón (90 %) platicando sin problema y las otras dos sesiones se me hicieron demasiado fáciles, casi no sudé."
+    },
+    "pmcTrend": {
+      "ctl": 3,
+      "atl": 12,
+      "tsb": -9,
+      "ctlRampLast4Weeks": 3
+    },
+    "recentGapPattern": null,
+    "recentWeeksSummary": null
+  }
+}

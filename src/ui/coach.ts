@@ -15,6 +15,7 @@ import { estimateWorkout } from '../core/workout-estimate';
 import { deleteWorkout } from '../storage/workout-store';
 import { escapeHtml } from './workout-cover';
 import { confirmAiWithHumanCoach, humanCoachName } from './coach-notice';
+import { coachFtpFields, coachProfileExtras, sourceForAcceptedSuggestion, withFtp } from '../core/coach-profile';
 
 const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'M', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
 const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
@@ -97,10 +98,62 @@ interface ActivePlanRow {
     // El tope que el atleta puso al crear el plan (ej. "máximo 60 min") —
     // se guarda acá para que weekly_eval lo siga respetando después.
     maxSessionMinutes?: number | null;
+    // FTP que propuso el coach (create_plan o weekly_eval). La app ofrece un
+    // botón para ponerlo en el perfil; nunca lo cambia sola.
+    ftpSuggestion?: FtpSuggestion | null;
   };
   current_block_exhausted: boolean;
   last_eval_iso_week: string | null;
   eval_count_this_iso_week: number;
+}
+
+interface FtpSuggestion {
+  watts: number;
+  from: 'create_plan' | 'weekly_eval';
+  at: string;
+}
+
+// "Ahora no" se recuerda solo en este navegador: es una comodidad, no un
+// dato del plan. Si el storage falla, el botón simplemente vuelve a salir.
+const FTP_OFFER_DISMISSED_KEY = 'torq.ftpOfferDismissed';
+
+function ftpOfferDismissed(s: FtpSuggestion): boolean {
+  try {
+    return localStorage.getItem(FTP_OFFER_DISMISSED_KEY) === `${s.watts}@${s.at}`;
+  } catch {
+    return false;
+  }
+}
+
+/** Botón para poner en el perfil el FTP que propuso el coach. Nada si ya es
+ * ese número o el atleta dijo "Ahora no" a esta misma sugerencia. */
+function ftpOfferHtml(s: FtpSuggestion | null | undefined): string {
+  if (!s || s.watts === appState.profile.ftp || ftpOfferDismissed(s)) return '';
+  return `
+    <div class="coach-ftp-offer" data-ftp-watts="${s.watts}" data-ftp-at="${escapeHtml(s.at)}" style="margin-top:10px">
+      <p class="hint" style="margin:0 0 6px">El coach propone ${s.watts} W como tu FTP (hoy tienes ${appState.profile.ftp} W). Tú decides.</p>
+      <button class="btn-light" data-ftp-accept>Usar ${s.watts} W como mi FTP</button>
+      <button class="plan-chip" data-ftp-dismiss>Ahora no</button>
+    </div>`;
+}
+
+function wireFtpOffer(root: HTMLElement): void {
+  root.querySelectorAll<HTMLElement>('.coach-ftp-offer').forEach((offer) => {
+    const watts = Number(offer.dataset.ftpWatts);
+    offer.querySelector('[data-ftp-accept]')?.addEventListener('click', async () => {
+      appState.profile = withFtp(appState.profile, watts, sourceForAcceptedSuggestion(appState.profile));
+      await appState.persistProfile();
+      offer.innerHTML = `<p class="hint" style="margin:0">Listo: tu FTP ahora es ${watts} W.</p>`;
+    });
+    offer.querySelector('[data-ftp-dismiss]')?.addEventListener('click', () => {
+      try {
+        localStorage.setItem(FTP_OFFER_DISMISSED_KEY, `${watts}@${offer.dataset.ftpAt ?? ''}`);
+      } catch {
+        // sin storage: se oculta solo por ahora
+      }
+      offer.remove();
+    });
+  });
 }
 
 const MAX_EVALS_PER_ISO_WEEK = 2; // mismo número que coach-chat/index.ts — la 2ª es un "refresh" de la misma semana
@@ -208,6 +261,7 @@ function planSummaryHtml(plan: ActivePlanRow, weeklyEvalsUsed: number, planActio
       <div class="plan-chip-row" style="margin-top:10px">${blocks}</div>
       <p class="hint" style="margin-top:8px">${plan.current_block_exhausted ? 'El bloque actual ya se completó — toca publicar el siguiente.' : 'Semana en curso dentro del plan.'}</p>
       ${plan.data.lastEvalNote ? coachBubbleHtml(plan.data.lastEvalNote) : ''}
+      ${ftpOfferHtml(plan.data.ftpSuggestion)}
       <div id="coach-eval-zone">${evalZoneHtml(plan, weeklyEvalsUsed)}</div>
       <div id="coach-abandon-zone" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
         <a href="#" class="prepare-link" id="coach-abandon">Dar de baja este plan</a>
@@ -318,6 +372,10 @@ function wireWeeklyEvalButton(slot: HTMLElement, plan: ActivePlanRow, onChange: 
     form.querySelectorAll('label, #coach-eval-submit').forEach((el) => ((el as HTMLElement).style.display = 'none'));
     status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.reasoning));
     if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
+    if (data.result.ftpAction === 'change' && data.result.suggestedFtp) {
+      status.insertAdjacentHTML('beforebegin', ftpOfferHtml({ watts: Math.round(data.result.suggestedFtp), from: 'weekly_eval', at: new Date().toISOString() }));
+      wireFtpOffer(form);
+    }
     status.insertAdjacentHTML(
       'afterend',
       '<button class="btn-light" id="coach-eval-done" style="margin-top:12px">Entendido</button>',
@@ -438,6 +496,7 @@ export function renderCoachSection(container: HTMLElement, onChange: () => void)
       }
     });
     if (plan) {
+      wireFtpOffer(slot);
       wireAbandonButton(slot, container, onChange);
       wireWeeklyEvalButton(slot, plan, onChange);
     }
@@ -541,7 +600,7 @@ async function computeWeekEvalContext(
   pmcTrend: { ctl: number; atl: number; tsb: number; ctlRampLast4Weeks: number };
   recentGapPattern: { startDate: string; endDate: string; days: number }[] | null;
   recentWeeksSummary: WeekSummary[] | null;
-  profile: { sex: 'M' | 'F' | 'other' | null; name: string | null };
+  profile: { sex: 'M' | 'F' | 'other' | null; name: string | null } & ReturnType<typeof coachFtpFields> & ReturnType<typeof coachProfileExtras>;
   maxSessionMinutes: number | null;
   occupiedDates: string[];
 } | null> {
@@ -641,7 +700,12 @@ async function computeWeekEvalContext(
     },
     recentGapPattern: gaps.length > 0 ? gaps.slice(-5) : null,
     recentWeeksSummary: weekSummaries.length > 1 ? weekSummaries : null,
-    profile: { sex: appState.profile.sex ?? null, name: appState.profile.name ?? null },
+    profile: {
+      sex: appState.profile.sex ?? null,
+      name: appState.profile.name ?? null,
+      ...coachFtpFields(appState.profile),
+      ...coachProfileExtras(appState.profile),
+    },
     maxSessionMinutes: plan.data.maxSessionMinutes ?? null,
     occupiedDates,
   };
@@ -715,7 +779,9 @@ function openCreateModal(onChange: () => void): void {
       category: p.competes ? (p.category ?? null) : null,
       availability: { hoursPerWeek, days: Array.from(selectedDays), maxSessionMinutes },
       occupiedDates,
-      profile: { ftp: p.ftpConfirmed ? p.ftp : null, hr_max: p.hr_max, sex: p.sex ?? null, name: p.name ?? null },
+      // ftp solo si es medido; un provisional va en provisionalFtp (ver
+      // core/coach-profile.ts). Edad en vez de fecha de nacimiento.
+      profile: { ...coachFtpFields(p), hr_max: p.hr_max, sex: p.sex ?? null, name: p.name ?? null, ...coachProfileExtras(p) },
       recentHistory,
     };
 
@@ -750,6 +816,10 @@ function openCreateModal(onChange: () => void): void {
     form.forEach((el) => ((el as HTMLElement).style.display = 'none'));
     status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.coachNote));
     if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
+    if (data.result.suggestedFtp) {
+      status.insertAdjacentHTML('beforebegin', ftpOfferHtml({ watts: Math.round(data.result.suggestedFtp), from: 'create_plan', at: new Date().toISOString() }));
+      wireFtpOffer(backdrop);
+    }
     status.insertAdjacentHTML(
       'afterend',
       '<button class="btn-light" id="coach-done" style="margin-top:12px">Entendido</button>',
