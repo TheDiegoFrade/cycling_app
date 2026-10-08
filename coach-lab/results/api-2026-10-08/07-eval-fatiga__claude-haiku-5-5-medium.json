@@ -1,0 +1,137 @@
+{
+  "id": "07-eval-fatiga",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-medium",
+  "ok": true,
+  "seconds": 20.1,
+  "cost": 0.002443,
+  "coldCost": 0.004214,
+  "usage": {
+    "input_tokens": 1802,
+    "output_tokens": 4217,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Diego, esta semana no es para empujar: TSB en -35 con ATL en 99, dormiste mal toda la semana y dices que las piernas no responden. Eso activa absorción aunque el TSS haya caído solo a 300 de 420. Cumpliste 2 de 4 sesiones y las reglas del motor muestran techo de pulso disparado 6 veces, señal de fatiga. La semana que viene es de absorción: nada por encima de 75 %, sesiones de 60 min o menos, un día libre extra y carga cercana a la mitad de la semana previa. Sube solo cuando recuperes el sueño y las piernas respondan. Sin test ni cambio de FTP por ahora.",
+    "contradictionFlag": null,
+    "recurringPatternFlag": "Las dos sesiones que se cayeron coinciden con la semana de mal sueño por trabajo. Si el trabajo sigue así, ¿qué día de la semana puedes garantizar para pedalear?",
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo suave",
+        "dayOfWeek": "tue",
+        "targetTSS": 43,
+        "erg": "on",
+        "intent": "Rodada de fondo a potencia fija, sin buscar ritmo. Ajusta la potencia si el pulso se dispara en los primeros 10 minutos. Debes poder hablar en frases completas durante todo el bloque, RPE 3-4.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 300,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              },
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 70
+              },
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo con cadencia",
+        "dayOfWeek": "thu",
+        "targetTSS": 43,
+        "erg": "on",
+        "intent": "Mismo fondo que el martes, pero con la cadencia controlada en 85-95 rpm para que las piernas trabajen sin fuerza. Si la cadencia cae, baja la resistencia; no la compenses subiendo el esfuerzo. RPE 3-4.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 300,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              },
+              {
+                "name": "Fondo cadencia",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 70,
+                "cadence_min": 85,
+                "cadence_max": 95
+              },
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Rodada de deriva",
+        "dayOfWeek": "sat",
+        "targetTSS": 41,
+        "erg": "off",
+        "intent": "Rodada libre por sensación, sin el ERG marcando la potencia. Busca RPE 3-4 y mantén un ritmo que puedas sostener hablando; si el pulso sube sin que aumente el esfuerzo, baja. Al final mira si el pulso subió en la segunda mitad.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 300,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              },
+              {
+                "name": "Rodada libre",
+                "type": "free",
+                "duration_s": 2700,
+                "power_pct": 68
+              },
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": null,
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Diego, esta semana no es para empujar: TSB en -35 con ATL en 99, dormiste mal toda la semana y dices que las piernas no responden. Eso activa absorción aunque el TSS haya caído solo a 300 de 420. Cumpliste 2 de 4 sesiones y las reglas del motor muestran techo de pulso disparado 6 veces, señal de fatiga. La semana que viene es de absorción: nada por encima de 75 %, sesiones de 60 min o menos, un día libre extra y carga cercana a la mitad de la semana previa. Sube solo cuando recuperes el sueño y las piernas respondan. Sin test ni cambio de FTP por ahora.\",\"contradictionFlag\":null,\"recurringPatternFlag\":\"Las dos sesiones que se cayeron coinciden con la semana de mal sueño por trabajo. Si el trabajo sigue así, ¿qué día de la semana puedes garantizar para pedalear?\",\"nextWeekWorkouts\":[{\"name\":\"Fondo suave\",\"dayOfWeek\":\"tue\",\"targetTSS\":43,\"erg\":\"on\",\"intent\":\"Rodada de fondo a potencia fija, sin buscar ritmo. Ajusta la potencia si el pulso se dispara en los primeros 10 minutos. Debes poder hablar en frases completas durante todo el bloque, RPE 3-4.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":55,\"ramp_to_pct\":65},{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":70},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo con cadencia\",\"dayOfWeek\":\"thu\",\"targetTSS\":43,\"erg\":\"on\",\"intent\":\"Mismo fondo que el martes, pero con la cadencia controlada en 85-95 rpm para que las piernas trabajen sin fuerza. Si la cadencia cae, baja la resistencia; no la compenses subiendo el esfuerzo. RPE 3-4.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":55,\"ramp_to_pct\":65},{\"name\":\"Fondo cadencia\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":70,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"sat\",\"targetTSS\":41,\"erg\":\"off\",\"intent\":\"Rodada libre por sensación, sin el ERG marcando la potencia. Busca RPE 3-4 y mantén un ritmo que puedas sostener hablando; si el pulso sube sin que aumente el esfuerzo, baja. Al final mira si el pulso subió en la segunda mitad.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":55,\"ramp_to_pct\":65},{\"name\":\"Rodada libre\",\"type\":\"free\",\"duration_s\":2700,\"power_pct\":68},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":null,\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

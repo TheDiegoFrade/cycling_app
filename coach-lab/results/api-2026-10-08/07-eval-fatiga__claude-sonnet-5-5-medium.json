@@ -1,0 +1,162 @@
+{
+  "id": "07-eval-fatiga",
+  "mode": "weekly_eval",
+  "config": "claude-sonnet-5-5-medium",
+  "ok": true,
+  "seconds": 18,
+  "cost": 0.064179,
+  "coldCost": 0.064179,
+  "usage": {
+    "input_tokens": 1802,
+    "output_tokens": 2206,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 15406
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Diego, esta semana toca absorber. Dices que estás reventado, con mal sueño toda la semana y las piernas sin responder. Los números van en el mismo sentido: TSB −35 (ATL 99 contra CTL 64), 2 de 4 sesiones perdidas, 300 de 420 de TSS, el techo de pulso disparado 6 veces y el piso de cadencia 3. Son varias señales de fatiga a la vez, así que ganan sobre cualquier otro dato. La próxima semana va a unos 150 de TSS (≈50 % de los 300 que hiciste). Son 3 sesiones de 60 min como máximo, nada por encima de 75 % y 4 días sin bici. Bajar carga ahora es lo que protege el CTL de 64 que ya construiste. Si duermes mal otra semana, la absorción no sirve de nada: el sueño también es entrenamiento. No me llegaron los días del plan, así que puse martes, jueves y sábado; si no te sirven, mueve las sesiones sin juntarlas.",
+    "contradictionFlag": null,
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo suave de absorción",
+        "dayOfWeek": "tue",
+        "targetTSS": 50,
+        "erg": "on",
+        "intent": "Mueve las piernas sin sumar fatiga. Rueda a ritmo conversacional, RPE 3-4, hablando en frases completas. Si el pulso se dispara o te sientes peor, baja la potencia o termina antes.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 300,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 3000,
+                "power_pct": 74
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo suave y cadencia fluida",
+        "dayOfWeek": "thu",
+        "targetTSS": 47,
+        "erg": "on",
+        "intent": "Sesión de recuperación activa. Pedalea redondo y relajado, RPE 3, respiración fácil. Mantén la cadencia cómoda, sin apretar. Dormir bien esta noche vale más que cualquier watt extra.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 300,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 3000,
+                "power_pct": 72
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo conversacional",
+        "dayOfWeek": "sat",
+        "targetTSS": 51,
+        "erg": "on",
+        "intent": "Cierra la semana de absorción con fondo tranquilo, RPE 3-4, sin pasar del 75 %. Si llegas fresco, genial, pero no lo conviertas en prueba. La semana siguiente retomamos carga según cómo respondas.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 300,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 3000,
+                "power_pct": 75
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": null,
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Diego, esta semana toca absorber. Dices que estás reventado, con mal sueño toda la semana y las piernas sin responder. Los números van en el mismo sentido: TSB −35 (ATL 99 contra CTL 64), 2 de 4 sesiones perdidas, 300 de 420 de TSS, el techo de pulso disparado 6 veces y el piso de cadencia 3. Son varias señales de fatiga a la vez, así que ganan sobre cualquier otro dato. La próxima semana va a unos 150 de TSS (≈50 % de los 300 que hiciste). Son 3 sesiones de 60 min como máximo, nada por encima de 75 % y 4 días sin bici. Bajar carga ahora es lo que protege el CTL de 64 que ya construiste. Si duermes mal otra semana, la absorción no sirve de nada: el sueño también es entrenamiento. No me llegaron los días del plan, así que puse martes, jueves y sábado; si no te sirven, mueve las sesiones sin juntarlas.\",\"contradictionFlag\":null,\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo suave de absorción\",\"dayOfWeek\":\"tue\",\"targetTSS\":50,\"erg\":\"on\",\"intent\":\"Mueve las piernas sin sumar fatiga. Rueda a ritmo conversacional, RPE 3-4, hablando en frases completas. Si el pulso se dispara o te sientes peor, baja la potencia o termina antes.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":74}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo suave y cadencia fluida\",\"dayOfWeek\":\"thu\",\"targetTSS\":47,\"erg\":\"on\",\"intent\":\"Sesión de recuperación activa. Pedalea redondo y relajado, RPE 3, respiración fácil. Mantén la cadencia cómoda, sin apretar. Dormir bien esta noche vale más que cualquier watt extra.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo conversacional\",\"dayOfWeek\":\"sat\",\"targetTSS\":51,\"erg\":\"on\",\"intent\":\"Cierra la semana de absorción con fondo tranquilo, RPE 3-4, sin pasar del 75 %. Si llegas fresco, genial, pero no lo conviertas en prueba. La semana siguiente retomamos carga según cómo respondas.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":75}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":null,\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

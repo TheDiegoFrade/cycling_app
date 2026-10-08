@@ -1,0 +1,213 @@
+{
+  "id": "37-weekly-eval-vfc-baja-y-mal-sueno",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 25.1,
+  "cost": 0.002998,
+  "coldCost": 0.00477,
+  "usage": {
+    "input_tokens": 2894,
+    "output_tokens": 5110,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [
+    "decision=insert_recovery con TSB -5 y 92 % de cumplimiento"
+  ],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Diego, sí: esta semana no sigues con lo que toca. Tienes dos señales de fatiga a la vez: duermes 5,9 h de media en 7 días, tu VFC está en 41 frente a tu base de 55 y tu pulso en reposo subió 6 lpm sobre tu línea base, además de decir que las piernas van regular. Por eso la semana que viene es de absorción: cuatro sesiones suaves de 60 min o menos, nada por encima del 75 % y dos días sin bici. Hiciste 395 TSS con el plan cumplido, así que el trabajo está bien; lo que toca ahora es recuperar. El FTP de 285 W viene del test de 20 min del 20 de julio y no lo cambiamos.",
+    "contradictionFlag": null,
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Absorción fondo",
+        "dayOfWeek": "tue",
+        "targetTSS": 45,
+        "erg": "on",
+        "intent": "Rodada de fondo a ritmo cómodo para recuperar, sin buscar cifras. Mantén el RPE en 3-4 y ve charlando en frases completas durante todo el bloque central.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2520,
+                "power_pct": 70
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Vuelta a la calma",
+                "type": "cooldown",
+                "duration_s": 480,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo suave",
+        "dayOfWeek": "thu",
+        "targetTSS": 42,
+        "erg": "on",
+        "intent": "Fondo suave con cadencia libre entre 85 y 95 rpm para que la pierna se mueva sin fuerza. Si el pulso sube sin que aumente la potencia, baja un 3 % el bloque central.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 68,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Vuelta a la calma",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo con tempo corto",
+        "dayOfWeek": "sat",
+        "targetTSS": 44,
+        "erg": "on",
+        "intent": "Bloque continuo cerca del tope de la semana, sin subir a tempo. Quédate en RPE 5 y respira por la nariz; si te cuesta hablar, baja a 70 %.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo alto",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 75
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Vuelta a la calma",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo y descanso",
+        "dayOfWeek": "sun",
+        "targetTSS": 39,
+        "erg": "on",
+        "intent": "Cierre suave de la semana con la respiración tranquila. Si al final sientes las piernas pesadas, acorta el bloque central sin problema.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2280,
+                "power_pct": 70
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Vuelta a la calma",
+                "type": "cooldown",
+                "duration_s": 720,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "keep",
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Diego, sí: esta semana no sigues con lo que toca. Tienes dos señales de fatiga a la vez: duermes 5,9 h de media en 7 días, tu VFC está en 41 frente a tu base de 55 y tu pulso en reposo subió 6 lpm sobre tu línea base, además de decir que las piernas van regular. Por eso la semana que viene es de absorción: cuatro sesiones suaves de 60 min o menos, nada por encima del 75 % y dos días sin bici. Hiciste 395 TSS con el plan cumplido, así que el trabajo está bien; lo que toca ahora es recuperar. El FTP de 285 W viene del test de 20 min del 20 de julio y no lo cambiamos.\",\"contradictionFlag\":null,\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Absorción fondo\",\"dayOfWeek\":\"tue\",\"targetTSS\":45,\"erg\":\"on\",\"intent\":\"Rodada de fondo a ritmo cómodo para recuperar, sin buscar cifras. Mantén el RPE en 3-4 y ve charlando en frases completas durante todo el bloque central.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2520,\"power_pct\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Vuelta a la calma\",\"type\":\"cooldown\",\"duration_s\":480,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo suave\",\"dayOfWeek\":\"thu\",\"targetTSS\":42,\"erg\":\"on\",\"intent\":\"Fondo suave con cadencia libre entre 85 y 95 rpm para que la pierna se mueva sin fuerza. Si el pulso sube sin que aumente la potencia, baja un 3 % el bloque central.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":68,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Vuelta a la calma\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo con tempo corto\",\"dayOfWeek\":\"sat\",\"targetTSS\":44,\"erg\":\"on\",\"intent\":\"Bloque continuo cerca del tope de la semana, sin subir a tempo. Quédate en RPE 5 y respira por la nariz; si te cuesta hablar, baja a 70 %.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo alto\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":75}]},{\"repeat\":1,\"steps\":[{\"name\":\"Vuelta a la calma\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo y descanso\",\"dayOfWeek\":\"sun\",\"targetTSS\":39,\"erg\":\"on\",\"intent\":\"Cierre suave de la semana con la respiración tranquila. Si al final sientes las piernas pesadas, acorta el bloque central sin problema.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2280,\"power_pct\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Vuelta a la calma\",\"type\":\"cooldown\",\"duration_s\":720,\"power_pct\":45}]}],\"kind\":null}],\"ftpAction\":\"keep\",\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

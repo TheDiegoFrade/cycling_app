@@ -1,0 +1,192 @@
+{
+  "id": "37-weekly-eval-vfc-baja-y-mal-sueno",
+  "mode": "weekly_eval",
+  "config": "claude-sonnet-5-5-low",
+  "ok": true,
+  "seconds": 12.9,
+  "cost": 0.025439,
+  "coldCost": 0.060873,
+  "usage": {
+    "input_tokens": 2894,
+    "output_tokens": 1657,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [
+    "decision=insert_recovery con TSB -5 y 92 % de cumplimiento"
+  ],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Diego, el TSS fue 395 de 430 (92 %) y cumpliste las 4 sesiones, pero lo que cuenta es lo que reportas y lo que mide tu reloj. Dices que dormiste fatal y llevas las piernas así así. Eso coincide con tres señales: VFC de 7 días en 41 contra 55 de base (low), pulso en reposo en 54 contra 48 (+6 lpm) y sueño de 5.9 h. Con dos o más señales de fatiga, pasa a semana de absorción, aunque el TSB de -5 se vea tranquilo. Contradicción: los números de carga dicen que vas bien y el cuerpo dice que no; me quedo con tu nota y el reloj, que pesan más para decidir fatiga. Bajo el TSS a ~55 % de la semana pasada (unos 230), con todo por debajo de 75 % y sesiones de 60 min o menos, y un día extra libre. Tu CTL de 74 aguanta una semana así sin perder nada, y llegas mejor a la siguiente carga. Sobre el FTP: tu test fue el 07-20 y estás en bloque, así que lo mantienes en 285 W.",
+    "contradictionFlag": "El TSS y el cumplimiento (92 %, TSB -5) dicen que vas bien, pero tu nota, la VFC baja (41 vs 55), el pulso en reposo +6 lpm y el sueño de 5.9 h indican fatiga. Me quedo con lo que reportas y lo que mide tu reloj.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo suave",
+        "dayOfWeek": "tue",
+        "targetTSS": 50,
+        "erg": "on",
+        "intent": "Rodada suave para soltar piernas sin añadir fatiga. Mantén 60-65 % con ERG prendido y cadencia cómoda; debes poder hablar en frases completas (RPE 3). Si el pulso se va arriba, baja un poco.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 62
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 65,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Activación ligera",
+        "dayOfWeek": "thu",
+        "targetTSS": 55,
+        "erg": "on",
+        "intent": "Sesión corta de fondo con unas pocas activaciones muy suaves para que las piernas no se duerman. Todo por debajo de 75 %, RPE 3-4. Si sigues con mal sueño, acórtala sin culpa.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 1800,
+                "power_pct": 68,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 4,
+            "steps": [
+              {
+                "name": "Activación",
+                "type": "interval",
+                "duration_s": 60,
+                "power_pct": 75,
+                "cadence_min": 95,
+                "cadence_max": 105
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 120,
+                "power_pct": 50
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo conversacional",
+        "dayOfWeek": "sat",
+        "targetTSS": 75,
+        "erg": "on",
+        "intent": "Fondo estable de una hora para sumar volumen aeróbico con poca fatiga. 65-70 % con ERG prendido, RPE 3-4, respiración tranquila. Tope de la semana: 60 min, aunque te sientas bien.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 480,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2880,
+                "power_pct": 70,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 240,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "keep",
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Diego, el TSS fue 395 de 430 (92 %) y cumpliste las 4 sesiones, pero lo que cuenta es lo que reportas y lo que mide tu reloj. Dices que dormiste fatal y llevas las piernas así así. Eso coincide con tres señales: VFC de 7 días en 41 contra 55 de base (low), pulso en reposo en 54 contra 48 (+6 lpm) y sueño de 5.9 h. Con dos o más señales de fatiga, pasa a semana de absorción, aunque el TSB de -5 se vea tranquilo. Contradicción: los números de carga dicen que vas bien y el cuerpo dice que no; me quedo con tu nota y el reloj, que pesan más para decidir fatiga. Bajo el TSS a ~55 % de la semana pasada (unos 230), con todo por debajo de 75 % y sesiones de 60 min o menos, y un día extra libre. Tu CTL de 74 aguanta una semana así sin perder nada, y llegas mejor a la siguiente carga. Sobre el FTP: tu test fue el 07-20 y estás en bloque, así que lo mantienes en 285 W.\",\"contradictionFlag\":\"El TSS y el cumplimiento (92 %, TSB -5) dicen que vas bien, pero tu nota, la VFC baja (41 vs 55), el pulso en reposo +6 lpm y el sueño de 5.9 h indican fatiga. Me quedo con lo que reportas y lo que mide tu reloj.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo suave\",\"dayOfWeek\":\"tue\",\"targetTSS\":50,\"erg\":\"on\",\"intent\":\"Rodada suave para soltar piernas sin añadir fatiga. Mantén 60-65 % con ERG prendido y cadencia cómoda; debes poder hablar en frases completas (RPE 3). Si el pulso se va arriba, baja un poco.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":62}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":65,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Activación ligera\",\"dayOfWeek\":\"thu\",\"targetTSS\":55,\"erg\":\"on\",\"intent\":\"Sesión corta de fondo con unas pocas activaciones muy suaves para que las piernas no se duerman. Todo por debajo de 75 %, RPE 3-4. Si sigues con mal sueño, acórtala sin culpa.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":68,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":4,\"steps\":[{\"name\":\"Activación\",\"type\":\"interval\",\"duration_s\":60,\"power_pct\":75,\"cadence_min\":95,\"cadence_max\":105},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":120,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo conversacional\",\"dayOfWeek\":\"sat\",\"targetTSS\":75,\"erg\":\"on\",\"intent\":\"Fondo estable de una hora para sumar volumen aeróbico con poca fatiga. 65-70 % con ERG prendido, RPE 3-4, respiración tranquila. Tope de la semana: 60 min, aunque te sientas bien.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":480,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2880,\"power_pct\":70,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":240,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":\"keep\",\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

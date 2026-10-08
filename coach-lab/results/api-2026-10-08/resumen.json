@@ -1,0 +1,523 @@
+{
+  "prices": {
+    "claude-sonnet-5-5": {
+      "input": 2,
+      "output": 10,
+      "cacheRead": 0.2,
+      "cacheWrite": 2.5
+    },
+    "claude-haiku-5-5": {
+      "input": 0.1,
+      "output": 0.5,
+      "cacheRead": 0.01,
+      "cacheWrite": 0.125
+    },
+    "claude-haiku-4-5": {
+      "input": 1,
+      "output": 5,
+      "cacheRead": 0.1,
+      "cacheWrite": 1.25
+    }
+  },
+  "rows": [
+    {
+      "id": "02-experimentado-sin-ftp",
+      "mode": "create_plan",
+      "config": "claude-sonnet-5-5-medium",
+      "ok": true,
+      "seconds": 60.3,
+      "cost": 0.128055,
+      "coldCost": 0.128055,
+      "usage": {
+        "input_tokens": 1670,
+        "output_tokens": 8580,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 15566
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "TSS sube 22 % de S1 a S2 (216 → 264)"
+      ]
+    },
+    {
+      "id": "02-experimentado-sin-ftp",
+      "mode": "create_plan",
+      "config": "claude-sonnet-5-5-low",
+      "ok": true,
+      "seconds": 52.3,
+      "cost": 0.119645,
+      "coldCost": 0.119645,
+      "usage": {
+        "input_tokens": 1670,
+        "output_tokens": 7739,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 15566
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "02-experimentado-sin-ftp",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 81.8,
+      "cost": 0.011475,
+      "coldCost": 0.011475,
+      "usage": {
+        "input_tokens": 1670,
+        "output_tokens": 18724,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 15566
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "02-experimentado-sin-ftp",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 74.9,
+      "cost": 0.010658,
+      "coldCost": 0.010658,
+      "usage": {
+        "input_tokens": 1670,
+        "output_tokens": 17090,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 15566
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "05-dias-ocupados-cansado",
+      "mode": "create_plan",
+      "config": "claude-sonnet-5-5-medium",
+      "ok": true,
+      "seconds": 66.6,
+      "cost": 0.100925,
+      "coldCost": 0.136727,
+      "usage": {
+        "input_tokens": 1691,
+        "output_tokens": 9443,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "TSS sube 69 % de S1 a S2 (138 → 233)"
+      ]
+    },
+    {
+      "id": "05-dias-ocupados-cansado",
+      "mode": "create_plan",
+      "config": "claude-sonnet-5-5-low",
+      "ok": true,
+      "seconds": 43.7,
+      "cost": 0.072965,
+      "coldCost": 0.108767,
+      "usage": {
+        "input_tokens": 1691,
+        "output_tokens": 6647,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "TSS sube 73 % de S1 a S2 (116 → 201)"
+      ]
+    },
+    {
+      "id": "05-dias-ocupados-cansado",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 63.9,
+      "cost": 0.007597,
+      "coldCost": 0.009387,
+      "usage": {
+        "input_tokens": 1691,
+        "output_tokens": 14544,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "05-dias-ocupados-cansado",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 59.9,
+      "cost": 0.007491,
+      "coldCost": 0.009281,
+      "usage": {
+        "input_tokens": 1691,
+        "output_tokens": 14333,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "TSS sube 61 % de S1 a S2 (114 → 184)",
+        "TSS sube 28 % de S2 a S3 (184 → 236)"
+      ]
+    },
+    {
+      "id": "07-eval-fatiga",
+      "mode": "weekly_eval",
+      "config": "claude-sonnet-5-5-medium",
+      "ok": true,
+      "seconds": 18,
+      "cost": 0.064179,
+      "coldCost": 0.064179,
+      "usage": {
+        "input_tokens": 1802,
+        "output_tokens": 2206,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 15406
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "07-eval-fatiga",
+      "mode": "weekly_eval",
+      "config": "claude-sonnet-5-5-low",
+      "ok": true,
+      "seconds": 17.9,
+      "cost": 0.064749,
+      "coldCost": 0.064749,
+      "usage": {
+        "input_tokens": 1802,
+        "output_tokens": 2263,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 15406
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "07-eval-fatiga",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 20.1,
+      "cost": 0.002443,
+      "coldCost": 0.004214,
+      "usage": {
+        "input_tokens": 1802,
+        "output_tokens": 4217,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "07-eval-fatiga",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 12.6,
+      "cost": 0.001535,
+      "coldCost": 0.003306,
+      "usage": {
+        "input_tokens": 1802,
+        "output_tokens": 2401,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "08-eval-progreso",
+      "mode": "weekly_eval",
+      "config": "claude-sonnet-5-5-medium",
+      "ok": true,
+      "seconds": 11,
+      "cost": 0.023155,
+      "coldCost": 0.058589,
+      "usage": {
+        "input_tokens": 1722,
+        "output_tokens": 1663,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "08-eval-progreso",
+      "mode": "weekly_eval",
+      "config": "claude-sonnet-5-5-low",
+      "ok": true,
+      "seconds": 10.1,
+      "cost": 0.021675,
+      "coldCost": 0.057109,
+      "usage": {
+        "input_tokens": 1722,
+        "output_tokens": 1515,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [
+        "S1 «Sweet spot largo»: recortado 7 min para caber en 90"
+      ],
+      "warns": []
+    },
+    {
+      "id": "08-eval-progreso",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 49.9,
+      "cost": 0.005427,
+      "coldCost": 0.007199,
+      "usage": {
+        "input_tokens": 1722,
+        "output_tokens": 10202,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "08-eval-progreso",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 29.1,
+      "cost": 0.003296,
+      "coldCost": 0.005067,
+      "usage": {
+        "input_tokens": 1722,
+        "output_tokens": 5939,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "35-weekly-eval-ficha-3-semanas-no-bastan",
+      "mode": "weekly_eval",
+      "config": "claude-sonnet-5-5-medium",
+      "ok": true,
+      "seconds": 28.4,
+      "cost": 0.044701,
+      "coldCost": 0.080135,
+      "usage": {
+        "input_tokens": 2830,
+        "output_tokens": 3596,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "35-weekly-eval-ficha-3-semanas-no-bastan",
+      "mode": "weekly_eval",
+      "config": "claude-sonnet-5-5-low",
+      "ok": true,
+      "seconds": 10,
+      "cost": 0.023051,
+      "coldCost": 0.058485,
+      "usage": {
+        "input_tokens": 2830,
+        "output_tokens": 1431,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "35-weekly-eval-ficha-3-semanas-no-bastan",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 47.8,
+      "cost": 0.005397,
+      "coldCost": 0.007168,
+      "usage": {
+        "input_tokens": 2830,
+        "output_tokens": 9919,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "35-weekly-eval-ficha-3-semanas-no-bastan",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 29.2,
+      "cost": 0.003372,
+      "coldCost": 0.005144,
+      "usage": {
+        "input_tokens": 2830,
+        "output_tokens": 5870,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "37-weekly-eval-vfc-baja-y-mal-sueno",
+      "mode": "weekly_eval",
+      "config": "claude-sonnet-5-5-medium",
+      "ok": true,
+      "seconds": 23.7,
+      "cost": 0.038169,
+      "coldCost": 0.073603,
+      "usage": {
+        "input_tokens": 2894,
+        "output_tokens": 2930,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "decision=insert_recovery con TSB -5 y 92 % de cumplimiento"
+      ]
+    },
+    {
+      "id": "37-weekly-eval-vfc-baja-y-mal-sueno",
+      "mode": "weekly_eval",
+      "config": "claude-sonnet-5-5-low",
+      "ok": true,
+      "seconds": 12.9,
+      "cost": 0.025439,
+      "coldCost": 0.060873,
+      "usage": {
+        "input_tokens": 2894,
+        "output_tokens": 1657,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "decision=insert_recovery con TSB -5 y 92 % de cumplimiento"
+      ]
+    },
+    {
+      "id": "37-weekly-eval-vfc-baja-y-mal-sueno",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 24.4,
+      "cost": 0.003007,
+      "coldCost": 0.004779,
+      "usage": {
+        "input_tokens": 2894,
+        "output_tokens": 5127,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "decision=insert_recovery con TSB -5 y 92 % de cumplimiento"
+      ]
+    },
+    {
+      "id": "37-weekly-eval-vfc-baja-y-mal-sueno",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 25.1,
+      "cost": 0.002998,
+      "coldCost": 0.00477,
+      "usage": {
+        "input_tokens": 2894,
+        "output_tokens": 5110,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "decision=insert_recovery con TSB -5 y 92 % de cumplimiento"
+      ]
+    }
+  ]
+}

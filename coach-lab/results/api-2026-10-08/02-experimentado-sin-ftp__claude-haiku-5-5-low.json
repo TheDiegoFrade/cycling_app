@@ -1,0 +1,738 @@
+{
+  "id": "02-experimentado-sin-ftp",
+  "mode": "create_plan",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 74.9,
+  "cost": 0.010658,
+  "coldCost": 0.010658,
+  "usage": {
+    "input_tokens": 1670,
+    "output_tokens": 17090,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 15566
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "planName": "Gran fondo 160 km - febrero",
+    "blocks": [
+      {
+        "name": "Base aeróbica y FTP medido",
+        "weeks": 5,
+        "focus": "Base aeróbica, fondo largo y primer contacto con sweet spot tras el test",
+        "targetHoursPerWeek": 4.5
+      },
+      {
+        "name": "Construcción",
+        "weeks": 5,
+        "focus": "Sweet spot y umbral con volumen creciente, una variable por semana",
+        "targetHoursPerWeek": 5.5
+      },
+      {
+        "name": "Específico gran fondo",
+        "weeks": 4,
+        "focus": "Umbral y tempo largos, subida sostenida y sesión larga a ritmo de carrera",
+        "targetHoursPerWeek": 6
+      },
+      {
+        "name": "Afinado y descarga",
+        "weeks": 2,
+        "focus": "Descarga y frescura para el evento; semana previa sin intensidad",
+        "targetHoursPerWeek": 3.5
+      }
+    ],
+    "firstBlockWeeks": [
+      {
+        "weekIndex": 0,
+        "workouts": [
+          {
+            "name": "Escalera de ajuste",
+            "dayOfWeek": "tue",
+            "targetTSS": 30,
+            "erg": "on",
+            "intent": "Escalera para calibrar el FTP provisional de 200 W: cinco escalones de 4 min al 50-90 % con ERG. Sube solo mientras puedas hablar en frases completas; cuando pierdas el habla, para y anota en tu nota hasta qué escalón llegaste cómodo. Hasta el 70 % debe sentirse RPE 3-4.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 480,
+                    "power_pct": 40,
+                    "ramp_to_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 50",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 60",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 70",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 80",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 80
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 90",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 90
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo",
+            "dayOfWeek": "wed",
+            "targetTSS": 30,
+            "erg": "on",
+            "intent": "Fondo a 60 % del FTP con ERG: conversacional, RPE 3, puedes hablar en frases completas. Si en la segunda mitad la FC sube sin que subas la potencia, baja 5 %.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 40,
+                    "ramp_to_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2400,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Rodada de deriva",
+            "dayOfWeek": "thu",
+            "targetTSS": 35,
+            "erg": "on",
+            "intent": "40 min constantes a RPE 3-4 con ERG. La sensación manda: si puedes hablar y la FC casi no sube en la segunda mitad, esa potencia es tu fondo real. Anótalo en tu nota.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 45,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Deriva",
+                    "type": "steady",
+                    "duration_s": 2400,
+                    "power_pct": 62
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Test de 20 min",
+            "dayOfWeek": "sat",
+            "targetTSS": 46,
+            "erg": "off",
+            "intent": "Test de 20 min para fijar tu FTP: sin ERG, tú regulas. Los primeros 5 min deben sentirse contenidos; el bloque es lo máximo sostenible, no un sprint. Es tu primer test, así que el número tiene ±5-10 % de error y lo confirmamos en dos semanas. RPE 8-9 al final.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 45,
+                    "ramp_to_pct": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 3,
+                "steps": [
+                  {
+                    "name": "Pico",
+                    "type": "interval",
+                    "duration_s": 60,
+                    "power_pct": 100
+                  },
+                  {
+                    "name": "Suave",
+                    "type": "recovery",
+                    "duration_s": 60,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Preparación",
+                    "type": "steady",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Test 20 min",
+                    "type": "free",
+                    "duration_s": 1200,
+                    "power_pct": 100
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 720,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": "test"
+          },
+          {
+            "name": "Rodada larga",
+            "dayOfWeek": "sun",
+            "targetTSS": 53,
+            "erg": "on",
+            "intent": "Rodada larga a 65 % con ERG, RPE 3-4, sin prisa. Tras el test de ayer es fondo puro: si las piernas están vacías desde el inicio, baja 5 % y cuéntamelo.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 45,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo largo",
+                    "type": "steady",
+                    "duration_s": 4200,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workouts": [
+          {
+            "name": "Sweet spot",
+            "dayOfWeek": "tue",
+            "targetTSS": 43,
+            "erg": "on",
+            "intent": "Primer contacto con sweet spot: 3 series de 8 min al 88 % con ERG y 4 min suaves entre ellas. Mantén RPE 6 y respiración controlada; si la potencia cae en la última serie, anótalo.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 3,
+                "steps": [
+                  {
+                    "name": "Sweet spot",
+                    "type": "interval",
+                    "duration_s": 480,
+                    "power_pct": 88
+                  },
+                  {
+                    "name": "Recuperación",
+                    "type": "recovery",
+                    "duration_s": 240,
+                    "power_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 480,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo",
+            "dayOfWeek": "wed",
+            "targetTSS": 38,
+            "erg": "on",
+            "intent": "Fondo a 62 % con ERG, conversacional. Ritmo de carrera largo, sin subir la potencia para terminar más fuerte; eso se gana en las semanas siguientes.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 40,
+                    "ramp_to_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 3000,
+                    "power_pct": 62
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo con cadencia",
+            "dayOfWeek": "sat",
+            "targetTSS": 42,
+            "erg": "on",
+            "intent": "Fondo a 65 % con ERG, RPE 3-4, cadencia natural entre 85 y 95 rpm. Si la FC sube sola en la segunda mitad, bájala un poco.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 45,
+                    "ramp_to_pct": 60,
+                    "cadence_min": 85,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 3000,
+                    "power_pct": 65,
+                    "cadence_min": 85,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Rodada larga",
+            "dayOfWeek": "sun",
+            "targetTSS": 60,
+            "erg": "on",
+            "intent": "Rodada larga de 85 min a 65 % con ERG, RPE 3-4, puedes hablar todo el rato. Come y bebe cada 30 min.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 45,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo largo",
+                    "type": "steady",
+                    "duration_s": 4500,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workouts": [
+          {
+            "name": "Sweet spot",
+            "dayOfWeek": "tue",
+            "targetTSS": 55,
+            "erg": "on",
+            "intent": "Cuatro series de 8 min al 88 % con ERG y 4 min suaves entre ellas. Es una repetición más que la semana pasada; si la última serie se cae de potencia, lo cuentas y no lo forzamos.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 4,
+                "steps": [
+                  {
+                    "name": "Sweet spot",
+                    "type": "interval",
+                    "duration_s": 480,
+                    "power_pct": 88
+                  },
+                  {
+                    "name": "Recuperación",
+                    "type": "recovery",
+                    "duration_s": 240,
+                    "power_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 480,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo",
+            "dayOfWeek": "wed",
+            "targetTSS": 38,
+            "erg": "on",
+            "intent": "Fondo a 62 % con ERG, conversacional, RPE 3-4. Recuperación activa tras el sweet spot.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 40,
+                    "ramp_to_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 3000,
+                    "power_pct": 62
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo con cadencia",
+            "dayOfWeek": "sat",
+            "targetTSS": 42,
+            "erg": "on",
+            "intent": "Fondo a 65 % con ERG, RPE 3-4, cadencia entre 85 y 95 rpm. Mantén la misma postura y respiración en toda la sesión.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 45,
+                    "ramp_to_pct": 60,
+                    "cadence_min": 85,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 3000,
+                    "power_pct": 65,
+                    "cadence_min": 85,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Rodada larga",
+            "dayOfWeek": "sun",
+            "targetTSS": 60,
+            "erg": "on",
+            "intent": "Rodada larga de 85 min a 65 % con ERG, RPE 3-4, sin subir potencia. Esta sesión es la que más se parece a tu fondo, así que cuida la hidratación.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 45,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo largo",
+                    "type": "steady",
+                    "duration_s": 4500,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      }
+    ],
+    "coachNote": "Carlos, tu perfil cuadra: 8 años en bici y motor de ciclista activo, así que arrancas con el test de 20 min en la semana 0. Pon 200 W como FTP provisional en tu perfil antes del martes: es un punto de partida, no una medición, y lo afinamos con la escalera y el test. Tus 6.5 h de promedio no caben todos en 5 días de 90 min con tus 8 h, así que planeo unas 4.5 h y subo por semanas sin amontonar. El plan cierra en 16 semanas con descarga final para llegar fresco a febrero.",
+    "suggestedFtp": 200,
+    "nextTest": {
+      "weekIndex": 0,
+      "type": "test20",
+      "reason": "Test de 20 min el sábado de la semana 0 para fijar el FTP, precedido por la escalera del martes."
+    }
+  },
+  "raw": "{\"planName\":\"Gran fondo 160 km - febrero\",\"blocks\":[{\"name\":\"Base aeróbica y FTP medido\",\"weeks\":5,\"focus\":\"Base aeróbica, fondo largo y primer contacto con sweet spot tras el test\",\"targetHoursPerWeek\":4.5},{\"name\":\"Construcción\",\"weeks\":5,\"focus\":\"Sweet spot y umbral con volumen creciente, una variable por semana\",\"targetHoursPerWeek\":5.5},{\"name\":\"Específico gran fondo\",\"weeks\":4,\"focus\":\"Umbral y tempo largos, subida sostenida y sesión larga a ritmo de carrera\",\"targetHoursPerWeek\":6},{\"name\":\"Afinado y descarga\",\"weeks\":2,\"focus\":\"Descarga y frescura para el evento; semana previa sin intensidad\",\"targetHoursPerWeek\":3.5}],\"firstBlockWeeks\":[{\"weekIndex\":0,\"workouts\":[{\"name\":\"Escalera de ajuste\",\"dayOfWeek\":\"tue\",\"targetTSS\":30,\"erg\":\"on\",\"intent\":\"Escalera para calibrar el FTP provisional de 200 W: cinco escalones de 4 min al 50-90 % con ERG. Sube solo mientras puedas hablar en frases completas; cuando pierdas el habla, para y anota en tu nota hasta qué escalón llegaste cómodo. Hasta el 70 % debe sentirse RPE 3-4.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":480,\"power_pct\":40,\"ramp_to_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 50\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 60\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 70\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 80\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":80}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 90\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":90}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo\",\"dayOfWeek\":\"wed\",\"targetTSS\":30,\"erg\":\"on\",\"intent\":\"Fondo a 60 % del FTP con ERG: conversacional, RPE 3, puedes hablar en frases completas. Si en la segunda mitad la FC sube sin que subas la potencia, baja 5 %.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":40,\"ramp_to_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"thu\",\"targetTSS\":35,\"erg\":\"on\",\"intent\":\"40 min constantes a RPE 3-4 con ERG. La sensación manda: si puedes hablar y la FC casi no sube en la segunda mitad, esa potencia es tu fondo real. Anótalo en tu nota.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Deriva\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":62}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Test de 20 min\",\"dayOfWeek\":\"sat\",\"targetTSS\":46,\"erg\":\"off\",\"intent\":\"Test de 20 min para fijar tu FTP: sin ERG, tú regulas. Los primeros 5 min deben sentirse contenidos; el bloque es lo máximo sostenible, no un sprint. Es tu primer test, así que el número tiene ±5-10 % de error y lo confirmamos en dos semanas. RPE 8-9 al final.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":70}]},{\"repeat\":3,\"steps\":[{\"name\":\"Pico\",\"type\":\"interval\",\"duration_s\":60,\"power_pct\":100},{\"name\":\"Suave\",\"type\":\"recovery\",\"duration_s\":60,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Preparación\",\"type\":\"steady\",\"duration_s\":300,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Test 20 min\",\"type\":\"free\",\"duration_s\":1200,\"power_pct\":100}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":720,\"power_pct\":45}]}],\"kind\":\"test\"},{\"name\":\"Rodada larga\",\"dayOfWeek\":\"sun\",\"targetTSS\":53,\"erg\":\"on\",\"intent\":\"Rodada larga a 65 % con ERG, RPE 3-4, sin prisa. Tras el test de ayer es fondo puro: si las piernas están vacías desde el inicio, baja 5 % y cuéntamelo.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":45,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo largo\",\"type\":\"steady\",\"duration_s\":4200,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null}]},{\"weekIndex\":1,\"workouts\":[{\"name\":\"Sweet spot\",\"dayOfWeek\":\"tue\",\"targetTSS\":43,\"erg\":\"on\",\"intent\":\"Primer contacto con sweet spot: 3 series de 8 min al 88 % con ERG y 4 min suaves entre ellas. Mantén RPE 6 y respiración controlada; si la potencia cae en la última serie, anótalo.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":70}]},{\"repeat\":3,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"interval\",\"duration_s\":480,\"power_pct\":88},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":240,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":480,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo\",\"dayOfWeek\":\"wed\",\"targetTSS\":38,\"erg\":\"on\",\"intent\":\"Fondo a 62 % con ERG, conversacional. Ritmo de carrera largo, sin subir la potencia para terminar más fuerte; eso se gana en las semanas siguientes.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":40,\"ramp_to_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":62}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo con cadencia\",\"dayOfWeek\":\"sat\",\"targetTSS\":42,\"erg\":\"on\",\"intent\":\"Fondo a 65 % con ERG, RPE 3-4, cadencia natural entre 85 y 95 rpm. Si la FC sube sola en la segunda mitad, bájala un poco.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":45,\"ramp_to_pct\":60,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":65,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Rodada larga\",\"dayOfWeek\":\"sun\",\"targetTSS\":60,\"erg\":\"on\",\"intent\":\"Rodada larga de 85 min a 65 % con ERG, RPE 3-4, puedes hablar todo el rato. Come y bebe cada 30 min.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":45,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo largo\",\"type\":\"steady\",\"duration_s\":4500,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null}]},{\"weekIndex\":2,\"workouts\":[{\"name\":\"Sweet spot\",\"dayOfWeek\":\"tue\",\"targetTSS\":55,\"erg\":\"on\",\"intent\":\"Cuatro series de 8 min al 88 % con ERG y 4 min suaves entre ellas. Es una repetición más que la semana pasada; si la última serie se cae de potencia, lo cuentas y no lo forzamos.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":70}]},{\"repeat\":4,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"interval\",\"duration_s\":480,\"power_pct\":88},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":240,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":480,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo\",\"dayOfWeek\":\"wed\",\"targetTSS\":38,\"erg\":\"on\",\"intent\":\"Fondo a 62 % con ERG, conversacional, RPE 3-4. Recuperación activa tras el sweet spot.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":40,\"ramp_to_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":62}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo con cadencia\",\"dayOfWeek\":\"sat\",\"targetTSS\":42,\"erg\":\"on\",\"intent\":\"Fondo a 65 % con ERG, RPE 3-4, cadencia entre 85 y 95 rpm. Mantén la misma postura y respiración en toda la sesión.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":45,\"ramp_to_pct\":60,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":65,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Rodada larga\",\"dayOfWeek\":\"sun\",\"targetTSS\":60,\"erg\":\"on\",\"intent\":\"Rodada larga de 85 min a 65 % con ERG, RPE 3-4, sin subir potencia. Esta sesión es la que más se parece a tu fondo, así que cuida la hidratación.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":45,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo largo\",\"type\":\"steady\",\"duration_s\":4500,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null}]}],\"coachNote\":\"Carlos, tu perfil cuadra: 8 años en bici y motor de ciclista activo, así que arrancas con el test de 20 min en la semana 0. Pon 200 W como FTP provisional en tu perfil antes del martes: es un punto de partida, no una medición, y lo afinamos con la escalera y el test. Tus 6.5 h de promedio no caben todos en 5 días de 90 min con tus 8 h, así que planeo unas 4.5 h y subo por semanas sin amontonar. El plan cierra en 16 semanas con descarga final para llegar fresco a febrero.\",\"suggestedFtp\":200,\"nextTest\":{\"weekIndex\":0,\"type\":\"test20\",\"reason\":\"Test de 20 min el sábado de la semana 0 para fijar el FTP, precedido por la escalera del martes.\"}}"
+}

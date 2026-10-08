@@ -1,0 +1,219 @@
+{
+  "id": "37-weekly-eval-vfc-baja-y-mal-sueno",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-medium",
+  "ok": true,
+  "seconds": 24.4,
+  "cost": 0.003007,
+  "coldCost": 0.004779,
+  "usage": {
+    "input_tokens": 2894,
+    "output_tokens": 5127,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [
+    "decision=insert_recovery con TSB -5 y 92 % de cumplimiento"
+  ],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Diego, esta semana no es para seguir con lo que tocaba: hay dos señales de fatiga a la vez. Dormiste 5.9 h de media en los últimos 7 días, tu VFC está en 41 ms contra tu base de 55, y tu pulso en reposo subió a 54 lpm contra 48. Eso, sumado a la semana pesada y a las piernas ",
+    "contradictionFlag": "más o menos",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo suave",
+        "dayOfWeek": "tue",
+        "targetTSS": 43,
+        "erg": "on",
+        "intent": "Rodada de fondo a 70 % del FTP, en sensación RPE 3-4: debes poder hablar en frases completas todo el tiempo. Si la respiración se acelera, baja a 65 % sin pensarlo.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 45,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 70,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo tranquilo",
+        "dayOfWeek": "thu",
+        "targetTSS": 45,
+        "erg": "on",
+        "intent": "Sesión de fondo a 72 % del FTP con cadencia cómoda. Si el pulso sube sin que suba la potencia, es señal de cansancio: aflójate sin culpa.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 45,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 72,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Rodada de deriva",
+        "dayOfWeek": "sat",
+        "targetTSS": 43,
+        "erg": "on",
+        "intent": "Esfuerzo constante a 70 % del FTP en RPE 3-4. Mira el pulso en la segunda mitad: si casi no sube, esa es tu potencia de fondo real.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 45,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 70,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo final",
+        "dayOfWeek": "sun",
+        "targetTSS": 45,
+        "erg": "on",
+        "intent": "Cierra la semana de absorción a 72 % del FTP, sin subir la potencia aunque te sientas bien. El objetivo es llegar a la semana siguiente con el cuerpo recuperado.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 45,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 72,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": null,
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Diego, esta semana no es para seguir con lo que tocaba: hay dos señales de fatiga a la vez. Dormiste 5.9 h de media en los últimos 7 días, tu VFC está en 41 ms contra tu base de 55, y tu pulso en reposo subió a 54 lpm contra 48. Eso, sumado a la semana pesada y a las piernas \", \"contradictionFlag\": \"más o menos\", \"recurringPatternFlag\": null, \"nextWeekWorkouts\": [{\"name\":\"Fondo suave\",\"dayOfWeek\":\"tue\",\"targetTSS\":43,\"erg\":\"on\",\"intent\":\"Rodada de fondo a 70 % del FTP, en sensación RPE 3-4: debes poder hablar en frases completas todo el tiempo. Si la respiración se acelera, baja a 65 % sin pensarlo.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":70,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo tranquilo\",\"dayOfWeek\":\"thu\",\"targetTSS\":45,\"erg\":\"on\",\"intent\":\"Sesión de fondo a 72 % del FTP con cadencia cómoda. Si el pulso sube sin que suba la potencia, es señal de cansancio: aflójate sin culpa.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":72,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"sat\",\"targetTSS\":43,\"erg\":\"on\",\"intent\":\"Esfuerzo constante a 70 % del FTP en RPE 3-4. Mira el pulso en la segunda mitad: si casi no sube, esa es tu potencia de fondo real.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":70,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo final\",\"dayOfWeek\":\"sun\",\"targetTSS\":45,\"erg\":\"on\",\"intent\":\"Cierra la semana de absorción a 72 % del FTP, sin subir la potencia aunque te sientas bien. El objetivo es llegar a la semana siguiente con el cuerpo recuperado.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":72,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null}],\"ftpAction\":null,\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}
