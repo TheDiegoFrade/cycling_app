@@ -6,7 +6,8 @@ así que no gastan créditos. La API solo se usa al final para confirmar.
 
 ```
 coach-lab/
-  scenarios/   10 atletas de prueba: el context exacto que manda la app + qué haría un buen coach
+  scenarios/   28 escenarios (create_plan, weekly_eval, publish_block, coach_week,
+               monthly_review): el context exacto que manda la app + qué haría un buen coach
   out/         (generado) texto listo para pegar en claude.ai — no se sube al repo
   results/     las respuestas que pegues del chat, una por escenario (<id>.json)
   build.ts     arma out/ con el MISMO prompt y mensaje que producción
@@ -15,7 +16,9 @@ coach-lab/
   fable-brief.md  lo que se le lleva al chat con Fable para mejorar el prompt
 ```
 
-El prompt vive en `supabase/functions/coach-chat/prompt.ts` (system prompt,
+Versión actual del prompt: **v2** (ver `NOTAS-v2.md` para el changelog y
+`claude-code-brief.md` para las fases que siguen). El prompt vive en
+`supabase/functions/coach-chat/prompt.ts` (system prompt,
 contratos de workout) y en `supabase/functions/coach-chat/message.ts` (el
 encabezado de cada modo, incluidas las reglas de `coach_week`). `build.ts` los
 importa directo, así que lo que pruebas es exactamente lo que corre en la app.
@@ -36,8 +39,11 @@ Requisito: Node (para `npx`). La primera vez `npx` baja Deno solo.
    Opus da una idea falsa: se vería mejor de lo que saldrá en la app.
    Pega todo `out/<escenario>.md` y guarda la respuesta en
    `results/<escenario>.json` (el bloque ```json``` tal cual sirve).
-4. **Reglas duras** (topes de minutos, días disponibles u ocupados, fatiga,
-   48 h tras fuerza de pierna, ids de biblioteca, formato):
+4. **Reglas duras** (formato, topes de minutos, días disponibles u ocupados,
+   fatiga, nada duro el día antes / el día / el día después de fuerza de
+   pierna, ids de biblioteca, nada ≥ 95 % sin FTP medido salvo el test,
+   "TSB" con números de TSS). Los tests, rampas y escaleras no cuentan como
+   sesión dura. `monthly_review` solo se revisa contra el schema):
    ```
    npm run coach:check                         # todos los que tengan resultado
    npm run coach:check -- 07-eval-fatiga       # uno

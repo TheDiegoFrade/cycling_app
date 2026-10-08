@@ -40,6 +40,11 @@ function isHard(steps: Step[]): boolean {
   return at(88) >= 480 || at(105) >= 180;
 }
 const maxPct = (steps: Step[]) => Math.max(0, ...steps.map((s) => Math.max(s.power_pct, s.ramp_to_pct ?? 0)));
+/** Workout de test o de ajuste (rampa, 20 min, escalera): no cuenta como
+ * sesión dura ni como intensidad de más, por diseño llega alto. */
+const TEST_RE = /test|rampa|ramp|escalera/i;
+// deno-lint-ignore no-explicit-any
+const isTest = (w: any) => TEST_RE.test(`${w.name ?? ''} ${w.intent ?? ''}`);
 
 function parseOutput(raw: string): unknown {
   const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -69,7 +74,7 @@ function checkPlannedWeeks(f: Finding[], weeks: { workouts: Any[] }[], opts: { c
       if (opts.startDate) {
         const date = dateForWeek(opts.startDate, wi, w.dayOfWeek);
         if (opts.occupied?.has(date)) f.push({ level: 'fail', msg: `${tag}: cae en ${date}, que ya está ocupado` });
-        if (isHard(steps)) hardDates.push(date);
+        if (!isTest(w) && isHard(steps)) hardDates.push(date);
       }
     }
     if (opts.hoursPerWeek && weekMin > opts.hoursPerWeek * 60 * 1.1) {
@@ -93,18 +98,23 @@ function checkCreatePlan(ctx: Any, out: Any): Finding[] {
   const week0 = weeks[0]?.workouts ?? [];
   const tsb = ctx.recentHistory?.tsb;
   if (tsb !== undefined && tsb <= -25) {
-    for (const w of week0) if (isHard(flat(w.segments))) f.push({ level: 'fail', msg: `TSB ${tsb} y aun así S1 trae «${w.name}» duro` });
+    for (const w of week0) if (!isTest(w) && isHard(flat(w.segments))) f.push({ level: 'fail', msg: `TSB ${tsb} y aun así S1 trae «${w.name}» duro` });
   }
   const novice = ctx.experienceLevel === 'new_to_cycling' || ctx.generalFitnessLevel === 'sedentary';
   if (novice) {
     for (const [wi, week] of weeks.entries()) for (const w of week.workouts) {
-      if (maxPct(flat(w.segments)) > 105) f.push({ level: 'warn', msg: `S${wi + 1} «${w.name}»: >105 % FTP para alguien nuevo/sedentario` });
+      if (!isTest(w) && maxPct(flat(w.segments)) > 105) f.push({ level: 'warn', msg: `S${wi + 1} «${w.name}»: >105 % FTP para alguien nuevo/sedentario` });
     }
   }
   if (ctx.profile.ftp === null) {
-    for (const w of week0) {
-      if (isHard(flat(w.segments)) && w.erg === 'on') f.push({ level: 'warn', msg: `S1 «${w.name}»: intensidad en %FTP con ERG fijo sin FTP conocido` });
+    // Sin FTP medido el %FTP sale de un provisional: nada que no sea test
+    // llega a umbral (95 %) hasta que haya un número de verdad.
+    for (const [wi, week] of weeks.entries()) for (const w of week.workouts) {
+      if (isTest(w)) continue;
+      const top = maxPct(flat(w.segments));
+      if (top >= 95) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % FTP sin FTP medido` });
     }
+    if (!/\d+\s*(W|watts?|vatios)\b/i.test(out.coachNote)) f.push({ level: 'warn', msg: 'sin FTP y coachNote no trae un número en watts (FTP provisional)' });
     const hasTest = weeks.flatMap((w) => w.workouts).some((w) => /test|ftp|rampa|ramp/i.test(`${w.name} ${w.intent}`));
     if (!hasTest && !novice) f.push({ level: 'warn', msg: 'sin FTP y no aparece ningún test en las semanas concretadas' });
   }
@@ -128,7 +138,7 @@ function checkWeeklyEval(ctx: Any, out: Any): Finding[] {
     f.push({ level: 'warn', msg: `decision=${out.decision} con TSB ${tsb} y ${Math.round(adherence * 100)} % de cumplimiento` });
   }
   if (tsb <= -25) {
-    for (const w of out.nextWeekWorkouts) if (isHard(flat(w.segments))) f.push({ level: 'fail', msg: `TSB ${tsb} y la semana siguiente trae «${w.name}» duro` });
+    for (const w of out.nextWeekWorkouts) if (!isTest(w) && isHard(flat(w.segments))) f.push({ level: 'fail', msg: `TSB ${tsb} y la semana siguiente trae «${w.name}» duro` });
   }
   checkPlannedWeeks(f, [{ workouts: out.nextWeekWorkouts }], { cap: ctx.maxSessionMinutes ?? 90 });
   const tss = out.nextWeekWorkouts.reduce((s: number, x: Any) => s + x.targetTSS, 0);
@@ -152,14 +162,22 @@ function checkCoachWeek(ctx: Any, out: Any): Finding[] {
     const exactCopy = t && !w.libraryChange;
     const min = exactCopy ? t.minutes : minutesOf(w.intervals);
     // Plantilla copiada tal cual: dura si su IF estimado (de TSS y minutos) ≥ 0.8.
-    const hard = exactCopy ? t.tss !== null && Math.sqrt(t.tss / ((t.minutes / 60) * 100)) >= 0.8 : isHard(w.intervals);
+    const hard = isTest(w) ? false : exactCopy ? t.tss !== null && Math.sqrt(t.tss / ((t.minutes / 60) * 100)) >= 0.8 : isHard(w.intervals);
     if (!ctx.openDays.includes(w.dayOfWeek)) f.push({ level: 'fail', msg: `${tag}: día no abierto (${ctx.openDays.join(', ')})` });
     if (seen.has(w.dayOfWeek)) f.push({ level: 'fail', msg: `${tag}: dos entrenamientos de bici el mismo día` });
     seen.add(w.dayOfWeek);
     if (lockedBike.has(w.dayOfWeek)) f.push({ level: 'fail', msg: `${tag}: ya hay bici bloqueada ese día` });
     if (min > cap) f.push({ level: 'fail', msg: `${tag}: ${min} min, pasa el tope de ${cap}` });
     if (hard && tired) f.push({ level: 'fail', msg: `${tag}: sesión dura con atleta cansado (TSB ${ctx.pmc?.tsb})` });
-    if (hard && legDays.some((d: number) => Math.abs(d - DAY_OFFSET[w.dayOfWeek]) <= 1)) f.push({ level: 'fail', msg: `${tag}: sesión dura a menos de 48 h de fuerza de pierna` });
+    if (hard && legDays.some((d: number) => Math.abs(d - DAY_OFFSET[w.dayOfWeek]) <= 1)) f.push({ level: 'fail', msg: `${tag}: sesión dura el día antes, el día o el día después de fuerza de pierna` });
+  }
+  // "310 TSB": la carga de una semana se escribe en TSS. Un TSB real casi
+  // nunca pasa de ±50, así que un número mayor pegado a "TSB" es confusión.
+  for (const r of out.rationale as string[]) {
+    for (const m of r.matchAll(/(?:TSB\D{0,4}?(-?\d+(?:[.,]\d+)?))|(?:(-?\d+(?:[.,]\d+)?)\s*(?:de\s+)?TSB)/gi)) {
+      const n = Math.abs(parseFloat((m[1] ?? m[2]).replace(',', '.')));
+      if (n > 50) f.push({ level: 'fail', msg: `rationale habla de "${m[0].trim()}": eso es TSS, no TSB` });
+    }
   }
   if (out.rationale.length < 2 || out.rationale.length > 5) f.push({ level: 'warn', msg: `rationale con ${out.rationale.length} razones (se piden 2-5)` });
   const fromLib = out.workouts.filter((w: Any) => w.fromLibraryId && lib.has(w.fromLibraryId)).length;
@@ -167,10 +185,27 @@ function checkCoachWeek(ctx: Any, out: Any): Finding[] {
   return f;
 }
 
+function checkPublishBlock(ctx: Any, out: Any): Finding[] {
+  const f: Finding[] = [];
+  const cap = ctx.maxSessionMinutes ?? 90;
+  checkPlannedWeeks(f, out.weeks, { cap });
+  // Sin fecha de inicio en el context: días duros seguidos por día de la semana.
+  out.weeks.forEach((week: Any, wi: number) => {
+    const hard = week.workouts.filter((w: Any) => !isTest(w) && isHard(flat(w.segments))).map((w: Any) => DAY_OFFSET[w.dayOfWeek]).sort((a: number, b: number) => a - b);
+    for (let i = 1; i < hard.length; i++) {
+      if (hard[i] - hard[i - 1] <= 1) f.push({ level: 'warn', msg: `S${wi + 1}: días duros seguidos (${DAYS[hard[i - 1]]} y ${DAYS[hard[i]]})` });
+    }
+  });
+  const tss = out.weeks.map((w: Any) => w.workouts.reduce((s: number, x: Any) => s + x.targetTSS, 0));
+  f.push({ level: 'ok', msg: `«${out.blockName}» · TSS por semana: ${tss.join(' → ')}` });
+  return f;
+}
+
 const CHECKERS: Partial<Record<Mode, (ctx: Any, out: Any) => Finding[]>> = {
   create_plan: checkCreatePlan,
   weekly_eval: checkWeeklyEval,
   coach_week: checkCoachWeek,
+  publish_block: checkPublishBlock,
 };
 
 async function run(id: string, resultPath?: string): Promise<boolean> {

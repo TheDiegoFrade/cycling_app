@@ -108,8 +108,9 @@ volverse más caro.
 Cada versión se corre contra los escenarios de `coach-lab/scenarios/` en el
 chat con el modelo de producción. Luego se revisa en dos capas:
 
-- `npm run coach:check` — reglas duras: topes, días, fatiga, 48 h después de
-  fuerza de pierna, ids de biblioteca, formato.
+- `npm run coach:check` — reglas duras: topes, días, fatiga, nada duro el
+  día antes, el día o el día después de fuerza de pierna, ids de biblioteca,
+  formato.
 - `coach-lab/rubric.md` — criterio de coach experto, calificado por un juez.
 
 Una versión es mejor si baja las fallas de `coach:check` y sube la nota de la
