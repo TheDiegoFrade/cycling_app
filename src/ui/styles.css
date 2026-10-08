@@ -2991,6 +2991,11 @@ a {
 .coach-screen .back-link {
   margin-bottom: 0;
 }
+/* la pantalla es la que hace scroll: los bloques no se encogen (si no, el
+ * editor de semana quedaba cortado en pantallas bajas) */
+.coach-screen > * {
+  flex-shrink: 0;
+}
 .coach-head {
   display: flex;
   flex-wrap: wrap;
@@ -5190,5 +5195,226 @@ a {
   .live-graph {
     height: 90px;
     margin: 0 16px 8px;
+  }
+}
+
+/* ---------- Celular: densidad compacta ----------
+   Todo un poco más chico para ver más y editar cómodo, como app. Los
+   campos de texto se quedan en 16px: con menos, el iPhone hace zoom al
+   tocarlos. (No toca la sesión en vivo.) */
+@media (max-width: 760px) {
+  .main-content .screen {
+    padding: 12px 12px calc(76px + env(safe-area-inset-bottom));
+  }
+  .screen h1,
+  h1 {
+    font-size: 22px;
+    line-height: 1.15;
+  }
+  .weeks-nav h1 {
+    font-size: 19px;
+  }
+  .screen h2 {
+    font-size: 17px;
+  }
+  .perfil-h2 {
+    font-size: 17px !important;
+  }
+  label {
+    font-size: 13px;
+  }
+  button {
+    padding: 6px 11px;
+    font-size: 14px;
+  }
+  input,
+  select,
+  textarea {
+    padding: 7px 9px;
+    font-size: 16px;
+  }
+  .hint {
+    font-size: 13px;
+  }
+  .back-link {
+    font-size: 13px;
+  }
+  /* tarjetas y paneles */
+  .panel {
+    padding: 12px 14px;
+    gap: 10px;
+    border-radius: var(--radius-md);
+  }
+  .coach-card {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .row-actions {
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .coach-head {
+    gap: 10px;
+  }
+  .coach-pills {
+    gap: 4px;
+  }
+  .coach-pill {
+    font-size: 11px;
+    padding: 2px 8px;
+  }
+  .coach-btn {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+  .plan-chip,
+  .log-choice {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+  .coach-tile {
+    padding: 10px 12px;
+    gap: 2px;
+  }
+  .coach-tile-value {
+    font-size: 24px;
+  }
+  .coach-tile .hint {
+    font-size: 11px;
+  }
+  /* números grandes */
+  .prepare-stat-num {
+    font-size: 24px;
+  }
+  .summary-metric {
+    padding: 10px 12px;
+  }
+  .forma-num {
+    font-size: 36px;
+  }
+  .forma-num-label {
+    font-size: 22px;
+  }
+  .perfil-numinput {
+    font-size: 34px;
+  }
+  .perfil-alert-input {
+    font-size: 20px;
+  }
+  .home-hero-title {
+    font-size: 26px;
+  }
+  .home-play-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 20px;
+  }
+  .prepare-title {
+    font-size: 36px;
+  }
+  .prepare-subtitle {
+    font-size: 22px;
+  }
+  .screen .invite-title {
+    font-size: 22px;
+  }
+  /* editor de semana del coach */
+  .week-day {
+    padding: 10px;
+    gap: 6px;
+  }
+  .week-day-head .num {
+    font-size: 15px;
+  }
+  .week-item {
+    padding: 8px;
+    gap: 4px;
+  }
+  .week-item-name {
+    font-size: 13px;
+  }
+  .week-item .workout-cover {
+    height: 26px;
+  }
+  .week-item-buttons button {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .week-move select {
+    padding: 6px 8px;
+    font-size: 16px;
+  }
+  /* semanas de todos */
+  .weeks-athlete a {
+    font-size: 13px;
+  }
+  .weeks-chip-name {
+    font-size: 11px;
+  }
+  /* barra de pestañas */
+  .tabbar {
+    padding: 4px 2px calc(4px + env(safe-area-inset-bottom));
+  }
+  .tabbar-item {
+    min-height: 44px;
+    font-size: 10px;
+    gap: 2px;
+  }
+  .tabbar-item svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Celular: la tabla de Atletas como tarjetas (coach-athletes.ts) */
+@media (max-width: 760px) {
+  .coach-athletes-table,
+  .coach-athletes-table tbody {
+    display: block;
+    min-width: 0;
+  }
+  .coach-athletes-table thead {
+    display: none;
+  }
+  .coach-athletes-table tr {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .coach-athletes-table td {
+    display: block;
+    padding: 0;
+    border: none;
+    min-width: 0;
+  }
+  .coach-athletes-table td:first-child {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+  .coach-athletes-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+  .coach-athletes-table td[data-label='Última actividad'],
+  .coach-athletes-table td[data-label='Atención'] {
+    grid-column: span 3;
+  }
+  .coach-athletes-table .coach-row-action {
+    display: none;
+  }
+  .coach-athletes-table .coach-num {
+    font-size: 20px;
+  }
+  /* Inicio: portada del entrenamiento de hoy más baja */
+  .home-hero-card .workout-cover-lg {
+    height: 120px;
+    padding: 16px 16px 0;
   }
 }
