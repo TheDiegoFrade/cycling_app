@@ -149,6 +149,32 @@ export function selfPacedTestSteps(w: PlannedWorkout, steps: Step[]): Step[] {
   );
 }
 
+/** TSS de un workout planeado, con la misma cuenta que la app
+ * (src/core/workout-estimate.ts: potencia segundo a segundo, NP con media
+ * móvil de 30 s, IF = NP/FTP), en % de FTP para no depender del número. El
+ * modelo lo estima a ojo y se equivoca seguido (p. ej. 90 min de fondo con
+ * TSS 200); la guardia lo reemplaza por este. */
+export function estimateTss(segments: Segment[]): number {
+  const pct: number[] = [];
+  for (const st of expandSegments(segments)) {
+    const to = st.ramp_to_pct ?? st.power_pct;
+    for (let t = 0; t < st.duration_s; t++) pct.push(st.power_pct + ((to - st.power_pct) * t) / st.duration_s);
+  }
+  if (!pct.length) return 0;
+  const win = Math.min(30, pct.length);
+  let sum = 0;
+  for (let i = 0; i < win; i++) sum += pct[i];
+  let fourth = (sum / win) ** 4;
+  let n = 1;
+  for (let i = win; i < pct.length; i++) {
+    sum += pct[i] - pct[i - win];
+    fourth += (sum / win) ** 4;
+    n++;
+  }
+  const ifactor = Math.pow(fourth / n, 0.25) / 100;
+  return Math.round((pct.length / 3600) * ifactor * ifactor * 100);
+}
+
 export function toGeneratedWorkout(w: PlannedWorkout, description: string | null): GeneratedWorkout {
   return {
     name: w.name,

@@ -5,7 +5,7 @@ const step = (min: number, pct: number) => ({ name: 'x', type: 'steady', duratio
 const easy = (day: string, min = 60, name = `Fondo ${day}`) => ({
   name,
   dayOfWeek: day,
-  targetTSS: 50,
+  targetTSS: Math.round((min / 60) * 42), // el de la estructura (65 %)
   erg: 'on',
   intent: 'fondo',
   kind: null,
@@ -80,11 +80,35 @@ describe('reviewOutput / guardOutput', () => {
   it('una semana limpia pasa sin fallas', () => {
     const g = guardOutput('weekly_eval', weeklyCtx(), weeklyOut([hard('tue'), easy('thu'), easy('sat')]));
     expect(g.fails).toEqual([]);
-    expect(g.fixes).toEqual([]);
+    expect(g.fixes.every((f) => f.includes('TSS'))).toBe(true); // solo el TSS recalculado
   });
 
   it('sin FTP y sin nextTest es falla', () => {
     const f = reviewOutput('weekly_eval', weeklyCtx({ profile: { ftp: null } }), weeklyOut([easy('tue')]));
     expect(f.some((x) => x.level === 'fail' && x.msg.includes('nextTest'))).toBe(true);
+  });
+});
+
+describe('TSS y suggestedFtp', () => {
+  it('reemplaza el TSS del modelo por el de la estructura', () => {
+    const w = { ...easy('tue', 90), targetTSS: 200 }; // 90 min al 65 %
+    const { out, fixes } = repairOutput('weekly_eval', weeklyCtx(), weeklyOut([w]));
+    expect(out.nextWeekWorkouts[0].targetTSS).toBe(63); // 1.5 h × 0.65² × 100
+    expect(fixes[0]).toContain('TSS 200 → 63');
+  });
+
+  it('sin FTP, toma el provisional del coachNote si suggestedFtp vino vacío', () => {
+    const ctx = { startDate: '2026-10-12', availability: { days: ['tue'], maxSessionMinutes: 90 }, occupiedDates: [], profile: { ftp: null } };
+    const base = { blocks: [{ weeks: 1 }], firstBlockWeeks: [{ weekIndex: 0, workouts: [easy('tue')] }], suggestedFtp: null, nextTest: { weekIndex: 0, type: 'ramp', reason: 'x' } };
+    const note = 'Tu pico de 5 min fue 300 W. Pon 200 W en tu perfil antes de empezar.';
+    expect(repairOutput('create_plan', ctx, { ...base, coachNote: note }).out.suggestedFtp).toBe(200);
+    expect(repairOutput('create_plan', ctx, { ...base, coachNote: 'Tu pico fue 300 W.' }).out.suggestedFtp).toBeNull();
+  });
+});
+
+describe('nombre contra contenido', () => {
+  it('un "Fondo" con trabajo duro es falla', () => {
+    const w = { ...hard('tue'), name: 'Fondo tranquilo' };
+    expect(guardOutput('weekly_eval', weeklyCtx(), weeklyOut([w])).fails[0]).toContain('se llama como sesión suave');
   });
 });

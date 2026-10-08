@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { expandSegments, fallbackDescription, fitToCap, summarizeSegments, toGeneratedWorkout, totalMinutes } from './expand.ts';
+import { expandSegments, fallbackDescription, estimateTss, fitToCap, summarizeSegments, toGeneratedWorkout, totalMinutes } from './expand.ts';
 import type { PlannedWorkout } from './expand.ts';
 
 const threshold: PlannedWorkout = {
@@ -135,5 +135,17 @@ describe('selfPacedTestSteps', () => {
     const ramp: PlannedWorkout = { ...test20, name: 'Test de rampa', erg: 'on' };
     expect(toGeneratedWorkout(ramp, null).intervals.some((i) => i.type === 'free')).toBe(false);
     expect(toGeneratedWorkout({ ...threshold, erg: 'off' }, null).intervals.some((i) => i.type === 'free')).toBe(false);
+  });
+});
+
+describe('estimateTss', () => {
+  const st = (duration_s: number, power_pct: number, ramp_to_pct?: number) => ({ name: 'x', type: 'steady' as const, duration_s, power_pct, ...(ramp_to_pct ? { ramp_to_pct } : {}) });
+  it('una hora a FTP = 100; una hora al 65 % ≈ 42', () => {
+    expect(estimateTss([{ repeat: 1, steps: [st(3600, 100)] }])).toBe(100);
+    expect(estimateTss([{ repeat: 1, steps: [st(3600, 65)] }])).toBe(42);
+  });
+  it('los intervalos pesan más que su promedio (NP)', () => {
+    const tss = estimateTss([{ repeat: 5, steps: [st(240, 115), st(240, 50)] }]);
+    expect(tss).toBeGreaterThan(Math.round((2400 / 3600) * 0.825 ** 2 * 100));
   });
 });

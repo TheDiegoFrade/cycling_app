@@ -5,12 +5,13 @@
 //
 //  - repairOutput: lo mecánico se arregla con código, sin gastar otra
 //    llamada (tope de minutos, días repetidos/no disponibles/ocupados,
-//    semanas de más, intensidad de umbral sin FTP medido).
+//    semanas de más, intensidad de umbral sin FTP medido, TSS calculado de
+//    la estructura, suggestedFtp que falta cuando el texto sí da el número).
 //  - reviewOutput: lo que queda. 'fail' = rompe una regla del prompt (en
 //    producción se le pide al coach que lo corrija, una vez); 'warn' =
 //    sospechoso, solo se registra; 'ok' = resumen informativo.
 // Lógica pura.
-import { fitToCap, isTestWorkout } from './expand.ts';
+import { estimateTss, fitToCap, isTestWorkout } from './expand.ts';
 import type { PlannedWorkout } from './expand.ts';
 import type { Mode } from './schemas.ts';
 
@@ -61,6 +62,7 @@ function isHard(steps: Step[]): boolean {
 }
 const maxPct = (steps: Step[]) => Math.max(0, ...steps.map((s) => Math.max(s.power_pct, s.ramp_to_pct ?? 0)));
 const isTest = (w: Any) => isTestWorkout(w);
+const EASY_NAME_RE = /fondo|suave|recuperaci|tranquil|conversacional|regenera|\bz2\b/i;
 
 // ─── Dónde viven las semanas de cada modo ──────────────────────────────────
 
@@ -158,6 +160,10 @@ export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes:
         };
         fixes.push(`S${wi + 1} «${w.name}»: bajado de ${top} % a ${NO_FTP_MAX_PCT} % (sin FTP medido)`);
       }
+      // TSS: el de la estructura, no el que estimó el modelo.
+      const tss = estimateTss(w.segments);
+      if (Math.abs(tss - w.targetTSS) > Math.max(10, tss * 0.2)) fixes.push(`S${wi + 1} «${w.name}»: TSS ${w.targetTSS} → ${tss} (calculado de la estructura)`);
+      w = { ...w, targetTSS: tss };
       // Día repetido, no disponible u ocupado: al día libre más cercano.
       if (used.has(w.dayOfWeek) || !dayUsable(w.dayOfWeek, wi, o)) {
         const from = DAY_OFFSET[w.dayOfWeek];
@@ -176,6 +182,22 @@ export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes:
     return { ...week, workouts: kept };
   });
   setWeeks(mode, fixed, weeks);
+
+  // Sin FTP medido el coachNote dice "pon 200 W en tu perfil", pero si
+  // suggestedFtp quedó en null la app no muestra el botón para ponerlo.
+  if (mode === 'create_plan' && ftpUnknown(ctx) && fixed.suggestedFtp == null) {
+    // Solo de la frase que habla del perfil o del provisional: el texto puede
+    // citar otros watts (un pico, una zona) antes.
+    const sentence = String(fixed.coachNote ?? '')
+      .split(/(?<=[.!?])\s+/)
+      .find((x) => /perfil|provisional/i.test(x) && /\d{2,3}\s*(?:W|watts?|vatios)\b/i.test(x));
+    const m = sentence ? /(\d{2,3})\s*(?:W|watts?|vatios)\b/i.exec(sentence) : null;
+    const watts = m ? Number(m[1]) : NaN;
+    if (watts >= 50 && watts <= 500) {
+      fixed.suggestedFtp = watts;
+      fixes.push(`suggestedFtp vacío: se toma ${watts} W del coachNote`);
+    }
+  }
   return { out: fixed, fixes };
 }
 
@@ -199,7 +221,11 @@ function checkPlannedWeeks(f: Finding[], weeks: { workouts: Any[] }[], o: WeekOp
         f.push({ level: 'fail', msg: `${tag}: ${why}` });
       }
       seen.add(w.dayOfWeek);
-      if (!isTest(w) && isHard(steps)) hardDays.push(DAY_OFFSET[w.dayOfWeek]);
+      if (!isTest(w) && isHard(steps)) {
+        hardDays.push(DAY_OFFSET[w.dayOfWeek]);
+        // El nombre es lo que el atleta lee primero: "Fondo tranquilo" al 93 % engaña.
+        if (EASY_NAME_RE.test(w.name)) f.push({ level: 'fail', msg: `${tag}: se llama como sesión suave pero trae trabajo duro (hasta ${maxPct(steps)} % FTP)` });
+      }
     }
     if (o.hoursPerWeek && weekMin > o.hoursPerWeek * 60 * 1.1) {
       f.push({ level: 'warn', msg: `S${wi + 1}: ${(weekMin / 60).toFixed(1)} h, más que las ${o.hoursPerWeek} h disponibles` });
