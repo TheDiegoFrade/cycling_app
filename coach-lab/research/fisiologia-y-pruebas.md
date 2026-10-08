@@ -13,31 +13,48 @@ eso, y termina en **reglas para el coach**, listas para pasar al prompt.
 - PMC (CTL/ATL/TSB).
 - No graba intervalos RR, así que **no hay HRV ni DFA-α1**.
 
-> **Sobre las fuentes que se pidieron.** Las 8 páginas (Leeds Beckett,
-> Science for Sport, Vires Velo, Prologue Cycling, Fitness Lab, Watts Lab)
-> están bloqueadas por la política de red de este entorno. No se pudieron
-> leer directo. Lo de Leeds Beckett sale de búsquedas que citan su página. El
-> resto se cubrió con estudios y guías equivalentes, enlazados en cada
-> sección. Para completar con esas páginas, ver "Pendiente" al final.
+> **Fuentes.** Las 8 páginas pedidas se leyeron directo (resumen por fuente
+> en §8): Leeds Beckett (perfil de ciclismo y Centre for Human Performance),
+> Science to Sport (pruebas de laboratorio y ciencia del XCO), Vires Velo,
+> Prologue Cycling, The Fitness Lab y Watts Lab. Se complementan con estudios
+> enlazados en cada sección.
 
 ---
 
 ## 1. Qué mide un perfil fisiológico de laboratorio
 
-Un perfil típico (Leeds Beckett, Derby y similares) tiene dos partes:
+El protocolo estándar de Leeds Beckett para ciclismo tiene dos partes:
 
-- **Escalones submáximos.** De 6 a 8 escalones de unos 3-4 min, subiendo la
-  potencia. Al final de cada uno se toma lactato capilar y RPE; FC y gases se
-  registran todo el tiempo. De ahí salen los dos umbrales:
+- **Escalones submáximos.** De **6 a 8 escalones de 3-6 min**, subiendo
+  **15-35 W** por escalón. El tamaño se ajusta al nivel del atleta y a su
+  evento. Al final de cada escalón se toma lactato capilar (dedo u oreja); FC
+  y gases se registran todo el tiempo. De ahí salen los dos umbrales:
   - **LT1 / VT1**: primer aumento sostenido del lactato. Es el límite de lo
     realmente "fácil".
   - **LT2 / VT2**: el lactato se dispara; está cerca de MLSS, ~4 mmol·L⁻¹ y
     del FTP.
-- **Rampa máxima.** Sube cada minuto (Leeds Beckett) o cada 2-3 s (Derby)
-  hasta el agotamiento. De ahí salen el **VO₂máx** y la **MAP** (potencia
+- **Rampa máxima.** Continua, **+20 W por minuto** hasta el agotamiento
+  (Leeds Beckett). Derby sube cada 2-3 s. De ahí salen el **VO₂máx** y la **MAP** (potencia
   aeróbica máxima, el último minuto de la rampa).
 - **Informe al atleta**: zonas por FC, potencia y tiempo; VO₂máx; eficiencia
-  ciclista; oxidación de grasas y carbohidratos.
+  ciclista (cuánta potencia por costo de oxígeno); oxidación de grasas y
+  carbohidratos. Todo se compara con datos normativos y se señalan
+  fortalezas y debilidades según el evento.
+- **Definiciones de Science to Sport:**
+  - **Umbral (lactato o FTP)**: la máxima intensidad sostenible por **~40 a
+    60 min**.
+  - **PPO**: la potencia media del **último minuto** de la prueba de VO₂máx.
+    Es un fuerte predictor del rendimiento en una CRI de 40 km.
+  - **Retest**: a la misma altura cada año, o al inicio de cada ciclo
+    principal.
+- **Más allá de los umbrales** (Science to Sport, Vires Velo): el perfil
+  metabólico.
+  - **Fat max**: la intensidad de máxima oxidación de grasa; se entrena en un
+    rango de ±10 %.
+  - **Acumulación de lactato**: el trabajo a ~75-90 % del FTP mueve la curva
+    a la derecha.
+  - Las reservas de carbohidrato son solo ~600 g, así que hay que ahorrarlas
+    en carrera.
 
 Fuentes: [Leeds Beckett — cycling](https://www.leedsbeckett.ac.uk/carnegie-school-of-sport/health-and-performance-hub/physiological-profiling-cycling/),
 [Leeds Beckett — triathlon](https://www.leedsbeckett.ac.uk/carnegie-school-of-sport/health-and-performance-hub/physiological-profiling-triathlon/),
@@ -53,13 +70,14 @@ umbral y el segundo. El FTP solo aproxima el segundo.
 | Laboratorio | Equivalente en casa | Qué tan bueno es |
 |---|---|---|
 | LT2 / MLSS (umbral) | **Test de 20 min** × ~0.95 = FTP | Confiable test-retest (CV 2.9 %, ICC 0.97), pero el ×0.95 sobreestima a muchos: en un estudio, a 95 % del FTP20 la gente aguantó **42 ± 17 min**, no 60. ([estudio 2025](https://www.preprints.org/manuscript/202502.0505/v1)) |
-| MAP / techo aeróbico | **Rampa en rodillo** (sube cada 1 min hasta no poder), FTP ≈ 75 % del mejor minuto | Buena para MAP. El 75 % es una convención: el cociente real va de ~0.70 a 0.80 según la persona, y falla más en VO₂máx muy alto o muy bajo. ([TrainerRoad](https://www.trainerroad.com/forum/t/best-ftp-test-ramp-or-20-min/16402?page=2), [TrainerDay](https://trainerday.com/blog/why-the-ramp-test-is-the-best-ftp-test)) |
+| MAP / techo aeróbico | **Rampa en rodillo** (+20 W/min como Leeds Beckett, hasta no poder); PPO = media del último minuto; FTP ≈ 75 % del mejor minuto | Buena para MAP. El 75 % es una convención: el cociente real va de ~0.70 a 0.80 según la persona, y falla más en VO₂máx muy alto o muy bajo. ([TrainerRoad](https://www.trainerroad.com/forum/t/best-ftp-test-ramp-or-20-min/16402?page=2), [TrainerDay](https://trainerday.com/blog/why-the-ramp-test-is-the-best-ftp-test)) |
 | Potencia crítica (CP) | 2-3 esfuerzos máximos (p. ej. 3 y 12 min, o 3-7-12) con descanso largo | Más "fisiológico" que el FTP, pero la versión de 3 min tiene mala fama y exige saber dosificar. ([Karsten et al., Front Physiol](https://public-pages-files-2025.frontiersin.org/journals/physiology/articles/10.3389/fphys.2020.613151/text)) |
 | LT1 / VT1 (fin de lo fácil) | **Prueba de deriva de FC**: 45-60 min a potencia constante; si la FC sube < ~3-5 % en la 2.ª mitad, se está bajo VT1 | Útil y Torq ya calcula `hr_drift_pct`. No es exacta y depende de calor, hidratación y fatiga. ([Uphill Athlete](https://uphillathlete.com/heart-rate-drift/)) |
 | LT1 por percepción | **Test del habla**: si puede hablar en frases completas, está bajo VT1 | Barato y razonable como ancla, sin validación fuerte. ([TrainerRoad](https://www.trainerroad.com/forum/t/calculating-lt1-and-lt2-approximately-without-a-blood-test/55533?page=8)) |
 | LT1 por HRV | DFA-α1 ≈ 0.75 en VT1 | **No disponible en Torq** (no hay RR). Además es ruidosa y con retraso. ([Frontiers](https://www.frontiersin.org/articles/10.3389/fphys.2020.596567/abstract)) |
 | VO₂máx | No se mide; la MAP de la rampa es su proxy útil | — |
 | Eficiencia | `efficiency_factor` (NP/FC) en rodadas estables comparables | Sirve como tendencia de la base aeróbica, no como valor absoluto. |
+| Potencia intermitente (XCO) | **40:20s**: 2 × (6 × 40 s fuerte / 20 s suave), comparando la NP de la serie | Según Science to Sport, el test intermitente (20 × 45 s/15 s) predijo el resultado en XCO **mejor que el FTP**. Se hace en rodillo con ERG off. |
 
 **Reglas para el coach:**
 - El FTP de un test es una **estimación con error de ±5-10 %**. Las primeras
@@ -144,6 +162,30 @@ en umbral de lactato y +8 % vs. +3 % en potencia pico ([Neal et al. 2013](https:
 
 ## 5. XCO / XC MTB: qué exige y cómo se entrena en rodillo
 
+Datos de Science to Sport (Jeroen Swart, campeón nacional de XCO y jefe de
+rendimiento de UAE Team Emirates):
+
+- **Duración y perfil.** Una XCO dura **90-105 min**: salida masiva y vueltas
+  con subidas, bajadas técnicas y single track. La posición de salida pesa
+  mucho en el resultado final.
+- **Tiempo de esfuerzo.** Con potenciómetro, se pasa **~35 % de la carrera
+  sobre el umbral** y **~30 % sin pedalear** (bajadas, curvas).
+- **Ejemplo real (élite, 72 kg, FTP 360 W):**
+  - Salida: ~1300 W de pico, **1000 W durante 18 s**, y 500 W de media hasta
+    lo alto de la primera subida (2:30).
+  - Primera vuelta: NP de **385 W** (> FTP). Carrera completa: NP de
+    **350 W** (~97 % del FTP) durante 90 min.
+- **El laboratorio solo no predice la XCO.** Lo que mejor la predijo fue la
+  **potencia intermitente** (20 × 45 s/15 s), por encima del FTP. En campo se
+  mide con los 40:20s y se sigue la NP de la serie.
+- **La técnica es fisiología.** Quien baja sin pedalear de más se recupera en
+  las bajadas y rinde más en la siguiente subida. El rodillo no entrena eso.
+
+Otros estudios (el ">80 % sobre el umbral" de abajo se midió con FC sobre
+el umbral de lactato; el ~35 % de Swart, con potencia sobre el FTP. La FC va
+con retraso y se queda alta en las bajadas, así que las dos cifras no se
+contradicen):
+
 - Más del **80 % del tiempo de carrera sobre el umbral de lactato**: salida
   rápida, subidas, resistencia del terreno y trabajo isométrico de manejo
   ([Impellizzeri & Marcora](https://sponet.de/sponet/Record/4010154?lng=en)).
@@ -158,8 +200,9 @@ en umbral de lactato y +8 % vs. +3 % en potencia pico ([Neal et al. 2013](https:
 
 **Reglas para el coach (MTB):**
 - La base aeróbica sigue siendo lo primero. Después, el específico es
-  **over/unders y bloques sobre umbral con picos cortos** (p. ej. 10-20 s
-  fuertes cada 1-2 min dentro de un bloque a ~90-95 %), **arranques
+  **40:20s y series intermitentes** (la mejor señal de forma para XCO: sigue
+  su NP de semana a semana), **over/unders y bloques sobre umbral con picos
+  cortos** (p. ej. 10-20 s fuertes cada 1-2 min dentro de un bloque a ~90-95 %), **arranques
   simulados** (~1 min muy fuerte y luego sostener el umbral) y **fuerza a
   cadencia baja** (60-70 rpm a sweet spot).
 - En rodillo, el manejo técnico y la parte isométrica no se entrenan. Hay
@@ -172,13 +215,61 @@ en umbral de lactato y +8 % vs. +3 % en potencia pico ([Neal et al. 2013](https:
 Se llega mejor al número verdadero si cada test se hace igual
 ([reliability FTP20](https://thieme-connect.de/products/ejournals/html/10.1055/a-1018-1965)):
 
-- **48 h sin esfuerzos duros** antes.
+- **48 h sin esfuerzos duros** antes (Vires Velo pide lo mismo), habiendo
+  comido e hidratado.
 - **Mismo calentamiento** cada vez. Variar el calentamiento cambia el
   resultado más que el test mismo (CV 5.5 % vs. 2.9 %).
 - Misma hora del día, mismo ventilador y temperatura, misma comida y misma
   cafeína.
 - La primera vez es **familiarización**: el segundo test suele salir mejor
   solo por saber dosificar.
+- **Cuándo repetir**: Vires Velo hace línea base al final de la temporada y
+  repite tras el invierno para reajustar zonas; Science to Sport, a la misma
+  altura cada año o al inicio de cada ciclo. En una app que replanifica cada
+  semana: retest al cerrar cada bloque (4-8 semanas).
+
+## 7. Cuerpo, lesiones y fuerza
+
+Prologue Cycling y The Fitness Lab (fisioterapia para ciclistas) coinciden en
+que el rendimiento también depende de cómo se mueve el cuerpo:
+
+- **Problemas típicos:**
+  - Desequilibrio muscular (cuádriceps dominante, poco core y cadera).
+  - Poca movilidad de cadera, columna o tobillo, que carga rodillas,
+    muñecas o espalda baja.
+  - Postura que se cae en sesiones largas (cuello, hombros, lumbar).
+  - Un ajuste de bici que no corresponde.
+- **Lo que trabajan:**
+  - Fuerza específica para el pedaleo.
+  - Movilidad de cadera, isquios y torácica.
+  - Core y postura.
+  - Gestión de carga y recuperación.
+  - En MTB, equilibrio y reacción.
+- **Screening**: Prologue usa el FMS (7 pruebas: sentadilla overhead, paso de
+  valla, zancada en línea, movilidad de hombro, elevación de pierna recta,
+  push-up de estabilidad y estabilidad rotatoria).
+
+**Reglas para el coach:**
+- Las **lesiones del perfil** cambian el plan (cadencia, posición, tipo de
+  esfuerzo, fuerza permitida). Hoy `create_plan` y `weekly_eval` no las
+  reciben; ver la lista de datos.
+- Dolor que aparece en sesiones largas → sugerir revisar el ajuste de la
+  bici antes de culpar a la forma física.
+- La fuerza y la movilidad son parte del plan (Torq ya agenda rutinas de
+  fuerza y movilidad), no un extra.
+
+## 8. Qué dice cada fuente pedida
+
+| Fuente | Qué aporta |
+|---|---|
+| [Leeds Beckett — perfil de ciclismo](https://www.leedsbeckett.ac.uk/carnegie-school-of-sport/health-and-performance-hub/physiological-profiling-cycling/) | Protocolo exacto: 6-8 escalones de 3-6 min y +15-35 W con lactato al final de cada uno, y rampa de +20 W/min. Informe: zonas por FC, potencia y tiempo; VO₂máx; eficiencia; oxidación de sustratos vs. datos normativos. Para cualquier nivel, de recreativo a élite. |
+| [Leeds Beckett — Centre for Human Performance](https://www.leedsbeckett.ac.uk/research/centre-for-human-performance/) | Rendimiento sin comprometer el bienestar del atleta; trabajo con calor, altitud y metabolismo de carbohidratos (O'Hara). |
+| [Science to Sport — pruebas de laboratorio](https://www.sciencetosport.com/understanding-laboratory-performance-testing/) | Validez vs. confiabilidad. Umbral = sostenible ~40-60 min; PPO = último minuto, predice la CRI de 40 km. Fat max ±10 %, lactato a 75-90 % del FTP, ~600 g de glucógeno. Retest anual o por ciclo. |
+| [Science to Sport — XCO](https://www.sciencetosport.com/the-science-of-cross-country-mountain-biking/) | 90-105 min; ~35 % sobre umbral y ~30 % sin pedalear; salida de 1000 W por 18 s. La potencia intermitente predice mejor que el FTP; 40:20s. La técnica permite recuperar. |
+| [Vires Velo — Physiology Studio](https://viresvelo.com/physiology-studio/) | VO₂máx o test submáximo según el atleta (para principiantes, submáximo). Dos sesiones: línea base y seguimiento para reajustar zonas. 48 h sin fatiga antes. No dan plan: los datos sirven para que otro lo arme. |
+| [Prologue Cycling](https://www.prologuecycling.co.uk/blog/physiological-fitness-testing/) | Qué sale de un test completo: VO₂máx, LT1/OBLA, VT1, LT2, VT2, RER, economía, composición corporal, hemoglobina. FMS de 7 pruebas para riesgo de lesión. |
+| [The Fitness Lab](https://fitnesslabco.com/physical-therapy-clinic-services/sports-performance/road-and-mountain-biking/) | Fisioterapia: desequilibrios, movilidad, postura, ajuste de bici, fuerza, gestión de carga; equilibrio y reacción en MTB. |
+| [Watts Lab](https://wattslab.cc/) | Enfoque de coach para amateurs con poco tiempo: «el plan te sigue a ti» (cambia según sensaciones e imprevistos), «menos es más», fuerza personalizada y tests periódicos. Ofrece planes por FTP, gran fondo o **umbral por frecuencia cardiaca**. Sus artículos se cargan dinámicamente y no se pudieron extraer. |
 
 ## Qué cambiaría en el prompt y en los datos
 
@@ -190,8 +281,12 @@ Se llega mejor al número verdadero si cada test se hace igual
    duro por %FTP (LT2)**.
 3. Reglas de fatiga de §4, también en las instrucciones cortas de
    `coach_week`, que corre en Haiku.
-4. Bloque de especificidad por disciplina (§5): XCO, gran fondo MTB y ruta.
+4. Bloque de especificidad por disciplina (§5): XCO (con 40:20s como sesión
+   y como medida de progreso), gran fondo MTB y ruta.
 5. Tratar el FTP como estimación (±5-10 %) y ajustar con señales.
+6. El plan sigue al atleta (Watts Lab): cuando la nota o el RPE dicen otra
+   cosa que los números, el coach ajusta y explica por qué.
+7. Lesiones, fuerza y movilidad dentro del plan (§7).
 
 **Datos que hoy no llegan al coach** (necesitan código):
 - `efficiency_factor` y `hr_drift_pct` de las sesiones recientes (ya se
@@ -202,10 +297,8 @@ Se llega mejor al número verdadero si cada test se hace igual
 
 ## Pendiente
 
-- Leer directo las 8 páginas originales. Hay que agregar a Allowed domains
-  del entorno: `www.leedsbeckett.ac.uk`, `www.sciencetosport.com`,
-  `viresvelo.com`, `www.prologuecycling.co.uk`, `fitnesslabco.com` y
-  `wattslab.cc`. Otra opción es pegarlas en el chat con Fable.
+- Artículos del blog de Watts Lab (FTP, IF y pacing, umbral por FC): se
+  cargan por JavaScript; pegarlos a mano si interesan.
 - Guía BASES de pruebas fisiológicas (capítulo de ciclismo, Hopker et al.):
   estándar británico de protocolos, no encontrado en abierto.
 - [Guías de AusCycling 2026](https://admin.platform.auscycling.org.au/uploads/2026-ac-physiology-endurance-testing-guidelines-may-2026.pdf):
