@@ -129,6 +129,12 @@ create index if not exists sessions_user_started_idx on sessions (user_id, start
 -- id de la actividad de Strava de la que se importó esta sesión (si aplica)
 -- — evita importar la misma actividad dos veces.
 alter table sessions add column if not exists strava_activity_id bigint;
+-- Métricas por sesión para la ficha del atleta (curva con calidad de cada
+-- pico, kJ, zonas, torque, tiempo a umbral, sesión estable): ver
+-- src/engine/session-metrics.ts. Sin samples en la nube, esto es lo que
+-- permite mirar 3 y 6 meses desde cualquier dispositivo y desde la vista
+-- del coach.
+alter table sessions add column if not exists metrics jsonb;
 create unique index if not exists sessions_user_strava_activity_idx
   on sessions (user_id, strava_activity_id) where strava_activity_id is not null;
 

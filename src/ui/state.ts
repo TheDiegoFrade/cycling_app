@@ -9,7 +9,7 @@ import type { SessionRecord } from '../storage/session-store';
 import { deleteWorkout, hasMigratedWorkoutsToCloud, listWorkouts, markWorkoutsMigratedToCloud, saveWorkout } from '../storage/workout-store';
 import { ensureLocalDataOwnership } from '../storage/local-owner';
 import { isSupabaseConfigured, supabase } from '../supabase/client';
-import { listCloudSessions, pushSessionToCloud } from '../sync/cloud-sync';
+import { backfillMetricsFromLocal, listCloudSessions, pushSessionToCloud } from '../sync/cloud-sync';
 import type { CloudSessionSummary } from '../sync/cloud-sync';
 import { EMPTY_COACH_CONTEXT, fetchCoachContext } from '../sync/coach-link';
 import { fetchPlannedRoutines } from '../sync/plan-weeks';
@@ -209,6 +209,9 @@ class AppState {
     const cloudIds = new Set(cloudSessions.map((s) => s.id));
     const unsynced = localSessions.filter((s) => !cloudIds.has(s.id));
     if (unsynced.length > 0) await Promise.all(unsynced.map((s) => pushSessionToCloud(s, this.profile, userId)));
+    // Métricas de la ficha del atleta para sesiones subidas antes de que
+    // existieran: desde los samples de este dispositivo, en segundo plano.
+    void backfillMetricsFromLocal(userId, localSessions);
   }
 
   async signOut(): Promise<void> {

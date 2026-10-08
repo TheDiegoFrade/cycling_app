@@ -7,6 +7,9 @@ import { sessionSourceOf } from '../core/session-source';
 import type { SessionSource } from '../core/session-source';
 import type { Profile, Sample } from '../core/types';
 import type { SessionRecord } from '../storage/session-store';
+import { listWorkouts } from '../storage/workout-store';
+import { computeSessionMetrics } from '../engine/session-metrics';
+import type { MetricsHints, SessionMetrics } from '../engine/session-metrics';
 import { supabase } from '../supabase/client';
 
 /** Resumen de una sesión tal como vive en la tabla `sessions` de Supabase —
@@ -125,9 +128,47 @@ export async function pushSessionToCloud(session: SessionRecord, profile: Profil
       best_20min_power: p?.powerCurve.find((c) => c.windowS === 1200)?.watts ?? null,
     });
     if (insertError) throw insertError;
+    if (bike) await saveSessionMetrics(session.id, computeSessionMetrics(session.samples, session.ftp, await metricsHintsFor(session)));
   } catch (err) {
     console.error('[cloud-sync] no se pudo sincronizar la sesión', err);
   }
+}
+
+/** Qué sabemos del workout de la sesión para calificar sus picos: si era un
+ * test y cuáles de sus intervalos eran libres (autodosificados). */
+async function metricsHintsFor(session: Pick<SessionRecord, 'workoutId' | 'workoutName'>): Promise<MetricsHints> {
+  const workout = (await listWorkouts()).find((w) => w.id === session.workoutId);
+  const name = workout?.name ?? session.workoutName;
+  return {
+    isTest: workout?.kind === 'test' || (/test|rampa|ramp/i.test(name) && !/escalera/i.test(name)),
+    selfPacedIntervals: workout?.intervals.flatMap((iv, i) => (iv.type === 'free' ? [i] : [])) ?? [],
+  };
+}
+
+/** Aparte del upsert de la sesión, a propósito: si la columna `metrics`
+ * todavía no existe en la base (schema.sql sin aplicar), solo falla esto y
+ * la sesión sí se sincroniza. */
+async function saveSessionMetrics(id: string, metrics: SessionMetrics | null): Promise<boolean> {
+  if (!supabase || !metrics) return false;
+  const { error } = await supabase.from('sessions').update({ metrics }).eq('id', id);
+  if (error) console.warn('[cloud-sync] no se guardaron las métricas de la sesión', error.message);
+  return !error;
+}
+
+/** Rellena `metrics` de las sesiones ya subidas que no lo tienen, desde las
+ * sesiones de este dispositivo (con samples; no descarga nada). Corre solo,
+ * en segundo plano, después de sincronizar. Devuelve cuántas llenó. */
+export async function backfillMetricsFromLocal(userId: string, localSessions: readonly SessionRecord[]): Promise<number> {
+  if (!supabase) return 0;
+  const { data, error } = await supabase.from('sessions').select('id').eq('user_id', userId).is('metrics', null);
+  if (error || !data) return 0; // p.ej. la columna todavía no existe
+  const missing = new Set(data.map((r) => r.id as string));
+  let filled = 0;
+  for (const s of localSessions) {
+    if (!missing.has(s.id) || !isBikeSession(s) || s.samples.length === 0) continue;
+    if (await saveSessionMetrics(s.id, computeSessionMetrics(s.samples, s.ftp, await metricsHintsFor(s)))) filled++;
+  }
+  return filled;
 }
 
 /** Borra una sesión de la nube (fila + .fit en Storage). Best-effort: si
@@ -272,19 +313,20 @@ export async function getPowerRecords(userId: string): Promise<PowerRecords> {
   return { best1min: results[0], best5min: results[1], best20min: results[2] };
 }
 
-/** Recalcula los picos de potencia de sesiones ya subidas ANTES de que
- * existieran estas columnas — a demanda, nunca automático (ver plan de
- * Forma): descarga el .fit de cada una (ya tenemos la función para eso) y
- * vuelve a correr el mismo cálculo que pushSessionToCloud. Sesiones sin
+/** Recalcula los picos de potencia y las métricas (`metrics`, ver
+ * engine/session-metrics.ts) de sesiones ya subidas ANTES de que existieran
+ * esas columnas — a demanda, nunca automático (ver plan de Forma): descarga
+ * el .fit de cada una (ya tenemos la función para eso) y vuelve a correr el
+ * mismo cálculo que pushSessionToCloud. Sesiones sin
  * fit_path (muy viejas) quedan fuera, igual que ya pasa con EF nulo en otras
  * partes de la app. Devuelve cuántas se actualizaron. */
 export async function backfillPowerRecords(userId: string, onProgress?: (done: number, total: number) => void): Promise<number> {
   if (!supabase) return 0;
   const { data, error } = await supabase
     .from('sessions')
-    .select('id, fit_path, ftp')
+    .select('id, fit_path, ftp, workout_id, workout_name, best_5min_power, metrics')
     .eq('user_id', userId)
-    .is('best_5min_power', null)
+    .or('best_5min_power.is.null,metrics.is.null')
     .not('fit_path', 'is', null);
   if (error || !data) return 0;
 
@@ -297,15 +339,24 @@ export async function backfillPowerRecords(userId: string, onProgress?: (done: n
     // el perfil solo importa aquí por el ftp que ya trae la propia sesión —
     // powerCurve no depende de ningún otro campo del perfil.
     const a = computeSessionAnalytics(samples, { ftp: row.ftp as number, hr_max: 200, cadence_floor: 0, hr_ceiling: 999, hr_min: 0, cadence_max: 999 });
-    const { error: updateError } = await supabase
-      .from('sessions')
-      .update({
-        best_1min_power: a.powerCurve.find((p) => p.windowS === 60)?.watts ?? null,
-        best_5min_power: a.powerCurve.find((p) => p.windowS === 300)?.watts ?? null,
-        best_20min_power: a.powerCurve.find((p) => p.windowS === 1200)?.watts ?? null,
-      })
-      .eq('id', row.id);
-    if (!updateError) updated++;
+    let ok = false;
+    if (row.best_5min_power === null) {
+      const { error: updateError } = await supabase
+        .from('sessions')
+        .update({
+          best_1min_power: a.powerCurve.find((p) => p.windowS === 60)?.watts ?? null,
+          best_5min_power: a.powerCurve.find((p) => p.windowS === 300)?.watts ?? null,
+          best_20min_power: a.powerCurve.find((p) => p.windowS === 1200)?.watts ?? null,
+        })
+        .eq('id', row.id);
+      ok = !updateError;
+    }
+    if (row.metrics === null) {
+      // El .fit no trae índice de intervalo: solo se usa si era un test.
+      const { isTest } = await metricsHintsFor({ workoutId: row.workout_id as string, workoutName: row.workout_name as string });
+      ok = (await saveSessionMetrics(row.id as string, computeSessionMetrics(samples, row.ftp as number, { isTest }))) || ok;
+    }
+    if (ok) updated++;
   }
   onProgress?.(data.length, data.length);
   return updated;

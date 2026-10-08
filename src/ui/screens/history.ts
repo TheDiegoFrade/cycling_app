@@ -594,7 +594,7 @@ export function renderForma(container: HTMLElement): () => void {
           </div>
           ${
             appState.cloudEnabled && appState.user
-              ? `<div class="row-actions" style="margin-bottom:16px"><button id="forma-backfill-power">Recalcular picos históricos</button><span class="hint" id="forma-backfill-result"></span></div>`
+              ? `<div class="row-actions" style="margin-bottom:16px"><button id="forma-backfill-power">Recalcular picos y métricas históricas</button><span class="hint" id="forma-backfill-result"></span></div>`
               : ''
           }
           <div class="forma-achievements-grid">

@@ -52,7 +52,8 @@ export interface SessionAnalytics {
   hrZoneSeconds: ZoneSeconds[];
 }
 
-const POWER_CURVE_WINDOWS_S = [5, 30, 60, 300, 1200];
+// 8 y 60 min: picos que mira el coach (ver engine/session-metrics.ts).
+const POWER_CURVE_WINDOWS_S = [5, 30, 60, 300, 480, 1200, 3600];
 const NP_WINDOW_S = 30;
 
 function average(values: readonly number[]): number {
