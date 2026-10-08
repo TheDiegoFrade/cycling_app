@@ -1,0 +1,45 @@
+{
+  "id": "06-carrera-6-semanas",
+  "mode": "create_plan",
+  "title": "Carrera en 6 semanas, buena base: necesita específico + taper",
+  "expect": [
+    "Bloques que terminen en taper la semana de la carrera (no 12 semanas genéricas).",
+    "Trabajo específico de la carrera (subidas largas de 20-40 min a umbral).",
+    "Progresión de CTL razonable (≤ ~5-7/semana)."
+  ],
+  "context": {
+    "startDate": "2026-10-12",
+    "goal": "Subida a la Bufa (cronoescalada 35 min) el 22 de noviembre de 2026, quiero bajar de 32 min",
+    "experienceLevel": "experienced",
+    "generalFitnessLevel": "active_cyclist",
+    "discipline": "road",
+    "yearsRiding": 7,
+    "competes": true,
+    "category": "Master 30",
+    "availability": {
+      "hoursPerWeek": 8,
+      "days": [
+        "tue",
+        "wed",
+        "thu",
+        "sat",
+        "sun"
+      ],
+      "maxSessionMinutes": 90
+    },
+    "occupiedDates": [],
+    "profile": {
+      "ftp": 280,
+      "hr_max": 186,
+      "sex": "M",
+      "name": "Diego"
+    },
+    "recentHistory": {
+      "weeksOfData": 40,
+      "avgHoursPerWeekLast4": 7.8,
+      "ctl": 70,
+      "atl": 74,
+      "tsb": -4
+    }
+  }
+}

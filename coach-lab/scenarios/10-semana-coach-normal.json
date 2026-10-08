@@ -1,0 +1,98 @@
+{
+  "id": "10-semana-coach-normal",
+  "mode": "coach_week",
+  "title": "Semana normal a mitad de semana: solo quedan jue-dom, un día ya editado por el coach",
+  "expect": [
+    "Solo jueves a domingo.",
+    "No poner bici el sábado (ya hay una editada por el coach).",
+    "Usar Sweet spot 3×12 tal cual si encaja (fromLibraryId, sin intervals)."
+  ],
+  "context": {
+    "athleteId": "00000000-0000-4000-8000-000000000001",
+    "weekStart": "2026-10-12",
+    "athlete": {
+      "name": "Laura",
+      "ftp": 230,
+      "ftpConfirmed": true,
+      "discipline": "road",
+      "injuries": null,
+      "goal": "Gran fondo en enero"
+    },
+    "maxSessionMinutes": 90,
+    "library": [
+      {
+        "id": "tpl-ss",
+        "name": "Sweet spot 3×12",
+        "minutes": 64,
+        "tss": 72,
+        "structure": "Calentamiento 10 min · 3×12 min @90% (rec 5 min @55%) · Vuelta a la calma 8 min"
+      },
+      {
+        "id": "tpl-vo2",
+        "name": "VO2 5×4",
+        "minutes": 60,
+        "tss": 78,
+        "structure": "Calentamiento 15 min · 5×4 min @118% (rec 4 min @50%) · Vuelta a la calma 10 min"
+      },
+      {
+        "id": "tpl-z2",
+        "name": "Endurance 75",
+        "minutes": 75,
+        "tss": 55,
+        "structure": "75 min @65-70% con cadencia libre"
+      },
+      {
+        "id": "tpl-rec",
+        "name": "Recuperación 40",
+        "minutes": 40,
+        "tss": 22,
+        "structure": "40 min @50-55%, piernas sueltas"
+      }
+    ],
+    "instruction": "Mete un sweet spot y una larga de fin de semana.",
+    "openDays": [
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+    ],
+    "lockedItems": [
+      {
+        "dayOfWeek": "mon",
+        "name": "Endurance 60",
+        "kind": "bike",
+        "minutes": 60,
+        "tss": 45,
+        "reason": "past"
+      },
+      {
+        "dayOfWeek": "tue",
+        "name": "Over-unders",
+        "kind": "bike",
+        "minutes": 60,
+        "tss": 75,
+        "reason": "past"
+      },
+      {
+        "dayOfWeek": "sat",
+        "name": "Rodada de grupo",
+        "kind": "bike",
+        "minutes": 120,
+        "tss": 110,
+        "reason": "coach_edit"
+      }
+    ],
+    "pmc": {
+      "ctl": 58,
+      "atl": 62,
+      "tsb": -4
+    },
+    "recentWeeks": [
+      {
+        "weekStart": "2026-10-05",
+        "bikeTss": 400,
+        "nonBikeSessions": 1
+      }
+    ]
+  }
+}

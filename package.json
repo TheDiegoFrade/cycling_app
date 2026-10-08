@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "simulate": "vitest run src/engine/simulate.test.ts"
+    "simulate": "vitest run src/engine/simulate.test.ts",
+    "coach:build": "npx --yes deno@2 run --node-modules-dir=none --no-lock --allow-read --allow-write coach-lab/build.ts",
+    "coach:check": "npx --yes deno@2 run --node-modules-dir=none --no-lock --allow-read coach-lab/check.ts"
   },
   "devDependencies": {
     "typescript": "~6.0.2",

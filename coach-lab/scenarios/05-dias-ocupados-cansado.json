@@ -1,0 +1,49 @@
+{
+  "id": "05-dias-ocupados-cansado",
+  "mode": "create_plan",
+  "title": "Llega con fatiga alta (TSB -32) y varios días ya ocupados",
+  "expect": [
+    "Empezar con una semana de absorción/descarga, no con carga.",
+    "No poner nada en ninguna fecha de occupiedDates.",
+    "Explicar en coachNote por qué arranca suave."
+  ],
+  "context": {
+    "startDate": "2026-10-12",
+    "goal": "Prepararme para un XCO regional en 10 semanas",
+    "experienceLevel": "experienced",
+    "generalFitnessLevel": "active_cyclist",
+    "discipline": "mountain",
+    "yearsRiding": 6,
+    "competes": true,
+    "category": "Experto",
+    "availability": {
+      "hoursPerWeek": 7,
+      "days": [
+        "mon",
+        "tue",
+        "thu",
+        "sat",
+        "sun"
+      ],
+      "maxSessionMinutes": 90
+    },
+    "occupiedDates": [
+      "2026-10-13",
+      "2026-10-18",
+      "2026-10-25"
+    ],
+    "profile": {
+      "ftp": 265,
+      "hr_max": 187,
+      "sex": "M",
+      "name": null
+    },
+    "recentHistory": {
+      "weeksOfData": 30,
+      "avgHoursPerWeekLast4": 9.5,
+      "ctl": 72,
+      "atl": 104,
+      "tsb": -32
+    }
+  }
+}
