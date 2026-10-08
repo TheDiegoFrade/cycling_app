@@ -1,0 +1,102 @@
+{
+  "id": "31-weekly-eval-semana-de-test-pero-cansado",
+  "mode": "weekly_eval",
+  "title": "Llega la semana del test agendado, pero viene cansado y durmió mal",
+  "expect": [
+    "No mete el test esta semana: un test con fatiga da un número falso (TSB −24 y nota de cansancio).",
+    "nextTest se mueve 1-2 semanas (weekIndex 5 o 6) y reasoning explica por qué lo pospone.",
+    "La semana generada es de absorción: nada sobre 75 % ni over/unders.",
+    "Solo martes, jueves, sábado y domingo; nada el sábado 24 (ocupado)."
+  ],
+  "context": {
+    "profile": {
+      "sex": "M",
+      "name": "Mateo",
+      "ftp": null,
+      "provisionalFtp": 175,
+      "ftpSource": "provisional",
+      "ftpUpdatedAt": "2026-09-20T10:00:00.000Z",
+      "injuries": null,
+      "weightKg": 74,
+      "ageYears": 33
+    },
+    "maxSessionMinutes": null,
+    "occupiedDates": [
+      "2026-10-24"
+    ],
+    "plan": {
+      "goal": "Gravel de 100 km en febrero",
+      "discipline": "gravel",
+      "experienceLevel": "returning_or_new_to_app",
+      "generalFitnessLevel": "active_other_sport",
+      "days": [
+        "tue",
+        "thu",
+        "sat",
+        "sun"
+      ],
+      "hoursPerWeek": 6,
+      "currentBlock": {
+        "name": "Base",
+        "focus": "Base aeróbica y calibración",
+        "weeks": 4,
+        "weekInBlock": 4
+      },
+      "nextBlock": {
+        "name": "Construcción",
+        "focus": "Sweet spot y umbral con FTP medido",
+        "weeks": 4,
+        "targetHoursPerWeek": 6.5
+      },
+      "nextTest": {
+        "weekIndex": 3,
+        "type": "ramp",
+        "reason": "Cierre de la base, ya tolera 4 sesiones"
+      }
+    },
+    "nextWeekStart": "2026-10-19",
+    "weekJustFinished": {
+      "plannedTSS": 310,
+      "actualTSS": 325,
+      "completedWorkouts": 4,
+      "missedWorkouts": 0,
+      "ruleTriggers": [
+        {
+          "ruleId": "hr_ceiling",
+          "count": 4
+        }
+      ],
+      "athleteNote": "Cumplí todo pero llegué muy cansado al domingo, esta semana dormí 5 horas casi diario por trabajo y las piernas pesan."
+    },
+    "pmcTrend": {
+      "ctl": 38,
+      "atl": 62,
+      "tsb": -24,
+      "ctlRampLast4Weeks": 14
+    },
+    "recentGapPattern": null,
+    "recentWeeksSummary": [
+      {
+        "weekIndex": 0,
+        "plannedTSS": 220,
+        "actualTSS": 215,
+        "completedWorkouts": 3,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 1,
+        "plannedTSS": 260,
+        "actualTSS": 270,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 2,
+        "plannedTSS": 310,
+        "actualTSS": 325,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      }
+    ]
+  }
+}

@@ -15,7 +15,9 @@ import { estimateWorkout } from '../core/workout-estimate';
 import { deleteWorkout } from '../storage/workout-store';
 import { escapeHtml } from './workout-cover';
 import { confirmAiWithHumanCoach, humanCoachName } from './coach-notice';
-import { coachFtpFields, coachProfileExtras, sourceForAcceptedSuggestion, withFtp } from '../core/coach-profile';
+import { coachFtpFields, coachProfileExtras, ftpSourceOf, isMeasuredFtp, sourceForAcceptedSuggestion, withFtp } from '../core/coach-profile';
+import { planContextFor, plannedTestLabel, weekStartOf } from '../core/plan-context';
+import type { CoachPlanContext, PlannedTest, StoredPlanData } from '../core/plan-context';
 
 const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'M', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
 const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
@@ -90,7 +92,7 @@ interface ActivePlanRow {
   goal: string;
   data: {
     startDate: string;
-    blocks: { name: string; weeks: number; focus: string; published?: boolean }[];
+    blocks: StoredPlanData['blocks'];
     weeks: PlanWeek[];
     // Lo último que dijo el coach en una weekly_eval — sin esto se perdía
     // apenas se recargaba la página (ver applyModeEffects en coach-chat).
@@ -101,6 +103,9 @@ interface ActivePlanRow {
     // FTP que propuso el coach (create_plan o weekly_eval). La app ofrece un
     // botón para ponerlo en el perfil; nunca lo cambia sola.
     ftpSuggestion?: FtpSuggestion | null;
+    form?: StoredPlanData['form'];
+    // Próximo test que decidió el coach (lo revisa cada semana).
+    nextTest?: PlannedTest | null;
   };
   current_block_exhausted: boolean;
   last_eval_iso_week: string | null;
@@ -135,6 +140,11 @@ function ftpOfferHtml(s: FtpSuggestion | null | undefined): string {
       <button class="btn-light" data-ftp-accept>Usar ${s.watts} W como mi FTP</button>
       <button class="plan-chip" data-ftp-dismiss>Ahora no</button>
     </div>`;
+}
+
+function plannedTestHtml(test: PlannedTest, startDate: string): string {
+  const label = plannedTestLabel(test, startDate, isMeasuredFtp(ftpSourceOf(appState.profile)));
+  return `<p class="hint" style="margin-top:8px"><strong>${escapeHtml(label)}</strong> ${escapeHtml(test.reason)} El coach lo confirma o lo mueve cada semana según cómo vayas.</p>`;
 }
 
 function wireFtpOffer(root: HTMLElement): void {
@@ -261,6 +271,7 @@ function planSummaryHtml(plan: ActivePlanRow, weeklyEvalsUsed: number, planActio
       <div class="plan-chip-row" style="margin-top:10px">${blocks}</div>
       <p class="hint" style="margin-top:8px">${plan.current_block_exhausted ? 'El bloque actual ya se completó — toca publicar el siguiente.' : 'Semana en curso dentro del plan.'}</p>
       ${plan.data.lastEvalNote ? coachBubbleHtml(plan.data.lastEvalNote) : ''}
+      ${plan.data.nextTest ? plannedTestHtml(plan.data.nextTest, plan.data.startDate) : ''}
       ${ftpOfferHtml(plan.data.ftpSuggestion)}
       <div id="coach-eval-zone">${evalZoneHtml(plan, weeklyEvalsUsed)}</div>
       <div id="coach-abandon-zone" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
@@ -372,6 +383,7 @@ function wireWeeklyEvalButton(slot: HTMLElement, plan: ActivePlanRow, onChange: 
     form.querySelectorAll('label, #coach-eval-submit').forEach((el) => ((el as HTMLElement).style.display = 'none'));
     status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.reasoning));
     if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
+    if (data.result.nextTest) status.insertAdjacentHTML('beforebegin', plannedTestHtml(data.result.nextTest, plan.data.startDate));
     if (data.result.ftpAction === 'change' && data.result.suggestedFtp) {
       status.insertAdjacentHTML('beforebegin', ftpOfferHtml({ watts: Math.round(data.result.suggestedFtp), from: 'weekly_eval', at: new Date().toISOString() }));
       wireFtpOffer(form);
@@ -603,6 +615,8 @@ async function computeWeekEvalContext(
   profile: { sex: 'M' | 'F' | 'other' | null; name: string | null } & ReturnType<typeof coachFtpFields> & ReturnType<typeof coachProfileExtras>;
   maxSessionMinutes: number | null;
   occupiedDates: string[];
+  plan: CoachPlanContext;
+  nextWeekStart: string;
 } | null> {
   const weeks = plan.data.weeks;
   if (weeks.length === 0) return null;
@@ -679,6 +693,15 @@ async function computeWeekEvalContext(
 
   const occupiedDates = await computeOccupiedDates(new Date().toISOString().slice(0, 10), 1);
 
+  // La semana que va a generar el servidor: la siguiente, o la misma si es
+  // el "refresh" de esta semana ISO (mismo criterio que applyModeEffects).
+  const isRefresh = plan.last_eval_iso_week === currentIsoWeek();
+  const nextWeekIndex = isRefresh ? weeks.length - 1 : weeks.length;
+  const planWorkoutIds = new Set(weeks.flatMap((w) => w.workoutIds));
+  const workoutDays = appState.workouts
+    .filter((w) => planWorkoutIds.has(w.id) && w.scheduledDate)
+    .map((w) => DAY_ORDER[(new Date(`${w.scheduledDate}T00:00:00Z`).getUTCDay() + 6) % 7]);
+
   return {
     weekJustFinished: {
       plannedTSS: lastWeek.plannedTSS,
@@ -708,6 +731,8 @@ async function computeWeekEvalContext(
     },
     maxSessionMinutes: plan.data.maxSessionMinutes ?? null,
     occupiedDates,
+    plan: planContextFor(plan, appState.profile, nextWeekIndex, workoutDays),
+    nextWeekStart: weekStartOf(plan.data.startDate, nextWeekIndex),
   };
 }
 
@@ -816,6 +841,7 @@ function openCreateModal(onChange: () => void): void {
     form.forEach((el) => ((el as HTMLElement).style.display = 'none'));
     status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.coachNote));
     if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
+    if (data.result.nextTest) status.insertAdjacentHTML('beforebegin', plannedTestHtml(data.result.nextTest, startDate));
     if (data.result.suggestedFtp) {
       status.insertAdjacentHTML('beforebegin', ftpOfferHtml({ watts: Math.round(data.result.suggestedFtp), from: 'create_plan', at: new Date().toISOString() }));
       wireFtpOffer(backdrop);

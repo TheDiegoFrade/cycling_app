@@ -735,12 +735,34 @@ async function applyModeEffects(
       user_id: userId,
       status: 'active',
       goal: output.planName,
-      data: { startDate, blocks, weeks, startingPmc, maxSessionMinutes, ftpSuggestion: ftpSuggestionOf(output.suggestedFtp, 'create_plan') },
+      data: {
+        startDate,
+        blocks,
+        weeks,
+        startingPmc,
+        maxSessionMinutes,
+        ftpSuggestion: ftpSuggestionOf(output.suggestedFtp, 'create_plan'),
+        // Lo que escribió el atleta en el formulario: weekly_eval y
+        // publish_block lo reciben de vuelta en `plan` (src/core/plan-context.ts).
+        form: {
+          goal: context.goal as string,
+          days: (context.availability as { days: string[] }).days,
+          hoursPerWeek: (context.availability as { hoursPerWeek: number }).hoursPerWeek,
+        },
+        nextTest: output.nextTest ?? null,
+      },
       current_block_exhausted: firstBlockExhausted,
     });
     if (error) throw new Error(`no se pudo guardar el plan: ${error.message}`);
 
-    return { planId, coachNote: output.coachNote, weeks, sentToCoach: coachId !== null, suggestedFtp: output.suggestedFtp ?? null };
+    return {
+      planId,
+      coachNote: output.coachNote,
+      weeks,
+      sentToCoach: coachId !== null,
+      suggestedFtp: output.suggestedFtp ?? null,
+      nextTest: output.nextTest ?? null,
+    };
   }
 
   // weekly_eval y publish_block parten del plan activo existente.
@@ -805,6 +827,9 @@ async function applyModeEffects(
           ...planData,
           weeks,
           lastEvalNote: output.reasoning,
+          // El coach revisa el test agendado cada semana: lo que diga ahora
+          // reemplaza lo anterior (null = no hay test pendiente).
+          nextTest: output.nextTest ?? null,
           ftpSuggestion:
             output.ftpAction === 'change'
               ? ftpSuggestionOf(output.suggestedFtp, 'weekly_eval')
@@ -830,6 +855,7 @@ async function applyModeEffects(
       sentToCoach: coachId !== null,
       ftpAction: output.ftpAction ?? null,
       suggestedFtp: output.suggestedFtp ?? null,
+      nextTest: output.nextTest ?? null,
     };
   }
 
@@ -838,10 +864,10 @@ async function applyModeEffects(
   if (nextBlockIdx === -1) throw new Error('no hay bloque siguiente por publicar');
   const weeksBeforeBlock = planData.blocks.slice(0, nextBlockIdx).reduce((s, b) => s + b.weeks, 0);
 
-  // TODO: publish_block todavía no tiene UI ni occupiedDates en su schema
-  // (ver PublishBlockInputContextSchema) — cuando se conecte, pasar el
-  // mismo set real que create_plan/weekly_eval en vez de uno vacío.
-  const publishBlockOccupiedDates = new Set<string>();
+  // publish_block todavía no tiene UI; cuando el cliente mande
+  // occupiedDates (ya está en el schema), se respetan igual que en
+  // create_plan/weekly_eval.
+  const publishBlockOccupiedDates = new Set((context.occupiedDates as string[] | undefined) ?? []);
   const newWeeks: { weekIndex: number; workoutIds: string[] }[] = [];
   for (let i = 0; i < output.weeks.length; i++) {
     const weekIndex = weeksBeforeBlock + i;
@@ -854,14 +880,14 @@ async function applyModeEffects(
   const { error } = await admin
     .from('training_plans')
     .update({
-      data: { ...planData, blocks, weeks: [...planData.weeks, ...newWeeks] },
+      data: { ...planData, blocks, weeks: [...planData.weeks, ...newWeeks], nextTest: output.nextTest ?? null },
       current_block_exhausted: false,
       updated_at: new Date().toISOString(),
     })
     .eq('id', plan.id);
   if (error) throw new Error(`no se pudo actualizar el plan: ${error.message}`);
 
-  return { blockName: output.blockName, coachNote: output.coachNote, weeks: newWeeks, sentToCoach: coachId !== null };
+  return { blockName: output.blockName, coachNote: output.coachNote, weeks: newWeeks, sentToCoach: coachId !== null, nextTest: output.nextTest ?? null };
 }
 
 /** FTP que el coach propone poner en el perfil, guardado en el plan para que

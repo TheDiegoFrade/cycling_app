@@ -1,0 +1,72 @@
+{
+  "id": "32-publish-block-con-contexto-completo",
+  "mode": "publish_block",
+  "title": "Igual que el 27, con el plan, el perfil, el tope y fechas ocupadas",
+  "expect": [
+    "La primera semana es de descarga (TSB −23); el retest va al final de esa semana, con el atleta fresco, y nextTest lo refleja.",
+    "Ningún workout > 75 min (maxSessionMinutes) y nada el sábado 14 de noviembre (ocupado).",
+    "Solo martes, jueves, sábado y domingo (plan.days).",
+    "Especificidad XCO del bloque (umbral con picos, 40:20s) a partir de la segunda semana.",
+    "Usa \"Valeria\" y femenino."
+  ],
+  "context": {
+    "previousBlockSummary": {
+      "weeks": 5,
+      "plannedTSS": 1850,
+      "actualTSS": 1790,
+      "completedWorkouts": 22,
+      "missedWorkouts": 2
+    },
+    "pmcTrend": {
+      "ctl": 61,
+      "atl": 84,
+      "tsb": -23
+    },
+    "profile": {
+      "sex": "F",
+      "name": "Valeria",
+      "ftp": 214,
+      "ftpSource": "test_ramp",
+      "ftpUpdatedAt": "2026-09-01T08:00:00.000Z",
+      "provisionalFtp": null,
+      "injuries": null,
+      "weightKg": 61,
+      "ageYears": 29
+    },
+    "maxSessionMinutes": 75,
+    "occupiedDates": [
+      "2026-11-14"
+    ],
+    "plan": {
+      "goal": "XCO estatal en enero, categoría Sport",
+      "discipline": "mountain",
+      "experienceLevel": "experienced",
+      "generalFitnessLevel": "active_cyclist",
+      "days": [
+        "tue",
+        "thu",
+        "sat",
+        "sun"
+      ],
+      "hoursPerWeek": 7,
+      "currentBlock": {
+        "name": "Construcción",
+        "focus": "Umbral con picos y 40:20s",
+        "weeks": 4,
+        "weekInBlock": 1
+      },
+      "nextBlock": {
+        "name": "Específico",
+        "focus": "Salidas y simulaciones de carrera",
+        "weeks": 3,
+        "targetHoursPerWeek": 7
+      },
+      "nextTest": {
+        "weekIndex": 5,
+        "type": "ramp",
+        "reason": "Retest al abrir el bloque de construcción"
+      }
+    },
+    "nextWeekStart": "2026-11-09"
+  }
+}

@@ -68,6 +68,32 @@ const ProfileExtrasSchema = {
   ageYears: z.number().int().nonnegative().nullable().optional(),
 };
 
+// Próximo test que el coach decide (no hay fecha fija: él juzga cuándo el
+// atleta está listo y lo revisa cada semana). Se guarda en el plan y vuelve
+// en `plan.nextTest`. weekIndex = semana del plan (0 = la de arranque).
+const NextTestSchema = z
+  .object({
+    weekIndex: z.number().int().nonnegative(),
+    type: z.enum(['ramp', 'test20']),
+    reason: z.string(), // una frase: por qué en esa semana
+  })
+  .nullable();
+
+// Contexto del plan guardado para weekly_eval y publish_block (ver
+// src/core/plan-context.ts): sin esto generaban la semana sin saber los días
+// del atleta, su objetivo ni en qué bloque va.
+const PlanContextSchema = z.object({
+  goal: z.string(),
+  discipline: z.string().nullable(),
+  experienceLevel: z.string().nullable(),
+  generalFitnessLevel: z.string().nullable(),
+  days: z.array(z.string()),
+  hoursPerWeek: z.number().positive().nullable(),
+  currentBlock: z.object({ name: z.string(), focus: z.string(), weeks: z.number().int().nonnegative(), weekInBlock: z.number().int().positive() }),
+  nextBlock: z.object({ name: z.string(), focus: z.string(), weeks: z.number().int().positive(), targetHoursPerWeek: z.number().positive().nullable() }).nullable(),
+  nextTest: NextTestSchema,
+});
+
 // Forma esperada de `context` para create_plan — el cliente la arma antes de
 // llamar. `recentHistory` ("¿hay datos registrados en Torq?") y
 // `experienceLevel` ("¿qué tan nuevo es el atleta de verdad?") son dos ejes
@@ -147,6 +173,7 @@ export const CreatePlanOutputSchema = z.object({
   // FTP que el coach le propone poner en su perfil (provisional o tras un
   // test); null si no hay cambio. La app ofrece un botón, el atleta decide.
   suggestedFtp: z.number().positive().nullable(),
+  nextTest: NextTestSchema,
 });
 
 // Forma esperada de `context` para weekly_eval. `pmcTrend` y
@@ -169,6 +196,8 @@ export const WeeklyEvalInputContextSchema = z.object({
   }),
   maxSessionMinutes: z.number().positive().nullable(),
   occupiedDates: z.array(z.string()),
+  plan: PlanContextSchema.optional(),
+  nextWeekStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), // lunes de la semana que se va a generar
   weekJustFinished: z.object({
     plannedTSS: z.number().nonnegative(),
     actualTSS: z.number().nonnegative(),
@@ -212,6 +241,7 @@ export const WeeklyEvalOutputSchema = z.object({
   // un test, o si preguntó) · null: el FTP no viene al caso esta semana.
   ftpAction: z.enum(['keep', 'change']).nullable(),
   suggestedFtp: z.number().positive().nullable(),
+  nextTest: NextTestSchema,
 });
 
 // Forma esperada de `context` para publish_block — resumen del BLOQUE
@@ -225,6 +255,14 @@ export const PublishBlockInputContextSchema = z.object({
     missedWorkouts: z.number().int().nonnegative(),
   }),
   pmcTrend: z.object({ ctl: z.number().nonnegative(), atl: z.number().nonnegative(), tsb: z.number() }),
+  // Mismo contexto que weekly_eval (ver arriba).
+  profile: z
+    .object({ sex: z.enum(['M', 'F', 'other']).nullable(), name: z.string().nullable(), ftp: z.number().positive().nullable().optional(), ...ProfileExtrasSchema })
+    .optional(),
+  maxSessionMinutes: z.number().positive().nullable().optional(),
+  occupiedDates: z.array(z.string()).optional(),
+  plan: PlanContextSchema.optional(),
+  nextWeekStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), // lunes de la primera semana del bloque
 });
 
 export const PublishBlockOutputSchema = z.object({
@@ -238,6 +276,7 @@ export const PublishBlockOutputSchema = z.object({
       }),
     )
     .min(1),
+  nextTest: NextTestSchema,
 });
 
 // Comentario corto post-sesión — deliberadamente el modo más barato y más

@@ -115,8 +115,12 @@ function checkCreatePlan(ctx: Any, out: Any): Finding[] {
       if (top >= 95) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % FTP sin FTP medido` });
     }
     if (!/\d+\s*(W|watts?|vatios)\b/i.test(out.coachNote)) f.push({ level: 'warn', msg: 'sin FTP y coachNote no trae un número en watts (FTP provisional)' });
+    if (!out.nextTest) f.push({ level: 'fail', msg: 'sin FTP medido y nextTest es null: el coach tiene que decir cuándo se mide' });
     const hasTest = weeks.flatMap((w) => w.workouts).some((w) => /test|ftp|rampa|ramp/i.test(`${w.name} ${w.intent}`));
     if (!hasTest && !novice) f.push({ level: 'warn', msg: 'sin FTP y no aparece ningún test en las semanas concretadas' });
+  }
+  if (out.nextTest && out.nextTest.weekIndex < weeks.length && !weeks[out.nextTest.weekIndex].workouts.some(isTest)) {
+    f.push({ level: 'warn', msg: `nextTest cae en S${out.nextTest.weekIndex + 1}, pero esa semana no trae ningún workout de test` });
   }
   const tss = weeks.map((w) => w.workouts.reduce((s: number, x: Any) => s + x.targetTSS, 0));
   for (let i = 1; i < tss.length; i++) {
@@ -140,8 +144,21 @@ function checkWeeklyEval(ctx: Any, out: Any): Finding[] {
   if (tsb <= -25) {
     for (const w of out.nextWeekWorkouts) if (!isTest(w) && isHard(flat(w.segments))) f.push({ level: 'fail', msg: `TSB ${tsb} y la semana siguiente trae «${w.name}» duro` });
   }
-  checkPlannedWeeks(f, [{ workouts: out.nextWeekWorkouts }], { cap: ctx.maxSessionMinutes ?? 90 });
+  checkPlannedWeeks(f, [{ workouts: out.nextWeekWorkouts }], {
+    cap: ctx.maxSessionMinutes ?? 90,
+    days: ctx.plan?.days?.length ? ctx.plan.days : undefined,
+    // con nextWeekStart (el lunes de la semana generada) se pueden ubicar
+    // las fechas ocupadas
+    startDate: ctx.nextWeekStart,
+    occupied: new Set(ctx.occupiedDates),
+  });
+  if (ctx.profile.ftp === null && !out.nextTest) f.push({ level: 'fail', msg: 'sin FTP medido y nextTest es null: el coach tiene que decir cuándo se mide' });
+  const prev = ctx.plan?.nextTest;
+  if (prev && out.nextTest && prev.weekIndex !== out.nextTest.weekIndex && !/test|rampa/i.test(out.reasoning)) {
+    f.push({ level: 'warn', msg: `movió el test de S${prev.weekIndex + 1} a S${out.nextTest.weekIndex + 1} sin explicarlo en reasoning` });
+  }
   const tss = out.nextWeekWorkouts.reduce((s: number, x: Any) => s + x.targetTSS, 0);
+  if (out.nextTest) f.push({ level: 'ok', msg: `nextTest: S${out.nextTest.weekIndex + 1} ${out.nextTest.type} — ${out.nextTest.reason}` });
   f.push({ level: 'ok', msg: `decision=${out.decision} · TSS siguiente semana ${tss} (la que terminó: ${wk.actualTSS} real / ${wk.plannedTSS} plan)` });
   return f;
 }
@@ -188,7 +205,7 @@ function checkCoachWeek(ctx: Any, out: Any): Finding[] {
 function checkPublishBlock(ctx: Any, out: Any): Finding[] {
   const f: Finding[] = [];
   const cap = ctx.maxSessionMinutes ?? 90;
-  checkPlannedWeeks(f, out.weeks, { cap });
+  checkPlannedWeeks(f, out.weeks, { cap, days: ctx.plan?.days?.length ? ctx.plan.days : undefined });
   // Sin fecha de inicio en el context: días duros seguidos por día de la semana.
   out.weeks.forEach((week: Any, wi: number) => {
     const hard = week.workouts.filter((w: Any) => !isTest(w) && isHard(flat(w.segments))).map((w: Any) => DAY_OFFSET[w.dayOfWeek]).sort((a: number, b: number) => a - b);

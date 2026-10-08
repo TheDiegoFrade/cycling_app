@@ -1,12 +1,13 @@
 {
   "id": "30-weekly-eval-provisional-con-campos-de-ftp",
   "mode": "weekly_eval",
-  "title": "Igual que el 24, pero el perfil ya dice qué FTP usa (provisional de 90 W)",
+  "title": "Igual que el 24, pero con el perfil de FTP y el contexto del plan",
   "expect": [
     "ftpAction = \"change\" y suggestedFtp ≈ 100-105 W (sube 10-15 % el provisionalFtp de 90).",
     "reasoning da el mismo número que suggestedFtp y explica que el provisional iba bajo a propósito.",
     "Nada a 88 % o más ni test máximo (sigue sin FTP medido, es sedentaria en su semana 2).",
-    "Ninguna sesión > 60 min. Usa \"Lucía\" y femenino."
+    "Ninguna sesión > 60 min. Usa \"Lucía\" y femenino.",
+    "Solo lunes, miércoles y sábado (plan.days); nextTest sigue sin ir null y, si lo mueve, lo explica."
   ],
   "context": {
     "profile": {
@@ -37,6 +38,36 @@
       "ctlRampLast4Weeks": 3
     },
     "recentGapPattern": null,
-    "recentWeeksSummary": null
+    "recentWeeksSummary": null,
+    "plan": {
+      "goal": "Ponerme en forma y aguantar una rodada de 2 horas con mis amigos en primavera",
+      "discipline": "road",
+      "experienceLevel": "new_to_cycling",
+      "generalFitnessLevel": "sedentary",
+      "days": [
+        "mon",
+        "wed",
+        "sat"
+      ],
+      "hoursPerWeek": 4,
+      "currentBlock": {
+        "name": "Base aeróbica",
+        "focus": "Costumbre de rodillo y base",
+        "weeks": 4,
+        "weekInBlock": 2
+      },
+      "nextBlock": {
+        "name": "Base 2",
+        "focus": "Más volumen y primer test",
+        "weeks": 4,
+        "targetHoursPerWeek": 4.5
+      },
+      "nextTest": {
+        "weekIndex": 5,
+        "type": "ramp",
+        "reason": "Cuando tolere 3 sesiones por semana sin fatiga"
+      }
+    },
+    "nextWeekStart": "2026-10-19"
   }
 }
