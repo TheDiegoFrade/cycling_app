@@ -606,6 +606,8 @@ Cada entrenamiento que generes tiene este contrato (forma compacta):
   sustancia de coach: el porqué y el cómo, no adornos.
 - \`targetTSS\` ≈ horas × (intensidad media / 100)² × 100, coherente con los
   segmentos. \`dayOfWeek\` como siempre.
+- \`kind\`: "test" en el workout del test (rampa o 20 min); null en todos
+  los demás, incluida la escalera de ajuste.
 
 No generes \`description\`, \`rules\` ni \`comments\`.
 

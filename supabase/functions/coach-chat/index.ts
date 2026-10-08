@@ -378,7 +378,7 @@ async function materializeWeek(
   userId: string,
   startDate: string,
   weekIndex: number,
-  workouts: { name: string; description?: string; intervals: unknown[]; dayOfWeek: string }[],
+  workouts: { name: string; description?: string; intervals: unknown[]; dayOfWeek: string; kind?: 'test' | null }[],
   // Red de seguridad — aunque el prompt ya le pide al modelo evitar estas
   // fechas, esto nunca deja que se inserte un workout en un día que el
   // atleta ya tiene ocupado, pase lo que pase con lo que decidió el
@@ -406,6 +406,7 @@ async function materializeWeek(
       intervals: w.intervals,
       created_at: new Date().toISOString(),
       scheduledDate,
+      ...(w.kind ? { kind: w.kind } : {}),
     };
     if (coachId) {
       forCoach.push(workoutDoc);

@@ -27,6 +27,7 @@ export interface PlannedWorkout {
   erg: 'on' | 'off' | 'mixed';
   intent: string;
   segments: Segment[];
+  kind?: 'test' | null;
 }
 
 export interface GeneratedWorkout {
@@ -35,6 +36,7 @@ export interface GeneratedWorkout {
   intervals: Step[];
   targetTSS: number;
   dayOfWeek: PlannedWorkout['dayOfWeek'];
+  kind: 'test' | null;
 }
 
 /** Lista plana de intervalos. En una serie repetida, cada paso lleva su
@@ -94,8 +96,8 @@ export function fallbackDescription(w: Pick<PlannedWorkout, 'intent' | 'erg'>): 
 
 /** Workout de test o de ajuste (rampa, 20 min, escalera) — su bloque no se
  * toca al recortar. */
-export function isTestWorkout(w: Pick<PlannedWorkout, 'name' | 'intent'>): boolean {
-  return /test|rampa|ramp|escalera/i.test(`${w.name} ${w.intent}`);
+export function isTestWorkout(w: Pick<PlannedWorkout, 'name' | 'intent' | 'kind'>): boolean {
+  return w.kind === 'test' || /test|rampa|ramp|escalera/i.test(`${w.name} ${w.intent}`);
 }
 
 const MIN_TRIMMED_STEP_S = 60;
@@ -154,5 +156,6 @@ export function toGeneratedWorkout(w: PlannedWorkout, description: string | null
     intervals: selfPacedTestSteps(w, expandSegments(w.segments)),
     targetTSS: w.targetTSS,
     dayOfWeek: w.dayOfWeek,
+    kind: w.kind ?? null,
   };
 }

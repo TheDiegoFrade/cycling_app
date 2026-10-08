@@ -36,6 +36,9 @@ const PlannedWorkoutSchema = z.object({
   // qué sensación esperar. Si el redactor falla, esto es lo que ve el atleta.
   intent: z.string(),
   segments: z.array(SegmentSchema).min(1),
+  // "test" en un workout de test (rampa o 20 min): la app lo reconoce para
+  // leer el resultado (lastTest) sin adivinar por el nombre.
+  kind: z.enum(['test']).nullable(),
 });
 
 /** Lo que devuelve el redactor (Haiku): una descripción por workout, en el

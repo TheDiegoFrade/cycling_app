@@ -44,7 +44,7 @@ const maxPct = (steps: Step[]) => Math.max(0, ...steps.map((s) => Math.max(s.pow
  * sesión dura ni como intensidad de más, por diseño llega alto. */
 const TEST_RE = /test|rampa|ramp|escalera/i;
 // deno-lint-ignore no-explicit-any
-const isTest = (w: any) => TEST_RE.test(`${w.name ?? ''} ${w.intent ?? ''}`);
+const isTest = (w: any) => w.kind === 'test' || TEST_RE.test(`${w.name ?? ''} ${w.intent ?? ''}`);
 
 function parseOutput(raw: string): unknown {
   const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/);

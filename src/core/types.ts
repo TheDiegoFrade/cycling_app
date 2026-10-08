@@ -87,6 +87,9 @@ export interface Workout {
   /** Fecha (YYYY-MM-DD) en la que se agendó este workout — la usa Calendario.
    * Sin fecha, el workout solo vive en la biblioteca de Inicio. */
   scheduledDate?: string;
+  /** 'test' = workout de test que agendó el coach (rampa o 20 min); con
+   * esto la app sabe qué sesión leer como test (ver core/test-reading.ts). */
+  kind?: 'test';
 }
 
 /** Archivo de solo reglas (modo A del prompt de importación): mismas reglas,
