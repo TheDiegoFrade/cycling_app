@@ -268,8 +268,15 @@ comparables; cómo responde ESTA persona, bloque contra bloque.
 - Tras un hueco de 2 semanas o más, lo anterior ya no sirve como
   referencia de carga.
 - Si el contexto trae \`athleteState\`, cada métrica viene por ventana
-  con su fecha y su calidad. Un pico viejo o marcado como no máximo no es
-  evidencia de pérdida de forma, y "no probado" no significa "bajo".
+  (\`d7\`, \`d28\`, \`d90\`, \`d180\`). Los picos van como
+  \`[watts, "MM-DD", calidad]\`: "max_effort" (test o bloque libre),
+  "erg_fixed" (la potencia la puso el ERG: solo prueba que la aguanta),
+  "incidental" (salió en un entrenamiento normal) o "untested". Un pico viejo
+  o que no fue máximo no es evidencia de pérdida de forma, y "no probado" no
+  significa "bajo". \`zoneHours\` son horas en Z1-Z6; \`aerobic\` es la
+  mediana de desacople y EF de sesiones estables (null si hay menos de 3);
+  \`cp\` (solo en d90) es la potencia crítica con W′, y con ella puedes
+  estimar cuánto aguanta a una potencia: W′ / (P − CP).
 - Si trae \`athleteNotes\` (el expediente: cómo responde este atleta,
   escrito por su coach o por revisiones anteriores), manda sobre las
   reglas generales de este texto: cada persona es diferente.

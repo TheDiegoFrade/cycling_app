@@ -21,6 +21,9 @@ import { ruleTriggersOf } from '../core/rule-triggers';
 import { readTest } from '../core/test-reading';
 import type { LastTest } from '../core/test-reading';
 import { isTestWorkoutDoc, mainZoneOf } from '../core/workout-zone';
+import { computeAthleteState } from '../engine/athlete-state';
+import type { AthleteState } from '../engine/athlete-state';
+import { stateSessionFromCloud, stateSessionFromLocal } from './athlete-state-data';
 import type { WorkoutZone } from '../core/workout-zone';
 import type { CoachPlanContext, PlannedTest, StoredPlanData } from '../core/plan-context';
 
@@ -542,6 +545,26 @@ async function computeLastTest(): Promise<LastTest | null> {
   return null;
 }
 
+const ATHLETE_STATE_DAYS = 180;
+
+/** Ficha del atleta por ventanas (engine/athlete-state.ts) con las sesiones
+ * de bici de los últimos 180 días: las de este dispositivo con sus samples,
+ * las de la nube con sus métricas guardadas. Sin Strava. */
+async function computeSelfAthleteState(): Promise<AthleteState> {
+  const { localSessions, cloudOnly } = await aiEligibleSessions(true);
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const sinceKey = new Date(Date.now() - ATHLETE_STATE_DAYS * 86400000).toISOString().slice(0, 10);
+  const workouts = new Map(appState.workouts.map((w) => [w.id, w]));
+  const sessions = [
+    ...localSessions.filter((s) => s.startedAt.slice(0, 10) >= sinceKey).map((s) => stateSessionFromLocal(s, appState.profile, workouts.get(s.workoutId))),
+    ...cloudOnly.filter((s) => s.startedAt.slice(0, 10) >= sinceKey).map(stateSessionFromCloud),
+  ];
+  const planned = appState.workouts
+    .filter((w) => w.scheduledDate && w.scheduledDate >= sinceKey && w.scheduledDate <= todayKey)
+    .map((w) => ({ id: w.id, dateKey: w.scheduledDate! }));
+  return computeAthleteState(sessions, planned, todayKey);
+}
+
 interface RecentHistory {
   weeksOfData: number;
   avgHoursPerWeekLast4: number;
@@ -660,6 +683,7 @@ async function computeWeekEvalContext(
   plan: CoachPlanContext;
   nextWeekStart: string;
   lastTest: LastTest | null;
+  athleteState: AthleteState;
 } | null> {
   const weeks = plan.data.weeks;
   if (weeks.length === 0) return null;
@@ -822,6 +846,7 @@ async function computeWeekEvalContext(
     plan: planContextFor(plan, appState.profile, nextWeekIndex, workoutDays),
     nextWeekStart: weekStartOf(plan.data.startDate, nextWeekIndex),
     lastTest: await computeLastTest(),
+    athleteState: await computeSelfAthleteState(),
   };
 }
 
@@ -881,7 +906,12 @@ function openCreateModal(onChange: () => void): void {
     const startDate = new Date().toISOString().slice(0, 10);
     const maxMinutesInput = (backdrop.querySelector<HTMLInputElement>('#coach-max-minutes')!).value.trim();
     const maxSessionMinutes = maxMinutesInput ? Number(maxMinutesInput) : null;
-    const [recentHistory, occupiedDates, lastTest] = await Promise.all([computeRecentHistory(), computeOccupiedDates(startDate, 3), computeLastTest()]);
+    const [recentHistory, occupiedDates, lastTest, athleteState] = await Promise.all([
+      computeRecentHistory(),
+      computeOccupiedDates(startDate, 3),
+      computeLastTest(),
+      computeSelfAthleteState(),
+    ]);
     const context = {
       startDate,
       goal,
@@ -898,6 +928,7 @@ function openCreateModal(onChange: () => void): void {
       profile: { ...coachFtpFields(p), hr_max: p.hr_max, sex: p.sex ?? null, name: p.name ?? null, ...coachProfileExtras(p) },
       recentHistory,
       lastTest,
+      athleteState,
     };
 
     const { data, error } = await supabase.functions.invoke('coach-chat', { body: { mode: 'create_plan', context } });

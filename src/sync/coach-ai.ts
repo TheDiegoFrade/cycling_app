@@ -3,6 +3,7 @@
 // borrador de su revisión mensual (monthly_review).
 // La función solo propone — no escribe nada; el editor la aplica al
 // borrador (plan_weeks) y el coach decide si publica.
+import type { AthleteState } from '../engine/athlete-state';
 import type { ReviewAiContext, ReviewFinding, ReviewGoal, ReviewVerdict } from '../core/monthly-report';
 import { supabase } from '../supabase/client';
 
@@ -18,6 +19,8 @@ export interface CoachWeekContext {
   maxSessionMinutes: number | null;
   /** Plantillas de bici del coach — la IA las prefiere (copia o adapta). */
   library: { id: string; name: string; minutes: number; tss: number | null; structure: string }[];
+  /** Ficha del atleta por ventanas (engine/athlete-state.ts). */
+  athleteState?: AthleteState;
 }
 
 export interface ProposedWorkout {

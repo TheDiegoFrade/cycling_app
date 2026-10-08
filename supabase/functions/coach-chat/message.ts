@@ -93,5 +93,9 @@ export function buildUserMessage(mode: Mode, context: Record<string, unknown>): 
       : PLANNING_MODES.has(mode)
         ? `${PLAN_WORKOUT_CONTRACT}\n\n`
         : `${WORKOUT_CONTRACT}\n\n`;
-  return `${headers[mode]}\n\n${contract}Datos:\n${JSON.stringify(context, null, 2)}`;
+  // athleteState va compacto (sin sangría): con sangría pesaría ~3 veces más
+  // en tokens y es lo más grande del contexto.
+  const { athleteState, ...rest } = context;
+  const state = athleteState ? `\n\nathleteState (compacto):\n${JSON.stringify(athleteState)}` : '';
+  return `${headers[mode]}\n\n${contract}Datos:\n${JSON.stringify(rest, null, 2)}${state}`;
 }

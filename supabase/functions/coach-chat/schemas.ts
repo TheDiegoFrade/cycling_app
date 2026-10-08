@@ -120,6 +120,30 @@ const LastTestSchema = z
   .nullable()
   .optional();
 
+// Ficha del atleta por ventanas (ver src/engine/athlete-state.ts). Se valida
+// por encima: la arma el código, no el usuario, y va compacta al modelo.
+const PeakTupleSchema = z.tuple([z.number().nullable(), z.string().nullable(), z.enum(['max_effort', 'erg_fixed', 'incidental', 'untested'])]);
+const WindowStateSchema = z.object({
+  hours: z.number(),
+  tss: z.number(),
+  kJ: z.number().nullable(),
+  sessions: z.number().int(),
+  compliancePct: z.number().nullable(),
+  zoneHours: z.array(z.number()).length(6).nullable(),
+  aerobic: z.object({ decouplingPct: z.number(), ef: z.number(), n: z.number().int() }).nullable(),
+  threshold: z.object({ longestMin: z.number(), weeklyMin: z.number() }).nullable(),
+  lowCadenceMinPerWeek: z.number().nullable(),
+  peaks: z.record(z.string(), PeakTupleSchema).optional(),
+  cp: z.object({ cpW: z.number(), wPrimeKJ: z.number(), from: z.array(z.string()) }).nullable().optional(),
+});
+const AthleteStateSchema = z
+  .object({
+    historyWeeks: z.number().int().nonnegative(),
+    lastGap: z.object({ days: z.number().int(), endedOn: z.string() }).nullable(),
+    windows: z.object({ d7: WindowStateSchema, d28: WindowStateSchema, d90: WindowStateSchema, d180: WindowStateSchema }),
+  })
+  .optional();
+
 // Forma esperada de `context` para create_plan — el cliente la arma antes de
 // llamar. `recentHistory` ("¿hay datos registrados en Torq?") y
 // `experienceLevel` ("¿qué tan nuevo es el atleta de verdad?") son dos ejes
@@ -177,6 +201,7 @@ export const CreatePlanInputContextSchema = z.object({
     })
     .nullable(), // null = sin historial registrado en Torq (no implica que sea principiante)
   lastTest: LastTestSchema,
+  athleteState: AthleteStateSchema,
 });
 
 export const CreatePlanOutputSchema = z.object({
@@ -226,6 +251,7 @@ export const WeeklyEvalInputContextSchema = z.object({
   plan: PlanContextSchema.optional(),
   nextWeekStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), // lunes de la semana que se va a generar
   lastTest: LastTestSchema,
+  athleteState: AthleteStateSchema,
   weekJustFinished: z.object({
     plannedTSS: z.number().nonnegative(),
     actualTSS: z.number().nonnegative(),
@@ -310,6 +336,7 @@ export const PublishBlockInputContextSchema = z.object({
   occupiedDates: z.array(z.string()).optional(),
   plan: PlanContextSchema.optional(),
   nextWeekStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), // lunes de la primera semana del bloque
+  athleteState: AthleteStateSchema,
 });
 
 export const PublishBlockOutputSchema = z.object({
@@ -400,6 +427,7 @@ export const CoachWeekInputContextSchema = z.object({
     )
     .max(40)
     .optional(),
+  athleteState: AthleteStateSchema,
 });
 
 // Un entrenamiento propuesto en coach_week. Si sale de la biblioteca del

@@ -52,6 +52,9 @@ export interface CloudSessionSummary {
   srpeLoad: number | null;
   /** Elemento planeado que registra (planned_routines.id), si aplica. */
   plannedItemId: string | null;
+  /** Métricas para la ficha del atleta (ver engine/session-metrics.ts);
+   * null en sesiones que todavía no se rellenan. */
+  metrics: SessionMetrics | null;
 }
 
 /** Duración de reloj (fin - inicio) en minutos — la que usan las sesiones
@@ -188,7 +191,7 @@ export async function deleteSessionFromCloud(id: string, userId: string): Promis
 /** Columnas de `sessions` que forman un CloudSessionSummary (las usa
  * también la vista del coach, ver sync/coach-athletes.ts). */
 export const SESSION_SUMMARY_COLUMNS =
-  'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id, fit_path, workout_id, source, kind, completion, srpe_load, planned_item_id';
+  'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id, fit_path, workout_id, source, kind, completion, srpe_load, planned_item_id, metrics';
 
 // fila cruda de supabase-js (sin tipos generados en este proyecto)
 export function rowToCloudSummary(row: Record<string, any>): CloudSessionSummary {
@@ -220,6 +223,7 @@ export function rowToCloudSummary(row: Record<string, any>): CloudSessionSummary
     completion: row.completion,
     srpeLoad: row.srpe_load,
     plannedItemId: row.planned_item_id,
+    metrics: row.metrics ?? null,
   };
 }
 
