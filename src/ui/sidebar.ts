@@ -1,5 +1,6 @@
 import { BleHrAdapter } from '../devices/heart-rate';
 import { BleTrainerAdapter } from '../devices/ftms';
+import { hasWebBluetooth, noBluetoothMessage } from '../devices/ble-support';
 import type { ConnectionState, HrAdapter, TrainerAdapter } from '../devices/types';
 import type { Screen } from './router';
 import { appState } from './state';
@@ -96,8 +97,8 @@ function sidebarHtml(active: SidebarScreen | null): string {
     ITEMS.map(linkHtml).join('') +
     (appState.coach.isCoach ? `<div class="sidebar-group-title">Coach</div>${COACH_ITEMS.map(linkHtml).join('')}` : '');
   return `
-    <nav class="sidebar">
-      <div class="sidebar-brand">TORQ</div>
+    <nav class="sidebar" id="app-sidebar">
+      <div class="sidebar-brand">TORQ<button type="button" class="drawer-close" id="drawer-close" aria-label="Cerrar menú">✕</button></div>
       <div class="sidebar-links">${links}</div>
       ${
         appState.coach.myCoach
@@ -121,7 +122,29 @@ function sidebarHtml(active: SidebarScreen | null): string {
       </a>
     </nav>
     <div class="main-content" id="main-slot"></div>
+    ${tabbarHtml(active)}
+    <div class="drawer-backdrop" id="drawer-backdrop"></div>
   `;
+}
+
+const MORE_ICON =
+  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>';
+
+/** Celular: barra de pestañas abajo con lo más usado; "Más" abre la barra
+ * lateral como panel deslizable (resto de secciones, sensores y perfil). El
+ * coach tiene Atletas y Semanas a un toque para ajustar planes desde el
+ * celular. */
+function tabbarHtml(active: SidebarScreen | null): string {
+  const byScreen = (screen: SidebarScreen) => [...ITEMS, ...COACH_ITEMS].find((i) => i.screen === screen)!;
+  const tabs = (appState.coach.isCoach ? (['home', 'plan', 'coach-athletes', 'coach-weeks'] as const) : (['home', 'plan', 'library', 'form'] as const)).map(byScreen);
+  const inTabs = tabs.some((t) => t.screen === active);
+  return `
+    <nav class="tabbar" aria-label="Navegación principal">
+      ${tabs
+        .map((t) => `<a href="#/${t.route}" class="tabbar-item${t.screen === active ? ' active' : ''}"${t.screen === active ? ' aria-current="page"' : ''}>${t.icon}<span>${t.label}</span></a>`)
+        .join('')}
+      <button type="button" class="tabbar-item${!inTabs && active ? ' active' : ''}" id="tabbar-more" aria-expanded="false" aria-controls="app-sidebar">${MORE_ICON}<span>Más</span></button>
+    </nav>`;
 }
 
 function wireSensorRow(
@@ -152,6 +175,10 @@ function wireSensorRow(
   attach();
 
   row.addEventListener('click', () => {
+    if (!hasWebBluetooth()) {
+      window.alert(noBluetoothMessage());
+      return;
+    }
     const current = kind === 'trainer' ? appState.trainer : appState.hr;
     if (current && (current.state === 'connected' || current.state === 'connecting' || current.state === 'reconnecting')) return;
     const adapter: TrainerAdapter | HrAdapter = kind === 'trainer' ? new BleTrainerAdapter() : new BleHrAdapter();
@@ -181,6 +208,16 @@ export function withSidebar(
     container.innerHTML = `<div class="app-shell">${sidebarHtml(active)}</div>`;
     const shell = container.querySelector<HTMLElement>('.app-shell')!;
     const mainSlot = shell.querySelector<HTMLElement>('#main-slot')!;
+
+    const moreBtn = shell.querySelector<HTMLButtonElement>('#tabbar-more');
+    const setDrawer = (open: boolean) => {
+      shell.classList.toggle('drawer-open', open);
+      moreBtn?.setAttribute('aria-expanded', String(open));
+    };
+    moreBtn?.addEventListener('click', () => setDrawer(!shell.classList.contains('drawer-open')));
+    shell.querySelector('#drawer-backdrop')?.addEventListener('click', () => setDrawer(false));
+    shell.querySelector('#drawer-close')?.addEventListener('click', () => setDrawer(false));
+    shell.querySelectorAll('.sidebar a').forEach((a) => a.addEventListener('click', () => setDrawer(false)));
 
     const unsubTrainer = wireSensorRow('trainer', 'sidebar-trainer-row', 'sidebar-trainer-state', 'sidebar-trainer-dot', shell);
     const unsubHr = wireSensorRow('hr', 'sidebar-hr-row', 'sidebar-hr-state', 'sidebar-hr-dot', shell);

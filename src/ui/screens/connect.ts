@@ -1,3 +1,4 @@
+import { hasWebBluetooth, noBluetoothMessage } from '../../devices/ble-support';
 import { BleTrainerAdapter } from '../../devices/ftms';
 import { BleHrAdapter } from '../../devices/heart-rate';
 import { SimulatedHrAdapter, SimulatedTrainerAdapter } from '../../devices/simulated';
@@ -16,7 +17,7 @@ const STATE_LABEL: Record<ConnectionState, string> = {
   error: 'Error',
 };
 
-const hasBluetooth = typeof navigator !== 'undefined' && 'bluetooth' in navigator;
+const hasBluetooth = hasWebBluetooth();
 
 function fmtMinutes(totalS: number): string {
   return `${Math.round(totalS / 60)} min`;
@@ -87,6 +88,7 @@ export function renderConnect(container: HTMLElement): void {
         </div>
         <div class="prepare-right">
           <div class="prepare-subtitle">Antes de empezar</div>
+          ${hasBluetooth ? '' : `<div class="panel prepare-no-ble" role="status">${noBluetoothMessage()}</div>`}
           <div class="panel prepare-sensor">
             <div class="prepare-sensor-head"><div class="prepare-sensor-name">Rodillo</div><div class="prepare-sensor-status"><span class="status-dot" id="trainer-dot"></span><span id="trainer-state">${STATE_LABEL.disconnected}</span></div></div>
             <div class="prepare-sensor-reading" id="trainer-reading"><span><b class="num">0</b> W</span><span><b class="num">0</b> rpm</span></div>
@@ -101,7 +103,7 @@ export function renderConnect(container: HTMLElement): void {
             <div id="hr-error"></div>
           </div>
           <button class="prepare-start" id="continue" disabled>▶ Empezar</button>
-          <div class="prepare-hint">Arranca en cuanto pedaleas. Espacio para pausar.</div>
+          <div class="prepare-hint">Arranca en cuanto pedaleas. Espacio para pausar. En el celular, deja Torq abierto durante la sesión: si cambias de app, el rodillo se puede desconectar.</div>
           <a href="#" id="demo-link" class="prepare-demo-link">Probar sin rodillo (modo demo, no se graba)</a>
         </div>
       </div>

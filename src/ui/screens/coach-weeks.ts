@@ -322,11 +322,17 @@ export function renderCoachWeeks(container: HTMLElement): void {
     container.querySelector('#weeks-next')?.addEventListener('click', () => goTo(addDaysKey(monday, 7)));
     container.querySelector('#weeks-today')?.addEventListener('click', () => goTo(weekStartOf(todayKey)));
 
+    // En el celular el panel queda abajo de la tabla: se baja hasta él.
+    const revealPanel = () => {
+      if (!window.matchMedia('(max-width: 760px)').matches) return;
+      container.querySelector('.weeks-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
     container.querySelectorAll<HTMLButtonElement>('[data-sel-athlete]').forEach((btn) =>
       btn.addEventListener('click', () => {
         selected = { athleteId: btn.dataset.selAthlete!, index: Number(btn.dataset.selIndex) };
         copyOpen = false;
         render();
+        revealPanel();
       }),
     );
     container.querySelectorAll<HTMLButtonElement>('[data-add-athlete]').forEach((btn) =>
@@ -334,6 +340,7 @@ export function renderCoachWeeks(container: HTMLElement): void {
         selected = { athleteId: btn.dataset.addAthlete!, addDay: btn.dataset.addDay! };
         copyOpen = false;
         render();
+        revealPanel();
       }),
     );
     container.querySelectorAll('#weeks-close').forEach((b) =>
