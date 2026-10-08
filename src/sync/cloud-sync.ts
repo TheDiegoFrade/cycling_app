@@ -144,20 +144,14 @@ export async function deleteSessionFromCloud(id: string, userId: string): Promis
   }
 }
 
-export async function listCloudSessions(userId: string): Promise<CloudSessionSummary[]> {
-  if (!supabase) return [];
-  const { data, error } = await supabase
-    .from('sessions')
-    .select(
-      'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id, fit_path, workout_id, source, kind, completion, srpe_load, planned_item_id',
-    )
-    .eq('user_id', userId)
-    .order('started_at', { ascending: false });
-  if (error || !data) {
-    console.error('[cloud-sync] no se pudieron leer las sesiones remotas', error);
-    return [];
-  }
-  return data.map((row) => ({
+/** Columnas de `sessions` que forman un CloudSessionSummary (las usa
+ * también la vista del coach, ver sync/coach-athletes.ts). */
+export const SESSION_SUMMARY_COLUMNS =
+  'id, workout_name, started_at, finished_at, ftp, avg_power, max_power, avg_cadence, max_cadence, avg_hr, max_hr, normalized_power, intensity_factor, training_stress_score, variability_index, efficiency_factor, hr_drift_pct, rpe, note, strava_activity_id, fit_path, workout_id, source, kind, completion, srpe_load, planned_item_id';
+
+// fila cruda de supabase-js (sin tipos generados en este proyecto)
+export function rowToCloudSummary(row: Record<string, any>): CloudSessionSummary {
+  return {
     id: row.id,
     workoutName: row.workout_name,
     startedAt: row.started_at,
@@ -185,7 +179,21 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
     completion: row.completion,
     srpeLoad: row.srpe_load,
     plannedItemId: row.planned_item_id,
-  }));
+  };
+}
+
+export async function listCloudSessions(userId: string): Promise<CloudSessionSummary[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('sessions')
+    .select(SESSION_SUMMARY_COLUMNS)
+    .eq('user_id', userId)
+    .order('started_at', { ascending: false });
+  if (error || !data) {
+    console.error('[cloud-sync] no se pudieron leer las sesiones remotas', error);
+    return [];
+  }
+  return data.map(rowToCloudSummary);
 }
 
 /** Descarga el .fit que ya está en Storage para una sesión de nube y lo
@@ -195,6 +203,15 @@ export async function listCloudSessions(userId: string): Promise<CloudSessionSum
  * pushSessionToCloud, así que trae exactamente los campos que ese parser ya
  * sabe leer. Devuelve null si no hay .fit, no hay internet, o el archivo no
  * se puede leer — el llamador decide el resumen reducido como respaldo. */
+/** El .fit tal cual está en Storage (para descargarlo). RLS decide: el
+ * dueño, o su coach si la sesión no vino de Strava. */
+export async function downloadFitBlob(fitPath: string): Promise<Blob> {
+  if (!supabase) throw new Error('Supabase no configurado');
+  const { data, error } = await supabase.storage.from('fit-files').download(fitPath);
+  if (error || !data) throw error ?? new Error('no se encontró el archivo');
+  return data;
+}
+
 export async function downloadSessionSamples(fitPath: string): Promise<Sample[] | null> {
   if (!supabase) return null;
   try {

@@ -1085,3 +1085,23 @@ create trigger monthly_reviews_stamp before insert or update on monthly_reviews
 -- Paso 7c: envío por correo (Edge Function send-review-email, con Resend).
 -- La función pone emailed_at con service role; el coach solo lo lee.
 alter table monthly_reviews add column if not exists emailed_at timestamptz;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Vista del coach: detalle de las sesiones de sus atletas y descarga de su
+-- .fit (screens/coach-session.ts). El coach lee un archivo de fit-files solo
+-- si es el .fit de una sesión de un atleta suyo con vínculo activo y que NO
+-- llegó por Strava (sus términos prohíben mostrar sus datos a otros). La
+-- regla de las sesiones ("sessions: coach lee las de sus atletas") ya aplica
+-- dentro del exists, así que es la misma barrera dos veces.
+-- ─────────────────────────────────────────────────────────────────────────
+drop policy if exists "fit-files: coach lee los de sus atletas" on storage.objects;
+create policy "fit-files: coach lee los de sus atletas" on storage.objects for select
+  using (
+    bucket_id = 'fit-files'
+    and exists (
+      select 1 from public.sessions s
+      where s.fit_path = storage.objects.name
+        and s.source <> 'strava'
+        and public.is_coach_of(s.user_id)
+    )
+  );

@@ -4,7 +4,10 @@
 // vínculo activo, y nunca sesiones de Strava.
 import type { CoachSessionRow } from '../core/coach-metrics';
 import type { CoachTier } from '../core/coach-invite';
+import type { Workout } from '../core/types';
 import { supabase } from '../supabase/client';
+import { SESSION_SUMMARY_COLUMNS, rowToCloudSummary } from './cloud-sync';
+import type { CloudSessionSummary } from './cloud-sync';
 
 export interface CoachAthlete {
   userId: string;
@@ -100,4 +103,30 @@ export async function listAthleteSessions(athleteIds: readonly string[], sinceIs
     }
     if (!data || data.length < PAGE) return rows;
   }
+}
+
+/** Una sesión de un atleta (resumen + fitPath) para el detalle del coach.
+ * null si no existe, no es de su atleta o vino de Strava (RLS). */
+export async function fetchAthleteSession(athleteId: string, sessionId: string): Promise<CloudSessionSummary | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('sessions')
+    .select(SESSION_SUMMARY_COLUMNS)
+    .eq('user_id', athleteId)
+    .eq('id', sessionId)
+    .neq('source', 'strava')
+    .maybeSingle();
+  if (error) throw error;
+  return data ? rowToCloudSummary(data) : null;
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** El entrenamiento agendado que hizo el atleta (para plan contra real).
+ * null si la sesión no vino de un workout (importada, libre) o ya no existe. */
+export async function fetchAthleteWorkout(athleteId: string, workoutId: string | null): Promise<Workout | null> {
+  if (!supabase || !workoutId || !UUID.test(workoutId)) return null;
+  const { data, error } = await supabase.from('workouts').select('data').eq('user_id', athleteId).eq('id', workoutId).maybeSingle();
+  if (error) return null;
+  return (data?.data as Workout | undefined) ?? null;
 }
