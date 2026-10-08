@@ -92,6 +92,47 @@ export function fallbackDescription(w: Pick<PlannedWorkout, 'intent' | 'erg'>): 
   return `${w.intent.trim()} ${erg}`.trim();
 }
 
+/** Workout de test o de ajuste (rampa, 20 min, escalera) — su bloque no se
+ * toca al recortar. */
+export function isTestWorkout(w: Pick<PlannedWorkout, 'name' | 'intent'>): boolean {
+  return /test|rampa|ramp|escalera/i.test(`${w.name} ${w.intent}`);
+}
+
+const MIN_TRIMMED_STEP_S = 60;
+
+/** Red de seguridad del tope de duración: si el workout pasa de `capMinutes`,
+ * recorta el bloque `steady` o `free` que más tiempo suma (duración ×
+ * repeticiones) hasta caber. Nunca toca calentamiento, enfriamiento,
+ * intervalos ni recuperaciones, y en un test tampoco su bloque (rampa o
+ * ≥ 90 % FTP). `fits` es false si ni recortando todo lo recortable cabe. */
+export function fitToCap(w: PlannedWorkout, capMinutes: number): { workout: PlannedWorkout; trimmedS: number; fits: boolean } {
+  const capS = capMinutes * 60;
+  const segments = w.segments.map((seg) => ({ ...seg, steps: seg.steps.map((st) => ({ ...st })) }));
+  const reps = (seg: Segment) => Math.max(1, Math.min(30, Math.round(seg.repeat)));
+  const total = () => segments.reduce((s, seg) => s + reps(seg) * seg.steps.reduce((t, st) => t + st.duration_s, 0), 0);
+  const test = isTestWorkout(w);
+  const trimmable = (st: Step) =>
+    (st.type === 'steady' || st.type === 'free') && !(test && (st.ramp_to_pct !== undefined || st.power_pct >= 90)) && st.duration_s > MIN_TRIMMED_STEP_S;
+  let trimmedS = 0;
+  let excess = total() - capS;
+  while (excess > 0) {
+    let best: { seg: Segment; step: Step } | null = null;
+    for (const seg of segments) {
+      for (const st of seg.steps) {
+        if (trimmable(st) && (!best || st.duration_s * reps(seg) > best.step.duration_s * reps(best.seg))) best = { seg, step: st };
+      }
+    }
+    if (!best) break;
+    const r = reps(best.seg);
+    // Minutos redondos: recorta en múltiplos de 60 s (por repetición).
+    const perRep = Math.min(best.step.duration_s - MIN_TRIMMED_STEP_S, Math.ceil(excess / r / 60) * 60);
+    best.step.duration_s -= perRep;
+    trimmedS += perRep * r;
+    excess -= perRep * r;
+  }
+  return { workout: { ...w, segments }, trimmedS, fits: excess <= 0 };
+}
+
 export function toGeneratedWorkout(w: PlannedWorkout, description: string | null): GeneratedWorkout {
   return {
     name: w.name,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { expandSegments, fallbackDescription, summarizeSegments, toGeneratedWorkout, totalMinutes } from './expand.ts';
+import { expandSegments, fallbackDescription, fitToCap, summarizeSegments, toGeneratedWorkout, totalMinutes } from './expand.ts';
 import type { PlannedWorkout } from './expand.ts';
 
 const threshold: PlannedWorkout = {
@@ -50,5 +50,62 @@ describe('resumen y respaldo', () => {
     expect(w.description).toContain('Activa el modo ERG');
     expect(w.intervals).toHaveLength(10);
     expect(toGeneratedWorkout(threshold, '  Hoy toca umbral.  ').description).toBe('Hoy toca umbral.');
+  });
+});
+
+describe('fitToCap', () => {
+  const long: PlannedWorkout = {
+    name: 'Fondo largo',
+    dayOfWeek: 'sat',
+    targetTSS: 80,
+    erg: 'on',
+    intent: 'Base aeróbica.',
+    segments: [
+      { repeat: 1, steps: [{ name: 'Calentamiento', type: 'warmup', duration_s: 600, power_pct: 50, ramp_to_pct: 65 }] },
+      { repeat: 1, steps: [{ name: 'Fondo', type: 'steady', duration_s: 4800, power_pct: 68 }] },
+      { repeat: 1, steps: [{ name: 'Enfriamiento', type: 'cooldown', duration_s: 300, power_pct: 50 }] },
+    ],
+  };
+
+  it('no toca lo que ya cabe', () => {
+    const r = fitToCap(threshold, 90);
+    expect(r.trimmedS).toBe(0);
+    expect(r.fits).toBe(true);
+    expect(r.workout.segments).toEqual(threshold.segments);
+  });
+
+  it('recorta el bloque steady más largo hasta el tope, sin tocar el calentamiento', () => {
+    expect(totalMinutes(long.segments)).toBe(95);
+    const r = fitToCap(long, 90);
+    expect(totalMinutes(r.workout.segments)).toBe(90);
+    expect(r.trimmedS).toBe(300);
+    expect(r.workout.segments[0].steps[0].duration_s).toBe(600);
+    expect(r.workout.segments[1].steps[0].duration_s).toBe(4500);
+    expect(long.segments[1].steps[0].duration_s).toBe(4800); // no muta el original
+  });
+
+  it('en una serie repetida recorta por repetición', () => {
+    const w: PlannedWorkout = { ...long, segments: [{ repeat: 3, steps: [{ name: 'Tempo', type: 'steady', duration_s: 1200, power_pct: 80 }, { name: 'Rec', type: 'recovery', duration_s: 300, power_pct: 50 }] }] };
+    const r = fitToCap(w, 60);
+    expect(totalMinutes(r.workout.segments)).toBe(60);
+    expect(r.workout.segments[0].steps[0].duration_s).toBe(900);
+  });
+
+  it('nunca recorta el bloque de un test, aunque no quepa', () => {
+    const test: PlannedWorkout = {
+      ...long,
+      name: 'Test de 20 min',
+      intent: 'Test de FTP autodosificado.',
+      segments: [
+        { repeat: 1, steps: [{ name: 'Calentamiento', type: 'warmup', duration_s: 1500, power_pct: 55 }] },
+        { repeat: 1, steps: [{ name: 'Test 20 min', type: 'free', duration_s: 1200, power_pct: 100 }] },
+        { repeat: 1, steps: [{ name: 'Suave', type: 'steady', duration_s: 600, power_pct: 55 }] },
+      ],
+    };
+    const r = fitToCap(test, 45);
+    expect(r.workout.segments[1].steps[0].duration_s).toBe(1200);
+    expect(r.workout.segments[0].steps[0].duration_s).toBe(1500);
+    expect(r.workout.segments[2].steps[0].duration_s).toBe(60);
+    expect(r.fits).toBe(false);
   });
 });

@@ -24,7 +24,7 @@ import { getUserId } from '../_shared/strava.ts';
 import { COACH_SYSTEM_PROMPT, WRITER_SYSTEM_PROMPT } from './prompt.ts';
 import { buildUserMessage } from './message.ts';
 import { PLANNING_MODES, WorkoutDescriptionsSchema, schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
-import { summarizeSegments, toGeneratedWorkout, totalMinutes, type PlannedWorkout } from './expand.ts';
+import { fitToCap, summarizeSegments, toGeneratedWorkout, totalMinutes, type PlannedWorkout } from './expand.ts';
 import { resolveFromLibrary, type CoachWeekWorkout, type LibraryTemplate } from './library.ts';
 
 type AdminClient = ReturnType<typeof createClient>;
@@ -581,6 +581,30 @@ async function writeWeekDescriptions(
   }
 }
 
+/** Tope de minutos por sesión: el del atleta o el techo general de 90. */
+function sessionCapMinutes(mode: Mode, context: Record<string, unknown>): number {
+  const raw =
+    mode === 'create_plan'
+      ? (context.availability as { maxSessionMinutes?: number | null } | undefined)?.maxSessionMinutes
+      : (context.maxSessionMinutes as number | null | undefined);
+  return raw ?? 90;
+}
+
+/** El prompt pide respetar el tope, pero solo el código lo garantiza: lo que
+ * se pase se recorta aquí (ver fitToCap), antes de que el redactor describa
+ * la sesión, para que descripción y minutos coincidan. */
+function capWeeks(weeks: PlannedWorkout[][], capMinutes: number): PlannedWorkout[][] {
+  return weeks.map((ws) =>
+    ws.map((w) => {
+      const { workout, trimmedS, fits } = fitToCap(w, capMinutes);
+      if (trimmedS > 0 || !fits) {
+        console.log(`[coach-chat] tope de ${capMinutes} min: «${w.name}» recortado ${Math.round(trimmedS / 60)} min${fits ? '' : ' (aun así no cabe)'}`);
+      }
+      return workout;
+    }),
+  );
+}
+
 /** Después de que el coach (Sonnet) decidió: desenrolla los intervalos y
  * pide las descripciones a Haiku, una llamada por semana en paralelo, solo
  * si queda tiempo antes del límite de Supabase. */
@@ -595,7 +619,7 @@ async function finishPlannedWorkouts(
   output: any,
   startedAt: number,
 ): Promise<Record<string, unknown>> {
-  const weeks = plannedWeeksOf(mode, output);
+  const weeks = capWeeks(plannedWeeksOf(mode, output), sessionCapMinutes(mode, context));
   const profile = context.profile as { name?: string | null; sex?: string | null } | undefined;
   const athlete = { name: profile?.name ?? null, sex: profile?.sex ?? null };
 
