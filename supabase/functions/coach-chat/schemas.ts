@@ -233,6 +233,25 @@ export const WeeklyEvalInputContextSchema = z.object({
     missedWorkouts: z.number().int().nonnegative(),
     ruleTriggers: z.array(z.object({ ruleId: z.string(), count: z.number().int().nonnegative() })),
     athleteNote: z.string().nullable(),
+    // Cada sesión planeada de esa semana y qué pasó en ella (ver
+    // src/core/workout-zone.ts). Desbloquea sRPE, deriva y EF por sesión.
+    workouts: z
+      .array(
+        z.object({
+          dayOfWeek: z.string(),
+          name: z.string(),
+          zone: z.enum(['fondo', 'tempo', 'sweet spot', 'umbral', 'VO2', 'test']),
+          plannedTSS: z.number().nonnegative(),
+          actualTSS: z.number().nonnegative().nullable(),
+          completed: z.boolean(),
+          rpe: z.number().nullable(),
+          hrDriftPct: z.number().nullable(),
+          efficiencyFactor: z.number().nullable(),
+          ruleTriggers: z.array(z.object({ ruleId: z.string(), count: z.number().int().nonnegative() })),
+        }),
+      )
+      .max(14)
+      .optional(),
   }),
   pmcTrend: z.object({
     ctl: z.number().nonnegative(),

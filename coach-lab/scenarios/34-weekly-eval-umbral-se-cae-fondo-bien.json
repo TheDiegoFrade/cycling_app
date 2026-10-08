@@ -1,0 +1,119 @@
+{
+  "id": "34-weekly-eval-umbral-se-cae-fondo-bien",
+  "mode": "weekly_eval",
+  "title": "Por sesión: el umbral se le cae (ERG desenganchado, RPE 9), el fondo sale estable",
+  "expect": [
+    "Lee que el problema está solo en las sesiones de umbral (ERG desenganchado 7 veces, RPE 9) y no en el fondo (deriva 2-3 %, RPE 4-5): no es fatiga general.",
+    "Baja 3-5 puntos los power_pct de umbral la semana siguiente en vez de reducir toda la semana; decision maintain o progress moderado, no reduce.",
+    "Es la primera semana así: no pide todavía cambiar el FTP (ftpAction null o keep); dice que si se repite, toca bajarlo ~5 %.",
+    "Mantiene un día fácil y no pone dos duros seguidos."
+  ],
+  "context": {
+    "profile": {
+      "sex": "M",
+      "name": "Diego",
+      "ftp": 255,
+      "ftpSource": "test_20min",
+      "ftpUpdatedAt": "2026-09-14T08:00:00.000Z",
+      "provisionalFtp": null
+    },
+    "maxSessionMinutes": null,
+    "occupiedDates": [],
+    "recentGapPattern": null,
+    "weekJustFinished": {
+      "plannedTSS": 400,
+      "actualTSS": 372,
+      "completedWorkouts": 4,
+      "missedWorkouts": 0,
+      "ruleTriggers": [
+        {
+          "ruleId": "factory-erg-detached",
+          "count": 7
+        }
+      ],
+      "athleteNote": "Los intervalos de umbral no los pude terminar, se me caía la potencia en la tercera serie. Lo demás bien.",
+      "workouts": [
+        {
+          "dayOfWeek": "tue",
+          "name": "Umbral 4×8",
+          "zone": "umbral",
+          "plannedTSS": 85,
+          "actualTSS": 74,
+          "completed": true,
+          "rpe": 9,
+          "hrDriftPct": null,
+          "efficiencyFactor": 1.42,
+          "ruleTriggers": [
+            {
+              "ruleId": "factory-erg-detached",
+              "count": 4
+            }
+          ]
+        },
+        {
+          "dayOfWeek": "thu",
+          "name": "Fondo 75",
+          "zone": "fondo",
+          "plannedTSS": 60,
+          "actualTSS": 61,
+          "completed": true,
+          "rpe": 4,
+          "hrDriftPct": 2.1,
+          "efficiencyFactor": 1.51,
+          "ruleTriggers": []
+        },
+        {
+          "dayOfWeek": "sat",
+          "name": "Umbral 3×10",
+          "zone": "umbral",
+          "plannedTSS": 90,
+          "actualTSS": 77,
+          "completed": true,
+          "rpe": 9,
+          "hrDriftPct": null,
+          "efficiencyFactor": 1.4,
+          "ruleTriggers": [
+            {
+              "ruleId": "factory-erg-detached",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "dayOfWeek": "sun",
+          "name": "Fondo largo",
+          "zone": "fondo",
+          "plannedTSS": 165,
+          "actualTSS": 160,
+          "completed": true,
+          "rpe": 5,
+          "hrDriftPct": 3.4,
+          "efficiencyFactor": 1.49,
+          "ruleTriggers": []
+        }
+      ]
+    },
+    "pmcTrend": {
+      "ctl": 58,
+      "atl": 64,
+      "tsb": -6,
+      "ctlRampLast4Weeks": 4.5
+    },
+    "recentWeeksSummary": [
+      {
+        "weekIndex": 0,
+        "plannedTSS": 360,
+        "actualTSS": 355,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 1,
+        "plannedTSS": 400,
+        "actualTSS": 410,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      }
+    ]
+  }
+}

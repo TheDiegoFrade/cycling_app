@@ -20,6 +20,8 @@ import { planContextFor, plannedTestLabel, weekStartOf } from '../core/plan-cont
 import { ruleTriggersOf } from '../core/rule-triggers';
 import { readTest } from '../core/test-reading';
 import type { LastTest } from '../core/test-reading';
+import { isTestWorkoutDoc, mainZoneOf } from '../core/workout-zone';
+import type { WorkoutZone } from '../core/workout-zone';
 import type { CoachPlanContext, PlannedTest, StoredPlanData } from '../core/plan-context';
 
 const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'M', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
@@ -531,7 +533,7 @@ async function computeLastTest(): Promise<LastTest | null> {
   const sinceKey = new Date(Date.now() - LAST_TEST_MAX_AGE_DAYS * 86400000).toISOString().slice(0, 10);
   const tests = localSessions
     .map((s) => ({ s, w: workouts.get(s.workoutId) }))
-    .filter(({ s, w }) => w && s.startedAt.slice(0, 10) >= sinceKey && (w.kind === 'test' || /test|rampa|ramp/i.test(w.name)) && !/escalera/i.test(w.name))
+    .filter(({ s, w }) => w && s.startedAt.slice(0, 10) >= sinceKey && isTestWorkoutDoc(w))
     .sort((a, b) => b.s.startedAt.localeCompare(a.s.startedAt));
   for (const { s, w } of tests) {
     const reading = readTest(s, w!.intervals, appState.profile.hr_max);
@@ -609,6 +611,20 @@ async function computeOccupiedDates(startDate: string, weeksAhead: number): Prom
   return Array.from(new Set([...scheduled, ...localDates, ...cloudDates]));
 }
 
+/** Una sesión planeada de la semana que terminó, con lo que pasó en ella. */
+interface WeekWorkoutRow {
+  dayOfWeek: string;
+  name: string;
+  zone: WorkoutZone;
+  plannedTSS: number;
+  actualTSS: number | null;
+  completed: boolean;
+  rpe: number | null;
+  hrDriftPct: number | null;
+  efficiencyFactor: number | null;
+  ruleTriggers: { ruleId: string; count: number }[];
+}
+
 interface WeekSummary {
   weekIndex: number;
   plannedTSS: number;
@@ -633,6 +649,7 @@ async function computeWeekEvalContext(
     missedWorkouts: number;
     ruleTriggers: { ruleId: string; count: number }[];
     athleteNote: string | null;
+    workouts: WeekWorkoutRow[];
   };
   pmcTrend: { ctl: number; atl: number; tsb: number; ctlRampLast4Weeks: number };
   recentGapPattern: { startDate: string; endDate: string; days: number }[] | null;
@@ -691,6 +708,50 @@ async function computeWeekEvalContext(
     return { weekIndex: week.weekIndex, plannedTSS, actualTSS, completedWorkouts, missedWorkouts };
   }
 
+  /** Cada workout planeado de la semana con su sesión, si la hubo: la de
+   * este dispositivo (con samples, alertas y análisis completo) o la de la
+   * nube con el mismo workoutId (solo sus números ya calculados). */
+  function weekWorkoutRows(week: PlanWeek): WeekWorkoutRow[] {
+    const round = (x: number | null | undefined, d = 1) => (x === null || x === undefined || !Number.isFinite(x) ? null : Math.round(x * 10 ** d) / 10 ** d);
+    return appState.workouts
+      .filter((w) => week.workoutIds.includes(w.id))
+      .sort((a, b) => (a.scheduledDate ?? '').localeCompare(b.scheduledDate ?? ''))
+      .map((w): WeekWorkoutRow => {
+        const base = {
+          dayOfWeek: w.scheduledDate ? DAY_ORDER[(new Date(`${w.scheduledDate}T00:00:00Z`).getUTCDay() + 6) % 7] : '',
+          name: w.name,
+          zone: mainZoneOf(w),
+          plannedTSS: Math.round(estimateWorkout(w.intervals, appState.profile.ftp).tss ?? 0),
+        };
+        const local = localSessions.find((s) => s.workoutId === w.id);
+        if (local) {
+          const a = computeSessionAnalytics(local.samples, { ...appState.profile, ftp: local.ftp });
+          return {
+            ...base,
+            actualTSS: round(a.trainingStressScore, 0),
+            completed: true,
+            rpe: local.rpe ?? null,
+            hrDriftPct: round(a.hrDriftPct),
+            efficiencyFactor: round(a.efficiencyFactor, 2),
+            ruleTriggers: ruleTriggersOf(local.alerts),
+          };
+        }
+        const cloud = cloudOnly.find((s) => s.workoutId === w.id);
+        if (cloud) {
+          return {
+            ...base,
+            actualTSS: round(cloud.trainingStressScore, 0),
+            completed: true,
+            rpe: cloud.rpe,
+            hrDriftPct: round(cloud.hrDriftPct),
+            efficiencyFactor: round(cloud.efficiencyFactor, 2),
+            ruleTriggers: [],
+          };
+        }
+        return { ...base, actualTSS: null, completed: false, rpe: null, hrDriftPct: null, efficiencyFactor: null, ruleTriggers: [] };
+      });
+  }
+
   const weekSummaries = weeks.map(summarizeWeek);
   const lastWeek = weekSummaries[weekSummaries.length - 1];
   const [lastStartKey, lastEndKey] = weekDateRange(lastWeek.weekIndex);
@@ -740,6 +801,7 @@ async function computeWeekEvalContext(
       // la nube. Sesiones guardadas antes de registrar ruleId no cuentan.
       ruleTriggers: ruleTriggersOf(localSessions.filter((s) => inLastWeek(s.startedAt.slice(0, 10))).flatMap((s) => s.alerts)),
       athleteNote,
+      workouts: weekWorkoutRows(weeks[weeks.length - 1]),
     },
     pmcTrend: {
       ctl: Math.round(latest.ctl * 10) / 10,

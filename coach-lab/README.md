@@ -6,7 +6,7 @@ así que no gastan créditos. La API solo se usa al final para confirmar.
 
 ```
 coach-lab/
-  scenarios/   28 escenarios (create_plan, weekly_eval, publish_block, coach_week,
+  scenarios/   34 escenarios (create_plan, weekly_eval, publish_block, coach_week,
                monthly_review): el context exacto que manda la app + qué haría un buen coach
   out/         (generado) texto listo para pegar en claude.ai — no se sube al repo
   results/     las respuestas que pegues del chat, una por escenario (<id>.json)
