@@ -1,0 +1,66 @@
+{
+  "id": "20-weekly-eval-semana-floja-aislada",
+  "mode": "weekly_eval",
+  "title": "Una semana al 48 % por viaje, después de tres buenas",
+  "expect": [
+    "decision = maintain (no reduce ni insert_recovery): una semana floja tras tres buenas, por logística.",
+    "TSS de la semana siguiente ≈ 300-320: no suma lo perdido.",
+    "Ningún workout en miércoles.",
+    "reasoning menciona el viaje y el miércoles, sin tono de regaño, en femenino.",
+    "recurringPatternFlag = null (un solo evento no es patrón).",
+    "Ninguna sesión > 75 min."
+  ],
+  "context": {
+    "profile": {
+      "sex": "F",
+      "name": "Paola"
+    },
+    "maxSessionMinutes": 75,
+    "occupiedDates": [],
+    "weekJustFinished": {
+      "plannedTSS": 310,
+      "actualTSS": 150,
+      "completedWorkouts": 2,
+      "missedWorkouts": 2,
+      "ruleTriggers": [],
+      "athleteNote": "Viaje de trabajo de martes a jueves, no pude subirme. De piernas bien. La próxima semana ya estoy en casa pero el miércoles no puedo."
+    },
+    "pmcTrend": {
+      "ctl": 44,
+      "atl": 38,
+      "tsb": 6,
+      "ctlRampLast4Weeks": 9
+    },
+    "recentGapPattern": null,
+    "recentWeeksSummary": [
+      {
+        "weekIndex": 0,
+        "plannedTSS": 270,
+        "actualTSS": 262,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 1,
+        "plannedTSS": 285,
+        "actualTSS": 290,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 2,
+        "plannedTSS": 300,
+        "actualTSS": 296,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 3,
+        "plannedTSS": 310,
+        "actualTSS": 150,
+        "completedWorkouts": 2,
+        "missedWorkouts": 2
+      }
+    ]
+  }
+}

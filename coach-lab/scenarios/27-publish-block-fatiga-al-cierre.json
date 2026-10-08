@@ -1,0 +1,26 @@
+{
+  "id": "27-publish-block-fatiga-al-cierre",
+  "mode": "publish_block",
+  "title": "Abrir bloque con TSB −23: descarga y retest",
+  "expect": [
+    "La primera semana es de descarga (nada > 75 % salvo el test) y el retest va al final de esa semana, no el primer día.",
+    "Ningún workout suma más de 5400 s.",
+    "Nunca dos sesiones duras en días seguidos.",
+    "coachNote sin nombre y sin adjetivos con género.",
+    "Sube un escalón de especificidad (el bloque anterior se cumplió al 97 %)."
+  ],
+  "context": {
+    "previousBlockSummary": {
+      "weeks": 5,
+      "plannedTSS": 1850,
+      "actualTSS": 1790,
+      "completedWorkouts": 22,
+      "missedWorkouts": 2
+    },
+    "pmcTrend": {
+      "ctl": 61,
+      "atl": 84,
+      "tsb": -23
+    }
+  }
+}

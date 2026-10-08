@@ -1,0 +1,63 @@
+{
+  "id": "22-weekly-eval-dolor-de-rodilla-en-nota",
+  "mode": "weekly_eval",
+  "title": "Dolor de rodilla reportado en la nota con 97 % de cumplimiento",
+  "expect": [
+    "decision = reduce o insert_recovery; nunca progress, aunque el cumplimiento sea 97 %.",
+    "Ningún step con cadencia baja (cadence_max ≤ 75) ni sprints en la semana siguiente.",
+    "Sin intensidad por encima de 75 % esa semana, o como mucho sweet spot corto con cadence_min ≥ 85.",
+    "Sesiones más cortas que la larga anterior (≤ 60-75 min).",
+    "reasoning dice qué adaptó por la rodilla, sugiere revisar el ajuste de la bici y verlo con un profesional si sigue; no diagnostica."
+  ],
+  "context": {
+    "profile": {
+      "sex": "M",
+      "name": "Emilio"
+    },
+    "maxSessionMinutes": null,
+    "occupiedDates": [],
+    "weekJustFinished": {
+      "plannedTSS": 360,
+      "actualTSS": 348,
+      "completedWorkouts": 4,
+      "missedWorkouts": 0,
+      "ruleTriggers": [
+        {
+          "ruleId": "factory-cadence-floor",
+          "count": 6
+        }
+      ],
+      "athleteNote": "Buena semana, pero al final de la sesión larga y en la de fuerza a cadencia baja me dolió la rodilla derecha. El viernes todavía la sentía."
+    },
+    "pmcTrend": {
+      "ctl": 52,
+      "atl": 58,
+      "tsb": -6,
+      "ctlRampLast4Weeks": 14
+    },
+    "recentGapPattern": null,
+    "recentWeeksSummary": [
+      {
+        "weekIndex": 0,
+        "plannedTSS": 320,
+        "actualTSS": 318,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 1,
+        "plannedTSS": 340,
+        "actualTSS": 335,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 2,
+        "plannedTSS": 360,
+        "actualTSS": 348,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      }
+    ]
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "id": "23-weekly-eval-ftp-alto-tras-test",
+  "mode": "weekly_eval",
+  "title": "No completa el umbral tras una rampa: FTP alto, no fatiga",
+  "expect": [
+    "Identifica que el FTP de la rampa quedó alto (no fatiga: TSB −3, sueño y ánimo bien) y lo dice como estimación que se afina.",
+    "decision = maintain: repite el estímulo con los bloques duros 3-5 puntos más abajo, no sube carga.",
+    "No programa otro test máximo antes de 4 semanas.",
+    "reasoning no lo plantea como fracaso; femenino si usa adjetivos; sin nombre.",
+    "contradictionFlag o reasoning explica por qué descarta la fatiga."
+  ],
+  "context": {
+    "profile": {
+      "sex": "F",
+      "name": null
+    },
+    "maxSessionMinutes": 90,
+    "occupiedDates": [],
+    "weekJustFinished": {
+      "plannedTSS": 290,
+      "actualTSS": 236,
+      "completedWorkouts": 4,
+      "missedWorkouts": 0,
+      "ruleTriggers": [
+        {
+          "ruleId": "factory-erg-detached",
+          "count": 7
+        },
+        {
+          "ruleId": "factory-cadence-floor",
+          "count": 9
+        }
+      ],
+      "athleteNote": "Hice el test de rampa la semana pasada. Esta semana no pude terminar ninguna de las dos sesiones de umbral, se me cae la cadencia a la mitad. De ánimo y sueño bien."
+    },
+    "pmcTrend": {
+      "ctl": 38,
+      "atl": 41,
+      "tsb": -3,
+      "ctlRampLast4Weeks": 11
+    },
+    "recentGapPattern": null,
+    "recentWeeksSummary": [
+      {
+        "weekIndex": 0,
+        "plannedTSS": 240,
+        "actualTSS": 238,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 1,
+        "plannedTSS": 255,
+        "actualTSS": 250,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 2,
+        "plannedTSS": 290,
+        "actualTSS": 236,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      }
+    ]
+  }
+}

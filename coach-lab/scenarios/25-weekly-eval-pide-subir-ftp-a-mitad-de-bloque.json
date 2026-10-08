@@ -1,0 +1,57 @@
+{
+  "id": "25-weekly-eval-pide-subir-ftp-a-mitad-de-bloque",
+  "mode": "weekly_eval",
+  "title": "El atleta quiere subir su FTP a mitad de bloque",
+  "expect": [
+    "reasoning le dice expresamente que mantenga su FTP y por qué: el test fue hace 2 semanas, la progresión va en los workouts, el retest va al abrir el siguiente bloque.",
+    "No abre con una negación seca (\"no\", \"no puedes\"); reconoce que va fuerte.",
+    "decision = progress con UNA variable (más repeticiones o intervalos más largos, +5-10 % de TSS), no subiendo todos los power_pct.",
+    "No programa un retest esa semana."
+  ],
+  "context": {
+    "profile": {
+      "sex": "M",
+      "name": "Bruno"
+    },
+    "maxSessionMinutes": 90,
+    "occupiedDates": [],
+    "weekJustFinished": {
+      "plannedTSS": 380,
+      "actualTSS": 386,
+      "completedWorkouts": 5,
+      "missedWorkouts": 0,
+      "ruleTriggers": [],
+      "athleteNote": "Me sentí muy fuerte, los 3×12 de sweet spot se me hicieron fáciles. Hice mi test hace 2 semanas. ¿Ya le subo 10 watts a mi FTP?"
+    },
+    "pmcTrend": {
+      "ctl": 55,
+      "atl": 62,
+      "tsb": -7,
+      "ctlRampLast4Weeks": 13
+    },
+    "recentGapPattern": null,
+    "recentWeeksSummary": [
+      {
+        "weekIndex": 0,
+        "plannedTSS": 340,
+        "actualTSS": 338,
+        "completedWorkouts": 5,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 1,
+        "plannedTSS": 360,
+        "actualTSS": 365,
+        "completedWorkouts": 5,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 2,
+        "plannedTSS": 380,
+        "actualTSS": 386,
+        "completedWorkouts": 5,
+        "missedWorkouts": 0
+      }
+    ]
+  }
+}

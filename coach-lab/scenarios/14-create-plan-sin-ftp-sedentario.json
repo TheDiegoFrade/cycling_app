@@ -1,0 +1,44 @@
+{
+  "id": "14-create-plan-sin-ftp-sedentario",
+  "mode": "create_plan",
+  "title": "Sedentaria sin FTP: FTP provisional bajo y escalera de ajuste",
+  "expect": [
+    "coachNote le da un FTP provisional en watts (alrededor de 90 W; nunca los 200 W por defecto) y le pide ponerlo en su perfil antes de la primera sesión, aclarando que no es una medición.",
+    "La primera sesión es la escalera de ajuste (escalones de 4 min del 50 al 90 %, ERG on) y el intent le pide anotar hasta qué escalón llegó hablando cómodo.",
+    "En las 3 semanas ningún step llega a 88 % salvo el último escalón de la escalera; nada de over/unders ni tests máximos.",
+    "Fondo con ERG on al 55-70 % y una rodada de deriva por semana; los intent usan poder hablar como control.",
+    "Semana 1: 3 sesiones y 2-3 h en total, aunque haya 5 h disponibles.",
+    "cadence_min arranca en 60-65 rpm y sube poco a poco; nunca 90 en la semana 1.",
+    "Ninguna sesión pasa de 60 min.",
+    "coachNote usa \"Lucía\" y femenino, y no suena a ficha técnica.",
+    "blocks[0] declara 3 o más semanas y el test aparece como paso siguiente en focus o coachNote."
+  ],
+  "context": {
+    "startDate": "2026-10-12",
+    "goal": "Ponerme en forma y aguantar una rodada de 2 horas con mis amigos en primavera",
+    "experienceLevel": "new_to_cycling",
+    "generalFitnessLevel": "sedentary",
+    "discipline": "road",
+    "yearsRiding": 0,
+    "competes": false,
+    "category": null,
+    "availability": {
+      "hoursPerWeek": 5,
+      "days": [
+        "mon",
+        "wed",
+        "fri",
+        "sat"
+      ],
+      "maxSessionMinutes": 60
+    },
+    "occupiedDates": [],
+    "profile": {
+      "ftp": null,
+      "hr_max": 184,
+      "sex": "F",
+      "name": "Lucía"
+    },
+    "recentHistory": null
+  }
+}

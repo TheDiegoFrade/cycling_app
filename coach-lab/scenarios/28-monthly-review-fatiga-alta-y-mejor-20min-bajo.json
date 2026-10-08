@@ -1,0 +1,142 @@
+{
+  "id": "28-monthly-review-fatiga-alta-y-mejor-20min-bajo",
+  "mode": "monthly_review",
+  "title": "Mes con fatiga alta y un mejor 20 min más bajo que no es pérdida de forma",
+  "expect": [
+    "verdict = off_track o attention con un hallazgo \"bad\" por fatiga: TSB −31, CTL +29 en el mes (≈ 7 por semana), desacople de 3.8 a 8.1 % y EF bajando.",
+    "No presenta la baja del mejor 20 min (188 vs. 201) como pérdida de forma: el mes fue de intervalos cortos.",
+    "Nunca escribe una carga (1980, 550) como TSB ni el −31 como TSS.",
+    "El primer objetivo del mes siguiente es recuperar; ninguno propone sesiones largas (molestia lumbar).",
+    "Señala fuerza y movilidad (3 de 8 y 2 de 8) como algo a cuidar.",
+    "message va de tú, sin adjetivos con género, reconoce el 95 % de cumplimiento antes de pedir bajar."
+  ],
+  "context": {
+    "athleteId": "3f2b8c1e-5d47-4a9b-8e21-6c0d9f7a1b23",
+    "monthKey": "2026-09",
+    "inProgress": false,
+    "athlete": {
+      "name": "Sofía",
+      "ftp": 205,
+      "weightKg": 58,
+      "discipline": "mountain",
+      "injuries": "Molestia lumbar en sesiones de más de 75 min.",
+      "goal": "XCO estatal en noviembre"
+    },
+    "kpis": {
+      "hours": 31,
+      "hoursPrev": 22,
+      "tss": 1980,
+      "tssPrev": 1390,
+      "plannedCount": 22,
+      "doneCount": 21,
+      "compliancePct": 95,
+      "compliancePrevPct": 88,
+      "ctlStart": 44,
+      "ctlEnd": 73,
+      "ftp": 205,
+      "ftpPrev": 205,
+      "tsbEnd": -31
+    },
+    "weeks": [
+      {
+        "label": "S1",
+        "plannedTss": 420,
+        "doneTss": 430
+      },
+      {
+        "label": "S2",
+        "plannedTss": 470,
+        "doneTss": 480
+      },
+      {
+        "label": "S3",
+        "plannedTss": 510,
+        "doneTss": 520
+      },
+      {
+        "label": "S4",
+        "plannedTss": 540,
+        "doneTss": 550
+      }
+    ],
+    "bests": [
+      {
+        "label": "5 min",
+        "month": 262,
+        "prev": 255,
+        "best90": 262
+      },
+      {
+        "label": "20 min",
+        "month": 188,
+        "prev": 201,
+        "best90": 201
+      },
+      {
+        "label": "1 min",
+        "month": 388,
+        "prev": 371,
+        "best90": 388
+      }
+    ],
+    "intensityHours": {
+      "z1": 6,
+      "z2": 13,
+      "z3": 3,
+      "z4": 5,
+      "z5": 3,
+      "z6": 1
+    },
+    "hoursWithoutPower": 0,
+    "aerobic": [
+      {
+        "label": "S1",
+        "decouplingPct": 3.8,
+        "ef": 1.42
+      },
+      {
+        "label": "S2",
+        "decouplingPct": 4.4,
+        "ef": 1.41
+      },
+      {
+        "label": "S3",
+        "decouplingPct": 6.9,
+        "ef": 1.37
+      },
+      {
+        "label": "S4",
+        "decouplingPct": 8.1,
+        "ef": 1.33
+      }
+    ],
+    "routines": [
+      {
+        "kind": "strength",
+        "planned": 8,
+        "done": 3
+      },
+      {
+        "kind": "mobility",
+        "planned": 8,
+        "done": 2
+      }
+    ],
+    "srpeTotal": 9400,
+    "keySessions": [
+      {
+        "date": "2026-09-24",
+        "name": "40:20s 3×8",
+        "minutes": 68,
+        "np": 214,
+        "intensityFactor": 1.04,
+        "tss": 96,
+        "rpe": 9,
+        "note": "Última serie no la terminé"
+      }
+    ],
+    "missedDays": 1,
+    "partialDays": 2,
+    "coachDraft": ""
+  }
+}

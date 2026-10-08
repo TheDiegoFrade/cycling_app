@@ -1,0 +1,75 @@
+{
+  "id": "19-weekly-eval-cumplio-pero-agotado",
+  "mode": "weekly_eval",
+  "title": "Cumplió 103 % pero reporta agotamiento, mal sueño y TSB −28",
+  "expect": [
+    "decision = insert_recovery (no progress, aunque el cumplimiento sea 103 %).",
+    "contradictionFlag no es null: cumplió los números pero reporta agotamiento; se queda con lo que siente.",
+    "nextWeekWorkouts: ningún step > 75 %, sesiones ≤ 60 min, TSS total entre 200 y 260.",
+    "reasoning cita al menos dos señales (sueño, pulso que no sube, TSB −28, cuatro semanas subiendo) y no regaña.",
+    "reasoning dice qué cambió por la nota y usa \"Daniel\".",
+    "No programa un test esa semana."
+  ],
+  "context": {
+    "profile": {
+      "sex": "M",
+      "name": "Daniel"
+    },
+    "maxSessionMinutes": null,
+    "occupiedDates": [],
+    "weekJustFinished": {
+      "plannedTSS": 420,
+      "actualTSS": 431,
+      "completedWorkouts": 5,
+      "missedWorkouts": 0,
+      "ruleTriggers": [
+        {
+          "ruleId": "factory-erg-detached",
+          "count": 4
+        },
+        {
+          "ruleId": "factory-hr-ceiling",
+          "count": 1
+        }
+      ],
+      "athleteNote": "Terminé todo pero estoy muy cansado. Llevo tres noches durmiendo mal y el jueves el pulso no me subía en los intervalos."
+    },
+    "pmcTrend": {
+      "ctl": 58,
+      "atl": 86,
+      "tsb": -28,
+      "ctlRampLast4Weeks": 30
+    },
+    "recentGapPattern": null,
+    "recentWeeksSummary": [
+      {
+        "weekIndex": 0,
+        "plannedTSS": 340,
+        "actualTSS": 345,
+        "completedWorkouts": 5,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 1,
+        "plannedTSS": 370,
+        "actualTSS": 362,
+        "completedWorkouts": 5,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 2,
+        "plannedTSS": 395,
+        "actualTSS": 401,
+        "completedWorkouts": 5,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 3,
+        "plannedTSS": 420,
+        "actualTSS": 431,
+        "completedWorkouts": 5,
+        "missedWorkouts": 0
+      }
+    ]
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "id": "11-coach-week-fatiga-alta-tsb",
+  "mode": "coach_week",
+  "title": "Coach pide la semana para un atleta muy cansado (TSB −29) con Over-Under en la biblioteca",
+  "expect": [
+    "Ningún intervalo con power_pct > 75 en ningún workout (nada de over/under, umbral, VO2, sweet spot).",
+    "fromLibraryId nunca es lib-ou-3x9, lib-vo2-5x4 ni lib-ss-3x12; sí puede ser lib-fondo-60 o lib-recup-40.",
+    "Cada sesión ≤ 60 min y máximo 4 sesiones de bici.",
+    "Suma de targetTSS ≤ 278 (60 % del promedio reciente, 464).",
+    "La primera razón de rationale nombra la descarga y cita el TSB −29.",
+    "rationale da la carga semanal en TSS; \"TSB\" nunca acompaña a un número mayor de 50.",
+    "rationale habla del atleta en tercera persona; description va de tú y sin adjetivos con género."
+  ],
+  "context": {
+    "athleteId": "3f2b8c1e-5d47-4a9b-8e21-6c0d9f7a1b23",
+    "weekStart": "2026-10-12",
+    "instruction": "Viene muy cansado de las últimas dos semanas. Arma la semana.",
+    "openDays": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+    ],
+    "lockedItems": [],
+    "athlete": {
+      "name": "Rodrigo",
+      "ftp": 265,
+      "ftpConfirmed": true,
+      "discipline": "mountain",
+      "injuries": null,
+      "goal": "XCO estatal en diciembre"
+    },
+    "pmc": {
+      "ctl": 62,
+      "atl": 91,
+      "tsb": -29
+    },
+    "recentWeeks": [
+      {
+        "weekStart": "2026-09-14",
+        "bikeTss": 380,
+        "nonBikeSessions": 1
+      },
+      {
+        "weekStart": "2026-09-21",
+        "bikeTss": 410,
+        "nonBikeSessions": 1
+      },
+      {
+        "weekStart": "2026-09-28",
+        "bikeTss": 520,
+        "nonBikeSessions": 1
+      },
+      {
+        "weekStart": "2026-10-05",
+        "bikeTss": 545,
+        "nonBikeSessions": 0
+      }
+    ],
+    "maxSessionMinutes": null,
+    "library": [
+      {
+        "id": "lib-ou-3x9",
+        "name": "Over-Under 3×9",
+        "minutes": 70,
+        "tss": 82,
+        "structure": "Calentamiento 15 min; 3×(3×[2 min al 95 % / 1 min al 105 %]) con 5 min al 55 %; enfriamiento 10 min"
+      },
+      {
+        "id": "lib-vo2-5x4",
+        "name": "VO2 5×4",
+        "minutes": 65,
+        "tss": 85,
+        "structure": "Calentamiento 15 min; 5×(4 min al 112 % / 4 min al 50 %); enfriamiento 10 min"
+      },
+      {
+        "id": "lib-ss-3x12",
+        "name": "Sweet Spot 3×12",
+        "minutes": 70,
+        "tss": 72,
+        "structure": "Calentamiento 12 min; 3×(12 min al 90 % / 5 min al 55 %); enfriamiento 7 min"
+      },
+      {
+        "id": "lib-fondo-60",
+        "name": "Fondo 60",
+        "minutes": 60,
+        "tss": 42,
+        "structure": "Calentamiento 10 min; 45 min al 65 %; enfriamiento 5 min"
+      },
+      {
+        "id": "lib-recup-40",
+        "name": "Recuperación 40",
+        "minutes": 40,
+        "tss": 20,
+        "structure": "40 min al 50 %, cadencia libre"
+      }
+    ]
+  }
+}
