@@ -1189,3 +1189,54 @@ create policy "wellness_days: atleta actualiza" on wellness_days for update
 drop policy if exists "wellness_days: atleta borra" on wellness_days;
 create policy "wellness_days: atleta borra" on wellness_days for delete
   using (auth.uid() = user_id);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- coach_calls: una fila por llamada a Claude desde coach-chat (modo, paso,
+-- modelo, tokens por tipo, duración, costo estimado y lo que hizo la
+-- guardia). Es para medir qué cuesta cada modo y si la caché se aprovecha.
+-- Solo la escribe y la lee la Edge Function (service role): sin políticas,
+-- RLS no deja pasar a nadie más. Se consulta desde el SQL editor.
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists coach_calls (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users (id) on delete set null,
+  mode text not null,
+  step text not null check (step in ('main', 'retry', 'writer')),
+  model text not null,
+  input_tokens integer not null default 0,
+  cache_write_tokens integer not null default 0,
+  cache_read_tokens integer not null default 0,
+  output_tokens integer not null default 0,
+  duration_ms integer not null default 0,
+  cost_usd numeric(10, 6),
+  ok boolean not null default true,
+  error text,
+  guard_fixes smallint not null default 0,
+  guard_fails text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists coach_calls_created_at_idx on coach_calls (created_at desc);
+
+alter table coach_calls enable row level security;
+
+-- Costo por mes, modo y paso. "cache_hit_pct": qué parte de lo que pudo salir
+-- de la caché salió de ahí (si es bajo, la caché cuesta más de lo que ahorra).
+create or replace view coach_cost_by_mode with (security_invoker = true) as
+select
+  date_trunc('month', created_at)::date as month,
+  mode,
+  step,
+  model,
+  count(*) as calls,
+  count(*) filter (where not ok) as failed,
+  round(sum(cost_usd), 4) as cost_usd,
+  round(avg(cost_usd), 4) as avg_cost_usd,
+  round(avg(output_tokens)) as avg_output_tokens,
+  round(avg(duration_ms) / 1000.0, 1) as avg_seconds,
+  round(100.0 * sum(cache_read_tokens) / nullif(sum(cache_read_tokens + cache_write_tokens), 0), 1) as cache_hit_pct,
+  count(*) filter (where guard_fixes > 0) as guard_fixed,
+  count(*) filter (where guard_fails is not null) as guard_failed
+from coach_calls
+group by 1, 2, 3, 4
+order by 1 desc, cost_usd desc nulls last;

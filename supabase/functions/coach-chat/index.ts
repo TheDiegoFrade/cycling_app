@@ -24,9 +24,11 @@ import { getUserId } from '../_shared/strava.ts';
 import { COACH_SYSTEM_PROMPT, WRITER_SYSTEM_PROMPT } from './prompt.ts';
 import { buildUserMessage } from './message.ts';
 import { PLANNING_MODES, WorkoutDescriptionsSchema, schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
-import { fitToCap, summarizeSegments, toGeneratedWorkout, totalMinutes, type PlannedWorkout } from './expand.ts';
+import { summarizeSegments, toGeneratedWorkout, totalMinutes, type PlannedWorkout } from './expand.ts';
 import { resolveFromLibrary, type CoachWeekWorkout, type LibraryTemplate } from './library.ts';
 import { acceptAiNotes, notesDueOnWeeklyEval, type StoredNotes } from './notes.ts';
+import { callRow, logCalls, type CallRow, type CallStep, type UsageLike } from './usage-log.ts';
+import { correctionMessage, guardOutput } from './guard.ts';
 
 type AdminClient = ReturnType<typeof createClient>;
 
@@ -58,6 +60,9 @@ const OTHER_MODEL = 'claude-haiku-4-5-20251001';
 const WALL_CLOCK_BUDGET_MS = 140_000;
 const WRITER_MIN_REMAINING_MS = 25_000;
 const WRITER_MAX_MS = 40_000;
+// La guardia solo pide una corrección si la primera respuesta llegó antes de
+// esto: el reintento tarda lo mismo que la primera y aún tiene que caber.
+const RETRY_MAX_ELAPSED_MS = 70_000;
 
 // Red de seguridad, no el control principal (ver checkModeAllowed).
 const MONTHLY_TOKEN_CEILING = 500_000;
@@ -176,12 +181,6 @@ Deno.serve(async (req) => {
     const schema = schemaForMode(body.mode);
     const userMessage = buildUserMessage(body.mode, context);
 
-    // Streaming, no .parse() directo: Supabase Edge Functions mata la
-    // conexión a los 150s si no hay bytes fluyendo (IDLE_TIMEOUT) — un plan
-    // grande sin streaming puede tardar más que eso en generar el primer
-    // byte. output_config.format sigue aplicando igual en modo streaming
-    // (lo fuerza el servidor, no el transporte); solo hay que parsear el
-    // texto final a mano en vez de depender del parsed_output de .parse().
     const planning = PLANNING_MODES.has(body.mode);
     const system = [
       // Único bloque con cache_control — contenido 100% estático e
@@ -189,32 +188,24 @@ Deno.serve(async (req) => {
       // usuario aquí: los datos del atleta siempre van en `messages`.
       { type: 'text' as const, text: COACH_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' as const } },
     ];
-    const response = planning
-      ? await client.beta.messages
-          .stream({
-            model: PLANNER_MODEL,
-            // La salida compacta ronda unos pocos miles de tokens; el techo
-            // alto es solo margen (se cobra lo generado, no el techo).
-            max_tokens: 32000,
-            // medium: buen razonamiento sin alargar la llamada de más.
-            output_config: { effort: 'medium', format: betaZodOutputFormat(schema) },
-            // Si un clasificador de seguridad rechazara la petición, el
-            // servidor la reintenta con otro modelo en la misma llamada.
-            betas: ['server-side-fallback-2026-07-01'],
-            fallbacks: 'default',
-            system,
-            messages: [{ role: 'user', content: userMessage }],
-          })
-          .finalMessage()
-      : await client.messages
-          .stream({
-            model: OTHER_MODEL,
-            max_tokens: 48000,
-            system,
-            messages: [{ role: 'user', content: userMessage }],
-            output_config: { format: zodOutputFormat(schema) },
-          })
-          .finalMessage();
+    // Cada llamada a Claude queda en coach_calls (usage-log.ts).
+    const calls: CallRow[] = [];
+    const ask = async (step: CallStep, messages: Anthropic.MessageParam[]) => {
+      const callStarted = Date.now();
+      const base = { userId, mode: body.mode, step, model: planning ? PLANNER_MODEL : OTHER_MODEL, startedMs: callStarted };
+      try {
+        const r = await callCoach(client, planning, system, messages, schema);
+        calls.push(callRow({ ...base, model: r.model }, r.usage));
+        return r;
+      } catch (err) {
+        calls.push(callRow(base, null, err instanceof Error ? err.message : String(err)));
+        await logCalls(admin, calls.splice(0));
+        throw err;
+      }
+    };
+
+    const firstMessages: Anthropic.MessageParam[] = [{ role: 'user', content: userMessage }];
+    const response = await ask('main', firstMessages);
 
     // Reconciliar AQUÍ, apenas Claude contestó — sin importar si lo que
     // sigue (parseo, validación, applyModeEffects) sale bien o mal. Antes
@@ -227,35 +218,55 @@ Deno.serve(async (req) => {
     // sesión de pruebas fallaron después de cobrar y se quedaron así.)
     await reconcileUsage(admin, userId, period, response.usage);
 
-    if (response.stop_reason === 'refusal') {
-      return json({ error: 'el coach no pudo procesar esta petición — intenta de nuevo o ajusta tu objetivo' }, 502);
-    }
-    if (response.stop_reason === 'max_tokens') {
-      return json({ error: 'la respuesta del coach se cortó por longitud (max_tokens) — intenta de nuevo' }, 502);
+    let first = readResponse(response, schema);
+    if (!first.ok) {
+      await logCalls(admin, calls.splice(0));
+      return json({ error: first.error }, 502);
     }
 
-    const textBlock = (response.content as { type: string; text?: string }[]).find((b) => b.type === 'text');
-    let parsedJson: unknown = null;
-    try {
-      if (textBlock?.text) parsedJson = JSON.parse(textBlock.text);
-    } catch {
-      // JSON truncado o malformado — antes esto tronaba como excepción no
-      // controlada y caía al catch genérico de abajo (400 con un mensaje
-      // de JSON.parse que el cliente nunca llegaba a mostrar). Mensaje
-      // explícito para que la próxima falla de este tipo sea diagnosticable
-      // sin tener que adivinar ni gastar otra llamada real para probar.
-      return json({ error: 'el modelo no devolvió JSON válido, intenta de nuevo' }, 502);
+    // Guardia (guard.ts): lo mecánico lo arregla el código; si queda algo
+    // que rompe una regla, se le pide al coach que lo corrija UNA vez, con
+    // la lista exacta. Solo en los modos que planifican y si hay tiempo.
+    let guard = guardOutput(body.mode, context, first.data);
+    if (guard.fails.length && planning && Date.now() - startedAt < RETRY_MAX_ELAPSED_MS) {
+      console.log(`[coach-chat] guardia: reintento por ${guard.fails.length} falla(s): ${guard.fails.join(' | ')}`);
+      const retry = await ask('retry', [
+        ...firstMessages,
+        { role: 'assistant', content: first.text },
+        { role: 'user', content: correctionMessage(guard.fails) },
+      ]).catch(() => null); // ya quedó registrado; sigue con la primera respuesta
+      if (retry) await addUsage(admin, userId, period, tokensOf(retry.usage));
+      const second = retry ? readResponse(retry, schema) : null;
+      if (second?.ok) {
+        const g2 = guardOutput(body.mode, context, second.data);
+        // Se queda con la corrección solo si de verdad corrigió algo.
+        if (g2.fails.length < guard.fails.length) {
+          first = second;
+          guard = g2;
+        }
+      }
     }
-    const parseResult = parsedJson !== null ? schema.safeParse(parsedJson) : null;
-    if (!parseResult?.success) {
-      return json({ error: 'el modelo no devolvió una salida válida, intenta de nuevo' }, 502);
+    const lastCall = calls[calls.length - 1];
+    if (lastCall) {
+      lastCall.guard_fixes = guard.fixes.length;
+      lastCall.guard_fails = guard.fails.length ? guard.fails.join(' | ').slice(0, 500) : null;
     }
+    if (guard.fixes.length) console.log(`[coach-chat] guardia arregló: ${guard.fixes.join(' | ')}`);
+    if (guard.warns.length) console.log(`[coach-chat] guardia avisa: ${guard.warns.join(' | ')}`);
+    if (guard.fails.length && planning) {
+      // No se guarda nada ni se gasta ningún tope: el atleta puede volver a pedirlo.
+      console.log(`[coach-chat] guardia rechazó: ${guard.fails.join(' | ')}`);
+      await logCalls(admin, calls.splice(0));
+      return json({ error: 'el coach armó algo que no cumple las reglas de seguridad del plan — intenta de nuevo' }, 502);
+    }
+    const parseResult = { data: guard.out };
 
     // Modos que planifican: el coach ya decidió; ahora el código desenrolla
     // los intervalos y Haiku redacta las descripciones (ver PLANNER_MODEL).
     const output = planning
-      ? await finishPlannedWorkouts(client, admin, userId, period, body.mode, context, parseResult.data, startedAt)
+      ? await finishPlannedWorkouts(client, admin, userId, period, body.mode, context, parseResult.data, startedAt, calls)
       : parseResult.data;
+    await logCalls(admin, calls.splice(0));
 
     const result = await applyModeEffects(admin, userId, body.mode, context, output);
     // Se registra DESPUÉS de que todo salió bien, nunca antes (un intento
@@ -567,7 +578,10 @@ async function writeWeekDescriptions(
   athlete: { name: string | null; sex: string | null },
   workouts: PlannedWorkout[],
   timeoutMs: number,
+  logAs: { userId: string; mode: string; calls: CallRow[] },
 ): Promise<{ descriptions: Map<number, string>; usage: UsageLike } | null> {
+  const callStarted = Date.now();
+  const base = { userId: logAs.userId, mode: logAs.mode, step: 'writer' as const, model: WRITER_MODEL, startedMs: callStarted };
   try {
     const payload = {
       athlete,
@@ -597,34 +611,12 @@ async function writeWeekDescriptions(
     const parsed = text ? WorkoutDescriptionsSchema.safeParse(JSON.parse(text)) : null;
     const descriptions = new Map<number, string>();
     if (parsed?.success) for (const d of parsed.data.descriptions) descriptions.set(d.index, d.description);
+    logAs.calls.push(callRow({ ...base, model: response.model }, response.usage, parsed?.success ? null : 'salida del redactor inválida'));
     return { descriptions, usage: response.usage };
-  } catch {
+  } catch (err) {
+    logAs.calls.push(callRow(base, null, err instanceof Error ? err.message : String(err)));
     return null;
   }
-}
-
-/** Tope de minutos por sesión: el del atleta o el techo general de 90. */
-function sessionCapMinutes(mode: Mode, context: Record<string, unknown>): number {
-  const raw =
-    mode === 'create_plan'
-      ? (context.availability as { maxSessionMinutes?: number | null } | undefined)?.maxSessionMinutes
-      : (context.maxSessionMinutes as number | null | undefined);
-  return raw ?? 90;
-}
-
-/** El prompt pide respetar el tope, pero solo el código lo garantiza: lo que
- * se pase se recorta aquí (ver fitToCap), antes de que el redactor describa
- * la sesión, para que descripción y minutos coincidan. */
-function capWeeks(weeks: PlannedWorkout[][], capMinutes: number): PlannedWorkout[][] {
-  return weeks.map((ws) =>
-    ws.map((w) => {
-      const { workout, trimmedS, fits } = fitToCap(w, capMinutes);
-      if (trimmedS > 0 || !fits) {
-        console.log(`[coach-chat] tope de ${capMinutes} min: «${w.name}» recortado ${Math.round(trimmedS / 60)} min${fits ? '' : ' (aun así no cabe)'}`);
-      }
-      return workout;
-    }),
-  );
 }
 
 /** Después de que el coach (Sonnet) decidió: desenrolla los intervalos y
@@ -640,21 +632,20 @@ async function finishPlannedWorkouts(
   // deno-lint-ignore no-explicit-any
   output: any,
   startedAt: number,
+  calls: CallRow[],
 ): Promise<Record<string, unknown>> {
-  const weeks = capWeeks(plannedWeeksOf(mode, output), sessionCapMinutes(mode, context));
+  // El tope de minutos ya lo aplicó la guardia (guard.ts → fitToCap).
+  const weeks = plannedWeeksOf(mode, output);
   const profile = context.profile as { name?: string | null; sex?: string | null } | undefined;
   const athlete = { name: profile?.name ?? null, sex: profile?.sex ?? null };
 
   const remaining = WALL_CLOCK_BUDGET_MS - (Date.now() - startedAt);
   const written =
     remaining >= WRITER_MIN_REMAINING_MS
-      ? await Promise.all(weeks.map((w) => writeWeekDescriptions(client, athlete, w, Math.min(WRITER_MAX_MS, remaining - 5_000))))
+      ? await Promise.all(weeks.map((w) => writeWeekDescriptions(client, athlete, w, Math.min(WRITER_MAX_MS, remaining - 5_000), { userId, mode, calls })))
       : weeks.map(() => null);
 
-  const writerTokens = written.reduce(
-    (sum, r) => sum + (r ? (r.usage.input_tokens ?? 0) + (r.usage.output_tokens ?? 0) + (r.usage.cache_creation_input_tokens ?? 0) : 0),
-    0,
-  );
+  const writerTokens = written.reduce((sum, r) => sum + (r ? tokensOf(r.usage) : 0), 0);
   if (writerTokens > 0) await addUsage(admin, userId, period, writerTokens);
 
   const generated = weeks.map((ws, wi) => ws.map((w, i) => toGeneratedWorkout(w, written[wi]?.descriptions.get(i) ?? null)));
@@ -1000,17 +991,83 @@ async function reserveUsage(admin: AdminClient, userId: string): Promise<string>
   return period;
 }
 
+/** Tokens que cuentan contra el tope mensual (la lectura de caché no). */
+function tokensOf(usage: UsageLike): number {
+  return (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0) + (usage.cache_creation_input_tokens ?? 0);
+}
+
+/** Una llamada al coach. Streaming, no .parse() directo: Supabase Edge
+ * Functions mata la conexión a los 150 s si no hay bytes fluyendo
+ * (IDLE_TIMEOUT) — un plan grande sin streaming puede tardar más que eso en
+ * generar el primer byte. output_config.format sigue aplicando igual en
+ * modo streaming (lo fuerza el servidor, no el transporte); solo hay que
+ * parsear el texto final a mano (readResponse). */
+async function callCoach(
+  client: Anthropic,
+  planning: boolean,
+  system: Anthropic.TextBlockParam[],
+  messages: Anthropic.MessageParam[],
+  schema: ReturnType<typeof schemaForMode>,
+) {
+  if (planning) {
+    return await client.beta.messages
+      .stream({
+        model: PLANNER_MODEL,
+        // La salida compacta ronda unos pocos miles de tokens; el techo
+        // alto es solo margen (se cobra lo generado, no el techo).
+        max_tokens: 32000,
+        // medium: buen razonamiento sin alargar la llamada de más.
+        output_config: { effort: 'medium', format: betaZodOutputFormat(schema) },
+        // Si un clasificador de seguridad rechazara la petición, el
+        // servidor la reintenta con otro modelo en la misma llamada.
+        betas: ['server-side-fallback-2026-07-01'],
+        fallbacks: 'default',
+        system,
+        messages,
+      })
+      .finalMessage();
+  }
+  return await client.messages
+    .stream({
+      model: OTHER_MODEL,
+      max_tokens: 48000,
+      system,
+      messages,
+      output_config: { format: zodOutputFormat(schema) },
+    })
+    .finalMessage();
+}
+
+/** Texto, JSON y schema de una respuesta; el error que ve el atleta si no. */
+function readResponse(
+  response: { stop_reason: string | null; content: unknown[] },
+  schema: ReturnType<typeof schemaForMode>,
+): { ok: true; text: string; data: Record<string, unknown> } | { ok: false; error: string } {
+  if (response.stop_reason === 'refusal') {
+    return { ok: false, error: 'el coach no pudo procesar esta petición — intenta de nuevo o ajusta tu objetivo' };
+  }
+  if (response.stop_reason === 'max_tokens') {
+    return { ok: false, error: 'la respuesta del coach se cortó por longitud (max_tokens) — intenta de nuevo' };
+  }
+  const text = (response.content as { type: string; text?: string }[]).find((b) => b.type === 'text')?.text ?? '';
+  let parsedJson: unknown;
+  try {
+    parsedJson = JSON.parse(text);
+  } catch {
+    // JSON truncado o malformado: mensaje explícito para que la próxima
+    // falla de este tipo sea diagnosticable sin gastar otra llamada.
+    return { ok: false, error: 'el modelo no devolvió JSON válido, intenta de nuevo' };
+  }
+  const parsed = schema.safeParse(parsedJson);
+  if (!parsed.success) return { ok: false, error: 'el modelo no devolvió una salida válida, intenta de nuevo' };
+  return { ok: true, text, data: parsed.data as Record<string, unknown> };
+}
+
 /** Corrige la reserva al número REAL de la llamada que sí terminó bien —
  * resta la reserva y suma lo que de verdad reportó la API. Si esto nunca se
  * llama (la función murió antes), la reserva de arriba se queda tal cual. */
-interface UsageLike {
-  input_tokens?: number | null;
-  output_tokens?: number | null;
-  cache_creation_input_tokens?: number | null;
-}
-
 async function reconcileUsage(admin: AdminClient, userId: string, period: string, usage: UsageLike): Promise<void> {
-  const actualTokens = (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0) + (usage.cache_creation_input_tokens ?? 0);
+  const actualTokens = tokensOf(usage);
   const { data: existing } = await admin
     .from('coach_usage')
     .select('tokens_used')
