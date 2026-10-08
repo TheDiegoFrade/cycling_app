@@ -1,0 +1,258 @@
+{
+  "id": "19-weekly-eval-cumplio-pero-agotado",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 18.1,
+  "cost": 0.002318,
+  "coldCost": 0.00409,
+  "usage": {
+    "input_tokens": 1959,
+    "output_tokens": 3936,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Daniel, cumpliste el TSS (431 frente a 420 planeado), pero tu nota dice que vienes muy cansado, con tres noches de mal sueño y pulso que no subía en los intervalos del jueves. Con TSB en -28, CTL subiendo 30 en cuatro semanas y dos señales de fatiga a la vez, toca semana de absorción: nada por encima del 75 %, sesiones de 60 min o menos, un día libre extra y carga cerca del 50 % de la semana pasada. Gana lo que sientes sobre el número, así que no vamos a sostener este ritmo. Si la semana que viene sigues con mal sueño o el pulso sigue sin responder, lo revisamos antes de volver a intensidad.",
+    "contradictionFlag": "El TSS cumplió el plan, pero la nota reporta cansancio y mal sueño; prevalece la sensación.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo base",
+        "dayOfWeek": "mon",
+        "targetTSS": 42,
+        "erg": "on",
+        "intent": "Rodada de fondo a sensación, sin prisa. Mantén RPE 3-4 y puedes hablar en frases completas; si no puedes, baja la potencia.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 45,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 65,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo suave",
+        "dayOfWeek": "wed",
+        "targetTSS": 43,
+        "erg": "on",
+        "intent": "Fondo controlado con ERG; la idea es sudar poco y dormir mejor, no sumar carga. Mantén cadencia alta y respiración cómoda.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 45,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 68,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Rodada de deriva",
+        "dayOfWeek": "thu",
+        "targetTSS": 42,
+        "erg": "off",
+        "intent": "Rodada libre a esfuerzo constante RPE 3-4, sin mirar la potencia. Observa si el pulso casi no sube en la segunda mitad; eso confirma tu fondo real.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Deriva",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo largo",
+        "dayOfWeek": "sat",
+        "targetTSS": 43,
+        "erg": "on",
+        "intent": "Fondo sostenido a sensación de conversación. No busques potencia, busca estabilidad en cadencia y respiración.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 66,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Suave con cadencia",
+        "dayOfWeek": "sun",
+        "targetTSS": 46,
+        "erg": "on",
+        "intent": "Sesión suave para cerrar la semana con cadencia alta. Mantén la potencia baja y las piernas sueltas; si el pulso se dispara, baja.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 70,
+                "cadence_min": 90,
+                "cadence_max": 100
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": null,
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Daniel, cumpliste el TSS (431 frente a 420 planeado), pero tu nota dice que vienes muy cansado, con tres noches de mal sueño y pulso que no subía en los intervalos del jueves. Con TSB en -28, CTL subiendo 30 en cuatro semanas y dos señales de fatiga a la vez, toca semana de absorción: nada por encima del 75 %, sesiones de 60 min o menos, un día libre extra y carga cerca del 50 % de la semana pasada. Gana lo que sientes sobre el número, así que no vamos a sostener este ritmo. Si la semana que viene sigues con mal sueño o el pulso sigue sin responder, lo revisamos antes de volver a intensidad.\",\"contradictionFlag\":\"El TSS cumplió el plan, pero la nota reporta cansancio y mal sueño; prevalece la sensación.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo base\",\"dayOfWeek\":\"mon\",\"targetTSS\":42,\"erg\":\"on\",\"intent\":\"Rodada de fondo a sensación, sin prisa. Mantén RPE 3-4 y puedes hablar en frases completas; si no puedes, baja la potencia.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":65,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo suave\",\"dayOfWeek\":\"wed\",\"targetTSS\":43,\"erg\":\"on\",\"intent\":\"Fondo controlado con ERG; la idea es sudar poco y dormir mejor, no sumar carga. Mantén cadencia alta y respiración cómoda.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":68,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"thu\",\"targetTSS\":42,\"erg\":\"off\",\"intent\":\"Rodada libre a esfuerzo constante RPE 3-4, sin mirar la potencia. Observa si el pulso casi no sube en la segunda mitad; eso confirma tu fondo real.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Deriva\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo largo\",\"dayOfWeek\":\"sat\",\"targetTSS\":43,\"erg\":\"on\",\"intent\":\"Fondo sostenido a sensación de conversación. No busques potencia, busca estabilidad en cadencia y respiración.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":66,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Suave con cadencia\",\"dayOfWeek\":\"sun\",\"targetTSS\":46,\"erg\":\"on\",\"intent\":\"Sesión suave para cerrar la semana con cadencia alta. Mantén la potencia baja y las piernas sueltas; si el pulso se dispara, baja.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":70,\"cadence_min\":90,\"cadence_max\":100}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null}],\"ftpAction\":null,\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

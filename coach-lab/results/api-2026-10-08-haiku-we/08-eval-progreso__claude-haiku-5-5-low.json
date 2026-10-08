@@ -1,0 +1,265 @@
+{
+  "id": "08-eval-progreso",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 35.9,
+  "cost": 0.003438,
+  "coldCost": 0.005209,
+  "usage": {
+    "input_tokens": 1722,
+    "output_tokens": 6223,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "progress",
+    "reasoning": "Diego, cumpliste 102 % del TSS planeado (410 de 400), no faltó ninguna sesión y tu nota habla de fuerza en los intervalos, sin dolor ni cansancio. Con TSB de -8 y CTL subiendo 4.2 en cuatro semanas, puedes progresar. Cambio una sola variable: el bloque de umbral pasa de 4 a 5 repeticiones. El tope de 90 min por sesión limita el volumen, así que la semana queda cerca de 300 TSS y la progresión va en calidad, no en horas. No mencionaste un test ni tu FTP, así que no toco ese número.",
+    "contradictionFlag": null,
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo base",
+        "dayOfWeek": "mon",
+        "targetTSS": 62,
+        "erg": "on",
+        "intent": "Fondo controlado de 70 minutos al 68 % de tu FTP. Ve en frases completas, RPE 3-4, y no dejes que el pulso suba en la segunda mitad.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 4200,
+                "power_pct": 68
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Umbral 5x6",
+        "dayOfWeek": "tue",
+        "targetTSS": 64,
+        "erg": "on",
+        "intent": "Cinco bloques de 6 minutos al 100 % con 3 minutos suaves entre cada uno. Mantén el mismo ritmo en los cinco; si el último cae, baja un punto el primero. RPE 7-8 en los bloques.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 900,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 5,
+            "steps": [
+              {
+                "name": "Umbral",
+                "type": "interval",
+                "duration_s": 360,
+                "power_pct": 100
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 180,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Sweet spot 3x12",
+        "dayOfWeek": "thu",
+        "targetTSS": 68,
+        "erg": "on",
+        "intent": "Tres bloques de 12 minutos al 90 % con 5 minutos suaves. Son trabajo sostenido, no un sprint: si sientes que sube el pulso sin parar, baja 2 puntos. RPE 6-7.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 3,
+            "steps": [
+              {
+                "name": "Sweet spot",
+                "type": "interval",
+                "duration_s": 720,
+                "power_pct": 90
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 300,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Rodada suave",
+        "dayOfWeek": "fri",
+        "targetTSS": 36,
+        "erg": "on",
+        "intent": "Sesión suave de 60 minutos al 62 %, para recuperar del jueves. Ritmo conversacional, RPE 3, sin mirar la potencia más de lo necesario.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 62
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo largo",
+        "dayOfWeek": "sat",
+        "targetTSS": 68,
+        "erg": "on",
+        "intent": "Sesión larga de 90 minutos con 70 minutos al 72 %. Come y bebe cada 30 minutos. La clave es que el último tramo se sienta como el primero, RPE 4-5.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Tempo largo",
+                "type": "steady",
+                "duration_s": 4200,
+                "power_pct": 72
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": null,
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"progress\",\"reasoning\":\"Diego, cumpliste 102 % del TSS planeado (410 de 400), no faltó ninguna sesión y tu nota habla de fuerza en los intervalos, sin dolor ni cansancio. Con TSB de -8 y CTL subiendo 4.2 en cuatro semanas, puedes progresar. Cambio una sola variable: el bloque de umbral pasa de 4 a 5 repeticiones. El tope de 90 min por sesión limita el volumen, así que la semana queda cerca de 300 TSS y la progresión va en calidad, no en horas. No mencionaste un test ni tu FTP, así que no toco ese número.\",\"contradictionFlag\":null,\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo base\",\"dayOfWeek\":\"mon\",\"targetTSS\":62,\"erg\":\"on\",\"intent\":\"Fondo controlado de 70 minutos al 68 % de tu FTP. Ve en frases completas, RPE 3-4, y no dejes que el pulso suba en la segunda mitad.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":4200,\"power_pct\":68}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Umbral 5x6\",\"dayOfWeek\":\"tue\",\"targetTSS\":64,\"erg\":\"on\",\"intent\":\"Cinco bloques de 6 minutos al 100 % con 3 minutos suaves entre cada uno. Mantén el mismo ritmo en los cinco; si el último cae, baja un punto el primero. RPE 7-8 en los bloques.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":900,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":5,\"steps\":[{\"name\":\"Umbral\",\"type\":\"interval\",\"duration_s\":360,\"power_pct\":100},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":180,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Sweet spot 3x12\",\"dayOfWeek\":\"thu\",\"targetTSS\":68,\"erg\":\"on\",\"intent\":\"Tres bloques de 12 minutos al 90 % con 5 minutos suaves. Son trabajo sostenido, no un sprint: si sientes que sube el pulso sin parar, baja 2 puntos. RPE 6-7.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":3,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":90},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Rodada suave\",\"dayOfWeek\":\"fri\",\"targetTSS\":36,\"erg\":\"on\",\"intent\":\"Sesión suave de 60 minutos al 62 %, para recuperar del jueves. Ritmo conversacional, RPE 3, sin mirar la potencia más de lo necesario.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":62}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo largo\",\"dayOfWeek\":\"sat\",\"targetTSS\":68,\"erg\":\"on\",\"intent\":\"Sesión larga de 90 minutos con 70 minutos al 72 %. Come y bebe cada 30 minutos. La clave es que el último tramo se sienta como el primero, RPE 4-5.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Tempo largo\",\"type\":\"steady\",\"duration_s\":4200,\"power_pct\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null}],\"ftpAction\":null,\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}
