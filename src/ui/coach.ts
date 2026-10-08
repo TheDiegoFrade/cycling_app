@@ -51,6 +51,7 @@ const THINKING_MESSAGES = [
   '📊 Calculando tu forma actual (CTL/ATL/TSB)…',
   '🗓️ Armando la periodización del plan…',
   '💪 Concretando el primer bloque de entrenamientos…',
+  '🔧 Armando los intervalos de cada sesión…',
   '✍️ Escribiendo las notas del coach…',
 ];
 

@@ -362,26 +362,12 @@ si lo que pasó en el bloque anterior lo justifica.
 ` as const;
 
 /**
- * Contrato de Workout/Interval que el coach debe producir — mismo shape que
- * core/types.ts. Se incluye en el mensaje de usuario (no en el system) de
- * los modos que generan entrenamientos, junto con el output_config.format
- * (ver schemas.ts) que ya fuerza el shape — este texto es para que el
- * modelo entienda el SIGNIFICADO de cada campo, el schema solo fuerza la
- * forma.
+ * Cómo se escribe la `description` de un workout — lo único que el atleta lee
+ * antes de empezar. La usan el redactor (WRITER_SYSTEM_PROMPT, modos que
+ * planifican) y coach_week (que todavía escribe la descripción él mismo,
+ * dentro de WORKOUT_CONTRACT).
  */
-export const WORKOUT_CONTRACT = `
-Cada entrenamiento que generes tiene este contrato:
-
-- \`type\` de intervalo: "warmup" | "steady" | "interval" | "recovery" |
-  "cooldown" | "free".
-- \`power_pct\`: porcentaje del FTP del perfil (no watts absolutos).
-- \`ramp_to_pct\` (opcional): si el bloque debe subir/bajar linealmente.
-- \`cadence_min\` / \`cadence_max\` (opcional).
-- \`duration_s\`: duración del bloque en segundos.
-
-No generes \`rules\` ni \`comments\` — esos los define el atleta aparte con su
-propio flujo de reglas. Solo produce \`name\`, \`description\`, e \`intervals\`.
-
+export const DESCRIPTION_GUIDE = `
 \`description\` SÍ la pones siempre — es lo único que el atleta lee antes de
 empezar (se muestra en el calendario y en la pantalla "antes de empezar", en
 las dos junto al desglose bloque por bloque con minutos y %FTP que la UI ya
@@ -433,3 +419,87 @@ AYUDE de verdad (información que de verdad cambia cómo lo hace, no relleno)
 Y MOTIVE (que se sienta como tu coach invitándote a entrenar, no un reporte
 frío). Las dos cosas a la vez, ninguna a costa de la otra.
 ` as const;
+
+/**
+ * Contrato de Workout/Interval completo — mismo shape que core/types.ts. Lo
+ * usa coach_week, el único modo que todavía escribe intervalos y descripción
+ * él mismo (los que planifican usan PLAN_WORKOUT_CONTRACT). Va en el mensaje
+ * de usuario (no en el system), junto con el output_config.format
+ * (ver schemas.ts) que ya fuerza el shape — este texto es para que el
+ * modelo entienda el SIGNIFICADO de cada campo, el schema solo fuerza la
+ * forma.
+ */
+export const WORKOUT_CONTRACT = `
+Cada entrenamiento que generes tiene este contrato:
+
+- \`type\` de intervalo: "warmup" | "steady" | "interval" | "recovery" |
+  "cooldown" | "free".
+- \`power_pct\`: porcentaje del FTP del perfil (no watts absolutos).
+- \`ramp_to_pct\` (opcional): si el bloque debe subir/bajar linealmente.
+- \`cadence_min\` / \`cadence_max\` (opcional).
+- \`duration_s\`: duración del bloque en segundos.
+
+No generes \`rules\` ni \`comments\` — esos los define el atleta aparte con su
+propio flujo de reglas. Solo produce \`name\`, \`description\`, e \`intervals\`.
+
+${DESCRIPTION_GUIDE}`;
+
+/**
+ * Contrato compacto para los modos que planifican (create_plan, weekly_eval,
+ * publish_block). El coach decide; no escribe la descripción larga ni lista
+ * cada intervalo: las series van con `repeat` y el código las desenrolla
+ * (expand.ts), y la descripción la redacta otro modelo a partir de `intent`.
+ */
+export const PLAN_WORKOUT_CONTRACT = `
+Cada entrenamiento que generes tiene este contrato (forma compacta):
+
+- \`segments\`: la estructura del workout en orden. Cada segmento es
+  \`{ repeat, steps }\`: \`steps\` se repite \`repeat\` veces seguidas. Una serie
+  "4×(8 min al 97 %, 4 min de recuperación al 55 %)" es UN segmento con
+  \`repeat: 4\` y dos steps — nunca escribas las 4 repeticiones a mano. El
+  calentamiento, un bloque continuo o el enfriamiento son segmentos con
+  \`repeat: 1\`. El nombre de cada step es corto ("Umbral", "Recuperación");
+  el sistema le agrega el número de repetición solo.
+- Cada step: \`type\` ("warmup" | "steady" | "interval" | "recovery" |
+  "cooldown" | "free"), \`duration_s\` (segundos), \`power_pct\` (porcentaje
+  del FTP del perfil, nunca watts), \`ramp_to_pct\` opcional (sube/baja
+  lineal), \`cadence_min\`/\`cadence_max\` opcionales.
+- La duración total (todos los segmentos con sus repeticiones) respeta el
+  techo de 90 min y \`maxSessionMinutes\` si viene.
+- \`erg\`: "on" si la potencia fija ES el punto (el rodillo manda), "off" si
+  es por sensación/RPE o un esfuerzo máximo autodosificado donde el atleta
+  tiene que regular su propia potencia (ej. test de 20 min), "mixed" si solo
+  algunos bloques van con ERG.
+- \`intent\`: 1-3 frases, dirigidas al atleta, con el objetivo de este
+  workout, cómo abordarlo (incluye la decisión de ERG), un tip concreto de
+  pacing o ejecución si aplica y la sensación esperada (RPE, respiración).
+  Otro redactor la convierte en la descripción final, así que pon aquí la
+  sustancia de coach: el porqué y el cómo, no adornos.
+- \`targetTSS\` y \`dayOfWeek\` como siempre.
+
+No generes \`description\`, \`rules\` ni \`comments\`.
+` as const;
+
+/**
+ * Redactor de descripciones (Haiku). No decide nada del plan: convierte la
+ * intención del coach y la estructura ya decidida en el texto que el atleta
+ * lee. Contenido 100 % estático (se cachea); los datos van en el mensaje.
+ */
+export const WRITER_SYSTEM_PROMPT = `
+Eres el redactor del coach de Torq. El coach ya decidió cada entrenamiento
+(estructura, intensidad, intención); tú escribes su \`description\` en español,
+con la voz del coach, de tú. No cambies ni cuestiones lo que el coach
+decidió: tradúcelo a una invitación clara y motivadora.
+
+Recibes, por cada workout: su nombre, día, duración, TSS objetivo, la
+estructura resumida, la decisión de ERG y la intención del coach. Respeta la
+decisión de ERG tal cual viene.
+${DESCRIPTION_GUIDE}
+- **Género gramatical correcto, siempre.** Si \`athlete.sex\` es "M",
+  escribe en masculino; si es "F", en femenino. Si es \`null\` o "other",
+  evita adjetivos con género — reformula en vez de adivinar.
+- No uses el nombre del atleta en cada descripción (se repetiría en todos
+  los workouts); como mucho en uno de la semana, si \`athlete.name\` no es
+  \`null\`. Nunca inventes un nombre.
+- Devuelve una descripción por workout, con el mismo \`index\` que recibiste.
+`;

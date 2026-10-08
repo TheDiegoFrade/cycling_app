@@ -26,6 +26,38 @@ const GeneratedWorkoutSchema = z.object({
   dayOfWeek: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
 });
 
+// Lo que decide el coach (Sonnet) en create_plan / weekly_eval /
+// publish_block: la serie en forma compacta (`repeat`) y una intención para
+// el redactor. Los intervalos los desenrolla expand.ts y la `description`
+// la escribe Haiku después (ver writeDescriptions en index.ts) — así la
+// salida del coach es corta y no se pasa del tiempo límite.
+const SegmentSchema = z.object({
+  repeat: z.number().int().min(1).max(30),
+  steps: z.array(IntervalSchema).min(1).max(8),
+});
+
+const PlannedWorkoutSchema = z.object({
+  name: z.string(),
+  dayOfWeek: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
+  targetTSS: z.number().nonnegative(),
+  // on: potencia fija, el rodillo manda · off: por sensación o esfuerzo
+  // autodosificado · mixed: ERG solo en algunos bloques
+  erg: z.enum(['on', 'off', 'mixed']),
+  // 1-3 frases para el redactor: objetivo, cómo abordarlo, tip de pacing y
+  // qué sensación esperar. Si el redactor falla, esto es lo que ve el atleta.
+  intent: z.string(),
+  segments: z.array(SegmentSchema).min(1),
+});
+
+/** Lo que devuelve el redactor (Haiku): una descripción por workout, en el
+ * mismo orden en que se le mandaron. */
+export const WorkoutDescriptionsSchema = z.object({
+  descriptions: z.array(z.object({ index: z.number().int().nonnegative(), description: z.string() })),
+});
+
+/** Modos donde el coach decide y planifica (Sonnet + redactor). */
+export const PLANNING_MODES = new Set<Mode>(['create_plan', 'weekly_eval', 'publish_block']);
+
 const PlanBlockOutlineSchema = z.object({
   name: z.string(), // ej. "Base 1"
   weeks: z.number().int().positive(),
@@ -97,7 +129,7 @@ export const CreatePlanOutputSchema = z.object({
     .array(
       z.object({
         weekIndex: z.number().int().nonnegative(),
-        workouts: z.array(GeneratedWorkoutSchema).min(1),
+        workouts: z.array(PlannedWorkoutSchema).min(1),
       }),
     )
     .min(1)
@@ -162,7 +194,7 @@ export const WeeklyEvalOutputSchema = z.object({
   reasoning: z.string(), // 3-5 líneas citando qué señal pesó más y por qué
   contradictionFlag: z.string().nullable(), // si hubo señales contradictorias, explícalo aquí; si no, null
   recurringPatternFlag: z.string().nullable(), // si detectaste un patrón recurrente, pregunta concreta aquí; si no, null
-  nextWeekWorkouts: z.array(GeneratedWorkoutSchema).min(1),
+  nextWeekWorkouts: z.array(PlannedWorkoutSchema).min(1),
 });
 
 // Forma esperada de `context` para publish_block — resumen del BLOQUE
@@ -185,7 +217,7 @@ export const PublishBlockOutputSchema = z.object({
     .array(
       z.object({
         weekIndex: z.number().int().nonnegative(),
-        workouts: z.array(GeneratedWorkoutSchema).min(1),
+        workouts: z.array(PlannedWorkoutSchema).min(1),
       }),
     )
     .min(1),

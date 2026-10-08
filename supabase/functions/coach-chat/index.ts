@@ -18,10 +18,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Anthropic from 'npm:@anthropic-ai/sdk@0';
 import { zodOutputFormat } from 'npm:@anthropic-ai/sdk@0/helpers/zod';
+import { betaZodOutputFormat } from 'npm:@anthropic-ai/sdk@0/helpers/beta/zod';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
-import { COACH_SYSTEM_PROMPT, WORKOUT_CONTRACT } from './prompt.ts';
-import { schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
+import { COACH_SYSTEM_PROMPT, PLAN_WORKOUT_CONTRACT, WORKOUT_CONTRACT, WRITER_SYSTEM_PROMPT } from './prompt.ts';
+import { PLANNING_MODES, WorkoutDescriptionsSchema, schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
+import { summarizeSegments, toGeneratedWorkout, totalMinutes, type PlannedWorkout } from './expand.ts';
 
 type AdminClient = ReturnType<typeof createClient>;
 
@@ -29,18 +31,30 @@ function adminClient(): AdminClient {
   return createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 }
 
-// Haiku 4.5, no Sonnet: la tarea sigue siendo generar un plan estructurado
-// con reglas bien definidas (la jerarquía de evidencia, el contrato de
-// Workout), no razonamiento abierto complejo — y Sonnet 5 generando
-// max_tokens altos (48000, con las descripciones ricas por workout) tardaba
-// lo suficiente para toparse con fallas intermitentes tipo IDLE_TIMEOUT en
-// ~1 de cada 3-4 llamadas reales (visto en pruebas: la reserva de tokens se
-// gastaba completa sin reconciliar, señal de que la función moría antes de
-// recibir respuesta). Haiku es mucho más rápido, reduciendo la ventana de
-// riesgo. Si la calidad del plan baja de forma notoria, vale la pena volver
-// a Sonnet y atacar la causa de raíz (streaming real al cliente) en vez de
-// cambiar de modelo otra vez.
-const MODEL = 'claude-haiku-4-5-20251001';
+// Dos modelos para los modos que planifican (create_plan, weekly_eval,
+// publish_block):
+//  - PLANNER_MODEL (Sonnet) razona como coach y decide el plan, pero con una
+//    salida corta: las series en forma compacta (`repeat`) y una intención
+//    por workout. Antes Sonnet 5 escribía TODO (cada intervalo + una
+//    descripción de 3-5 oraciones por workout, ~15k tokens) y se pasaba de
+//    los 150 s de Supabase (IDLE_TIMEOUT en ~1 de cada 3-4 llamadas); por
+//    eso se había bajado a Haiku, que razona peor.
+//  - Los intervalos los desenrolla código (expand.ts): mecánico, sin pierde.
+//  - WRITER_MODEL (Haiku) redacta las descripciones, una llamada por semana
+//    en paralelo. Si falla o no alcanza el tiempo, queda la intención del
+//    coach como descripción (fallbackDescription) — el plan nunca se pierde
+//    por esto.
+// Los demás modos (comentario post-sesión, coach_week, monthly_review)
+// siguen con OTHER_MODEL, sin cambios.
+const PLANNER_MODEL = 'claude-sonnet-5-5';
+const WRITER_MODEL = 'claude-haiku-5-5';
+const OTHER_MODEL = 'claude-haiku-4-5-20251001';
+
+// Supabase Free corta la función a los ~150 s. El redactor solo arranca si
+// al coach le sobró tiempo, y con un tope propio para no pasarse.
+const WALL_CLOCK_BUDGET_MS = 140_000;
+const WRITER_MIN_REMAINING_MS = 25_000;
+const WRITER_MAX_MS = 40_000;
 
 // Red de seguridad, no el control principal (ver checkModeAllowed).
 const MONTHLY_TOKEN_CEILING = 500_000;
@@ -96,6 +110,7 @@ interface CoachChatRequest {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  const startedAt = Date.now();
   try {
     const userId = await getUserId(req);
     // Antes de CUALQUIER otra cosa — ni siquiera parsea el body todavía.
@@ -144,25 +159,39 @@ Deno.serve(async (req) => {
     // byte. output_config.format sigue aplicando igual en modo streaming
     // (lo fuerza el servidor, no el transporte); solo hay que parsear el
     // texto final a mano en vez de depender del parsed_output de .parse().
-    const stream = client.messages.stream({
-      model: MODEL,
-      // create_plan concretiza TODAS las semanas del primer bloque de una
-      // vez — con el protocolo de arranque de 3-6 semanas para perfiles
-      // sedentarios (ver prompt.ts) el JSON completo (bloques + semanas +
-      // intervals de cada workout + coachNote) puede acercarse a 16000
-      // tokens de salida y cortarse a medias. 48000 da margen real sin
-      // costo extra: Anthropic cobra por tokens generados, no por el techo.
-      max_tokens: 48000,
-      system: [
-        // Único bloque con cache_control — contenido 100% estático e
-        // idéntico entre TODOS los usuarios. Nunca pongas datos de un
-        // usuario aquí: los datos del atleta siempre van en `messages`.
-        { type: 'text', text: COACH_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-      ],
-      messages: [{ role: 'user', content: userMessage }],
-      output_config: { format: zodOutputFormat(schema) },
-    });
-    const response = await stream.finalMessage();
+    const planning = PLANNING_MODES.has(body.mode);
+    const system = [
+      // Único bloque con cache_control — contenido 100% estático e
+      // idéntico entre TODOS los usuarios. Nunca pongas datos de un
+      // usuario aquí: los datos del atleta siempre van en `messages`.
+      { type: 'text' as const, text: COACH_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' as const } },
+    ];
+    const response = planning
+      ? await client.beta.messages
+          .stream({
+            model: PLANNER_MODEL,
+            // La salida compacta ronda unos pocos miles de tokens; el techo
+            // alto es solo margen (se cobra lo generado, no el techo).
+            max_tokens: 32000,
+            // medium: buen razonamiento sin alargar la llamada de más.
+            output_config: { effort: 'medium', format: betaZodOutputFormat(schema) },
+            // Si un clasificador de seguridad rechazara la petición, el
+            // servidor la reintenta con otro modelo en la misma llamada.
+            betas: ['server-side-fallback-2026-07-01'],
+            fallbacks: 'default',
+            system,
+            messages: [{ role: 'user', content: userMessage }],
+          })
+          .finalMessage()
+      : await client.messages
+          .stream({
+            model: OTHER_MODEL,
+            max_tokens: 48000,
+            system,
+            messages: [{ role: 'user', content: userMessage }],
+            output_config: { format: zodOutputFormat(schema) },
+          })
+          .finalMessage();
 
     // Reconciliar AQUÍ, apenas Claude contestó — sin importar si lo que
     // sigue (parseo, validación, applyModeEffects) sale bien o mal. Antes
@@ -175,14 +204,17 @@ Deno.serve(async (req) => {
     // sesión de pruebas fallaron después de cobrar y se quedaron así.)
     await reconcileUsage(admin, userId, period, response.usage);
 
+    if (response.stop_reason === 'refusal') {
+      return json({ error: 'el coach no pudo procesar esta petición — intenta de nuevo o ajusta tu objetivo' }, 502);
+    }
     if (response.stop_reason === 'max_tokens') {
       return json({ error: 'la respuesta del coach se cortó por longitud (max_tokens) — intenta de nuevo' }, 502);
     }
 
-    const textBlock = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
+    const textBlock = (response.content as { type: string; text?: string }[]).find((b) => b.type === 'text');
     let parsedJson: unknown = null;
     try {
-      if (textBlock) parsedJson = JSON.parse(textBlock.text);
+      if (textBlock?.text) parsedJson = JSON.parse(textBlock.text);
     } catch {
       // JSON truncado o malformado — antes esto tronaba como excepción no
       // controlada y caía al catch genérico de abajo (400 con un mensaje
@@ -196,7 +228,13 @@ Deno.serve(async (req) => {
       return json({ error: 'el modelo no devolvió una salida válida, intenta de nuevo' }, 502);
     }
 
-    const result = await applyModeEffects(admin, userId, body.mode, context, parseResult.data);
+    // Modos que planifican: el coach ya decidió; ahora el código desenrolla
+    // los intervalos y Haiku redacta las descripciones (ver PLANNER_MODEL).
+    const output = planning
+      ? await finishPlannedWorkouts(client, admin, userId, period, body.mode, context, parseResult.data, startedAt)
+      : parseResult.data;
+
+    const result = await applyModeEffects(admin, userId, body.mode, context, output);
     // Se registra DESPUÉS de que todo salió bien, nunca antes (un intento
     // fallido no debe gastar ningún tope). create_plan cuenta contra
     // MONTHLY_PLAN_ACTION_LIMIT, weekly_eval contra su propio
@@ -244,7 +282,12 @@ function buildUserMessage(mode: Mode, context: Record<string, unknown>): string 
   // El contrato de Workout solo aplica a los modos que generan entrenamientos
   // — mandárselo a finished_training_eval_comment es tokens tirados, nunca
   // genera intervals.
-  const contract = mode === 'finished_training_eval_comment' || mode === 'monthly_review' ? '' : `${WORKOUT_CONTRACT}\n\n`;
+  const contract =
+    mode === 'finished_training_eval_comment' || mode === 'monthly_review'
+      ? ''
+      : PLANNING_MODES.has(mode)
+        ? `${PLAN_WORKOUT_CONTRACT}\n\n`
+        : `${WORKOUT_CONTRACT}\n\n`;
   return `${headers[mode]}\n\n${contract}Datos:\n${JSON.stringify(context, null, 2)}`;
 }
 
@@ -517,6 +560,102 @@ function blockIndexForWeek(blocks: { weeks: number }[], weekIndex: number): numb
   return blocks.length - 1;
 }
 
+const DAY_NAMES: Record<string, string> = { mon: 'lunes', tue: 'martes', wed: 'miércoles', thu: 'jueves', fri: 'viernes', sat: 'sábado', sun: 'domingo' };
+
+/** Semanas de workouts compactos que devolvió el coach, según el modo. */
+function plannedWeeksOf(mode: Mode, output: Record<string, unknown>): PlannedWorkout[][] {
+  if (mode === 'create_plan') return (output.firstBlockWeeks as { workouts: PlannedWorkout[] }[]).map((w) => w.workouts);
+  if (mode === 'weekly_eval') return [output.nextWeekWorkouts as PlannedWorkout[]];
+  return (output.weeks as { workouts: PlannedWorkout[] }[]).map((w) => w.workouts);
+}
+
+/** Mismo output con cada workout ya completo (intervalos + descripción),
+ * en el shape que espera applyModeEffects/materializeWeek. */
+function withGeneratedWeeks(mode: Mode, output: Record<string, unknown>, weeks: ReturnType<typeof toGeneratedWorkout>[][]): Record<string, unknown> {
+  if (mode === 'create_plan') {
+    return { ...output, firstBlockWeeks: (output.firstBlockWeeks as { weekIndex: number }[]).map((w, i) => ({ ...w, workouts: weeks[i] })) };
+  }
+  if (mode === 'weekly_eval') return { ...output, nextWeekWorkouts: weeks[0] };
+  return { ...output, weeks: (output.weeks as { weekIndex: number }[]).map((w, i) => ({ ...w, workouts: weeks[i] })) };
+}
+
+/** Redacta las descripciones de una semana (Haiku). null si falla o se pasa
+ * del tiempo — el llamador usa la intención del coach en su lugar. */
+async function writeWeekDescriptions(
+  client: Anthropic,
+  athlete: { name: string | null; sex: string | null },
+  workouts: PlannedWorkout[],
+  timeoutMs: number,
+): Promise<{ descriptions: Map<number, string>; usage: UsageLike } | null> {
+  try {
+    const payload = {
+      athlete,
+      workouts: workouts.map((w, index) => ({
+        index,
+        name: w.name,
+        day: DAY_NAMES[w.dayOfWeek] ?? w.dayOfWeek,
+        minutes: totalMinutes(w.segments),
+        targetTSS: w.targetTSS,
+        erg: w.erg,
+        intent: w.intent,
+        structure: summarizeSegments(w.segments),
+      })),
+    };
+    const response = await client.messages.create(
+      {
+        model: WRITER_MODEL,
+        max_tokens: 8000,
+        // low: es redacción guiada, no razonamiento — y rápido.
+        output_config: { effort: 'low', format: zodOutputFormat(WorkoutDescriptionsSchema) },
+        system: [{ type: 'text', text: WRITER_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+        messages: [{ role: 'user', content: `Escribe la descripción de cada workout de esta semana.\n\nDatos:\n${JSON.stringify(payload, null, 2)}` }],
+      },
+      { signal: AbortSignal.timeout(timeoutMs), maxRetries: 0 },
+    );
+    const text = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text')?.text;
+    const parsed = text ? WorkoutDescriptionsSchema.safeParse(JSON.parse(text)) : null;
+    const descriptions = new Map<number, string>();
+    if (parsed?.success) for (const d of parsed.data.descriptions) descriptions.set(d.index, d.description);
+    return { descriptions, usage: response.usage };
+  } catch {
+    return null;
+  }
+}
+
+/** Después de que el coach (Sonnet) decidió: desenrolla los intervalos y
+ * pide las descripciones a Haiku, una llamada por semana en paralelo, solo
+ * si queda tiempo antes del límite de Supabase. */
+async function finishPlannedWorkouts(
+  client: Anthropic,
+  admin: AdminClient,
+  userId: string,
+  period: string,
+  mode: Mode,
+  context: Record<string, unknown>,
+  // deno-lint-ignore no-explicit-any
+  output: any,
+  startedAt: number,
+): Promise<Record<string, unknown>> {
+  const weeks = plannedWeeksOf(mode, output);
+  const profile = context.profile as { name?: string | null; sex?: string | null } | undefined;
+  const athlete = { name: profile?.name ?? null, sex: profile?.sex ?? null };
+
+  const remaining = WALL_CLOCK_BUDGET_MS - (Date.now() - startedAt);
+  const written =
+    remaining >= WRITER_MIN_REMAINING_MS
+      ? await Promise.all(weeks.map((w) => writeWeekDescriptions(client, athlete, w, Math.min(WRITER_MAX_MS, remaining - 5_000))))
+      : weeks.map(() => null);
+
+  const writerTokens = written.reduce(
+    (sum, r) => sum + (r ? (r.usage.input_tokens ?? 0) + (r.usage.output_tokens ?? 0) + (r.usage.cache_creation_input_tokens ?? 0) : 0),
+    0,
+  );
+  if (writerTokens > 0) await addUsage(admin, userId, period, writerTokens);
+
+  const generated = weeks.map((ws, wi) => ws.map((w, i) => toGeneratedWorkout(w, written[wi]?.descriptions.get(i) ?? null)));
+  return withGeneratedWeeks(mode, output, generated);
+}
+
 /** Aplica los efectos de cada modo: materializa workouts reales y
  * actualiza/crea el estado del plan. Devuelve lo que se manda al cliente. */
 async function applyModeEffects(
@@ -777,7 +916,13 @@ async function reserveUsage(admin: AdminClient, userId: string): Promise<string>
 /** Corrige la reserva al número REAL de la llamada que sí terminó bien —
  * resta la reserva y suma lo que de verdad reportó la API. Si esto nunca se
  * llama (la función murió antes), la reserva de arriba se queda tal cual. */
-async function reconcileUsage(admin: AdminClient, userId: string, period: string, usage: Anthropic.Usage): Promise<void> {
+interface UsageLike {
+  input_tokens?: number | null;
+  output_tokens?: number | null;
+  cache_creation_input_tokens?: number | null;
+}
+
+async function reconcileUsage(admin: AdminClient, userId: string, period: string, usage: UsageLike): Promise<void> {
   const actualTokens = (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0) + (usage.cache_creation_input_tokens ?? 0);
   const { data: existing } = await admin
     .from('coach_usage')
@@ -792,6 +937,21 @@ async function reconcileUsage(admin: AdminClient, userId: string, period: string
       tokens_used: (existing?.tokens_used ?? PRE_CALL_RESERVE_TOKENS) - PRE_CALL_RESERVE_TOKENS + actualTokens,
       updated_at: new Date().toISOString(),
     })
+    .eq('user_id', userId)
+    .eq('period', period);
+}
+
+/** Suma tokens ya gastados (el redactor) a la fila del mes. */
+async function addUsage(admin: AdminClient, userId: string, period: string, tokens: number): Promise<void> {
+  const { data: existing } = await admin
+    .from('coach_usage')
+    .select('tokens_used')
+    .eq('user_id', userId)
+    .eq('period', period)
+    .maybeSingle();
+  await admin
+    .from('coach_usage')
+    .update({ tokens_used: (existing?.tokens_used ?? 0) + tokens, updated_at: new Date().toISOString() })
     .eq('user_id', userId)
     .eq('period', period);
 }
