@@ -8,6 +8,9 @@ Abre un chat con Fable, pega este documento completo y adjunta:
   viven las reglas de `coach_week` y `monthly_review`.
 - `supabase/functions/coach-chat/schemas.ts` — qué datos recibe el coach
   (`*InputContextSchema`) y qué debe devolver (`*OutputSchema`).
+- `coach-lab/research/fisiologia-y-pruebas.md` — investigación: qué mide un
+  laboratorio, sus equivalentes con smart trainer + banda, cómo arrancar sin
+  FTP, fatiga, XCO. Cierra con los cambios propuestos al prompt.
 - Los escenarios de `coach-lab/scenarios/` y, si ya corriste una ronda, las
   respuestas de `coach-lab/results/` con su calificación de `rubric.md`.
 
@@ -92,6 +95,10 @@ volverse más caro.
     barato, aunque mejor conciso que exhaustivo.
 - **Haiku corre coach_week.** Esas reglas tienen que ser cortas, concretas y
   verificables. Nada de matices largos que un modelo chico malinterprete.
+- **Equipo del atleta: solo smart trainer + banda de pulso o Garmin.** Nada
+  de lactato, gases ni laboratorio. Torq tampoco graba RR, así que no hay
+  HRV/DFA-α1. Toda prueba o ancla de intensidad que propongas tiene que poder
+  hacerse con potencia del rodillo, FC, cadencia y RPE.
 - **Rodillo inteligente**: todo se entrena en interior, con ERG on/off/mixed.
   Las sesiones largas de fondo tienen techo (90 min por defecto, o el
   `maxSessionMinutes` del atleta).
