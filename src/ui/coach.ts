@@ -17,6 +17,7 @@ import { escapeHtml } from './workout-cover';
 import { confirmAiWithHumanCoach, humanCoachName } from './coach-notice';
 import { coachFtpFields, coachProfileExtras, ftpSourceOf, isMeasuredFtp, sourceForAcceptedSuggestion, withFtp } from '../core/coach-profile';
 import { planContextFor, plannedTestLabel, weekStartOf } from '../core/plan-context';
+import { ruleTriggersOf } from '../core/rule-triggers';
 import type { CoachPlanContext, PlannedTest, StoredPlanData } from '../core/plan-context';
 
 const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'M', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
@@ -667,6 +668,8 @@ async function computeWeekEvalContext(
 
   const weekSummaries = weeks.map(summarizeWeek);
   const lastWeek = weekSummaries[weekSummaries.length - 1];
+  const [lastStartKey, lastEndKey] = weekDateRange(lastWeek.weekIndex);
+  const inLastWeek = (dateKey: string) => dateKey >= lastStartKey && dateKey <= lastEndKey;
 
   const pmc = computePmc(allEntries.map((e) => ({ dateKey: e.dateKey, tss: e.tss })));
   const latest = pmc[pmc.length - 1];
@@ -708,11 +711,9 @@ async function computeWeekEvalContext(
       actualTSS: lastWeek.actualTSS,
       completedWorkouts: lastWeek.completedWorkouts,
       missedWorkouts: lastWeek.missedWorkouts,
-      // No se trackea ruleId por sesión hoy (SessionRecord.alerts solo
-      // guarda level/message, no el id de la regla) — vacío en vez de
-      // inventar números. El resto de la jerarquía de evidencia (TSS real,
-      // PMC, huecos) ya cubre la señal que más importa.
-      ruleTriggers: [],
+      // Solo de las sesiones de este dispositivo: las alertas no se suben a
+      // la nube. Sesiones guardadas antes de registrar ruleId no cuentan.
+      ruleTriggers: ruleTriggersOf(localSessions.filter((s) => inLastWeek(s.startedAt.slice(0, 10))).flatMap((s) => s.alerts)),
       athleteNote,
     },
     pmcTrend: {

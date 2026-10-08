@@ -11,7 +11,9 @@ export interface SessionRecord {
   finishedAt: string;
   ftp: number;
   samples: Sample[];
-  alerts: { t: number; level: RuleLevel; message: string }[];
+  // ruleId: id de la regla que disparó (ausente en sesiones guardadas antes
+  // de registrarlo). Ver core/rule-triggers.ts.
+  alerts: { t: number; level: RuleLevel; message: string; ruleId?: string }[];
   intensityChanges: { t: number; pct: number }[];
   /** Feedback subjetivo capturado después de terminar, en Resumen — no se
    * pide al cortar el entrenamiento para no interrumpir ese flujo. */

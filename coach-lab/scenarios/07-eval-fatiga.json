@@ -22,11 +22,11 @@
       "missedWorkouts": 2,
       "ruleTriggers": [
         {
-          "ruleId": "hr_ceiling",
+          "ruleId": "factory-hr-ceiling",
           "count": 6
         },
         {
-          "ruleId": "cadence_floor",
+          "ruleId": "factory-cadence-floor",
           "count": 3
         }
       ],

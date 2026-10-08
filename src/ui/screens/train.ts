@@ -672,7 +672,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
           // porque pasaron unos segundos aunque el problema siga.
           const holdMs = n.level === 'danger' || n.level === 'adjust' ? null : 2600;
           showBanner(kind, n.message, n.detail ?? '', holdMs);
-          alerts.push({ t: lastElapsedS, level: n.level, message: n.message });
+          alerts.push({ t: lastElapsedS, level: n.level, message: n.message, ruleId: n.rule.id });
         } else {
           beeper.play('tick');
           showBanner('info', n.message, '', 2200);

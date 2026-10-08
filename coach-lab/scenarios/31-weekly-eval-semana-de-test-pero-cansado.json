@@ -62,7 +62,7 @@
       "missedWorkouts": 0,
       "ruleTriggers": [
         {
-          "ruleId": "hr_ceiling",
+          "ruleId": "factory-hr-ceiling",
           "count": 4
         }
       ],
