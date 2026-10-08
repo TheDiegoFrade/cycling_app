@@ -92,7 +92,7 @@ function weeksHtml(weeks: WeekLoad[]): string {
     .join('');
 }
 
-function sessionRowHtml(r: CoachSessionRow): string {
+function sessionRowHtml(r: CoachSessionRow, hidden = false): string {
   const nonBike = isNonBikeKind(r.kind) ? r.kind : null;
   const skipped = r.completion === 'skipped';
   const load = nonBike
@@ -104,9 +104,9 @@ function sessionRowHtml(r: CoachSessionRow): string {
       : '—';
   const status = r.completion ? COMPLETION_LABELS[r.completion] : 'Hecha';
   return `
-    <tr${skipped ? ' class="coach-row-muted"' : ''}>
+    <tr class="${skipped ? 'coach-row-muted' : ''}${hidden ? ' coach-row-extra' : ''}"${hidden ? ' hidden' : ''}>
       <td>${fmtDay(r)}</td>
-      <td><span class="coach-session-name"><span class="coach-dot ${nonBike ? `kind-${nonBike}` : 'coach-dot-bike'}"></span>${escapeHtml(r.workoutName)}</span></td>
+      <td><a class="coach-session-name coach-session-link" href="#/coach-session/${r.userId}/${r.id}" title="Ver el detalle y descargar el .fit"><span class="coach-dot ${nonBike ? `kind-${nonBike}` : 'coach-dot-bike'}"></span>${escapeHtml(r.workoutName)}</a></td>
       <td>${skipped ? '—' : fmtDuration(r)}</td>
       <td>${skipped ? '—' : load}</td>
       <td>${r.rpe ?? '—'}</td>
@@ -158,7 +158,7 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
       const summary = summarizeAthlete(rows, todayKey, athlete.ftpConfirmed);
       const pmc = athletePmc(rows, todayKey).slice(-CHART_WEEKS * 7);
       const weeks = weeklyLoads(rows, todayKey, LOAD_WEEKS);
-      const recent = rows.slice(0, RECENT_SESSIONS);
+      const recent = rows;
 
       shell(`
         <header class="coach-head">
@@ -215,12 +215,18 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
             recent.length
               ? `<div class="coach-table-wrap"><table class="coach-table">
                   <thead><tr><th scope="col">Día</th><th scope="col">Sesión</th><th scope="col">Duración</th><th scope="col">Carga</th><th scope="col">RPE</th><th scope="col">Fuente</th><th scope="col">Estado</th></tr></thead>
-                  <tbody>${recent.map(sessionRowHtml).join('')}</tbody>
-                </table></div>`
+                  <tbody>${recent.map((r, i) => sessionRowHtml(r, i >= RECENT_SESSIONS)).join('')}</tbody>
+                </table></div>
+                ${recent.length > RECENT_SESSIONS ? `<button type="button" class="coach-show-all" id="coach-show-all">Ver las ${recent.length} sesiones</button>` : ''}`
               : '<p class="hint">Sin sesiones en los últimos meses.</p>'
           }
-          <span class="hint">La carga de fuerza y movilidad se mide como RPE × minutos y se muestra aparte: no se suma al TSS de la bici. Lo que llega por Strava no se muestra.</span>
+          <span class="hint">Toca una sesión para ver su detalle y descargar el .fit. La carga de fuerza y movilidad se mide como RPE × minutos y se muestra aparte: no se suma al TSS de la bici. Lo que llega por Strava no se muestra.</span>
         </section>`);
+
+      container.querySelector('#coach-show-all')?.addEventListener('click', (e) => {
+        container.querySelectorAll<HTMLElement>('.coach-row-extra').forEach((tr) => (tr.hidden = false));
+        (e.currentTarget as HTMLElement).remove();
+      });
 
       const canvas = container.querySelector<HTMLCanvasElement>('#coach-pmc');
       if (canvas) {

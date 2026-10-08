@@ -7,10 +7,12 @@ import { navigate } from '../router';
 import { appState } from '../state';
 import { saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
+import type { Interval } from '../../core/types';
 import { isStravaConfigured, uploadSessionToStrava } from '../../sync/strava';
 import { downloadSessionSamples } from '../../sync/cloud-sync';
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
 import { checkAndCelebrateAchievements } from '../achievement-toast';
+import { escapeHtml } from '../workout-cover';
 
 const RPE_LABELS: Record<number, string> = {
   1: 'muy, muy fácil',
@@ -49,7 +51,7 @@ function fmtDateEsMx(iso: string): string {
   return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} · ${time}`;
 }
 
-function zoneBars(zones: { zone: number; seconds: number }[]): string {
+export function zoneBars(zones: { zone: number; seconds: number }[]): string {
   const total = zones.reduce((a, z) => a + z.seconds, 0) || 1;
   return `<div class="home-week-zonebar" style="height:12px">${zones
     .filter((z) => z.seconds > 0)
@@ -80,7 +82,14 @@ function downloadFit(session: SessionRecord): void {
  * bloques planeados de fondo en color de zona — solo si el workout original
  * sigue en la biblioteca (una sesión importada de Strava/.fit no tiene uno). */
 function drawSummaryGraph(canvas: HTMLCanvasElement, session: SessionRecord): void {
-  if (session.samples.length < 2) return;
+  const originalWorkout = appState.workouts.find((wo) => wo.id === session.workoutId);
+  drawSessionGraph(canvas, session.samples, session.ftp, originalWorkout?.intervals ?? null);
+}
+
+/** La gráfica del detalle de una sesión. `intervals`: los bloques del
+ * workout planeado, si se conoce (el coach los lee del atleta). */
+export function drawSessionGraph(canvas: HTMLCanvasElement, samples: SessionRecord['samples'], ftp: number, intervals: Interval[] | null): void {
+  if (samples.length < 2) return;
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
   canvas.width = rect.width * dpr;
@@ -91,14 +100,13 @@ function drawSummaryGraph(canvas: HTMLCanvasElement, session: SessionRecord): vo
   const w = rect.width;
   const h = rect.height;
   const pad = 10;
-  const total = session.samples[session.samples.length - 1].t || 1;
+  const total = samples[samples.length - 1].t || 1;
   const X = (t: number) => pad + (t / total) * (w - 2 * pad);
   g.clearRect(0, 0, w, h);
 
-  const originalWorkout = appState.workouts.find((wo) => wo.id === session.workoutId);
-  if (originalWorkout) {
-    const plan = buildPlan(originalWorkout.intervals);
-    originalWorkout.intervals.forEach((iv, i) => {
+  if (intervals?.length) {
+    const plan = buildPlan(intervals);
+    intervals.forEach((iv, i) => {
       const zone = powerZone(iv.power_pct);
       g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(`--z${zone}`).trim();
       g.globalAlpha = 0.22;
@@ -111,14 +119,14 @@ function drawSummaryGraph(canvas: HTMLCanvasElement, session: SessionRecord): vo
     g.beginPath();
     g.strokeStyle = color;
     g.lineWidth = 2;
-    session.samples.forEach((s, j) => {
+    samples.forEach((s, j) => {
       const x = X(s.t);
       const y = h - pad - ((s[key] - min) / (max - min)) * (h - 2 * pad);
       j ? g.lineTo(x, y) : g.moveTo(x, y);
     });
     g.stroke();
   };
-  line('power', 0, session.ftp * 1.3, 'rgba(242,244,247,.9)');
+  line('power', 0, ftp * 1.3, 'rgba(242,244,247,.9)');
   line('hr', 80, 190, '#ff4d4d');
 
   g.strokeStyle = 'rgba(242,244,247,.15)';
@@ -137,18 +145,23 @@ function metricCard(label: string, value: string, sub: string): string {
 function planVsRealHtml(session: SessionRecord): string {
   const originalWorkout = appState.workouts.find((w) => w.id === session.workoutId);
   if (!originalWorkout) return '<p class="hint">El workout original ya no está en tu biblioteca.</p>';
-  const plan = buildPlan(originalWorkout.intervals);
-  return originalWorkout.intervals
+  return planVsRealRows(session.samples, session.ftp, originalWorkout.intervals);
+}
+
+/** Una fila por bloque del workout: watts promedio y % del objetivo. */
+export function planVsRealRows(samples: SessionRecord['samples'], ftp: number, intervals: Interval[]): string {
+  const plan = buildPlan(intervals);
+  return intervals
     .map((iv, i) => {
       const segStart = plan.segStart[i];
-      const segSamples = session.samples.filter((s) => s.t >= segStart && s.t < segStart + iv.duration_s);
+      const segSamples = samples.filter((s) => s.t >= segStart && s.t < segStart + iv.duration_s);
       if (segSamples.length === 0) return '';
       const avgActual = segSamples.reduce((a, s) => a + s.power, 0) / segSamples.length;
       const avgTarget =
-        segSamples.reduce((a, s) => a + targetWattsAt(plan, s.t, session.ftp, 1), 0) / segSamples.length;
+        segSamples.reduce((a, s) => a + targetWattsAt(plan, s.t, ftp, 1), 0) / segSamples.length;
       const pct = avgTarget > 0 ? Math.round((avgActual / avgTarget) * 100) : 0;
       const pctColor = pct >= 97 && pct <= 103 ? 'var(--success)' : pct >= 90 ? 'var(--z4)' : 'var(--danger-text)';
-      return `<div class="summary-block-row"><span>Bloque ${i + 1} — ${iv.name}</span><span>${Math.round(avgActual)} W · <span style="color:${pctColor}">${pct}%</span></span></div>`;
+      return `<div class="summary-block-row"><span>Bloque ${i + 1} — ${escapeHtml(iv.name)}</span><span>${Math.round(avgActual)} W · <span style="color:${pctColor}">${pct}%</span></span></div>`;
     })
     .join('');
 }

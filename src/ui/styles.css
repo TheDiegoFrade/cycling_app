@@ -4737,3 +4737,18 @@ a {
     padding-right: 18px;
   }
 }
+
+/* Sesiones del atleta: enlace al detalle (coach-session.ts) */
+.coach-session-link {
+  color: var(--text);
+  text-decoration: none;
+}
+.coach-session-link:hover {
+  color: var(--accent-light);
+  text-decoration: underline;
+}
+.coach-show-all {
+  align-self: flex-start;
+  padding: 6px 12px;
+  font-size: 13px;
+}

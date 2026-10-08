@@ -19,6 +19,7 @@ import { renderCoachLibrary } from './ui/screens/coach-library';
 import { renderCoachWeeks } from './ui/screens/coach-weeks';
 import { renderCoachReview } from './ui/screens/coach-review';
 import { renderReview } from './ui/screens/review';
+import { renderCoachSession } from './ui/screens/coach-session';
 import { renderPerfil } from './ui/screens/perfil';
 import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
@@ -62,6 +63,8 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   // las publicadas en #/review (se llega desde Perfil).
   ['coach-review', withSidebar('coach-athletes', renderCoachReview)],
   ['review', withSidebar('profile', renderReview)],
+  // Detalle de una sesión de un atleta, con descarga del .fit.
+  ['coach-session', withSidebar('coach-athletes', renderCoachSession)],
 ];
 
 SCREENS_TO_GUARD.forEach(([screen, render]) => registerScreen(screen, guarded(render)));
