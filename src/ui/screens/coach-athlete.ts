@@ -10,6 +10,8 @@ import { COMPLETION_LABELS, NON_BIKE_KIND_LABELS, isNonBikeKind } from '../../co
 import { defaultReviewMonth, monthLabel } from '../../core/monthly-report';
 import { listAthleteSessions, listAthleteStateSessions, listCoachAthletes } from '../../sync/coach-athletes';
 import { renderAnalysisPanel } from '../analysis-panel';
+import { NOTES_MAX_CHARS, fetchAthleteNotes, saveNotesAsCoach } from '../../sync/athlete-notes';
+import type { AthleteNotes } from '../../sync/athlete-notes';
 import { stateSessionFromCloud } from '../athlete-state-data';
 import { fetchCoachReview } from '../../sync/monthly-reviews';
 import type { CoachAthlete } from '../../sync/coach-athletes';
@@ -151,11 +153,12 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
         return;
       }
       const reviewMonth = defaultReviewMonth(todayKey);
-      const [rows, review, stateRows] = await Promise.all([
+      const [rows, review, stateRows, notes] = await Promise.all([
         listAthleteSessions([athleteId], sinceIso(COACH_DETAIL_DAYS)),
         appState.user ? fetchCoachReview(appState.user.id, athleteId, reviewMonth).catch(() => null) : Promise.resolve(null),
         // 6 meses con sus métricas: el análisis por ventana de abajo
         listAthleteStateSessions(athleteId, sinceIso(360)).catch(() => []),
+        fetchAthleteNotes(athleteId).catch((): AthleteNotes | null => null),
       ]);
       if (getRouteParam() !== athleteId) return;
 
@@ -178,6 +181,16 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
         ${athlete.injuries ? `<div class="panel coach-injuries"><span class="live-col-label">Lesiones o molestias que registró</span><span>${escapeHtml(athlete.injuries)}</span></div>` : ''}
 
         <section class="coach-tiles coach-tiles-5" aria-label="Indicadores">${kpisHtml(summary)}</section>
+
+        <section class="panel coach-card" aria-label="Expediente">
+          <div class="coach-card-head">
+            <h2 class="perfil-h2" style="margin:0">Expediente</h2>
+            <span class="hint">${notes ? `${notes.updatedBy === 'ai' ? 'Lo escribió la IA' : 'Editado por coach'} · ${new Date(notes.updatedAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}` : 'Vacío'}</span>
+          </div>
+          <span class="hint">Lo que hace único a este atleta: cómo responde, qué sesiones se le caen, cuántas semanas de carga aguanta, qué le molesta. El coach de IA lo tiene en cuenta en todo lo que propone y manda sobre sus reglas generales. Tu atleta lo puede ver.</span>
+          <textarea id="coach-notes" rows="5" maxlength="${NOTES_MAX_CHARS}" placeholder="Ej. Aguanta 2 semanas de carga y 1 de descarga; con 3 seguidas se le caen los intervalos. Rodilla izquierda: nada bajo 80 rpm." style="width:100%;resize:vertical;font-family:inherit">${escapeHtml(notes?.body ?? '')}</textarea>
+          <div class="row-actions" style="margin:0;align-items:center"><button type="button" class="btn-light" id="coach-notes-save">Guardar expediente</button><span class="hint" id="coach-notes-status"></span></div>
+        </section>
 
         <section class="panel coach-card coach-review-card" aria-label="Revisión mensual">
           <div class="coach-card-head">
@@ -234,6 +247,22 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
           }
           <span class="hint">Toca una sesión para ver su detalle y descargar el .fit. La carga de fuerza y movilidad se mide como RPE × minutos y se muestra aparte: no se suma al TSS de la bici. Lo que llega por Strava no se muestra.</span>
         </section>`);
+
+      container.querySelector('#coach-notes-save')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget as HTMLButtonElement;
+        const statusEl = container.querySelector<HTMLElement>('#coach-notes-status')!;
+        const body = container.querySelector<HTMLTextAreaElement>('#coach-notes')!.value;
+        if (!appState.user) return;
+        btn.disabled = true;
+        statusEl.textContent = 'Guardando…';
+        try {
+          await saveNotesAsCoach(athleteId, appState.user.id, body);
+          statusEl.textContent = 'Guardado.';
+        } catch (err) {
+          statusEl.textContent = `No se pudo guardar: ${errorMessage(err)}`;
+        }
+        btn.disabled = false;
+      });
 
       const analysisRoot = container.querySelector<HTMLElement>('#coach-analysis');
       if (analysisRoot) {

@@ -392,6 +392,9 @@ function wireWeeklyEvalButton(slot: HTMLElement, plan: ActivePlanRow, onChange: 
     status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.reasoning));
     if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
     if (data.result.nextTest) status.insertAdjacentHTML('beforebegin', plannedTestHtml(data.result.nextTest, plan.data.startDate));
+    if (data.result.notesUpdated) {
+      status.insertAdjacentHTML('beforebegin', '<p class="hint" style="margin-top:8px">Actualicé tu expediente con lo que he visto de cómo respondes. Lo ves (y lo puedes borrar) en Perfil.</p>');
+    }
     if (data.result.ftpAction === 'change' && data.result.suggestedFtp) {
       status.insertAdjacentHTML('beforebegin', ftpOfferHtml({ watts: Math.round(data.result.suggestedFtp), from: 'weekly_eval', at: new Date().toISOString() }));
       wireFtpOffer(form);

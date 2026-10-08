@@ -158,6 +158,11 @@ function checkWeeklyEval(ctx: Any, out: Any): Finding[] {
     f.push({ level: 'warn', msg: `movió el test de S${prev.weekIndex + 1} a S${out.nextTest.weekIndex + 1} sin explicarlo en reasoning` });
   }
   const tss = out.nextWeekWorkouts.reduce((s: number, x: Any) => s + x.targetTSS, 0);
+  if (!ctx.notesDue && out.notesUpdate) f.push({ level: 'warn', msg: 'propuso notesUpdate sin notesDue: el servidor lo va a ignorar' });
+  if (ctx.notesDue && out.notesUpdate && out.notesUpdate.length > 1200) f.push({ level: 'fail', msg: `notesUpdate de ${out.notesUpdate.length} caracteres (tope 1,200)` });
+  if (out.notesUpdate && ctx.athleteNotesBy === 'coach' && ctx.athleteNotes && !out.notesUpdate.includes(ctx.athleteNotes.trim())) {
+    f.push({ level: 'fail', msg: 'notesUpdate borró o cambió lo que escribió el coach (el servidor lo rechazaría)' });
+  }
   if (out.nextTest) f.push({ level: 'ok', msg: `nextTest: S${out.nextTest.weekIndex + 1} ${out.nextTest.type} — ${out.nextTest.reason}` });
   f.push({ level: 'ok', msg: `decision=${out.decision} · TSS siguiente semana ${tss} (la que terminó: ${wk.actualTSS} real / ${wk.plannedTSS} plan)` });
   return f;
@@ -243,7 +248,7 @@ async function run(id: string, resultPath?: string): Promise<boolean> {
     for (const i of parsed.error.issues.slice(0, 8)) console.log(`     ${i.path.join('.')}: ${i.message}`);
     return false;
   }
-  const findings = CHECKERS[mode]?.(scenario.context, parsed.data) ?? [];
+  const findings = CHECKERS[mode]?.({ ...scenario.context, ...(scenario.serverContext ?? {}) }, parsed.data) ?? [];
   const icon = { ok: 'ℹ️ ', warn: '⚠️ ', fail: '❌' } as const;
   for (const x of findings) console.log(`  ${icon[x.level]} ${x.msg}`);
   const fails = findings.filter((x) => x.level === 'fail').length;

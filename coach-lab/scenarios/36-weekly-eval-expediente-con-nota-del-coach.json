@@ -1,0 +1,124 @@
+{
+  "id": "36-weekly-eval-expediente-con-nota-del-coach",
+  "mode": "weekly_eval",
+  "title": "Le toca actualizar el expediente (notesDue) y ya hay una nota que escribió un coach",
+  "expect": [
+    "Usa el expediente: los bloques de umbral llevan cadence_min ≥ 80 y la semana respeta el ciclo 2+1 si toca descarga.",
+    "notesUpdate conserva tal cual la nota del coach y agrega debajo una observación con dato (p. ej. umbral que se cae con ERG desenganchado 7 veces y RPE 9, mientras el fondo sale estable).",
+    "notesUpdate ≤ 1,200 caracteres, tercera persona, sin diagnósticos.",
+    "Sigue bajando 3-5 puntos el umbral en vez de reducir toda la semana."
+  ],
+  "context": {
+    "profile": {
+      "sex": "M",
+      "name": "Diego",
+      "ftp": 255,
+      "ftpSource": "test_20min",
+      "ftpUpdatedAt": "2026-09-14T08:00:00.000Z",
+      "provisionalFtp": null
+    },
+    "maxSessionMinutes": null,
+    "occupiedDates": [],
+    "recentGapPattern": null,
+    "weekJustFinished": {
+      "plannedTSS": 400,
+      "actualTSS": 372,
+      "completedWorkouts": 4,
+      "missedWorkouts": 0,
+      "ruleTriggers": [
+        {
+          "ruleId": "factory-erg-detached",
+          "count": 7
+        }
+      ],
+      "athleteNote": "Los intervalos de umbral no los pude terminar, se me caía la potencia en la tercera serie. Lo demás bien.",
+      "workouts": [
+        {
+          "dayOfWeek": "tue",
+          "name": "Umbral 4×8",
+          "zone": "umbral",
+          "plannedTSS": 85,
+          "actualTSS": 74,
+          "completed": true,
+          "rpe": 9,
+          "hrDriftPct": null,
+          "efficiencyFactor": 1.42,
+          "ruleTriggers": [
+            {
+              "ruleId": "factory-erg-detached",
+              "count": 4
+            }
+          ]
+        },
+        {
+          "dayOfWeek": "thu",
+          "name": "Fondo 75",
+          "zone": "fondo",
+          "plannedTSS": 60,
+          "actualTSS": 61,
+          "completed": true,
+          "rpe": 4,
+          "hrDriftPct": 2.1,
+          "efficiencyFactor": 1.51,
+          "ruleTriggers": []
+        },
+        {
+          "dayOfWeek": "sat",
+          "name": "Umbral 3×10",
+          "zone": "umbral",
+          "plannedTSS": 90,
+          "actualTSS": 77,
+          "completed": true,
+          "rpe": 9,
+          "hrDriftPct": null,
+          "efficiencyFactor": 1.4,
+          "ruleTriggers": [
+            {
+              "ruleId": "factory-erg-detached",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "dayOfWeek": "sun",
+          "name": "Fondo largo",
+          "zone": "fondo",
+          "plannedTSS": 165,
+          "actualTSS": 160,
+          "completed": true,
+          "rpe": 5,
+          "hrDriftPct": 3.4,
+          "efficiencyFactor": 1.49,
+          "ruleTriggers": []
+        }
+      ]
+    },
+    "pmcTrend": {
+      "ctl": 58,
+      "atl": 64,
+      "tsb": -6,
+      "ctlRampLast4Weeks": 4.5
+    },
+    "recentWeeksSummary": [
+      {
+        "weekIndex": 0,
+        "plannedTSS": 360,
+        "actualTSS": 355,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 1,
+        "plannedTSS": 400,
+        "actualTSS": 410,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      }
+    ]
+  },
+  "serverContext": {
+    "athleteNotes": "Rodilla izquierda operada en 2024: nada bajo 80 rpm en esfuerzos sobre umbral. Rinde mejor con 2 semanas de carga y 1 de descarga.",
+    "athleteNotesBy": "coach",
+    "notesDue": true
+  }
+}

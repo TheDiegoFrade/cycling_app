@@ -26,6 +26,7 @@ import { buildUserMessage } from './message.ts';
 import { PLANNING_MODES, WorkoutDescriptionsSchema, schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
 import { fitToCap, summarizeSegments, toGeneratedWorkout, totalMinutes, type PlannedWorkout } from './expand.ts';
 import { resolveFromLibrary, type CoachWeekWorkout, type LibraryTemplate } from './library.ts';
+import { acceptAiNotes, notesDueOnWeeklyEval, type StoredNotes } from './notes.ts';
 
 type AdminClient = ReturnType<typeof createClient>;
 
@@ -133,10 +134,30 @@ Deno.serve(async (req) => {
       return json({ error: 'context inválido', details: contextCheck.error.issues }, 400);
     }
 
-    const context = contextCheck.data; // ya validado y tipado — usar este, no body.context
+    const validContext = contextCheck.data; // ya validado y tipado — usar este, no body.context
 
-    const allowed = await checkModeAllowed(admin, userId, body.mode, context);
+    const allowed = await checkModeAllowed(admin, userId, body.mode, validContext);
     if (!allowed.ok) return json({ error: allowed.reason }, 429);
+
+    // Expediente del atleta (athlete_notes): lo lee el servidor, nunca viene
+    // del cliente. En los modos del coach es el de su atleta (el vínculo ya
+    // se verificó arriba); en los demás, el del propio usuario.
+    const notesAthleteId = body.mode === 'coach_week' || body.mode === 'monthly_review' ? (validContext as { athleteId: string }).athleteId : userId;
+    const notes = await loadNotes(admin, notesAthleteId);
+    // Sin coach humano, cada 4 evaluaciones semanales la IA propone el
+    // expediente (notesUpdate); con coach lo propone monthly_review y él decide.
+    const notesDue =
+      body.mode === 'weekly_eval' &&
+      notesDueOnWeeklyEval(await getActionCount(admin, userId, 'weekly_eval'), (await activeCoachOf(admin, userId)) !== null);
+    // athleteNotes y notesDue solo los pone el servidor: si el cliente los
+    // mandara, se descartan (los schemas de entrada ya no los aceptan, pero
+    // se borran aquí también por si alguno los dejara pasar).
+    const { athleteNotes: _clientNotes, athleteNotesBy: _clientBy, notesDue: _clientDue, ...cleanContext } = validContext as Record<string, unknown>;
+    const context: Record<string, unknown> = {
+      ...cleanContext,
+      ...(notes?.body ? { athleteNotes: notes.body, athleteNotesBy: notes.updatedBy } : {}),
+      ...(body.mode === 'weekly_eval' ? { notesDue } : {}),
+    };
 
     const usedThisMonth = await getMonthlyTokens(admin, userId);
     if (usedThisMonth >= MONTHLY_TOKEN_CEILING) {
@@ -857,6 +878,7 @@ async function applyModeEffects(
       ftpAction: output.ftpAction ?? null,
       suggestedFtp: output.suggestedFtp ?? null,
       nextTest: output.nextTest ?? null,
+      notesUpdated: context.notesDue === true ? await saveAiNotes(admin, userId, output.notesUpdate) : false,
     };
   }
 
@@ -895,6 +917,29 @@ async function applyModeEffects(
  * la app ofrezca el botón aunque se recargue la página. El atleta decide. */
 function ftpSuggestionOf(watts: number | null | undefined, from: 'create_plan' | 'weekly_eval') {
   return watts ? { watts: Math.round(watts), from, at: new Date().toISOString() } : null;
+}
+
+async function loadNotes(admin: AdminClient, athleteId: string): Promise<StoredNotes | null> {
+  const { data } = await admin.from('athlete_notes').select('body, updated_by').eq('athlete_id', athleteId).maybeSingle();
+  return data ? { body: data.body as string, updatedBy: data.updated_by as StoredNotes['updatedBy'] } : null;
+}
+
+/** Guarda el expediente que propuso la IA si pasa la guarda (acceptAiNotes:
+ * tope y nunca borrar lo que escribió un coach). true si se guardó. */
+async function saveAiNotes(admin: AdminClient, athleteId: string, proposed: string | null | undefined): Promise<boolean> {
+  const body = acceptAiNotes(proposed, await loadNotes(admin, athleteId));
+  if (!body) return false;
+  const { error } = await admin
+    .from('athlete_notes')
+    .upsert({ athlete_id: athleteId, body, updated_by: 'ai', updated_by_user: null, updated_at: new Date().toISOString() });
+  if (error) console.log(`[coach-chat] no se guardó el expediente: ${error.message}`);
+  return !error;
+}
+
+/** Acciones de un tipo en toda la historia del usuario (no solo el mes). */
+async function getActionCount(admin: AdminClient, userId: string, action: PlanActionType): Promise<number> {
+  const { count } = await admin.from('plan_actions').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('action', action);
+  return count ?? 0;
 }
 
 async function getMonthlyTokens(admin: AdminClient, userId: string): Promise<number> {

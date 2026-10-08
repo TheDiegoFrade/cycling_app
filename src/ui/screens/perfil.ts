@@ -13,6 +13,7 @@ import { COACH_TIER_LABELS } from '../../core/coach-invite';
 import { endMyCoachLink } from '../../sync/coach-link';
 import { wireDatePicker } from '../date-picker';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
+import { deleteMyNotes, fetchAthleteNotes } from '../../sync/athlete-notes';
 
 const SOUNDS = [
   { id: 'tick', label: 'Cuenta regresiva' },
@@ -43,6 +44,32 @@ function zoneRanges(ftp: number): { zone: PowerZone; range: string }[] {
 
 function switchHtml(id: string, checked: boolean): string {
   return `<button class="switch${checked ? ' on' : ''}" role="switch" aria-pressed="${checked}" data-switch="${id}"></button>`;
+}
+
+/** Tu expediente (athlete_notes): lo que el coach de IA sabe de ti. Solo
+ * aparece si existe; el atleta lo puede borrar, no editar (lo escribe su
+ * coach o la IA). */
+async function paintNotesInto(slot: HTMLElement | null): Promise<void> {
+  if (!slot || !appState.user) return;
+  const userId = appState.user.id;
+  const notes = await fetchAthleteNotes(userId).catch(() => null);
+  if (!notes || !slot.isConnected) return;
+  slot.innerHTML = `
+    <div class="panel perfil-panel">
+      <h2 class="perfil-h2">Tu expediente</h2>
+      <p class="hint" style="margin:0 0 8px">Lo que el coach de IA tiene en cuenta de ti en tus planes. ${notes.updatedBy === 'ai' ? 'Lo escribió la IA con lo que ha visto de tus semanas.' : 'Lo escribió tu coach.'}</p>
+      <p style="white-space:pre-wrap;margin:0 0 10px">${escapeHtml(notes.body)}</p>
+      <button type="button" class="perfil-danger-link" id="profile-notes-delete">Borrar mi expediente</button>
+    </div>`;
+  slot.querySelector('#profile-notes-delete')?.addEventListener('click', async () => {
+    if (!window.confirm('¿Borrar tu expediente? El coach de IA deja de tenerlo en cuenta (y puede volver a escribirlo más adelante).')) return;
+    try {
+      await deleteMyNotes(userId);
+      slot.innerHTML = '';
+    } catch {
+      slot.querySelector('.hint')!.textContent = 'No se pudo borrar. Intenta de nuevo.';
+    }
+  });
 }
 
 /** De dónde salió el FTP, debajo del campo. */
@@ -148,6 +175,8 @@ export function renderPerfil(container: HTMLElement): void {
               }</p>
               <button class="btn-light" id="profile-open-onboarding">${isCoachProfileComplete(appState.profile) ? 'Editar cuestionario' : 'Contestar cuestionario'}</button>
             </div>
+
+            <div id="profile-notes-slot"></div>
 
             <div class="panel perfil-panel">
               <h2 class="perfil-h2">Alertas</h2>
@@ -322,6 +351,8 @@ export function renderPerfil(container: HTMLElement): void {
 
     // allowSkip:true — a diferencia de la primera vez (antes de "Crear mi
     // plan", donde es obligatorio), acá es revisión/edición libre.
+    void paintNotesInto(container.querySelector<HTMLElement>('#profile-notes-slot'));
+
     container.querySelector('#profile-open-onboarding')?.addEventListener('click', () => {
       openOnboardingForm(() => paint(), true);
     });

@@ -37,8 +37,11 @@ for (const file of files) {
     Deno.exit(1);
   }
   const jsonSchema = JSON.stringify(z.toJSONSchema(schemaForMode(mode)), null, 1);
+  // Lo que agrega el servidor después de validar (athleteNotes, notesDue):
+  // en el escenario va aparte, en `serverContext`.
+  const fullContext = { ...check.data, ...(scenario.serverContext ?? {}) };
   const text = [
-    buildUserMessage(mode, check.data),
+    buildUserMessage(mode, fullContext),
     '',
     '---',
     'Formato de salida (solo para esta prueba en chat; en producción lo fuerza la API): responde ÚNICAMENTE con un objeto JSON válido que cumpla este JSON Schema, sin texto antes ni después.',

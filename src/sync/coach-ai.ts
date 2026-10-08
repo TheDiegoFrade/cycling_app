@@ -69,6 +69,8 @@ export interface MonthlyReviewDraft {
   findings: ReviewFinding[];
   message: string;
   goals: ReviewGoal[];
+  /** Propuesta de expediente del atleta para que el coach la apruebe. */
+  notesUpdate: string | null;
 }
 
 export function requestMonthlyReviewDraft(context: ReviewAiContext): Promise<MonthlyReviewDraft> {

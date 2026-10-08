@@ -315,6 +315,9 @@ export const WeeklyEvalOutputSchema = z.object({
   ftpAction: z.enum(['keep', 'change']).nullable(),
   suggestedFtp: z.number().positive().nullable(),
   nextTest: NextTestSchema,
+  // Texto COMPLETO nuevo del expediente, solo si el context trae notesDue
+  // true; si no, null. Ver "Expediente del atleta" en prompt.ts.
+  notesUpdate: z.string().max(1200).nullable(),
 });
 
 // Forma esperada de `context` para publish_block — resumen del BLOQUE
@@ -510,6 +513,8 @@ export const MonthlyReviewOutputSchema = z.object({
   message: z.string().max(3000),
   // 2-3 objetivos medibles para el mes siguiente
   goals: z.array(z.object({ title: z.string().max(140), detail: z.string().max(400) })).max(3),
+  // Propuesta de expediente para que el coach la apruebe (null si nada nuevo).
+  notesUpdate: z.string().max(1200).nullable(),
 });
 
 export type Mode = 'create_plan' | 'weekly_eval' | 'publish_block' | 'finished_training_eval_comment' | 'coach_week' | 'monthly_review';

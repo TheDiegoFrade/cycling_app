@@ -1118,3 +1118,38 @@ create policy "fit-files: coach lee los de sus atletas" on storage.objects for s
         and public.is_coach_of(s.user_id)
     )
   );
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- athlete_notes: el expediente del atleta — lo que lo hace único (cómo
+-- responde, qué sesiones se le caen, cuántas semanas de carga aguanta, qué
+-- le molesta). Lo reciben los seis modos del coach de IA (coach-chat lo lee
+-- con service role y lo mete al context) y manda sobre las reglas generales
+-- del prompt. Lo edita su coach activo; sin coach, la IA lo actualiza cada 4
+-- evaluaciones semanales (updated_by 'ai'). El atleta lo ve y puede borrarlo.
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists athlete_notes (
+  athlete_id uuid primary key references auth.users (id) on delete cascade,
+  body text not null default '' check (char_length(body) <= 1200),
+  updated_by text not null check (updated_by in ('coach', 'ai')),
+  updated_by_user uuid references auth.users (id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+
+alter table athlete_notes enable row level security;
+
+drop policy if exists "athlete_notes: atleta y su coach leen" on athlete_notes;
+create policy "athlete_notes: atleta y su coach leen" on athlete_notes for select
+  using (auth.uid() = athlete_id or is_coach_of(athlete_id));
+
+drop policy if exists "athlete_notes: coach crea" on athlete_notes;
+create policy "athlete_notes: coach crea" on athlete_notes for insert
+  with check (is_coach_of(athlete_id) and updated_by = 'coach' and updated_by_user = auth.uid());
+
+drop policy if exists "athlete_notes: coach edita" on athlete_notes;
+create policy "athlete_notes: coach edita" on athlete_notes for update
+  using (is_coach_of(athlete_id))
+  with check (is_coach_of(athlete_id) and updated_by = 'coach' and updated_by_user = auth.uid());
+
+drop policy if exists "athlete_notes: atleta borra el suyo" on athlete_notes;
+create policy "athlete_notes: atleta borra el suyo" on athlete_notes for delete
+  using (auth.uid() = athlete_id);
