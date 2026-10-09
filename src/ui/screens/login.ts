@@ -2,6 +2,7 @@ import { isSupabaseConfigured, supabase } from '../../supabase/client';
 import { subscribeAmbientState, toggleAmbientTrack } from '../ambient-audio';
 import { navigate } from '../router';
 import { appState } from '../state';
+import { requestPasswordReset } from '../password-reset';
 
 function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supabase>): void {
   container.innerHTML = `
@@ -14,6 +15,7 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
           <label>Correo<input type="email" id="login-email" placeholder="tucorreo@ejemplo.com"></label>
           <label>Contraseña<input type="password" id="login-password"></label>
           <button class="primary" id="login-password-btn">Entrar</button>
+          <a href="#" class="hint" id="login-forgot" style="display:block;margin-top:8px">¿Olvidaste tu contraseña?</a>
           <div id="login-result"></div>
         </div>
       </div>
@@ -50,6 +52,21 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
   });
   musicToggle.addEventListener('click', () => {
     void toggleAmbientTrack();
+  });
+
+  container.querySelector('#login-forgot')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const resultEl = container.querySelector<HTMLElement>('#login-result')!;
+    const email = container.querySelector<HTMLInputElement>('#login-email')!.value.trim();
+    if (!email) {
+      resultEl.innerHTML = '<div class="error-box">Escribe tu correo arriba y vuelve a tocar «¿Olvidaste tu contraseña?».</div>';
+      return;
+    }
+    resultEl.innerHTML = '<p class="hint">Enviando…</p>';
+    const error = await requestPasswordReset(email);
+    resultEl.innerHTML = error
+      ? `<div class="error-box">${error}</div>`
+      : '<p class="hint">Si ese correo tiene cuenta, te llegó un link para poner una contraseña nueva. Ábrelo en este mismo navegador.</p>';
   });
 
   container.querySelector('#login-password-btn')?.addEventListener('click', async () => {

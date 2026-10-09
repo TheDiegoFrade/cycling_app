@@ -9,6 +9,16 @@ import type { schemaForMode } from './schemas.ts';
 /** Modelo de los modos sin routing (el comentario post-sesión). */
 export const OTHER_MODEL = 'claude-haiku-4-5-20251001';
 
+/** El formato de salida SIN el `parse` del SDK: si lo trae, el SDK valida
+ * con zod dentro de finalMessage() y una salida que no cumple (p. ej. un
+ * texto un poco más largo que el .max del schema) truena la llamada con un
+ * error en inglés que llegaba tal cual al atleta. Así la valida
+ * readResponse, que responde con un mensaje claro. */
+function formatOf<T extends { parse?: unknown }>(format: T): Omit<T, 'parse'> {
+  const { parse: _parse, ...rest } = format;
+  return rest;
+}
+
 export async function callCoach(
   client: Anthropic,
   choice: ModelChoice | null,
@@ -24,7 +34,7 @@ export async function callCoach(
         // alto es solo margen (se cobra lo generado, no el techo).
         max_tokens: 32000,
         // low: en la prueba rindió igual que medium, más rápido y barato.
-        output_config: { effort: choice.effort, format: betaZodOutputFormat(schema) },
+        output_config: { effort: choice.effort, format: formatOf(betaZodOutputFormat(schema)) },
         // Si un clasificador de seguridad rechazara la petición a Sonnet,
         // el servidor la reintenta con otro modelo en la misma llamada.
         ...(choice.model === SONNET ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' } : {}),
@@ -39,7 +49,7 @@ export async function callCoach(
       max_tokens: 48000,
       system,
       messages,
-      output_config: { format: zodOutputFormat(schema) },
+      output_config: { format: formatOf(zodOutputFormat(schema)) },
     })
     .finalMessage();
 }

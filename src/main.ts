@@ -27,6 +27,7 @@ import { appState } from './ui/state';
 import { stopAmbientTrack } from './ui/ambient-audio';
 import { handleStravaRedirect } from './sync/strava';
 import { installDomTips } from './ui/chart-hover';
+import { maybeShowPasswordReset } from './ui/password-reset';
 
 type RenderFn = (container: HTMLElement) => (() => void) | void;
 
@@ -90,4 +91,6 @@ appState.boot().then(async () => {
   // Function que hace el intercambio de tokens.
   await handleStravaRedirect();
   refresh();
+  // Volvimos del link de "olvidé mi contraseña": pide la nueva.
+  maybeShowPasswordReset();
 });

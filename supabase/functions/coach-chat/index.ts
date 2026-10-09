@@ -21,6 +21,7 @@ import { zodOutputFormat } from 'npm:@anthropic-ai/sdk@0/helpers/zod';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
 import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
+import { evalWeekTarget, localDateKey, planTotalWeeks } from '../_shared/core.gen.js';
 import { COACH_SYSTEM_PROMPT, WRITER_SYSTEM_PROMPT } from './prompt.ts';
 import { buildUserMessage } from './message.ts';
 import { PLANNING_MODES, WorkoutDescriptionsSchema, schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
@@ -28,7 +29,7 @@ import { summarizeSegments, toGeneratedWorkout, totalMinutes, type PlannedWorkou
 import { resolveFromLibrary, type CoachWeekWorkout, type LibraryTemplate } from './library.ts';
 import { acceptAiNotes, notesDueOnWeeklyEval, type StoredNotes } from './notes.ts';
 import { callRow, logCalls, type CallRow, type CallStep, type UsageLike } from './usage-log.ts';
-import { correctionMessage, guardOutput } from './guard.ts';
+import { correctionMessage, guardOutput, usableStartDate } from './guard.ts';
 import { plannerFor } from './routing.ts';
 import { OTHER_MODEL, callCoach, readResponse } from './coach-call.ts';
 import { deliverDraft, emailKey, planDraftOf, weekDraftOf } from './coach-email.ts';
@@ -97,6 +98,11 @@ const MONTHLY_PLAN_ACTION_LIMIT = 3;
 // debería comerse el presupuesto de crear/modificar el plan completo.
 const MONTHLY_WEEKLY_EVAL_LIMIT = 10;
 
+// Zona de los atletas (mismo criterio que monthly-self-report): decide qué
+// día es "hoy" para la evaluación semanal y qué días ya pasaron.
+const ATHLETE_TIME_ZONE = 'America/Mexico_City';
+const athleteToday = () => localDateKey(new Date(), ATHLETE_TIME_ZONE);
+
 const DAY_OFFSET: Record<string, number> = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun: 6 };
 
 
@@ -113,6 +119,8 @@ interface CoachChatRequest {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   const startedAt = Date.now();
+  // Se arma al reservar cuota: si el intento falla, la devuelve (refundUsage).
+  let refund: () => Promise<void> = async () => {};
   try {
     const userId = await getUserId(req);
     // Antes de CUALQUIER otra cosa — ni siquiera parsea el body todavía.
@@ -130,13 +138,16 @@ Deno.serve(async (req) => {
     // dejarle al modelo adivinar datos faltantes o mal tipados.
     const contextCheck = inputContextSchemaForMode(body.mode).safeParse(body.context);
     if (!contextCheck.success) {
-      return json({ error: 'context inválido', details: contextCheck.error.issues }, 400);
+      // Los mensajes propios del schema vienen en español; los de zod no.
+      const issue = contextCheck.error.issues[0];
+      const own = issue && /[áéíóúñ]|elige|escribe|máximo|al menos/.test(issue.message) ? issue.message : null;
+      return json({ error: own ?? 'revisa los datos de tu perfil y del formulario', details: contextCheck.error.issues }, 400);
     }
 
     const validContext = contextCheck.data; // ya validado y tipado — usar este, no body.context
 
     const allowed = await checkModeAllowed(admin, userId, body.mode, validContext);
-    if (!allowed.ok) return json({ error: allowed.reason }, 429);
+    if (!allowed.ok) return json({ error: allowed.reason }, allowed.status ?? 429);
 
     // Expediente del atleta (athlete_notes): lo lee el servidor, nunca viene
     // del cliente. En los modos del coach es el de su atleta (el vínculo ya
@@ -157,6 +168,21 @@ Deno.serve(async (req) => {
       ...(notes?.body ? { athleteNotes: notes.body, athleteNotesBy: notes.updatedBy } : {}),
       ...(body.mode === 'weekly_eval' ? { notesDue } : {}),
     };
+    // Si en lo que queda de esta semana ya no hay ningún día disponible y
+    // libre (crear el plan un viernes con días mar/mié/jue), el plan arranca
+    // el lunes siguiente: con la semana 0 vacía la guardia lo rechazaba (502)
+    // y el atleta no podía crear plan hasta cambiar de semana.
+    // "Hoy" del atleta: el coach no agenda en días que ya pasaron (guard.ts).
+    if (PLANNING_MODES.has(body.mode)) context.today = athleteToday();
+    if (body.mode === 'weekly_eval') await prepareWeeklyEvalContext(admin, userId, context);
+    if (body.mode === 'create_plan') {
+      const availability = context.availability as { days?: string[] } | undefined;
+      const start = usableStartDate(context.startDate as string, availability?.days, new Set((context.occupiedDates as string[] | undefined) ?? []));
+      if (start !== context.startDate) {
+        console.log(`[coach-chat] create_plan: sin días usables desde ${context.startDate}, arranca el ${start}`);
+        context.startDate = start;
+      }
+    }
 
     const usedThisMonth = await getMonthlyTokens(admin, userId);
     if (usedThisMonth >= MONTHLY_TOKEN_CEILING) {
@@ -169,7 +195,9 @@ Deno.serve(async (req) => {
     // encontramos el problema real: una llamada que tronó por IDLE_TIMEOUT
     // probablemente sí se cobró del lado de Claude, pero nunca llegamos a
     // loguearla porque la función murió antes de recordUsage.
-    const period = await reserveUsage(admin, userId);
+    const reserved = await reserveUsage(admin, userId);
+    const period = reserved.period;
+    refund = () => refundUsage(admin, userId, reserved.period, reserved.before);
 
     const client = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
     const schema = schemaForMode(body.mode);
@@ -218,6 +246,7 @@ Deno.serve(async (req) => {
     let first = readResponse(response, schema);
     if (!first.ok) {
       await logCalls(admin, calls.splice(0));
+      await refund();
       return json({ error: first.error }, 502);
     }
 
@@ -254,6 +283,7 @@ Deno.serve(async (req) => {
       // No se guarda nada ni se gasta ningún tope: el atleta puede volver a pedirlo.
       console.log(`[coach-chat] guardia rechazó: ${guard.fails.join(' | ')}`);
       await logCalls(admin, calls.splice(0));
+      await refund();
       return json({ error: 'el coach armó algo que no cumple las reglas de seguridad del plan — intenta de nuevo' }, 502);
     }
     const parseResult = { data: guard.out };
@@ -288,9 +318,53 @@ Deno.serve(async (req) => {
 
     return json({ result });
   } catch (err) {
-    return json({ error: err instanceof Error ? err.message : String(err) }, 400);
+    await refund().catch(() => {});
+    if (err instanceof HttpError) return json({ error: err.message }, err.status);
+    const message = err instanceof Error ? err.message : String(err);
+    console.log(`[coach-chat] error: ${message}`);
+    // Nada de errores internos en inglés (SDK, Postgres) hacia el atleta.
+    const friendly = /^[a-záéíóúñ¿¡ ]/.test(message) && !/duplicate key|violates|Failed to|fetch failed|timeout/i.test(message)
+      ? message
+      : 'algo falló al armar tu plan — intenta de nuevo en unos minutos';
+    return json({ error: friendly }, 500);
   }
 });
+
+/** La semana que va a generar weekly_eval la decide el servidor (mismo
+ * cálculo que el gate): su lunes, y sus días ocupados sin contar las
+ * sesiones que se van a rehacer (si no, el coach esquivaba justo los días
+ * de la semana que está reemplazando). */
+async function prepareWeeklyEvalContext(admin: AdminClient, userId: string, context: Record<string, unknown>): Promise<void> {
+  const { data: plan } = await admin.from('training_plans').select('data').eq('user_id', userId).eq('status', 'active').maybeSingle();
+  const planData = plan?.data as { startDate: string; weeks: { workoutIds: string[] }[] } | undefined;
+  if (!planData) return;
+  const t = evalWeekTarget(planData.startDate, athleteToday());
+  if (!t) return;
+  const monday = new Date(`${planData.startDate}T00:00:00Z`);
+  monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7) + t.target * 7);
+  context.nextWeekStart = monday.toISOString().slice(0, 10);
+  const replaced = planData.weeks[t.target]?.workoutIds ?? [];
+  if (!replaced.length) return;
+  const [{ data: rows }, { data: trained }] = await Promise.all([
+    admin.from('workouts').select('id, data').eq('user_id', userId).in('id', replaced),
+    admin.from('sessions').select('workout_id').in('workout_id', replaced),
+  ]);
+  const trainedIds = new Set((trained ?? []).map((x: { workout_id: string }) => x.workout_id));
+  const today = athleteToday();
+  const freed = new Set(
+    ((rows ?? []) as { id: string; data: { scheduledDate?: string } }[])
+      .filter((r) => !trainedIds.has(r.id) && (r.data.scheduledDate ?? '') >= today)
+      .map((r) => r.data.scheduledDate),
+  );
+  context.occupiedDates = ((context.occupiedDates as string[] | undefined) ?? []).filter((d) => !freed.has(d));
+}
+
+/** Error con el código HTTP que debe ver el cliente. */
+class HttpError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+  }
+}
 
 /**
  * Gate estructural — la frecuencia de llamadas la controla el ESTADO real
@@ -309,7 +383,7 @@ async function checkModeAllowed(
   userId: string,
   mode: Mode,
   context: Record<string, unknown>,
-): Promise<{ ok: true } | { ok: false; reason: string }> {
+): Promise<{ ok: true } | { ok: false; reason: string; status?: number }> {
   if (mode === 'coach_week' || mode === 'monthly_review') {
     // Solo el coach con vínculo ACTIVO con ese atleta — misma regla que
     // is_coach_of() en schema.sql. El userId es del JWT, nunca del body.
@@ -354,7 +428,8 @@ async function checkModeAllowed(
     .maybeSingle();
 
   if (mode === 'create_plan') {
-    if (plan) return { ok: false, reason: 'ya tienes un plan activo' };
+    // 409: es un conflicto de estado, no un límite de uso (429 se lee como "reintenta").
+    if (plan) return { ok: false, reason: 'ya tienes un plan activo', status: 409 };
     const monthlyActions = await getMonthlyActionCount(admin, userId, ['create', 'modify']);
     if (monthlyActions >= MONTHLY_PLAN_ACTION_LIMIT) {
       return {
@@ -368,27 +443,14 @@ async function checkModeAllowed(
   if (!plan) return { ok: false, reason: 'no tienes un plan activo todavía' };
 
   if (mode === 'weekly_eval') {
-    // Si el bloque actual ya se agotó, lo que toca es publish_block, no otra
-    // weekly_eval — si no se revisa esto, weekly_eval seguiría generando
-    // semanas hacia el siguiente bloque sin publicar (el mismo bug del
-    // exhausted, solo que una llamada antes).
-    if (plan.current_block_exhausted) {
-      return { ok: false, reason: 'el bloque actual ya se agotó, toca publicar el siguiente bloque' };
-    }
-    // create_plan concretiza hasta 3 semanas de una vez (ver prompt.ts) —
-    // mientras todavía queden semanas YA materializadas por delante que ni
-    // siquiera han empezado, no hay nada real que evaluar ni un "siguiente"
-    // que generar. Sin este chequeo, evaluar el día 1 de un plan nuevo
-    // trataba semanas futuras sin un solo entrenamiento real como si fueran
-    // adherencia perdida — encontrado probando este flujo justo así.
-    const planDataForGate = plan.data as { startDate: string; weeks: { weekIndex: number }[] };
-    const lastWeekEnd = weekEndDate(planDataForGate.startDate, planDataForGate.weeks.length - 1);
-    const todayUtc = new Date(new Date().toISOString().slice(0, 10) + 'T00:00:00Z');
-    if (todayUtc <= lastWeekEnd) {
-      return {
-        ok: false,
-        reason: `todavía tienes semanas armadas por delante (hasta el ${lastWeekEnd.toISOString().slice(0, 10)}) — vuelve cuando se acerque esa fecha`,
-      };
+    // Se evalúa la semana que acaba de terminar y se genera la siguiente
+    // (src/core/eval-week.ts), también si abre un bloque nuevo: ya no hay
+    // que esperar a que pasen todas las semanas armadas ni a publish_block.
+    const planDataForGate = plan.data as { startDate: string; blocks: { weeks: number }[] };
+    const t = evalWeekTarget(planDataForGate.startDate, athleteToday());
+    if (!t) return { ok: false, reason: 'todavía no termina tu primera semana — vuelve el domingo para evaluarla' };
+    if (t.target >= planTotalWeeks(planDataForGate.blocks)) {
+      return { ok: false, reason: 'tu plan ya terminó: crea uno nuevo para seguir', status: 409 };
     }
     // Hasta 2 veces en la misma semana ISO — la segunda es un "refresh" por
     // si el atleta quiere agregar contexto que olvidó la primera vez (ver
@@ -769,6 +831,10 @@ async function applyModeEffects(
     const startDate = context.startDate as string | undefined;
     if (!startDate) throw new Error('falta context.startDate');
 
+    // Otro intento pudo terminar mientras este esperaba al modelo (~1 min).
+    const { data: already } = await admin.from('training_plans').select('id').eq('user_id', userId).eq('status', 'active').maybeSingle();
+    if (already) throw new HttpError(409, 'ya tienes un plan activo (se creó en otro intento) — recarga la app para verlo');
+
     const occupiedDates = new Set((context.occupiedDates as string[] | undefined) ?? []);
     const weeks: { weekIndex: number; workoutIds: string[] }[] = [];
     for (let i = 0; i < output.firstBlockWeeks.length; i++) {
@@ -830,10 +896,20 @@ async function applyModeEffects(
       },
       current_block_exhausted: firstBlockExhausted,
     });
-    if (error) throw new Error(`no se pudo guardar el plan: ${error.message}`);
+    if (error) {
+      // Las sesiones ya se insertaron arriba: sin plan que las referencie, la
+      // baja nunca las borraría (huérfanas en el calendario). Pasa con dos
+      // create_plan cruzados (doble envío, o reintento tras un corte de red
+      // mientras el primero seguía): el índice único deja pasar solo uno.
+      const inserted = weeks.flatMap((w) => w.workoutIds);
+      if (inserted.length && !coachId) await admin.from('workouts').delete().eq('user_id', userId).in('id', inserted);
+      if (error.code === '23505') throw new HttpError(409, 'ya tienes un plan activo (se creó en otro intento) — recarga la app para verlo');
+      throw new Error(`no se pudo guardar el plan: ${error.message}`);
+    }
 
     return {
       planId,
+      startDate,
       coachNote: output.coachNote,
       weeks,
       sentToCoach: coachId !== null,
@@ -857,39 +933,50 @@ async function applyModeEffects(
   };
 
   if (mode === 'weekly_eval') {
-    // Hasta 2 evaluaciones por semana ISO (ver checkModeAllowed) — la
-    // segunda es un "refresh" de la MISMA semana siguiente (el atleta
-    // quiso agregar contexto que olvidó la primera vez), no una tercera
-    // semana de golpe. isRefresh detecta esto comparando contra la semana
-    // ISO ya guardada, mismo dato que ya validó el gate.
+    // La semana que se genera es la siguiente a la que acaba de terminar
+    // (src/core/eval-week.ts, mismo cálculo que el gate). Si ya estaba armada
+    // —create_plan deja hasta 3— se rehace con la retro; si no, se agrega.
+    // Una 2ª evaluación en la misma semana ("refresh") cae en la misma y la
+    // vuelve a rehacer.
+    const t = evalWeekTarget(planData.startDate, athleteToday());
+    if (!t) throw new HttpError(429, 'todavía no termina tu primera semana — vuelve el domingo para evaluarla');
+    const nextWeekIndex = t.target;
     const isRefresh = plan.last_eval_iso_week === currentIsoWeek();
-    const nextWeekIndex = isRefresh ? planData.weeks.length - 1 : planData.weeks.length;
 
-    if (isRefresh) {
-      // Borra los workouts de la versión anterior de ESTA semana antes de
-      // regenerarla — excepción sancionada al "nunca borrar datos": son
-      // workouts futuros de una semana que por definición todavía no pasó
-      // (se está regenerando la misma semana ISO), pero por si acaso se
-      // verifica contra `sessions` igual que coach-retire-plan, nunca se
-      // borra un workout que ya tenga una sesión real encima.
-      const oldIds = planData.weeks[nextWeekIndex]?.workoutIds ?? [];
-      if (oldIds.length > 0) {
-        const { data: trained } = await admin.from('sessions').select('workout_id').in('workout_id', oldIds);
-        const trainedIds = new Set((trained ?? []).map((s: { workout_id: string }) => s.workout_id));
-        const toDelete = oldIds.filter((id: string) => !trainedIds.has(id));
-        if (toDelete.length > 0) await admin.from('workouts').delete().eq('user_id', userId).in('id', toDelete);
-      }
+    // Borra lo que ya estaba armado en esa semana — excepción sancionada al
+    // "nunca borrar datos": son workouts de una semana que todavía no se
+    // entrenó; igual que coach-retire-plan, nunca se borra uno que ya tenga
+    // una sesión real encima (esos se quedan en la semana).
+    // Tampoco los de días que ya pasaron (evaluar un jueves rehace la semana
+    // en curso): se quedan como estaban, entrenados o no.
+    const oldIds = planData.weeks[nextWeekIndex]?.workoutIds ?? [];
+    let keptIds: string[] = [];
+    if (oldIds.length > 0) {
+      const today = athleteToday();
+      const [{ data: trained }, { data: rows }] = await Promise.all([
+        admin.from('sessions').select('workout_id').in('workout_id', oldIds),
+        admin.from('workouts').select('id, data').eq('user_id', userId).in('id', oldIds),
+      ]);
+      const trainedIds = new Set((trained ?? []).map((s: { workout_id: string }) => s.workout_id));
+      const dateOf = new Map(((rows ?? []) as { id: string; data: { scheduledDate?: string } }[]).map((r) => [r.id, r.data.scheduledDate ?? '']));
+      const replaceable = (id: string) => !trainedIds.has(id) && (dateOf.get(id) ?? '') >= today;
+      keptIds = oldIds.filter((id: string) => !replaceable(id));
+      const toDelete = oldIds.filter(replaceable);
+      if (toDelete.length > 0) await admin.from('workouts').delete().eq('user_id', userId).in('id', toDelete);
     }
 
     const weeklyEvalOccupiedDates = new Set((context.occupiedDates as string[] | undefined) ?? []);
     const ids = await materializeWeek(admin, userId, planData.startDate, nextWeekIndex, output.nextWeekWorkouts, weeklyEvalOccupiedDates, coachId);
-    const weeks = isRefresh
-      ? planData.weeks.map((w, i) => (i === nextWeekIndex ? { weekIndex: nextWeekIndex, workoutIds: ids } : w))
-      : [...planData.weeks, { weekIndex: nextWeekIndex, workoutIds: ids }];
+    // Semanas contiguas: si el atleta se saltó evaluaciones, las de en medio
+    // quedan vacías (ya pasaron).
+    const weeks = planData.weeks.slice();
+    for (let i = weeks.length; i <= nextWeekIndex; i++) weeks.push({ weekIndex: i, workoutIds: [] });
+    weeks[nextWeekIndex] = { weekIndex: nextWeekIndex, workoutIds: [...keptIds, ...ids] };
 
+    // La semana nueva puede abrir un bloque: queda publicado (antes eso
+    // requería publish_block, que no tiene UI, y el plan se quedaba sin salida).
     const blockIdx = blockIndexForWeek(planData.blocks, nextWeekIndex);
-    const weeksBeforeBlock = planData.blocks.slice(0, blockIdx).reduce((s, b) => s + b.weeks, 0);
-    const blockExhausted = nextWeekIndex - weeksBeforeBlock + 1 >= planData.blocks[blockIdx].weeks;
+    const blocks = planData.blocks.map((b, i) => (i <= blockIdx && !b.published ? { ...b, published: true } : b));
 
     const { error } = await admin
       .from('training_plans')
@@ -902,6 +989,7 @@ async function applyModeEffects(
         // aplica), null la deja como estaba (el FTP no vino al caso).
         data: {
           ...planData,
+          blocks,
           weeks,
           lastEvalNote: output.reasoning,
           // El coach revisa el test agendado cada semana: lo que diga ahora
@@ -916,7 +1004,8 @@ async function applyModeEffects(
         },
         last_eval_iso_week: currentIsoWeek(),
         eval_count_this_iso_week: isRefresh ? (plan.eval_count_this_iso_week ?? 1) + 1 : 1,
-        current_block_exhausted: blockExhausted,
+        // Ya no frena nada (ver el gate): se deja en false.
+        current_block_exhausted: false,
         updated_at: new Date().toISOString(),
       })
       .eq('id', plan.id);
@@ -1033,7 +1122,7 @@ async function logPlanAction(admin: AdminClient, userId: string, action: PlanAct
  * muere a medio camino, esto ya quedó contado como gasto (sobreestimado,
  * nunca perdido). Regresa el período para que reconcileUsage sepa qué fila
  * corregir después. */
-async function reserveUsage(admin: AdminClient, userId: string): Promise<string> {
+async function reserveUsage(admin: AdminClient, userId: string): Promise<{ period: string; before: number }> {
   const period = currentMonthPeriod();
   const { data: existing } = await admin
     .from('coach_usage')
@@ -1052,7 +1141,20 @@ async function reserveUsage(admin: AdminClient, userId: string): Promise<string>
     },
     { onConflict: 'user_id,period' },
   );
-  return period;
+  return { period, before: existing?.tokens_used ?? 0 };
+}
+
+/** Un intento que no le dio nada al atleta (la guardia lo rechazó, el modelo
+ * no devolvió una salida válida, un error) no cuenta contra su tope mensual:
+ * la fila vuelve a lo que tenía antes de este intento. El gasto real sigue
+ * registrado en coach_calls. Si no, reintentar como pide el mensaje
+ * («intenta de nuevo») podía dejarlo sin cuota y sin plan. */
+async function refundUsage(admin: AdminClient, userId: string, period: string, before: number): Promise<void> {
+  await admin
+    .from('coach_usage')
+    .update({ tokens_used: before, updated_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .eq('period', period);
 }
 
 /** Tokens que cuentan contra el tope mensual (la lectura de caché no). */

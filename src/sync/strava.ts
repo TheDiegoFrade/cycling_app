@@ -34,7 +34,8 @@ export async function handleStravaRedirect(): Promise<void> {
   if (!supabase) return;
   const params = new URLSearchParams(location.search);
   const code = params.get('code');
-  if (!code) return;
+  // El link de "olvidé mi contraseña" también vuelve con ?code= (de Supabase).
+  if (!code || params.has('reset')) return;
 
   // limpia el `?code=...` de la URL de una vez, haya o no error, para no
   // reintentar el mismo code (de un solo uso) si recargan la página.

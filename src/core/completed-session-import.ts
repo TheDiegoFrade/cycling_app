@@ -24,6 +24,7 @@ export async function buildCompletedSessionFromFit(
   file: File,
   profile: Profile,
   dateOverride?: string,
+  now: Date = new Date(),
 ): Promise<{ session?: SessionRecord; errors: string[] }> {
   if (!file.name.toLowerCase().endsWith('.fit')) return { errors: [`"${file.name}" no es un archivo .fit.`] };
 
@@ -34,6 +35,13 @@ export async function buildCompletedSessionFromFit(
 
   const startedAt = dateOverride ? overrideDateKeepingTime(parsed.startedAt, dateOverride) : parsed.startedAt;
   const finishedAt = dateOverride ? overrideDateKeepingTime(parsed.finishedAt, dateOverride) : parsed.finishedAt;
+  // Una actividad que empieza en el futuro es un error de fecha (reloj del
+  // dispositivo o fecha mal elegida): si se guardaba, ese día quedaba como
+  // "ocupado" y el coach armaba el plan alrededor de algo que no pasó.
+  // 12 h de margen por husos horarios.
+  if (Date.parse(startedAt) > now.getTime() + 12 * 3600_000) {
+    return { errors: ['la fecha de esta actividad está en el futuro — revisa la fecha del archivo o elige la correcta'] };
+  }
 
   // nombres de archivo tipo "260928212319_gsh42bpj" (exports crípticos de
   // algunos dispositivos: puro número de serie/timestamp) no son un nombre

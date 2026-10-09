@@ -53,4 +53,11 @@ describe('buildCompletedSessionFromFit', () => {
     const originalTime = new Date((timestamp + FIT_EPOCH_OFFSET_S) * 1000).toISOString().slice(11);
     expect(session?.startedAt.slice(11)).toBe(originalTime);
   });
+
+  it('rechaza una actividad con fecha futura (bloqueaba ese día en el plan)', async () => {
+    const file = new File([buildFitBytes(100000).buffer as ArrayBuffer], 'salida.fit');
+    const { session, errors } = await buildCompletedSessionFromFit(file, profile, '2099-01-01');
+    expect(session).toBeUndefined();
+    expect(errors[0]).toContain('futuro');
+  });
 });
