@@ -132,7 +132,7 @@ export function renderPerfil(container: HTMLElement): void {
                 <label>Nombre<input type="text" id="profile-name" autocomplete="name" value="${appState.profile.name ?? ''}"></label>
                 <label>Fecha de nacimiento<input type="date" id="profile-birth-date" value="${appState.profile.birth_date ?? ''}"></label>
                 <label>Altura<span class="perfil-numfield-row"><input type="number" id="profile-height" min="0" step="1" value="${appState.profile.height_cm ?? ''}"><span class="live-col-label">cm</span></span></label>
-                <label>Peso${appState.coach.myCoach ? ' <span class="perfil-alert-hint">· tu coach lo ve para calcular tus W/kg</span>' : ''}<span class="perfil-numfield-row"><input type="number" id="profile-weight" min="0" step="0.1" value="${appState.profile.weight_kg ?? ''}"><span class="live-col-label">kg</span></span></label>
+                <label>Peso${appState.coach.myCoach ? ' <span class="perfil-alert-hint">· tu coach lo ve para calcular tus W/kg</span>' : ''}<span class="perfil-numfield-row"><input type="number" id="profile-weight" min="30" max="200" step="0.1" value="${appState.profile.weight_kg ?? ''}"><span class="live-col-label">kg</span></span></label>
                 <label>Sexo
                   <select id="profile-sex">
                     <option value="" ${!appState.profile.sex ? 'selected' : ''}>Prefiero no decir</option>
@@ -344,7 +344,14 @@ export function renderPerfil(container: HTMLElement): void {
     container.querySelector<HTMLInputElement>('#profile-weight')?.addEventListener('change', (e) => {
       const raw = (e.target as HTMLInputElement).value;
       const value = Number(raw);
-      appState.profile = { ...appState.profile, weight_kg: raw && Number.isFinite(value) ? value : undefined };
+      // 30-200 kg: fuera de eso es un error de captura (el coach lo leería como dato real).
+      const valid = raw && Number.isFinite(value) && value >= 30 && value <= 200;
+      if (raw && !valid) {
+        (e.target as HTMLInputElement).value = appState.profile.weight_kg != null ? String(appState.profile.weight_kg) : '';
+        window.alert('El peso va de 30 a 200 kg.');
+        return;
+      }
+      appState.profile = { ...appState.profile, weight_kg: valid ? value : undefined };
       appState.persistProfile();
     });
 

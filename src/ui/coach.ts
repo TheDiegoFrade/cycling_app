@@ -17,6 +17,7 @@ import { escapeHtml } from './workout-cover';
 import { confirmAiWithHumanCoach, humanCoachName } from './coach-notice';
 import { coachFtpFields, coachProfileExtras, ftpSourceOf, isMeasuredFtp, sourceForAcceptedSuggestion, withFtp } from '../core/coach-profile';
 import { planContextFor, plannedTestLabel, weekStartOf } from '../core/plan-context';
+import { evalWeekTarget, planTotalWeeks } from '../core/eval-week';
 import { ruleTriggersOf } from '../core/rule-triggers';
 import { readTest } from '../core/test-reading';
 import type { LastTest } from '../core/test-reading';
@@ -236,21 +237,15 @@ function currentIsoWeek(): string {
 const MONTHLY_WEEKLY_EVAL_LIMIT = 10; // mismo número que coach-chat/index.ts
 
 function evalZoneHtml(plan: ActivePlanRow, weeklyEvalsUsed: number): string {
-  if (plan.current_block_exhausted) return ''; // toca publish_block, no weekly_eval — eso no tiene UI todavía
-  // create_plan concretiza hasta 3 semanas de una vez — mientras todavía
-  // queden semanas ya armadas por delante que ni siquiera han empezado, no
-  // hay nada real que evaluar (mismo gate que el servidor en
-  // checkModeAllowed, para no mostrar un botón que de todos modos va a
-  // rebotar). Sin esto, evaluar el día 1 de un plan nuevo trataba semanas
-  // futuras sin entrenar como adherencia perdida — encontrado probando esto.
-  const lastWeekEnd = weekEndDate(plan.data.startDate, plan.data.weeks.length - 1);
-  // En UTC a propósito: es el mismo gate que el servidor (checkModeAllowed
-  // corre en UTC); con la fecha local, en la noche se mostraría un botón que
-  // el servidor todavía rechaza.
-  const todayUtc = new Date(new Date().toISOString().slice(0, 10) + 'T00:00:00Z');
-  if (todayUtc <= lastWeekEnd) {
-    const lastWeekEndLabel = lastWeekEnd.toISOString().slice(0, 10);
-    return `<p class="hint" style="margin-top:10px">Tu plan ya tiene armadas las próximas semanas — vuelve cuando se acerque el ${lastWeekEndLabel} para seguir ajustando.</p>`;
+  // Mismo cálculo que el servidor (src/core/eval-week.ts): se evalúa la
+  // semana que acaba de terminar (el domingo ya cuenta) y se genera o rehace
+  // la siguiente, aunque abra un bloque nuevo.
+  const t = evalWeekTarget(plan.data.startDate, localTodayKey());
+  if (!t) {
+    return `<p class="hint" style="margin-top:10px">Evalúa tu primera semana cuando termine (el domingo): con lo que me cuentes ajusto la siguiente.</p>`;
+  }
+  if (t.target >= planTotalWeeks(plan.data.blocks)) {
+    return `<p class="hint" style="margin-top:10px">Terminaste tu plan. Dalo de baja y crea uno nuevo para seguir.</p>`;
   }
   if (weeklyEvalsUsed >= MONTHLY_WEEKLY_EVAL_LIMIT) {
     return `<p class="hint" style="margin-top:10px">Alcanzaste el límite de seguridad de evaluaciones de este mes — vuelve el próximo mes.</p>`;
@@ -284,7 +279,7 @@ function planSummaryHtml(plan: ActivePlanRow, weeklyEvalsUsed: number, planActio
     <div class="panel plan-coach-card">
       <h2 class="perfil-h2" style="margin:0">${aiCoachTitle()} — ${plan.goal}</h2>
       <div class="plan-chip-row" style="margin-top:10px">${blocks}</div>
-      <p class="hint" style="margin-top:8px">${plan.current_block_exhausted ? 'El bloque actual ya se completó — toca publicar el siguiente.' : 'Semana en curso dentro del plan.'}</p>
+      <p class="hint" style="margin-top:8px">Semana en curso dentro del plan.</p>
       ${plan.data.lastEvalNote ? coachBubbleHtml(plan.data.lastEvalNote) : ''}
       ${plan.data.nextTest ? plannedTestHtml(plan.data.nextTest, plan.data.startDate) : ''}
       ${ftpOfferHtml(plan.data.ftpSuggestion)}
@@ -635,11 +630,16 @@ async function computeOccupiedDates(startDate: string, weeksAhead: number): Prom
 
   // occupiedDates también le llega al modelo (ver prompt.ts), así que las
   // fechas de sesiones de Strava tampoco van.
+  // Una sesión ya entrenada no puede caer después de hoy: si aparece una
+  // (archivo con fecha mal puesta, de antes de que se validara al subirlo)
+  // no bloquea ese día del plan.
+  const today = localTodayKey();
+  const trained = (d: string) => inRange(d) && d <= today;
   const { localSessions, cloudOnly } = await aiEligibleSessions(false);
-  const localDates = localSessions.map((s) => dayKeyOf(s.startedAt)).filter(inRange);
+  const localDates = localSessions.map((s) => dayKeyOf(s.startedAt)).filter(trained);
   const cloudDates = cloudOnly
     .map((s) => dayKeyOf(s.startedAt))
-    .filter(inRange);
+    .filter(trained);
 
   return Array.from(new Set([...scheduled, ...localDates, ...cloudDates]));
 }
@@ -786,8 +786,14 @@ async function computeWeekEvalContext(
       });
   }
 
-  const weekSummaries = weeks.map(summarizeWeek);
-  const lastWeek = weekSummaries[weekSummaries.length - 1];
+  // La semana que se evalúa es la que acaba de terminar (eval-week.ts), no
+  // la última armada: create_plan deja hasta 3 por delante.
+  const t = evalWeekTarget(plan.data.startDate, localTodayKey());
+  if (!t) return null;
+  const evaluatedWeek = weeks.find((w) => w.weekIndex === t.evaluated) ?? { weekIndex: t.evaluated, workoutIds: [] };
+  const weekSummaries = weeks.filter((w) => w.weekIndex < t.evaluated).map(summarizeWeek);
+  const lastWeek = summarizeWeek(evaluatedWeek);
+  weekSummaries.push(lastWeek);
   // Lo que el atleta quitó del plan: esa semana con detalle, las anteriores solo el motivo.
   const removed = plan.data.removedWorkouts ?? [];
   const removedThisWeek = removed
@@ -828,8 +834,7 @@ async function computeWeekEvalContext(
 
   // La semana que va a generar el servidor: la siguiente, o la misma si es
   // el "refresh" de esta semana ISO (mismo criterio que applyModeEffects).
-  const isRefresh = plan.last_eval_iso_week === currentIsoWeek();
-  const nextWeekIndex = isRefresh ? weeks.length - 1 : weeks.length;
+  const nextWeekIndex = t.target;
   const planWorkoutIds = new Set(weeks.flatMap((w) => w.workoutIds));
   const workoutDays = appState.workouts
     .filter((w) => planWorkoutIds.has(w.id) && w.scheduledDate)
@@ -845,7 +850,7 @@ async function computeWeekEvalContext(
       // la nube. Sesiones guardadas antes de registrar ruleId no cuentan.
       ruleTriggers: ruleTriggersOf(localSessions.filter((s) => inLastWeek(dayKeyOf(s.startedAt))).flatMap((s) => s.alerts)),
       athleteNote,
-      workouts: weekWorkoutRows(weeks[weeks.length - 1]),
+      workouts: weekWorkoutRows(evaluatedWeek),
       ...(removedThisWeek.length ? { removedWorkouts: removedThisWeek } : {}),
     },
     ...(removedBefore.length ? { removedBefore } : {}),
@@ -910,6 +915,10 @@ function openCreateModal(onChange: () => void): void {
       status.textContent = 'Elige al menos un día disponible.';
       return;
     }
+    if (!(hoursPerWeek >= 1 && hoursPerWeek <= 20)) {
+      status.textContent = 'Las horas por semana van de 1 a 20.';
+      return;
+    }
 
     // Deshabilitado mientras espera — la llamada tarda ~1-2 min y sin esto
     // un doble click manda dos create_plan (gasta 2 de las 3 del mes en vez
@@ -947,7 +956,7 @@ function openCreateModal(onChange: () => void): void {
       occupiedDates,
       // ftp solo si es medido; un provisional va en provisionalFtp (ver
       // core/coach-profile.ts). Edad en vez de fecha de nacimiento.
-      profile: { ...coachFtpFields(p), hr_max: p.hr_max, sex: p.sex ?? null, name: p.name ?? null, ...coachProfileExtras(p) },
+      profile: { ...coachFtpFields(p), hr_max: p.hrMaxConfirmed ? p.hr_max : null, sex: p.sex ?? null, name: p.name ?? null, ...coachProfileExtras(p) },
       recentHistory,
       lastTest,
       athleteState,
@@ -984,7 +993,9 @@ function openCreateModal(onChange: () => void): void {
     form.forEach((el) => ((el as HTMLElement).style.display = 'none'));
     status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.coachNote));
     if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
-    if (data.result.nextTest) status.insertAdjacentHTML('beforebegin', plannedTestHtml(data.result.nextTest, startDate));
+    // El servidor puede correr el arranque al lunes siguiente si esta semana ya
+    // no quedan días disponibles: manda la fecha con la que guardó el plan.
+    if (data.result.nextTest) status.insertAdjacentHTML('beforebegin', plannedTestHtml(data.result.nextTest, data.result.startDate ?? startDate));
     if (data.result.suggestedFtp) {
       status.insertAdjacentHTML('beforebegin', ftpOfferHtml({ watts: Math.round(data.result.suggestedFtp), from: 'create_plan', at: new Date().toISOString() }));
       wireFtpOffer(backdrop);

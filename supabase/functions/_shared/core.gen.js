@@ -143,8 +143,8 @@ function parseKey(key) {
   const [y, m, d] = key.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
-function isoWeekLabel(mondayKey) {
-  const d = parseKey(mondayKey);
+function isoWeekLabel(mondayKey2) {
+  const d = parseKey(mondayKey2);
   const thursday = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 3);
   const yearStart = new Date(thursday.getFullYear(), 0, 1);
   const week = Math.floor((thursday.getTime() - yearStart.getTime()) / (7 * 864e5)) + 1;
@@ -204,8 +204,8 @@ var MONTHS_ES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
 function monthName(monthKey) {
   return MONTHS_ES[Number(monthKey.slice(5, 7)) - 1];
 }
-function weekOfLabel(mondayKey) {
-  return `semana del ${Number(mondayKey.slice(8, 10))} ${MONTHS_ES[Number(mondayKey.slice(5, 7)) - 1].slice(0, 3)}`;
+function weekOfLabel(mondayKey2) {
+  return `semana del ${Number(mondayKey2.slice(8, 10))} ${MONTHS_ES[Number(mondayKey2.slice(5, 7)) - 1].slice(0, 3)}`;
 }
 function dateOf(s) {
   return s.dayKey ?? dayKeyOf(s.startedAt);
@@ -510,15 +510,40 @@ function startPhase(startedOn, monthKey) {
   }
   return { kind: "regular" };
 }
+
+// src/core/eval-week.ts
+var DAY_MS = 864e5;
+function mondayKey(dateKey) {
+  const d = /* @__PURE__ */ new Date(`${dateKey}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7);
+  return d.toISOString().slice(0, 10);
+}
+function planWeekOf(startDate, dateKey) {
+  const diff = Date.parse(`${mondayKey(dateKey)}T00:00:00Z`) - Date.parse(`${mondayKey(startDate)}T00:00:00Z`);
+  return Math.round(diff / DAY_MS / 7);
+}
+function evalWeekTarget(startDate, todayKey) {
+  const current = planWeekOf(startDate, todayKey);
+  const isSunday = (/* @__PURE__ */ new Date(`${todayKey}T00:00:00Z`)).getUTCDay() === 0;
+  const evaluated = isSunday ? current : current - 1;
+  if (evaluated < 0) return null;
+  return { evaluated, target: evaluated + 1 };
+}
+function planTotalWeeks(blocks) {
+  return blocks.reduce((s, b) => s + b.weeks, 0);
+}
 export {
   addDays,
   buildMonthlyReport,
   defaultReviewMonth,
   emailKpis,
+  evalWeekTarget,
   localDateKey,
   mondayOfWeek,
   monthEnd,
   monthStart,
+  planTotalWeeks,
+  planWeekOf,
   reviewAiContext,
   shiftMonth,
   startPhase

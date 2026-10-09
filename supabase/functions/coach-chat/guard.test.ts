@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { correctionMessage, guardOutput, repairOutput, reviewOutput } from './guard.ts';
+import { correctionMessage, guardOutput, repairOutput, reviewOutput, usableStartDate } from './guard.ts';
 
 const step = (min: number, pct: number) => ({ name: 'x', type: 'steady', duration_s: min * 60, power_pct: pct });
 const easy = (day: string, min = 60, name = `Fondo ${day}`) => ({
@@ -129,9 +129,42 @@ describe('TSS y suggestedFtp', () => {
 });
 
 describe('nombre contra contenido', () => {
-  it('un "Fondo" con trabajo duro es falla', () => {
+  it('un "Fondo" con trabajo duro se renombra con lo que trae (no es falla)', () => {
     const w = { ...hard('tue'), name: 'Fondo tranquilo' };
-    expect(guardOutput('weekly_eval', weeklyCtx(), weeklyOut([w])).fails[0]).toContain('se llama como sesión suave');
+    const g = guardOutput('weekly_eval', weeklyCtx(), weeklyOut([w]));
+    expect(g.fails).toEqual([]);
+    expect(g.out.nextWeekWorkouts[0].name).toBe('Fondo tranquilo con VO2');
+  });
+
+  it('un nombre que ya dice el trabajo duro se queda igual', () => {
+    const w = { ...hard('tue'), name: 'Fondo largo con sweet spot corto' };
+    const g = guardOutput('weekly_eval', weeklyCtx(), weeklyOut([w]));
+    expect(g.fails).toEqual([]);
+    expect(g.out.nextWeekWorkouts[0].name).toBe('Fondo largo con sweet spot corto');
+  });
+});
+
+describe('arranque del plan y semanas concretas', () => {
+  it('si en lo que queda de la semana no hay días usables, arranca el lunes siguiente', () => {
+    // viernes 9 oct 2026 con días mar/mié/jue
+    expect(usableStartDate('2026-10-09', ['tue', 'wed', 'thu'], new Set())).toBe('2026-10-12');
+    // sábado disponible pero ocupado
+    expect(usableStartDate('2026-10-09', ['tue', 'sat'], new Set(['2026-10-10']))).toBe('2026-10-12');
+    // queda el sábado libre: arranca hoy
+    expect(usableStartDate('2026-10-09', ['tue', 'sat'], new Set())).toBe('2026-10-09');
+    // sin días elegidos cuenta cualquier día
+    expect(usableStartDate('2026-10-11', undefined, new Set())).toBe('2026-10-11');
+  });
+
+  it('create_plan con más de 3 semanas concretas se recorta (no truena)', () => {
+    const ctx = { startDate: '2026-10-12', availability: { days: ['tue', 'thu'], maxSessionMinutes: null, hoursPerWeek: 3 }, occupiedDates: [], profile: { ftp: 250 } };
+    const out = {
+      blocks: [{ name: 'Base', weeks: 6, focus: 'x' }],
+      firstBlockWeeks: [0, 1, 2, 3].map((i) => ({ weekIndex: i, workouts: [easy('tue'), easy('thu')] })),
+    };
+    const { out: fixed, fixes } = repairOutput('create_plan', ctx, out);
+    expect(fixed.firstBlockWeeks).toHaveLength(3);
+    expect(fixes.some((f) => f.includes('máximo 3'))).toBe(true);
   });
 });
 

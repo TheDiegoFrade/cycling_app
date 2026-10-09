@@ -67,8 +67,10 @@ const ProfileExtrasSchema = {
   ftpSource: FtpSourceSchema.optional(),
   ftpUpdatedAt: z.string().nullable().optional(), // ISO
   injuries: z.string().max(1000).nullable().optional(),
-  weightKg: z.number().positive().nullable().optional(),
-  ageYears: z.number().int().nonnegative().nullable().optional(),
+  // Fuera de rango (300 kg, 0 años) = dato mal capturado: llega como null
+  // ("no lo sé") en vez de como verdad; el Perfil ya no deja guardarlo.
+  weightKg: z.number().nullable().optional().transform((v) => (v == null ? v : v >= 30 && v <= 200 ? v : null)),
+  ageYears: z.number().int().nullable().optional().transform((v) => (v == null ? v : v >= 8 && v <= 100 ? v : null)),
 };
 
 // Próximo test que el coach decide (no hay fecha fija: él juzga cuándo el
@@ -151,8 +153,8 @@ const AthleteStateSchema = z
 // ciclista experimentado que recién llega a la app. No colapsar los dos en
 // uno solo, ver la regla de arranque en prompt.ts que usa ambos.
 export const CreatePlanInputContextSchema = z.object({
-  startDate: z.string(), // YYYY-MM-DD
-  goal: z.string(),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD
+  goal: z.string().trim().min(3, 'escribe para qué entrenas'),
   experienceLevel: z.enum(['new_to_cycling', 'returning_or_new_to_app', 'experienced']),
   // Eje DISTINTO de experienceLevel — condición cardiovascular general
   // (de cualquier actividad), independiente de qué tan nuevo sea en
@@ -165,12 +167,12 @@ export const CreatePlanInputContextSchema = z.object({
   competes: z.boolean(),
   category: z.string().nullable(), // solo tiene sentido si competes=true
   availability: z.object({
-    hoursPerWeek: z.number().positive(),
-    days: z.array(z.string()),
+    hoursPerWeek: z.number().min(1, 'al menos 1 hora por semana').max(20, 'el máximo son 20 horas por semana'),
+    days: z.array(z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])).min(1, 'elige al menos un día'),
     // null = sin tope explícito del atleta — igual aplica el techo general
     // de 90 min (ver "Disciplina de salida"). Si el atleta SÍ da un
     // número, este manda aunque sea más bajo que el general.
-    maxSessionMinutes: z.number().positive().nullable(),
+    maxSessionMinutes: z.number().min(20).max(360).nullable(),
   }),
   // Fechas (YYYY-MM-DD) que YA tienen un workout agendado o una sesión
   // completada dentro de las próximas semanas — nunca generes un workout
@@ -180,8 +182,10 @@ export const CreatePlanInputContextSchema = z.object({
   // ftp null = el atleta no sabe su FTP todavía (no inventar un default aquí
   // ni en el cliente — un número falso es peor que admitir que no se sabe).
   profile: z.object({
-    ftp: z.number().positive().nullable(),
-    hr_max: z.number().positive(),
+    ftp: z.number().min(50).max(600).nullable(),
+    // null = el atleta marcó "no sé mi pulso máximo": antes llegaba el 185
+    // por defecto del perfil como si fuera un dato real (a cualquier edad).
+    hr_max: z.number().min(120).max(230).nullable(),
     // null = no dijo/prefiere no decir — en ese caso nunca uses lenguaje
     // con género gramatical (ver "Disciplina de salida").
     sex: z.enum(['M', 'F', 'other']).nullable(),
@@ -214,13 +218,11 @@ export const CreatePlanOutputSchema = z.object({
         workouts: z.array(PlannedWorkoutSchema).min(1),
       }),
     )
-    .min(1)
-    // Tope duro, no solo sugerencia de prompt: como mucho 3 semanas (21
-    // días) concretadas con workouts reales aunque la fase de base dure
-    // más — el resto lo llena weekly_eval semana a semana (ver prompt.ts).
-    // Sin este máximo, un bloque largo (sedentary, 5-6 semanas) genera
-    // 3-6x más JSON del necesario en una sola llamada.
-    .max(3),
+    // Como mucho 3 semanas concretadas (el resto lo llena weekly_eval): lo
+    // pide el prompt y lo recorta la guardia (MAX_CONCRETE_WEEKS en
+    // guard.ts). No va como .max(3) aquí: si el modelo devolvía 4, la
+    // validación del SDK tronaba con un 400 en inglés y sin plan.
+    .min(1),
   coachNote: z.string(), // 3-5 líneas, voz del coach explicando el plan
   // FTP que el coach le propone poner en su perfil (provisional o tras un
   // test); null si no hay cambio. La app ofrece un botón, el atleta decide.

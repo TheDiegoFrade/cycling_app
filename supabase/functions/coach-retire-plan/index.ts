@@ -8,17 +8,14 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
+// La MISMA lista que coach-chat: antes tenía una copia propia sin dpcfrade,
+// que podía crear un plan pero no darlo de baja (403).
+import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
 
 function adminClient() {
   return createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 }
 
-// Mismo allowlist que coach-chat (ver ahí el porqué) — un usuario fuera de
-// la lista no debería tener plan que dar de baja, pero por si acaso.
-const ALLOWED_USER_IDS = new Set([
-  '68c9ddae-cee4-4d2f-8d0f-9553f9fe5782', // dperezcf@gmail.com — usuario dummy de pruebas
-  '1d868aa6-bd45-4a1a-83aa-7d9f54c8d24b', // andrea.guerrero.guzman@gmail.com
-]);
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });

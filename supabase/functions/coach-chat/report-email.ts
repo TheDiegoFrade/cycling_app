@@ -206,6 +206,13 @@ function coachBlock(c: CoachNote | null | undefined): string {
 const signature = (c: CoachNote | null | undefined) => (c ? c.name : 'Tu coach en Torq');
 
 /** "Hola, Alex" o "Hola" */
+/** El saludo ya lo pone la plantilla ("Hola, Alex 👋"): si el texto del
+ * coach también arranca con "Hola…", se le quita esa primera frase para no
+ * saludar dos veces. */
+export function withoutGreeting(text: string): string {
+  return text.replace(/^\s*(¡\s*)?hola\b[^.!?\n]*[.!?]?\s*/i, '').trim() || text.trim();
+}
+
 export function greeting(name: string | null): string {
   return name?.trim() ? `Hola, ${name.trim()}` : 'Hola';
 }
@@ -243,7 +250,10 @@ export function firstSession(d: PlanReportData): ReportWorkout | null {
 /** Correo de bienvenida del coach: claro y corto; el detalle va en el PDF. */
 export function buildPlanEmail(d: PlanReportData): { subject: string; html: string; text: string } {
   const name = d.athleteName?.trim() || null;
-  const subject = name ? `${name}, te doy la bienvenida: así arrancamos` : 'Te doy la bienvenida: así arrancamos';
+  // Con el nombre del plan: si el asunto es siempre el mismo, Gmail junta en
+  // un hilo las bienvenidas de planes distintos (también de los dados de baja).
+  const plan = d.planName.trim() ? ` · ${d.planName.trim()}` : '';
+  const subject = name ? `${name}, te doy la bienvenida: así arrancamos${plan}` : `Te doy la bienvenida: así arrancamos${plan}`;
   const first = firstSession(d);
   const week1 = d.weeks[0];
   const testDate = d.nextTest ? testDateOf(d.weeks, d.nextTest) : null;
@@ -256,7 +266,7 @@ export function buildPlanEmail(d: PlanReportData): { subject: string; html: stri
   const body = `
     <tr><td style="padding:26px 32px 0;${FONT}">
       <div style="font-size:26px;font-weight:700;color:#0f1115;line-height:1.2;margin-bottom:14px;">${escapeHtml(greeting(name))} 👋</div>
-      ${paragraphs(d.welcome, p)}
+      ${paragraphs(withoutGreeting(d.welcome), p)}
     </td></tr>
     ${coachBlock(d.coach)}
     ${
@@ -302,7 +312,7 @@ export function buildPlanEmail(d: PlanReportData): { subject: string; html: stri
     d.testIntendedFor ? `(Modo de prueba: este correo iba para ${d.testIntendedFor})` : '',
     `${greeting(name)}:`,
     '',
-    d.welcome.trim(),
+    withoutGreeting(d.welcome),
     '',
     d.coach?.comment.trim() ? `Nota de ${d.coach.name}: ${d.coach.comment.trim()}` : '',
     '',
@@ -341,6 +351,9 @@ export function buildWeeklyEmail(d: WeeklyReportData): { subject: string; html: 
       : `${TEST_LABELS[d.nextTest.type]} previsto para tu semana ${d.nextTest.weekNumber}.`
     : '';
   const ftpLine = d.ftp?.action === 'change' && d.ftp.suggested ? `Pon ${d.ftp.suggested} W como FTP en tu perfil.` : '';
+  // Las banderas del coach a veces son preguntas y a veces observaciones:
+  // "Cuéntame en tu nota" solo si de verdad le está preguntando algo.
+  const notesTitle = d.questions.every((q) => q.trim().endsWith('?')) ? 'Cuéntame en tu nota' : 'Lo que tomé en cuenta';
   const body = `
     <tr><td style="padding:22px 32px 0;${FONT}">
       <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:${decision.color};">● ${decision.label}</div>
@@ -357,7 +370,7 @@ export function buildWeeklyEmail(d: WeeklyReportData): { subject: string; html: 
     ${
       d.questions.length
         ? section(
-            'Cuéntame en tu nota',
+            notesTitle,
             d.questions.map((q) => `<p style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#3c424d;${FONT}">${escapeHtml(q)}</p>`).join(''),
           )
         : ''
@@ -388,7 +401,7 @@ export function buildWeeklyEmail(d: WeeklyReportData): { subject: string; html: 
     ...d.nextWeek.workouts.map((w) => `- ${shortDate(w.date)}: ${w.name} · ${sessionMeta(w)}`),
     '',
     testLine,
-    ...(d.questions.length ? ['', 'Cuéntame en tu nota:', ...d.questions.map((q) => `- ${q}`)] : []),
+    ...(d.questions.length ? ['', `${notesTitle}:`, ...d.questions.map((q) => `- ${q}`)] : []),
     '',
     `Ver mi semana: ${d.appUrl}`,
   ]);

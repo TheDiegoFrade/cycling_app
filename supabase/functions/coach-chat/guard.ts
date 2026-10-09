@@ -55,6 +55,28 @@ export function dateForWeek(startDate: string, weekIndex: number, day: string): 
   return base.toISOString().slice(0, 10);
 }
 
+/** Semanas concretas que create_plan puede guardar de una vez (el resto lo
+ * arma weekly_eval). El schema ya no lo limita: un modelo que devolvía 4
+ * tronaba la validación con un 400 en inglés; aquí se recorta. */
+export const MAX_CONCRETE_WEEKS = 3;
+
+/** Primer día de plan con al menos un día usable en su semana 0. Si ya no
+ * queda ningún día disponible y libre entre `startDate` y el domingo (p. ej.
+ * crear el plan un viernes con días mar/mié/jue), el plan arranca el lunes
+ * siguiente: si no, la semana 0 quedaba vacía y la guarda rechazaba el plan. */
+export function usableStartDate(startDate: string, days: readonly string[] | undefined, occupied: ReadonlySet<string>): string {
+  const start = new Date(`${startDate}T00:00:00Z`);
+  const offset = (start.getUTCDay() + 6) % 7;
+  for (let i = offset; i < 7; i++) {
+    const day = DAYS[i];
+    if (days?.length && !days.includes(day)) continue;
+    if (!occupied.has(dateForWeek(startDate, 0, day))) return startDate;
+  }
+  const next = mondayOf(start);
+  next.setUTCDate(next.getUTCDate() + 7);
+  return next.toISOString().slice(0, 10);
+}
+
 const flat = (segments: Segment[]) => segments.flatMap((s) => Array.from({ length: s.repeat }, () => s.steps).flat());
 const minutesOf = (steps: Step[]) => Math.round(steps.reduce((s, x) => s + x.duration_s, 0) / 60);
 /** Duro = ≥8 min acumulados a ≥88 % FTP o ≥3 min a ≥105 %. */
@@ -65,6 +87,9 @@ function isHard(steps: Step[]): boolean {
 const maxPct = (steps: Step[]) => Math.max(0, ...steps.map((s) => Math.max(s.power_pct, s.ramp_to_pct ?? 0)));
 const isTest = (w: Any) => isTestWorkout(w);
 const EASY_NAME_RE = /fondo|suave|recuperaci|tranquil|conversacional|regenera|\bz2\b/i;
+/** Un nombre que ya avisa del trabajo duro ("Fondo largo con sweet spot") no engaña. */
+const HARD_NAME_RE = /sweet ?spot|umbral|tempo|vo2|interval|serie|over|under|sprint|bloque|calidad|cambios de ritmo|test|rampa|40:20|30\/30/i;
+const misleadingName = (name: string, steps: Step[]) => isHard(steps) && EASY_NAME_RE.test(name) && !HARD_NAME_RE.test(name);
 
 // ─── Dónde viven las semanas de cada modo ──────────────────────────────────
 
@@ -89,6 +114,8 @@ interface WeekOpts {
   days?: string[];
   occupied: Set<string>;
   hoursPerWeek?: number;
+  /** Hoy (YYYY-MM-DD): lo anterior ya pasó y no se agenda. */
+  today?: string;
 }
 
 function weekOpts(mode: Mode, ctx: Any): WeekOpts {
@@ -99,6 +126,7 @@ function weekOpts(mode: Mode, ctx: Any): WeekOpts {
       days: ctx.availability?.days?.length ? ctx.availability.days : undefined,
       occupied: new Set(ctx.occupiedDates ?? []),
       hoursPerWeek: ctx.availability?.hoursPerWeek,
+      today: ctx.today,
     };
   }
   return {
@@ -106,6 +134,7 @@ function weekOpts(mode: Mode, ctx: Any): WeekOpts {
     startDate: ctx.nextWeekStart,
     days: ctx.plan?.days?.length ? ctx.plan.days : undefined,
     occupied: new Set(ctx.occupiedDates ?? []),
+    today: ctx.today,
   };
 }
 
@@ -116,7 +145,10 @@ function dayUsable(day: string, wi: number, o: WeekOpts): boolean {
   // dateForWeek corre a la semana siguiente un día que ya pasó en la semana
   // 0: chocaría con la semana 1, así que en la práctica no está disponible.
   if (wi === 0 && DAY_OFFSET[day] < (new Date(`${o.startDate}T00:00:00Z`).getUTCDay() + 6) % 7) return false;
-  return !o.occupied.has(dateForWeek(o.startDate, wi, day));
+  const date = dateForWeek(o.startDate, wi, day);
+  // Evaluar un jueves genera la semana que empezó el lunes: lun-mié ya pasaron.
+  if (o.today && date < o.today) return false;
+  return !o.occupied.has(date);
 }
 
 const ftpUnknown = (ctx: Any) => ctx.profile && ctx.profile.ftp === null;
@@ -148,6 +180,11 @@ export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes:
     fixes.push(`se quitaron ${weeks.length - fixed.blocks[0].weeks} semanas concretadas de más (el bloque 1 dura ${fixed.blocks[0].weeks})`);
     weeks = weeks.slice(0, fixed.blocks[0].weeks);
   }
+  // …ni más de MAX_CONCRETE_WEEKS de una vez.
+  if (mode === 'create_plan' && weeks.length > MAX_CONCRETE_WEEKS) {
+    fixes.push(`se quitaron ${weeks.length - MAX_CONCRETE_WEEKS} semanas concretadas de más (máximo ${MAX_CONCRETE_WEEKS} de una vez)`);
+    weeks = weeks.slice(0, MAX_CONCRETE_WEEKS);
+  }
 
   weeks = weeks.map((week, wi) => {
     const used = new Set<string>();
@@ -173,6 +210,15 @@ export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes:
           })),
         };
         fixes.push(`S${wi + 1} «${w.name}»: bajado de ${top} % a ${NO_FTP_MAX_PCT} % (sin FTP medido)`);
+      }
+      // Nombre de sesión suave con trabajo duro: se le agrega qué trae (antes
+      // era una falla que, si el reintento no la corregía, dejaba al atleta
+      // sin semana: weekly_eval respondía 502).
+      if (!isTest(w) && misleadingName(w.name, flat(w.segments))) {
+        const top = maxPct(flat(w.segments));
+        const label = top >= 106 ? 'VO2' : top >= 95 ? 'umbral' : 'sweet spot';
+        fixes.push(`S${wi + 1} «${w.name}»: renombrado a «${w.name} con ${label}» (trae trabajo hasta ${top} %)`);
+        w = { ...w, name: `${w.name} con ${label}` };
       }
       // TSS: el de la estructura, no el que estimó el modelo.
       const tss = estimateTss(w.segments);
@@ -207,7 +253,9 @@ function checkPlannedWeeks(f: Finding[], weeks: { workouts: Any[] }[], o: WeekOp
     const seen = new Set<string>();
     let weekMin = 0;
     const hardDays: number[] = [];
-    if (!week.workouts.length) f.push({ level: 'fail', msg: `S${wi + 1}: semana sin entrenamientos` });
+    // Vacía solo es falla si había algún día usable (si no —evaluar un sábado
+    // con días lun/mié—, no había dónde poner nada esa semana).
+    if (!week.workouts.length && DAYS.some((d) => dayUsable(d, wi, o))) f.push({ level: 'fail', msg: `S${wi + 1}: semana sin entrenamientos` });
     for (const w of week.workouts) {
       const steps = flat(w.segments);
       const min = minutesOf(steps);
@@ -223,7 +271,7 @@ function checkPlannedWeeks(f: Finding[], weeks: { workouts: Any[] }[], o: WeekOp
       if (!isTest(w) && isHard(steps)) {
         hardDays.push(DAY_OFFSET[w.dayOfWeek]);
         // El nombre es lo que el atleta lee primero: "Fondo tranquilo" al 93 % engaña.
-        if (EASY_NAME_RE.test(w.name)) f.push({ level: 'fail', msg: `${tag}: se llama como sesión suave pero trae trabajo duro (hasta ${maxPct(steps)} % FTP)` });
+        if (misleadingName(w.name, steps)) f.push({ level: 'fail', msg: `${tag}: se llama como sesión suave pero trae trabajo duro (hasta ${maxPct(steps)} % FTP)` });
       }
     }
     if (o.hoursPerWeek && weekMin > o.hoursPerWeek * 60 * 1.1) {

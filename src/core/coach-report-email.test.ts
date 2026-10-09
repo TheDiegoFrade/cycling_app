@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPlanEmail, buildWeeklyEmail, dayList, glossaryFor, shortDate, testDateOf } from '../../supabase/functions/coach-chat/report-email';
+import { buildPlanEmail, buildWeeklyEmail, dayList, glossaryFor, shortDate, testDateOf, withoutGreeting } from '../../supabase/functions/coach-chat/report-email';
 
 const week = (weekNumber: number) => ({
   weekNumber,
@@ -35,8 +35,8 @@ describe('correos del coach', () => {
 
   it('el correo de bienvenida: saludo, primera sesión, cómo vamos a trabajar y test con su fecha', () => {
     const e = buildPlanEmail(plan);
-    expect(e.subject).toBe('Alex, te doy la bienvenida: así arrancamos');
-    expect(buildPlanEmail({ ...plan, athleteName: null }).subject).toBe('Te doy la bienvenida: así arrancamos');
+    expect(e.subject).toBe('Alex, te doy la bienvenida: así arrancamos · Fondo MTB');
+    expect(buildPlanEmail({ ...plan, athleteName: null }).subject).toBe('Te doy la bienvenida: así arrancamos · Fondo MTB');
     expect(e.html).toContain('Hola, Alex');
     expect(e.html).toContain('Qué gusto que empecemos, Alex.');
     expect(e.html).toContain('Tu primera sesión · lun 12 oct');
@@ -65,6 +65,11 @@ describe('correos del coach', () => {
     expect(e.html).toContain('¿Fue por tiempo o por cansancio?');
     expect(e.html).not.toContain('Tu FTP');
     expect(buildWeeklyEmail({ ...base, ftp: { action: 'change', suggested: 214 } }).text).toContain('Pon 214 W como FTP en tu perfil.');
+    expect(e.text).toContain('Cuéntame en tu nota:');
+    // Una observación (no pregunta) no se presenta como pregunta.
+    const obs = buildWeeklyEmail({ ...base, questions: ['Tomo la nota para ajustar la cadencia, no para subir carga.'] });
+    expect(obs.text).toContain('Lo que tomé en cuenta:');
+    expect(obs.text).not.toContain('Cuéntame en tu nota');
     expect(buildWeeklyEmail({ ...base, nextTest: { weekNumber: 3, type: 'ramp', reason: '' } }).text).toContain('Test de rampa esta semana: mié 14 oct.');
   });
 
@@ -87,5 +92,11 @@ describe('correos del coach', () => {
 
   it('escapa el HTML de lo que escribe el modelo', () => {
     expect(buildPlanEmail({ ...plan, welcome: '<script>x</script>' }).html).not.toContain('<script>x');
+  });
+
+  it('no saluda dos veces si el texto del coach ya empieza con «Hola»', () => {
+    expect(withoutGreeting('Hola, bienvenido. Vamos juntos hacia tu maratón.')).toBe('Vamos juntos hacia tu maratón.');
+    expect(withoutGreeting('¡Hola! Vamos.')).toBe('Vamos.');
+    expect(withoutGreeting('Vamos juntos hacia tu carrera.')).toBe('Vamos juntos hacia tu carrera.');
   });
 });
