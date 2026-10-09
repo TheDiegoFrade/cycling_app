@@ -22,6 +22,8 @@ export interface ReviewEmailData {
   reviewUrl: string;
   /** Modo de prueba: a quién le habría llegado. */
   testIntendedFor?: string | null;
+  /** Lo que escribió el coach al aprobar el envío. */
+  sendComment?: string | null;
 }
 
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -116,6 +118,16 @@ export function buildReviewEmail(d: ReviewEmailData): { subject: string; html: s
       <div style="font-size:30px;font-weight:700;color:#0f1115;line-height:1.1;">Reporte mensual · ${escapeHtml(month)}</div>
       ${verdict ? `<div style="margin-top:12px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:${verdict.color};">● ${verdict.label}</div>` : ''}
     </td></tr>
+    ${
+      d.sendComment?.trim()
+        ? `<tr><td style="padding:16px 32px 0;${FONT}">
+      <div style="padding:14px 16px;background:#fff8e6;border-left:4px solid #c98a00;border-radius:6px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#7a5600;">Nota de ${escapeHtml(d.coachName)}</div>
+        ${paragraphs(d.sendComment, `margin:6px 0 0;font-size:15px;line-height:1.5;color:#3c424d;${FONT}`)}
+      </div>
+    </td></tr>`
+        : ''
+    }
     <tr><td style="padding:16px 32px 0;${FONT}">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
         <td width="4" style="background:#2f6fe0;border-radius:2px;"></td>
@@ -144,6 +156,8 @@ export function buildReviewEmail(d: ReviewEmailData): { subject: string; html: s
     `TORQ · Reporte mensual · ${month}`,
     verdict ? verdict.label : '',
     d.testIntendedFor ? `(Modo de prueba: este correo iba para ${d.testIntendedFor})` : '',
+    '',
+    d.sendComment?.trim() ? `Nota de ${d.coachName}: ${d.sendComment.trim()}` : '',
     '',
     d.message.trim(),
     `— ${d.coachName}`,

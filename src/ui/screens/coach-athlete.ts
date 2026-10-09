@@ -14,6 +14,8 @@ import { NOTES_MAX_CHARS, fetchAthleteNotes, saveNotesAsCoach } from '../../sync
 import type { AthleteNotes } from '../../sync/athlete-notes';
 import { stateSessionFromCloud } from '../athlete-state-data';
 import { fetchCoachReview } from '../../sync/monthly-reviews';
+import { fetchCoachEmails, sendCoachEmail, type CoachEmailItem } from '../../sync/coach-emails';
+import { EMAIL_MAX_SENDS, emailButtonHtml, emailPanelHtml, newEmailApproval, wireEmailApproval } from '../email-approval';
 import type { CoachAthlete } from '../../sync/coach-athletes';
 import {
   COACH_DETAIL_DAYS,
@@ -207,6 +209,8 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
           <div><a href="#/coach-review/${athlete.userId}/${reviewMonth}" class="coach-btn coach-btn-primary">${review?.status === 'published' ? 'Ver reporte' : review ? 'Continuar revisión' : 'Empezar revisión · ~15 min'}</a></div>
         </section>
 
+        <div id="coach-emails"></div>
+
         <section class="panel coach-card" aria-label="Fitness y fatiga">
           <div class="coach-card-head">
             <h2 class="perfil-h2" style="margin:0">Fitness y fatiga · ${CHART_WEEKS} semanas</h2>
@@ -247,6 +251,8 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
           }
           <span class="hint">Toca una sesión para ver su detalle y descargar el .fit. La carga de fuerza y movilidad se mide como RPE × minutos y se muestra aparte: no se suma al TSS de la bici. Lo que llega por Strava no se muestra.</span>
         </section>`);
+
+      void mountCoachEmails(container.querySelector<HTMLElement>('#coach-emails')!, athleteId);
 
       container.querySelector('#coach-notes-save')?.addEventListener('click', async (e) => {
         const btn = e.currentTarget as HTMLButtonElement;
@@ -292,4 +298,61 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
   })();
 
   return cleanup;
+}
+
+const SHORT_DATE: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
+
+/** Correos de la IA que el coach aprueba para su atleta: bienvenida del plan y
+ * resumen de cada semana. Solo aparece si hay alguno (atleta con plan de IA). */
+async function mountCoachEmails(host: HTMLElement, athleteId: string): Promise<void> {
+  let items: CoachEmailItem[];
+  try {
+    items = await fetchCoachEmails(athleteId);
+  } catch {
+    return; // sin la función desplegada o sin plan: la tarjeta no aparece
+  }
+  if (!items.length) return;
+  // La bienvenida primero; después las semanas, la más reciente arriba.
+  items.sort((a, b) => (a.key === 'plan' ? -1 : b.key === 'plan' ? 1 : (b.weekStart ?? '').localeCompare(a.weekStart ?? '')));
+  const states = new Map(items.map((i) => [i.key, newEmailApproval(i.remaining, i.lastSentAt)]));
+  let status = '';
+  const domId = (key: string) => `ce-${key.replace(':', '-')}`;
+  const title = (i: CoachEmailItem) =>
+    i.key === 'plan' ? 'Bienvenida del plan (con PDF)' : `Semana del ${i.weekStart ? new Date(`${i.weekStart}T00:00:00`).toLocaleDateString('es-MX', SHORT_DATE) : ''}`;
+
+  const render = (): void => {
+    host.innerHTML = `<section class="panel coach-card" aria-label="Correos para tu atleta">
+      <div class="coach-card-head"><h2 class="perfil-h2" style="margin:0">Correos para tu atleta</h2></div>
+      <span class="hint">La IA deja listo un correo cuando arma el plan y cada semana. Se envía solo si tú lo apruebas, con un comentario tuyo, y como máximo ${EMAIL_MAX_SENDS} veces. Lleva las sesiones que publicaste.</span>
+      ${items
+        .map((i) => {
+          const s = states.get(i.key)!;
+          return `<div class="coach-card-head" style="align-items:center"><strong>${escapeHtml(title(i))}</strong>${emailButtonHtml(domId(i.key), s)}</div>${emailPanelHtml(domId(i.key), s, i.key === 'plan' ? 'la bienvenida' : 'el resumen de la semana')}`;
+        })
+        .join('')}
+      <span class="hint" aria-live="polite">${escapeHtml(status)}</span>
+    </section>`;
+    for (const i of items) {
+      const s = states.get(i.key)!;
+      wireEmailApproval(host, domId(i.key), s, render, async (comment) => {
+        s.sending = true;
+        status = 'Enviando…';
+        render();
+        try {
+          const res = await sendCoachEmail(athleteId, i.key, comment);
+          s.remaining = res.remaining;
+          s.lastSentAt = res.sentAt;
+          s.open = false;
+          s.comment = '';
+          status = res.test ? `Enviado en modo de prueba a ${res.sentTo} (tu atleta no lo recibe todavía).` : 'Enviado por correo a tu atleta.';
+        } catch (err) {
+          status = `No se pudo enviar: ${errorMessage(err)}`;
+        } finally {
+          s.sending = false;
+          render();
+        }
+      });
+    }
+  };
+  render();
 }

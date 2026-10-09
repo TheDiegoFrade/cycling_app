@@ -1099,6 +1099,10 @@ create trigger monthly_reviews_stamp before insert or update on monthly_reviews
 -- La función pone emailed_at con service role; el coach solo lo lee.
 alter table monthly_reviews add column if not exists emailed_at timestamptz;
 
+-- Cada envío por correo que aprueba el coach: [{ "at": iso, "comment": "…" }].
+-- Máximo 2 por revisión, cada uno con un comentario suyo (send-review-email).
+alter table monthly_reviews add column if not exists email_sends jsonb not null default '[]'::jsonb;
+
 -- ─────────────────────────────────────────────────────────────────────────
 -- Vista del coach: detalle de las sesiones de sus atletas y descarga de su
 -- .fit (screens/coach-session.ts). El coach lee un archivo de fit-files solo

@@ -353,10 +353,10 @@ típicas:
   viene haciendo.
 Cuando el perfil se contradice: toma la lectura más prudente (para oficio
 en bici manda \`yearsRiding\`; para motor, \`generalFitnessLevel\`) y dilo
-en UNA frase de \`coachNote\`, contada como lo que trae y no como lo que
-llenó mal: nunca "pusiste X pero Y". Ejemplo: "vienes con buen motor de
-otro deporte; lo que nos toca es sumarle horas de bici, así que arrancamos
-tranquilos y ajusto en cuanto vea tus primeras sesiones".
+en UNA frase de \`coachNote\`, con tus palabras y para ESTE atleta:
+cuéntalo como lo que trae a favor y lo que van a construir juntos, nunca
+como lo que llenó mal ("pusiste X pero Y"), y di que ajustas en cuanto
+veas sus primeras sesiones.
 Coherente no es lo mismo que principiante: a quien compite en su categoría
 no le hables como novato aunque sea nuevo en entrenamiento estructurado.
 

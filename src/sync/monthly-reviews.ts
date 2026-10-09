@@ -33,9 +33,11 @@ export interface MonthlyReview {
   updatedAt: string;
   /** Última vez que se envió por correo (paso 7c). */
   emailedAt: string | null;
+  /** Cada envío que aprobó el coach, con su comentario (máximo 2). */
+  emailSends: { at: string; comment: string }[];
 }
 
-const REVIEW_COLUMNS = 'id, athlete_id, coach_id, month, status, verdict, coach_message, findings, goals, coach_name, published_at, updated_at, emailed_at';
+const REVIEW_COLUMNS = 'id, athlete_id, coach_id, month, status, verdict, coach_message, findings, goals, coach_name, published_at, updated_at, emailed_at, email_sends';
 
 interface ReviewRow {
   id: string;
@@ -51,6 +53,7 @@ interface ReviewRow {
   published_at: string | null;
   updated_at: string;
   emailed_at?: string | null;
+  email_sends?: unknown;
 }
 
 function fromRow(r: ReviewRow): MonthlyReview {
@@ -68,6 +71,7 @@ function fromRow(r: ReviewRow): MonthlyReview {
     publishedAt: r.published_at,
     updatedAt: r.updated_at,
     emailedAt: r.emailed_at ?? null,
+    emailSends: Array.isArray(r.email_sends) ? (r.email_sends as { at: string; comment: string }[]) : [],
   };
 }
 
@@ -211,10 +215,15 @@ export interface EmailKpi {
   delta: string;
 }
 
-/** Envía por correo una revisión publicada (Edge Function send-review-email).
- * Mientras la función esté en modo de prueba, llega solo al dueño de la app. */
-export async function sendReviewEmail(reviewId: string, kpis: EmailKpi[]): Promise<{ test: boolean; sentTo: string; emailedAt: string }> {
-  const { data, error } = await client().functions.invoke('send-review-email', { body: { reviewId, kpis } });
+/** Envía por correo una revisión publicada (Edge Function send-review-email),
+ * con el comentario del coach; máximo 2 veces por revisión. Mientras la
+ * función esté en modo de prueba, llega solo al dueño de la app. */
+export async function sendReviewEmail(
+  reviewId: string,
+  kpis: EmailKpi[],
+  comment: string,
+): Promise<{ test: boolean; sentTo: string; emailedAt: string; emailSends: { at: string; comment: string }[] }> {
+  const { data, error } = await client().functions.invoke('send-review-email', { body: { reviewId, kpis, comment } });
   if (error || data?.error) {
     let message = data?.error as string | undefined;
     if (!message && error && 'context' in error) {
@@ -226,5 +235,5 @@ export async function sendReviewEmail(reviewId: string, kpis: EmailKpi[]): Promi
     }
     throw new Error(message ?? error?.message ?? 'error desconocido');
   }
-  return data as { test: boolean; sentTo: string; emailedAt: string };
+  return data as { test: boolean; sentTo: string; emailedAt: string; emailSends: { at: string; comment: string }[] };
 }

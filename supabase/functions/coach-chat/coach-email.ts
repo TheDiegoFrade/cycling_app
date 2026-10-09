@@ -1,27 +1,24 @@
-// Correo al atleta sin coach humano después de create_plan (carta + PDF) y
-// de weekly_eval (resumen corto). Corre en segundo plano después de
-// responder: si falla, se registra en el log y el plan ya quedó guardado.
+// Correos del coach al atleta: la bienvenida del plan (con PDF) y el resumen
+// de cada weekly_eval. Sin coach humano salen solos, una vez por plan y una
+// por semana; con coach, se guarda el borrador en el plan y el coach decide
+// si lo manda (send-coach-email, máximo 2 veces, con su comentario).
 import { appUrl, EMAIL_TEST_RECIPIENT, sendEmail } from '../_shared/mailer.ts';
 import { totalMinutes, type PlannedWorkout } from './expand.ts';
 import { buildPlanPdf, toBase64 } from './plan-pdf.ts';
-import { buildPlanEmail, buildWeeklyEmail, type ReportWeek, type WeeklyDecision } from './report-email.ts';
+import { buildPlanEmail, buildWeeklyEmail, type CoachNote, type PlanReportData, type ReportWeek, type WeeklyDecision, type WeeklyReportData } from './report-email.ts';
 
 type Any = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-export interface CoachEmailInput {
-  mode: 'create_plan' | 'weekly_eval';
-  athleteEmail: string;
-  athleteName: string | null;
-  context: Any;
-  /** Lo que decidió el coach (ya pasado por la guardia), con `intent` y `erg` por workout. */
-  planned: Any;
-  /** Lo que regresó applyModeEffects. */
-  result: Any;
-  startDate: string; // del plan guardado
-  dateOf: (weekIndex: number, dayOfWeek: string) => string;
-}
+/** Lo que se guarda para armar el correo (sin destinatario ni modo de prueba). */
+export type PlanDraft = Omit<PlanReportData, 'athleteName' | 'appUrl' | 'testIntendedFor' | 'coach'>;
+export type WeekDraft = Omit<WeeklyReportData, 'athleteName' | 'appUrl' | 'testIntendedFor' | 'coach'> & { weekIndex: number };
 
-function reportWeek(weekIndex: number, workouts: PlannedWorkout[], dateOf: CoachEmailInput['dateOf']): ReportWeek {
+/** Clave de cada correo en training_plans.data.emails / emailDrafts. */
+export const emailKey = (mode: 'create_plan' | 'weekly_eval', weekIndex?: number) => (mode === 'create_plan' ? 'plan' : `week:${weekIndex}`);
+
+type DateOf = (weekIndex: number, dayOfWeek: string) => string;
+
+function reportWeek(weekIndex: number, workouts: PlannedWorkout[], dateOf: DateOf): ReportWeek {
   return {
     weekNumber: weekIndex + 1,
     workouts: workouts
@@ -41,52 +38,63 @@ function testOf(nextTest: Any | null | undefined) {
   return nextTest ? { weekNumber: nextTest.weekIndex + 1, type: nextTest.type, reason: nextTest.reason } : null;
 }
 
-export async function sendCoachEmail(i: CoachEmailInput): Promise<void> {
-  const testIntendedFor = EMAIL_TEST_RECIPIENT ? i.athleteEmail : null;
+export function planDraftOf(context: Any, planned: Any, startDate: string, dateOf: DateOf): PlanDraft {
+  const availability = context.availability as { days: string[]; hoursPerWeek: number };
+  return {
+    planName: planned.planName,
+    goal: String(context.goal ?? ''),
+    startDate,
+    days: availability.days,
+    hoursPerWeek: availability.hoursPerWeek,
+    coachNote: planned.coachNote,
+    welcome: planned.report?.welcome || planned.coachNote,
+    why: planned.report?.why ?? [],
+    closing: planned.report?.closing ?? '',
+    blocks: (planned.blocks as Any[]).map((b) => ({ name: b.name, weeks: b.weeks, focus: b.focus, targetHoursPerWeek: b.targetHoursPerWeek })),
+    weeks: (planned.firstBlockWeeks as { workouts: PlannedWorkout[] }[]).map((w, wi) => reportWeek(wi, w.workouts, dateOf)),
+    nextTest: testOf(planned.nextTest),
+  };
+}
+
+export function weekDraftOf(context: Any, planned: Any, weekIndex: number, dateOf: DateOf): WeekDraft {
+  const finished = context.weekJustFinished as Any | undefined;
+  return {
+    weekIndex,
+    decision: planned.decision as WeeklyDecision,
+    reasoning: planned.reasoning,
+    questions: [planned.contradictionFlag, planned.recurringPatternFlag].filter((q): q is string => typeof q === 'string' && q.trim() !== ''),
+    lastWeek: finished
+      ? { plannedTSS: finished.plannedTSS, actualTSS: finished.actualTSS, completed: finished.completedWorkouts, missed: finished.missedWorkouts }
+      : null,
+    nextWeek: reportWeek(weekIndex, planned.nextWeekWorkouts, dateOf),
+    nextTest: testOf(planned.nextTest),
+    ftp: planned.ftpAction ? { action: planned.ftpAction, suggested: planned.suggestedFtp ?? null } : null,
+  };
+}
+
+export interface Recipient {
+  email: string;
+  name: string | null;
+  replyTo?: string;
+}
+
+/** Arma y manda el correo. Regresa a quién le llegó, o el error. */
+export async function deliverDraft(
+  kind: 'plan' | 'week',
+  draft: PlanDraft | WeekDraft,
+  to: Recipient,
+  coach: CoachNote | null = null,
+): Promise<{ ok: true; sentTo: string; test: boolean } | { ok: false; error: string }> {
+  const base = { athleteName: to.name, appUrl: appUrl(), testIntendedFor: EMAIL_TEST_RECIPIENT ? to.email : null, coach };
   let email: { subject: string; html: string; text: string };
   let attachments: { filename: string; content: string }[] | undefined;
-
-  if (i.mode === 'create_plan') {
-    const availability = i.context.availability as { days: string[]; hoursPerWeek: number };
-    const data = {
-      athleteName: i.athleteName,
-      planName: i.planned.planName,
-      goal: String(i.context.goal ?? ''),
-      startDate: i.startDate,
-      days: availability.days,
-      hoursPerWeek: availability.hoursPerWeek,
-      coachNote: i.planned.coachNote,
-      welcome: i.planned.report?.welcome || i.planned.coachNote,
-      why: i.planned.report?.why ?? [],
-      closing: i.planned.report?.closing ?? '',
-      blocks: i.planned.blocks,
-      weeks: (i.planned.firstBlockWeeks as { workouts: PlannedWorkout[] }[]).map((w, wi) => reportWeek(wi, w.workouts, i.dateOf)),
-      nextTest: testOf(i.planned.nextTest),
-      appUrl: appUrl(),
-      testIntendedFor,
-    };
+  if (kind === 'plan') {
+    const data: PlanReportData = { ...(draft as PlanDraft), ...base };
     email = buildPlanEmail(data);
-    const pdf = await buildPlanPdf(data);
-    attachments = [{ filename: 'plan-torq.pdf', content: toBase64(pdf) }];
+    attachments = [{ filename: 'plan-torq.pdf', content: toBase64(await buildPlanPdf(data)) }];
   } else {
-    const finished = i.context.weekJustFinished as Any | undefined;
-    email = buildWeeklyEmail({
-      athleteName: i.athleteName,
-      decision: i.planned.decision as WeeklyDecision,
-      reasoning: i.planned.reasoning,
-      questions: [i.planned.contradictionFlag, i.planned.recurringPatternFlag].filter((q): q is string => typeof q === 'string' && q.trim() !== ''),
-      lastWeek: finished
-        ? { plannedTSS: finished.plannedTSS, actualTSS: finished.actualTSS, completed: finished.completedWorkouts, missed: finished.missedWorkouts }
-        : null,
-      nextWeek: reportWeek(i.result.weekIndex, i.planned.nextWeekWorkouts, i.dateOf),
-      nextTest: testOf(i.planned.nextTest),
-      ftp: i.planned.ftpAction ? { action: i.planned.ftpAction, suggested: i.planned.suggestedFtp ?? null } : null,
-      appUrl: appUrl(),
-      testIntendedFor,
-    });
+    email = buildWeeklyEmail({ ...(draft as WeekDraft), ...base });
   }
-
-  const sent = await sendEmail({ to: i.athleteEmail, ...email, attachments });
-  if (sent.ok) console.log(`[coach-chat] correo de ${i.mode} enviado a ${sent.sentTo}`);
-  else console.log(`[coach-chat] correo de ${i.mode} falló: ${sent.error}`);
+  const sent = await sendEmail({ to: to.email, ...email, attachments, replyTo: to.replyTo });
+  return sent.ok ? { ...sent, test: EMAIL_TEST_RECIPIENT !== null } : sent;
 }

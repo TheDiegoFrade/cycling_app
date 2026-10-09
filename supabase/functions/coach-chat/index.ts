@@ -30,7 +30,7 @@ import { acceptAiNotes, notesDueOnWeeklyEval, type StoredNotes } from './notes.t
 import { callRow, logCalls, type CallRow, type CallStep, type UsageLike } from './usage-log.ts';
 import { correctionMessage, guardOutput } from './guard.ts';
 import { SONNET, plannerFor, type ModelChoice } from './routing.ts';
-import { sendCoachEmail } from './coach-email.ts';
+import { deliverDraft, emailKey, planDraftOf, weekDraftOf } from './coach-email.ts';
 
 type AdminClient = ReturnType<typeof createClient>;
 
@@ -282,10 +282,11 @@ Deno.serve(async (req) => {
     if (body.mode === 'create_plan') await logPlanAction(admin, userId, 'create');
     if (body.mode === 'weekly_eval') await logPlanAction(admin, userId, 'weekly_eval');
 
-    // Correo al atleta (coach-email.ts), solo sin coach humano: con coach, lo
-    // que acaba de salir es un borrador que el atleta todavía no ve. Va en
-    // segundo plano: la respuesta no espera a Resend ni al PDF.
-    if ((body.mode === 'create_plan' || body.mode === 'weekly_eval') && !(result as { sentToCoach?: boolean }).sentToCoach) {
+    // Correo al atleta (coach-email.ts). Sin coach humano sale solo, una vez
+    // por plan y una por semana; con coach se guarda el borrador y el coach
+    // decide si lo manda (send-coach-email). Va en segundo plano: la
+    // respuesta no espera a Resend ni al PDF.
+    if (body.mode === 'create_plan' || body.mode === 'weekly_eval') {
       const job = emailAthlete(admin, userId, body.mode, context, parseResult.data, result as Record<string, unknown>).catch((err) =>
         console.log(`[coach-chat] correo de ${body.mode} falló: ${err instanceof Error ? err.message : String(err)}`),
       );
@@ -472,7 +473,8 @@ async function materializeWeek(
 }
 
 /** Coach humano con vínculo activo de este atleta, o null. */
-/** Arma y manda el correo de create_plan / weekly_eval (ver coach-email.ts). */
+/** Correo de create_plan / weekly_eval (ver coach-email.ts): sin coach lo
+ * manda si ese plan o esa semana no se mandó ya; con coach guarda el borrador. */
 async function emailAthlete(
   admin: AdminClient,
   userId: string,
@@ -481,26 +483,48 @@ async function emailAthlete(
   planned: Record<string, unknown>,
   result: Record<string, unknown>,
 ): Promise<void> {
-  const [{ data: user }, { data: plan }] = await Promise.all([
-    admin.auth.admin.getUserById(userId),
-    admin.from('training_plans').select('data').eq('user_id', userId).eq('status', 'active').maybeSingle(),
-  ]);
-  const athleteEmail = user?.user?.email;
-  const startDate = (plan as { data?: { startDate?: string } } | null)?.data?.startDate;
-  if (!athleteEmail || !startDate) {
-    console.log(`[coach-chat] correo de ${mode} omitido: ${athleteEmail ? 'sin plan activo' : 'el atleta no tiene correo'}`);
+  const { data: plan } = await admin.from('training_plans').select('id, data').eq('user_id', userId).eq('status', 'active').maybeSingle();
+  const row = plan as { id: string; data: { startDate?: string; emails?: Record<string, string> } } | null;
+  const startDate = row?.data?.startDate;
+  if (!row || !startDate) {
+    console.log(`[coach-chat] correo de ${mode} omitido: sin plan activo`);
     return;
   }
-  await sendCoachEmail({
-    mode,
-    athleteEmail,
-    athleteName: ((context.profile as { name?: string | null } | undefined)?.name ?? null) || null,
-    context,
-    planned,
-    result,
-    startDate,
-    dateOf: (weekIndex, day) => dateForWeek(startDate, weekIndex, day),
-  });
+  const dateOf = (weekIndex: number, day: string) => dateForWeek(startDate, weekIndex, day);
+  const weekIndex = result.weekIndex as number | undefined;
+  const key = emailKey(mode, weekIndex);
+  const draft = mode === 'create_plan' ? planDraftOf(context, planned, startDate, dateOf) : weekDraftOf(context, planned, weekIndex!, dateOf);
+
+  if (result.sentToCoach) {
+    await mergePlanData(admin, row.id, (data) => ({ ...data, emailDrafts: { ...(data.emailDrafts as object), [key]: draft } }));
+    return;
+  }
+  if (row.data.emails?.[key]) {
+    console.log(`[coach-chat] correo ${key} omitido: ya se mandó el ${row.data.emails[key]}`);
+    return;
+  }
+  const { data: user } = await admin.auth.admin.getUserById(userId);
+  const email = user?.user?.email;
+  if (!email) {
+    console.log(`[coach-chat] correo ${key} omitido: el atleta no tiene correo`);
+    return;
+  }
+  const name = ((context.profile as { name?: string | null } | undefined)?.name ?? null) || null;
+  const sent = await deliverDraft(mode === 'create_plan' ? 'plan' : 'week', draft, { email, name });
+  if (!sent.ok) {
+    console.log(`[coach-chat] correo ${key} falló: ${sent.error}`);
+    return;
+  }
+  console.log(`[coach-chat] correo ${key} enviado a ${sent.sentTo}`);
+  await mergePlanData(admin, row.id, (data) => ({ ...data, emails: { ...(data.emails as object), [key]: new Date().toISOString() } }));
+}
+
+/** Cambia solo una parte de training_plans.data, leyéndolo de nuevo justo antes. */
+async function mergePlanData(admin: AdminClient, planId: string, change: (data: Record<string, unknown>) => Record<string, unknown>): Promise<void> {
+  const { data: fresh } = await admin.from('training_plans').select('data').eq('id', planId).maybeSingle();
+  const current = ((fresh as { data?: Record<string, unknown> } | null)?.data ?? {}) as Record<string, unknown>;
+  const { error } = await admin.from('training_plans').update({ data: change(current) } as never).eq('id', planId);
+  if (error) console.log(`[coach-chat] no se pudo guardar el registro del correo: ${error.message}`);
 }
 
 async function activeCoachOf(admin: AdminClient, athleteId: string): Promise<string | null> {

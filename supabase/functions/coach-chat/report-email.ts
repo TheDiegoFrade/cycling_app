@@ -8,7 +8,7 @@ export interface ReportWorkout {
   date: string; // YYYY-MM-DD
   name: string;
   minutes: number;
-  erg: 'on' | 'off' | 'mixed';
+  erg?: 'on' | 'off' | 'mixed'; // sin dato en semanas que publicó un coach
   isTest: boolean;
   intent: string;
 }
@@ -22,6 +22,12 @@ export interface ReportTest {
   weekNumber: number;
   type: 'ramp' | 'test20';
   reason: string;
+}
+
+/** Lo que escribe el coach humano al aprobar el envío. */
+export interface CoachNote {
+  name: string;
+  comment: string;
 }
 
 export interface PlanReportData {
@@ -41,6 +47,8 @@ export interface PlanReportData {
   appUrl: string;
   /** Modo de prueba: a quién le habría llegado. */
   testIntendedFor?: string | null;
+  /** Atleta con coach: el coach aprobó el envío con este comentario. */
+  coach?: CoachNote | null;
 }
 
 export type WeeklyDecision = 'progress' | 'maintain' | 'reduce' | 'insert_recovery';
@@ -56,6 +64,7 @@ export interface WeeklyReportData {
   ftp: { action: 'keep' | 'change'; suggested: number | null } | null;
   appUrl: string;
   testIntendedFor?: string | null;
+  coach?: CoachNote | null;
 }
 
 const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -95,6 +104,7 @@ export function dayList(days: string[]): string {
 
 export function ergLabel(w: Pick<ReportWorkout, 'erg' | 'isTest'>): string {
   if (w.isTest) return 'Test';
+  if (!w.erg) return '';
   return w.erg === 'on' ? 'ERG' : w.erg === 'mixed' ? 'Mixto' : 'Por sensación';
 }
 
@@ -134,14 +144,14 @@ function weekTable(week: ReportWeek): string {
       (w) => `<tr>
         <td valign="top" style="padding:8px 10px 8px 0;border-bottom:1px solid #eef0f3;font-size:13px;color:#6b7380;white-space:nowrap;${FONT}">${escapeHtml(shortDate(w.date))}</td>
         <td valign="top" style="padding:8px 10px 8px 0;border-bottom:1px solid #eef0f3;font-size:14px;color:#0f1115;${FONT}">${w.isTest ? '<strong style="color:#2f6fe0;">' : '<strong>'}${escapeHtml(w.name)}</strong></td>
-        <td valign="top" align="right" style="padding:8px 0;border-bottom:1px solid #eef0f3;font-size:13px;color:#3c424d;white-space:nowrap;${FONT}">${w.minutes} min · ${ergLabel(w)}</td>
+        <td valign="top" align="right" style="padding:8px 0;border-bottom:1px solid #eef0f3;font-size:13px;color:#3c424d;white-space:nowrap;${FONT}">${escapeHtml(sessionMeta(w))}</td>
       </tr>`,
     )
     .join('');
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">${rows}</table>`;
 }
 
-function shell(opts: { subject: string; kicker: string; athleteName: string | null; testIntendedFor?: string | null; body: string; footer: string }): string {
+function shell(opts: { subject: string; kicker: string; athleteName: string | null; testIntendedFor?: string | null; coachName?: string; body: string; footer: string }): string {
   return `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(opts.subject)}</title></head>
 <body style="margin:0;padding:0;background:#e9ebef;">
@@ -155,7 +165,7 @@ function shell(opts: { subject: string; kicker: string; athleteName: string | nu
     <tr><td style="padding:24px 32px 14px;border-bottom:2px solid #0f1115;${FONT}">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
         <td style="${FONT}"><div style="font-size:22px;font-weight:700;letter-spacing:.06em;color:#0f1115;">TORQ</div><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6b7380;">${escapeHtml(opts.kicker)}</div></td>
-        <td align="right" style="font-size:13px;color:#3c424d;${FONT}">${escapeHtml(opts.athleteName ?? '')}<br>Coach Torq</td>
+        <td align="right" style="font-size:13px;color:#3c424d;${FONT}">${escapeHtml(opts.athleteName ?? '')}<br>${escapeHtml(opts.coachName ?? 'Coach Torq')}</td>
       </tr></table>
     </td></tr>
     ${opts.body}
@@ -175,6 +185,25 @@ function button(href: string, label: string, note: string): string {
 function compactText(lines: string[]): string {
   return lines.filter((line, i, all) => !(line === '' && all[i - 1] === '')).join('\n').trim();
 }
+
+/** "60 min · Por sensación", o solo "60 min" si no se sabe cómo va. */
+export function sessionMeta(w: ReportWorkout): string {
+  const label = ergLabel(w);
+  return label ? `${w.minutes} min · ${label}` : `${w.minutes} min`;
+}
+
+/** Nota del coach humano, arriba del correo. */
+function coachBlock(c: CoachNote | null | undefined): string {
+  if (!c?.comment.trim()) return '';
+  return `<tr><td style="padding:14px 32px 0;${FONT}">
+    <div style="padding:14px 16px;background:#fff8e6;border-left:4px solid #c98a00;border-radius:6px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#7a5600;">Nota de ${escapeHtml(c.name)}</div>
+      ${paragraphs(c.comment, `margin:6px 0 0;font-size:15px;line-height:1.5;color:#3c424d;${FONT}`)}
+    </div>
+  </td></tr>`;
+}
+
+const signature = (c: CoachNote | null | undefined) => (c ? c.name : 'Tu coach en Torq');
 
 /** "Hola, Alex" o "Hola" */
 export function greeting(name: string | null): string {
@@ -229,6 +258,7 @@ export function buildPlanEmail(d: PlanReportData): { subject: string; html: stri
       <div style="font-size:26px;font-weight:700;color:#0f1115;line-height:1.2;margin-bottom:14px;">${escapeHtml(greeting(name))} 👋</div>
       ${paragraphs(d.welcome, p)}
     </td></tr>
+    ${coachBlock(d.coach)}
     ${
       first
         ? `<tr><td style="padding:10px 32px 0;${FONT}">
@@ -251,7 +281,7 @@ export function buildPlanEmail(d: PlanReportData): { subject: string; html: stri
     )}
     <tr><td style="padding:18px 32px 0;${FONT}">
       ${paragraphs(d.closing, p)}
-      <div style="font-size:15px;color:#0f1115;font-weight:600;">Tu coach en Torq</div>
+      <div style="font-size:15px;color:#0f1115;font-weight:600;">${escapeHtml(signature(d.coach))}</div>
     </td></tr>
     <tr><td style="padding:18px 32px 0;${FONT}">
       <div style="font-size:13px;line-height:1.5;color:#6b7380;">📎 En el PDF adjunto te cuento por qué armé tu plan así y te dejo tus primeras semanas, sesión por sesión.</div>
@@ -262,8 +292,11 @@ export function buildPlanEmail(d: PlanReportData): { subject: string; html: stri
     kicker: 'Tu coach',
     athleteName: d.athleteName,
     testIntendedFor: d.testIntendedFor,
+    coachName: d.coach?.name,
     body,
-    footer: 'Recibes este correo porque creaste tu plan con el coach de Torq. Las actividades de Strava no se usan en el coach.',
+    footer: d.coach
+      ? `Te lo envía ${escapeHtml(d.coach.name)}, tu coach en Torq. Si respondes, le llega a tu coach.`
+      : 'Recibes este correo porque creaste tu plan con el coach de Torq. Las actividades de Strava no se usan en el coach.',
   });
   const text = compactText([
     d.testIntendedFor ? `(Modo de prueba: este correo iba para ${d.testIntendedFor})` : '',
@@ -271,13 +304,15 @@ export function buildPlanEmail(d: PlanReportData): { subject: string; html: stri
     '',
     d.welcome.trim(),
     '',
+    d.coach?.comment.trim() ? `Nota de ${d.coach.name}: ${d.coach.comment.trim()}` : '',
+    '',
     first ? `Tu primera sesión (${shortDate(first.date)}): ${first.name}, ${first.minutes} min. ${first.intent}` : '',
     '',
     'Cómo vamos a trabajar:',
     ...steps.map((t, i) => `${i + 1}. ${t}`),
     '',
     d.closing.trim(),
-    'Tu coach en Torq',
+    signature(d.coach),
     '',
     'En el PDF adjunto te cuento por qué armé tu plan así y te dejo tus primeras semanas.',
     `Abrir mi plan: ${d.appUrl}`,
@@ -312,6 +347,7 @@ export function buildWeeklyEmail(d: WeeklyReportData): { subject: string; html: 
       <div style="margin-top:6px;font-size:26px;font-weight:700;color:#0f1115;line-height:1.15;">Tu semana ${d.nextWeek.weekNumber}</div>
       ${lastWeekLine ? `<div style="margin-top:6px;font-size:13px;color:#6b7380;">La semana pasada: ${escapeHtml(lastWeekLine)}</div>` : ''}
     </td></tr>
+    ${coachBlock(d.coach)}
     <tr><td style="padding:14px 32px 0;${FONT}">
       ${paragraphs(d.reasoning, `margin:0 0 10px;font-size:15px;line-height:1.5;color:#3c424d;${FONT}`)}
     </td></tr>
@@ -332,19 +368,24 @@ export function buildWeeklyEmail(d: WeeklyReportData): { subject: string; html: 
     kicker: 'Evaluación semanal',
     athleteName: d.athleteName,
     testIntendedFor: d.testIntendedFor,
+    coachName: d.coach?.name,
     body,
-    footer: 'Recibes este correo porque evaluaste tu semana con el coach de Torq. Las actividades de Strava no se usan en el coach.',
+    footer: d.coach
+      ? `Te lo envía ${escapeHtml(d.coach.name)}, tu coach en Torq. Si respondes, le llega a tu coach.`
+      : 'Recibes este correo porque evaluaste tu semana con el coach de Torq. Las actividades de Strava no se usan en el coach.',
   });
   const text = compactText([
     `TORQ · Tu semana ${d.nextWeek.weekNumber} · ${decision.label}`,
     d.testIntendedFor ? `(Modo de prueba: este correo iba para ${d.testIntendedFor})` : '',
     lastWeekLine ? `La semana pasada: ${lastWeekLine}` : '',
     '',
+    d.coach?.comment.trim() ? `Nota de ${d.coach.name}: ${d.coach.comment.trim()}` : '',
+    '',
     d.reasoning.trim(),
     '',
     ftpLine,
     `Lo que viene (${hoursLabel(weekMinutes(d.nextWeek))})`,
-    ...d.nextWeek.workouts.map((w) => `- ${shortDate(w.date)}: ${w.name} · ${w.minutes} min · ${ergLabel(w)}`),
+    ...d.nextWeek.workouts.map((w) => `- ${shortDate(w.date)}: ${w.name} · ${sessionMeta(w)}`),
     '',
     testLine,
     ...(d.questions.length ? ['', 'Cuéntame en tu nota:', ...d.questions.map((q) => `- ${q}`)] : []),

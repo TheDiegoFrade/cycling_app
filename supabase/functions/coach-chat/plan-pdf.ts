@@ -3,7 +3,7 @@
 // las semanas concretas y el test. A4, Helvetica (WinAnsi: acentos y ñ sí,
 // emojis y flechas no — ver `clean`).
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from 'npm:pdf-lib@1.17.1';
-import { TEST_LABELS, dayList, ergLabel, glossaryFor, greeting, hoursLabel, longDate, shortDate, testDateOf, type PlanReportData } from './report-email.ts';
+import { TEST_LABELS, dayList, glossaryFor, sessionMeta, greeting, hoursLabel, longDate, shortDate, testDateOf, type PlanReportData } from './report-email.ts';
 
 const W = 595.28;
 const H = 841.89;
@@ -131,6 +131,17 @@ export async function buildPlanPdf(d: PlanReportData): Promise<Uint8Array> {
   w.page.drawText(w.clean(greeting(d.athleteName)), { x: M, y: w.y, size: 18, font: bold, color: INK });
   w.y -= 6;
   w.text(d.welcome, { size: 12, leading: 18, after: 4 });
+  if (d.coach?.comment.trim()) {
+    const lines = w.wrap(d.coach.comment, regular, 11, W - 2 * M - 28);
+    const boxH = 30 + lines.length * 15;
+    w.ensure(boxH + 12);
+    w.y -= 10;
+    w.page.drawRectangle({ x: M, y: w.y - boxH, width: W - 2 * M, height: boxH, color: rgb(1, 0.973, 0.902) });
+    w.page.drawRectangle({ x: M, y: w.y - boxH, width: 3, height: boxH, color: rgb(0.788, 0.541, 0) });
+    w.page.drawText(w.clean(`NOTA DE ${d.coach.name.toUpperCase()}`), { x: M + 14, y: w.y - 16, size: 8, font: bold, color: rgb(0.478, 0.337, 0) });
+    lines.forEach((line, i) => w.page.drawText(line, { x: M + 14, y: w.y - 32 - i * 15, size: 11, font: regular, color: BODY }));
+    w.y -= boxH;
+  }
 
   // Ficha: arranque, días, horas, meta
   const facts: [string, string][] = [
@@ -206,7 +217,7 @@ export async function buildPlanPdf(d: PlanReportData): Promise<Uint8Array> {
       if (wo.isTest) w.page.drawRectangle({ x: M - 6, y: w.y - 20 - intentLines.length * 13, width: W - 2 * M + 12, height: 24 + intentLines.length * 13, color: SOFT });
       w.page.drawText(w.clean(shortDate(wo.date)), { x: M, y: w.y - 13, size: 9.5, font: regular, color: MUTED });
       w.page.drawText(w.clean(wo.name), { x: M + 70, y: w.y - 13, size: 11, font: bold, color: wo.isTest ? BLUE : INK });
-      const meta = `${wo.minutes} min · ${ergLabel(wo)}`;
+      const meta = w.clean(sessionMeta(wo));
       w.page.drawText(meta, { x: W - M - regular.widthOfTextAtSize(meta, 9.5), y: w.y - 13, size: 9.5, font: regular, color: BODY });
       w.y -= 18;
       for (const line of intentLines) {
@@ -247,7 +258,7 @@ export async function buildPlanPdf(d: PlanReportData): Promise<Uint8Array> {
   w.page.drawRectangle({ x: M, y: w.y - boxH, width: W - 2 * M, height: boxH, color: INK });
   w.page.drawText('Nos vemos en el camino', { x: M + 16, y: w.y - 24, size: 13, font: bold, color: rgb(1, 1, 1) });
   closingLines.forEach((line, i) => w.page.drawText(line, { x: M + 16, y: w.y - 44 - i * 16, size: 11, font: regular, color: rgb(0.88, 0.9, 0.93) }));
-  w.page.drawText('Tu coach en Torq', { x: M + 16, y: w.y - boxH + 14, size: 9.5, font: regular, color: rgb(0.7, 0.73, 0.78) });
+  w.page.drawText(w.clean(d.coach?.name ?? 'Tu coach en Torq'), { x: M + 16, y: w.y - boxH + 14, size: 9.5, font: regular, color: rgb(0.7, 0.73, 0.78) });
   w.y -= boxH;
 
   return await doc.save();

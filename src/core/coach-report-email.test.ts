@@ -72,6 +72,19 @@ describe('correos del coach', () => {
     expect(glossaryFor(plan).map((g) => g.term)).toEqual(['RPE', 'ERG', 'FTP', 'Rampa', 'Cadencia']);
   });
 
+  it('con coach: su nota va arriba, firma él y la sesión sin modo no muestra "·"', () => {
+    const coach = { name: 'Diego', comment: 'Cuida el sueño antes del test.' };
+    const e = buildPlanEmail({ ...plan, coach });
+    expect(e.html).toContain('Nota de Diego');
+    expect(e.html).toContain('Cuida el sueño antes del test.');
+    expect(e.html).toContain('Te lo envía Diego, tu coach en Torq.');
+    expect(e.text).toContain('Nota de Diego: Cuida el sueño antes del test.');
+    const noErg = { weekNumber: 3, workouts: [{ date: '2026-10-19', name: 'Fondo', minutes: 60, isTest: false, intent: '' }] };
+    const w = buildWeeklyEmail({ athleteName: null, decision: 'progress', reasoning: 'Bien.', questions: [], lastWeek: null, nextWeek: noErg, nextTest: null, ftp: null, appUrl: 'https://app.test', coach });
+    expect(w.text).toContain('- lun 19 oct: Fondo · 60 min\n');
+    expect(w.html).toContain('Nota de Diego');
+  });
+
   it('escapa el HTML de lo que escribe el modelo', () => {
     expect(buildPlanEmail({ ...plan, welcome: '<script>x</script>' }).html).not.toContain('<script>x');
   });
