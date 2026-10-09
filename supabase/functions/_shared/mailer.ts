@@ -3,11 +3,10 @@
 
 /**
  * Modo de prueba: mientras no sea null, TODO correo llega aquí (con "[Prueba]"
- * en el asunto) en vez de al atleta. Resend solo entrega al correo de la
- * cuenta hasta que se verifique un dominio propio; ponlo en null después de
- * verificarlo y de configurar REPORT_EMAIL_FROM.
+ * en el asunto) en vez de al atleta. Apagado: el dominio mail.ridetorq.app
+ * está verificado en Resend y REPORT_EMAIL_FROM es coach@mail.ridetorq.app.
  */
-export const EMAIL_TEST_RECIPIENT: string | null = 'dpcfrade@gmail.com';
+export const EMAIL_TEST_RECIPIENT: string | null = null;
 
 const DEFAULT_FROM = 'Torq <onboarding@resend.dev>';
 export const DEFAULT_APP_URL = 'https://cycling-app.dpcfrade.workers.dev';
