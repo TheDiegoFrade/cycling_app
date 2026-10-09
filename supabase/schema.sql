@@ -1104,6 +1104,39 @@ alter table monthly_reviews add column if not exists emailed_at timestamptz;
 alter table monthly_reviews add column if not exists email_sends jsonb not null default '[]'::jsonb;
 
 -- ─────────────────────────────────────────────────────────────────────────
+-- Reporte mensual SIN coach humano (Edge Function monthly-self-report): la
+-- IA lo redacta como su coach y queda publicado con coach_id null ("Coach
+-- Torq"). El atleta lo lee con la misma política ("atleta lee las
+-- publicadas"); las políticas del coach no aplican (auth.uid() = null nunca).
+-- Uno por atleta y mes.
+-- ─────────────────────────────────────────────────────────────────────────
+alter table monthly_reviews alter column coach_id drop not null;
+create unique index if not exists monthly_reviews_self_once
+  on monthly_reviews (athlete_id, month) where coach_id is null;
+
+-- Disparo mensual: el día 1 a las 14:00 UTC (8:00 en CDMX) pg_cron llama a la
+-- función con el secreto CRON_SECRET, guardado también en el Vault como
+-- 'monthly_self_report_secret' (no va en este archivo):
+--   select vault.create_secret('<CRON_SECRET>', 'monthly_self_report_secret');
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+select cron.schedule(
+  'monthly-self-report',
+  '0 14 1 * *',
+  $cron$
+  select net.http_post(
+    url := 'https://pmshhyyqoghoyjnsedza.supabase.co/functions/v1/monthly-self-report',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'monthly_self_report_secret')
+    ),
+    body := '{}'::jsonb,
+    timeout_milliseconds := 300000
+  );
+  $cron$
+);
+
+-- ─────────────────────────────────────────────────────────────────────────
 -- Vista del coach: detalle de las sesiones de sus atletas y descarga de su
 -- .fit (screens/coach-session.ts). El coach lee un archivo de fit-files solo
 -- si es el .fit de una sesión de un atleta suyo con vínculo activo y que NO

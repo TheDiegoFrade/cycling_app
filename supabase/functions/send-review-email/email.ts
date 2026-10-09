@@ -24,6 +24,8 @@ export interface ReviewEmailData {
   testIntendedFor?: string | null;
   /** Lo que escribió el coach al aprobar el envío. */
   sendComment?: string | null;
+  /** Pie del correo; por defecto, el de la revisión que publicó un coach humano. */
+  footer?: string;
 }
 
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -146,7 +148,7 @@ export function buildReviewEmail(d: ReviewEmailData): { subject: string; html: s
       <div style="font-size:12px;color:#6b7380;margin-top:8px;">Gráficas de fitness y forma, cumplimiento, mejores potencias y más.</div>
     </td></tr>
     <tr><td style="padding:18px 32px 26px;border-top:1px solid #e3e6eb;font-size:11px;line-height:1.5;color:#6b7380;${FONT}">
-      Recibes este correo porque ${escapeHtml(d.coachName)} publicó tu revisión mensual en Torq. Si respondes, le llega a tu coach. Las actividades de Strava no se incluyen.
+      ${d.footer ? escapeHtml(d.footer) : `Recibes este correo porque ${escapeHtml(d.coachName)} publicó tu revisión mensual en Torq. Si respondes, le llega a tu coach. Las actividades de Strava no se incluyen.`}
     </td></tr>
   </table>
 </td></tr></table>

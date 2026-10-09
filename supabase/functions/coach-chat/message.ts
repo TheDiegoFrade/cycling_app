@@ -8,6 +8,32 @@
 import { PLAN_WORKOUT_CONTRACT, WORKOUT_CONTRACT } from './prompt.ts';
 import { PLANNING_MODES, type Mode } from './schemas.ts';
 
+/** Reglas del reporte mensual: las comparten la revisión que redacta la IA
+ * para el coach humano (monthly_review) y el reporte sin coach
+ * (monthly-self-report, que le llega directo al atleta). */
+export const MONTHLY_REVIEW_RULES = [
+  'Los números ya vienen calculados. Úsalos tal cual: nunca inventes datos, sesiones ni causas que no se vean en ellos. Si algo no se puede saber con los datos, no lo afirmes.',
+  '- Vocabulario: TSS = carga (de una sesión, semana o mes). CTL = fitness. TSB = frescura al cierre (`tsbEnd`), un número pequeño que puede ser negativo. No los intercambies.',
+  '- `findings`: 3-6 hallazgos concretos, cada uno con al menos un número del mes y comparado con el mes anterior cuando exista. `tone`: good (va bien), warn (a cuidar), bad (importante, actuar ya). `title` corto con punto final; `body` de una o dos frases.',
+  '- Referencias: CTL sano = sube 3-5 puntos por semana (unos 12-20 en el mes); más de 7 por semana es demasiado rápido; si baja con buen cumplimiento, el plan se quedó corto. Desacople < 5 % = buena base aeróbica; EF subiendo en sesiones comparables = mejora aeróbica. TSB entre −10 y −25 = construyendo; −25 o menor = fatiga alta. Cumplimiento ≥ 85 % es muy bueno; < 70 % pide ajustar el plan, no regañar al atleta.',
+  '- Un mejor registro (`bests`) más bajo que el mes anterior no es pérdida de forma si las sesiones del mes no buscaban esa duración: no lo marques como alarma por sí solo.',
+  '- Si `hoursWithoutPower` es una parte grande de `hours`, dilo: la carga real del mes está subestimada.',
+  '- `verdict`: on_track si el mes fue bueno, attention si hay 2 o más cosas a cuidar, off_track si hay algo importante (fatiga alta, mes casi sin entrenar).',
+  '- `message`: borrador del mensaje AL ATLETA, de tú, cálido y directo, sin adjetivos con género, 2-3 párrafos cortos separados por una línea en blanco: qué salió bien, qué hay que mejorar y por qué importa. Sin saludo formal ni firma. Si `coachDraft` trae texto, respeta sus ideas y su tono y complétalo en vez de contradecirlo.',
+  '- `goals`: 2-3 objetivos para el mes siguiente, concretos y medibles (`title`) con cómo se mide o por qué (`detail`). Si hay fatiga alta, el primero es recuperar. Respeta las lesiones del atleta (`athlete.injuries`): ningún objetivo que las cargue.',
+  '- Si `inProgress` es true, el mes no ha terminado: dilo con cuidado y no saques conclusiones de lo que falta.',
+  '- Todo en español.',
+];
+
+/** Encabezado del reporte mensual sin coach humano: lo lee el atleta tal cual. */
+export const SELF_MONTHLY_REVIEW_HEADER = [
+  'Modo: reporte mensual sin coach humano. Eres el coach de este atleta: este reporte le llega directo por correo y en la app, sin que nadie lo edite antes.',
+  'Escríbele como su coach: cálido, claro y motivante, en nosotros ("vamos", "seguimos"). La primera vez que uses TSS, CTL o TSB explícalo en la misma frase con palabras simples (TSS: la carga; CTL: tu nivel de forma de fondo; TSB: tu frescura, cuánto descanso traes).',
+  ...MONTHLY_REVIEW_RULES,
+  '- El `message` cierra diciendo que el plan de las próximas semanas ya toma en cuenta lo que vieron este mes y que nos vemos en las evaluaciones semanales.',
+  '- `coachDraft` viene vacío: no hay coach humano.',
+].join('\n');
+
 export function buildUserMessage(mode: Mode, context: Record<string, unknown>): string {
   const headers: Record<Mode, string> = {
     create_plan: [
@@ -71,17 +97,7 @@ export function buildUserMessage(mode: Mode, context: Record<string, unknown>): 
     ].join('\n'),
     monthly_review: [
       'Modo: monthly_review. Trabajas para el COACH HUMANO de este atleta: redactas un borrador de su revisión mensual; él la edita y decide si la publica.',
-      'Los números ya vienen calculados. Úsalos tal cual: nunca inventes datos, sesiones ni causas que no se vean en ellos. Si algo no se puede saber con los datos, no lo afirmes.',
-      '- Vocabulario: TSS = carga (de una sesión, semana o mes). CTL = fitness. TSB = frescura al cierre (`tsbEnd`), un número pequeño que puede ser negativo. No los intercambies.',
-      '- `findings`: 3-6 hallazgos concretos, cada uno con al menos un número del mes y comparado con el mes anterior cuando exista. `tone`: good (va bien), warn (a cuidar), bad (importante, actuar ya). `title` corto con punto final; `body` de una o dos frases.',
-      '- Referencias: CTL sano = sube 3-5 puntos por semana (unos 12-20 en el mes); más de 7 por semana es demasiado rápido; si baja con buen cumplimiento, el plan se quedó corto. Desacople < 5 % = buena base aeróbica; EF subiendo en sesiones comparables = mejora aeróbica. TSB entre −10 y −25 = construyendo; −25 o menor = fatiga alta. Cumplimiento ≥ 85 % es muy bueno; < 70 % pide ajustar el plan, no regañar al atleta.',
-      '- Un mejor registro (`bests`) más bajo que el mes anterior no es pérdida de forma si las sesiones del mes no buscaban esa duración: no lo marques como alarma por sí solo.',
-      '- Si `hoursWithoutPower` es una parte grande de `hours`, dilo: la carga real del mes está subestimada.',
-      '- `verdict`: on_track si el mes fue bueno, attention si hay 2 o más cosas a cuidar, off_track si hay algo importante (fatiga alta, mes casi sin entrenar).',
-      '- `message`: borrador del mensaje AL ATLETA, de tú, cálido y directo, sin adjetivos con género, 2-3 párrafos cortos separados por una línea en blanco: qué salió bien, qué hay que mejorar y por qué importa. Sin saludo formal ni firma. Si `coachDraft` trae texto, respeta sus ideas y su tono y complétalo en vez de contradecirlo.',
-      '- `goals`: 2-3 objetivos para el mes siguiente, concretos y medibles (`title`) con cómo se mide o por qué (`detail`). Si hay fatiga alta, el primero es recuperar. Respeta las lesiones del atleta (`athlete.injuries`): ningún objetivo que las cargue.',
-      '- Si `inProgress` es true, el mes no ha terminado: dilo con cuidado y no saques conclusiones de lo que falta.',
-      '- Todo en español.',
+      ...MONTHLY_REVIEW_RULES,
     ].join('\n'),
   };
   // El contrato de Workout solo aplica a los modos que generan entrenamientos
