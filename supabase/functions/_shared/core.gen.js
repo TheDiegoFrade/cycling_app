@@ -489,6 +489,27 @@ function emailKpis(r) {
     { label: "Forma (TSB)", value: signedNumber(k.tsbEnd), delta: tsbZone(k.tsbEnd) }
   ];
 }
+
+// src/core/self-report-start.ts
+var SHORT_FIRST_MONTH_DAYS = 14;
+function daysToMonthEnd(startedOn) {
+  const end = monthEnd(startedOn.slice(0, 7));
+  return Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${startedOn}T00:00:00Z`)) / 864e5) + 1;
+}
+function startPhase(startedOn, monthKey) {
+  if (!startedOn) return { kind: "regular" };
+  const start = monthStart(monthKey);
+  const end = monthEnd(monthKey);
+  if (startedOn > start && startedOn <= end) {
+    const days = daysToMonthEnd(startedOn);
+    return days < SHORT_FIRST_MONTH_DAYS ? { kind: "skip_short_first", startedOn, days } : { kind: "first_partial", startedOn };
+  }
+  const prevStart = monthStart(shiftMonth(monthKey, -1));
+  if (startedOn > prevStart && startedOn < start && daysToMonthEnd(startedOn) < SHORT_FIRST_MONTH_DAYS) {
+    return { kind: "first_full_after_short", startedOn };
+  }
+  return { kind: "regular" };
+}
 export {
   addDays,
   buildMonthlyReport,
@@ -499,5 +520,6 @@ export {
   monthEnd,
   monthStart,
   reviewAiContext,
-  shiftMonth
+  shiftMonth,
+  startPhase
 };

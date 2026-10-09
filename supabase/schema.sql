@@ -1114,15 +1114,17 @@ alter table monthly_reviews alter column coach_id drop not null;
 create unique index if not exists monthly_reviews_self_once
   on monthly_reviews (athlete_id, month) where coach_id is null;
 
--- Disparo mensual: el día 1 a las 14:00 UTC (8:00 en CDMX) pg_cron llama a la
--- función con el secreto CRON_SECRET, guardado también en el Vault como
+-- Disparo diario a las 13:00 UTC (7:00 en CDMX): la función solo genera del
+-- 1 al 5 de cada mes y es idempotente (si un día falla, reintenta el siguiente;
+-- los demás días es una consulta barata y no hace nada). Va con el secreto
+-- CRON_SECRET, guardado también en el Vault como
 -- 'monthly_self_report_secret' (no va en este archivo):
 --   select vault.create_secret('<CRON_SECRET>', 'monthly_self_report_secret');
 create extension if not exists pg_cron;
 create extension if not exists pg_net;
 select cron.schedule(
   'monthly-self-report',
-  '0 14 1 * *',
+  '0 13 * * *',
   $cron$
   select net.http_post(
     url := 'https://pmshhyyqoghoyjnsedza.supabase.co/functions/v1/monthly-self-report',
