@@ -7,6 +7,8 @@
 //   ANTHROPIC_API_KEY=... deno run -A coach-lab/api-run.ts <carpeta> <modelo>:<effort>[,...] <escenario> [...]
 //   p. ej.  ... api-run.ts results/api-1 claude-sonnet-5-5:medium,claude-haiku-5-5:low 07-eval-fatiga 08-eval-progreso
 //   `auto` como configuración usa la misma elección que producción (routing.ts).
+//   `:none` llama sin effort (como hoy coach_week y monthly_review en Haiku 4.5).
+//   Igual que producción, solo los modos que planifican tienen reintento.
 //
 // Escribe <carpeta>/<escenario>__<modelo>-<effort>.json (salida + métricas)
 // y <carpeta>/resumen.json. No llama al redactor (Haiku, ~$0.002 por plan,
@@ -16,7 +18,7 @@ import Anthropic from 'npm:@anthropic-ai/sdk@0';
 import { betaZodOutputFormat } from 'npm:@anthropic-ai/sdk@0/helpers/beta/zod';
 import { COACH_SYSTEM_PROMPT } from '../supabase/functions/coach-chat/prompt.ts';
 import { buildUserMessage } from '../supabase/functions/coach-chat/message.ts';
-import { inputContextSchemaForMode, schemaForMode, type Mode } from '../supabase/functions/coach-chat/schemas.ts';
+import { PLANNING_MODES, inputContextSchemaForMode, schemaForMode, type Mode } from '../supabase/functions/coach-chat/schemas.ts';
 import { correctionMessage, guardOutput } from '../supabase/functions/coach-chat/guard.ts';
 import { costUsd, MODEL_PRICES, type UsageLike } from '../supabase/functions/coach-chat/usage-log.ts';
 import { plannerFor } from '../supabase/functions/coach-chat/routing.ts';
@@ -31,7 +33,7 @@ const outDir = new URL(`${dirArg.replace(/\/?$/, '/')}`, here);
 await Deno.mkdir(outDir, { recursive: true });
 const configs = configsArg.split(',').map((c) => {
   const [model, effort] = c.split(':');
-  return { model, effort: effort as 'low' | 'medium' | 'high' | undefined };
+  return { model, effort: effort as 'low' | 'medium' | 'high' | 'none' | undefined };
 });
 
 const client = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
@@ -48,7 +50,7 @@ async function call(model: string, effort: string, schema: ReturnType<typeof sch
     .stream({
       model,
       max_tokens: 32000,
-      output_config: { effort, format: betaZodOutputFormat(schema) },
+      output_config: { ...(effort === 'none' ? {} : { effort }), format: betaZodOutputFormat(schema) },
       system,
       messages,
     } as never)
@@ -74,9 +76,9 @@ for (const id of ids) {
   // En paralelo por escenario: todas las configuraciones a la vez.
   const rows = await Promise.all(
     configs.map(async (cfg) => {
-      const auto = cfg.model === 'auto' ? plannerFor(mode, ctx) : null;
+      const auto = cfg.model === 'auto' ? (plannerFor(mode, ctx) ?? { model: 'claude-haiku-4-5-20251001', effort: 'none' as const }) : null;
       const model = auto?.model ?? cfg.model;
-      const effort = auto?.effort ?? cfg.effort ?? 'low';
+      const effort: string = auto?.effort ?? cfg.effort ?? 'low';
       const tag = auto ? `auto-${model}-${effort}` : `${model}-${effort}`;
       try {
         const first = await call(model, effort, schema, [{ role: 'user', content: userMessage }]);
@@ -86,7 +88,7 @@ for (const id of ids) {
         let guard = out ? guardOutput(mode, ctx, out) : null;
         const firstFails = guard?.fails ?? ['salida inválida'];
         let retried = false;
-        if (guard && guard.fails.length) {
+        if (guard && guard.fails.length && PLANNING_MODES.has(mode)) {
           retried = true;
           const second = await call(model, effort, schema, [
             { role: 'user', content: userMessage },

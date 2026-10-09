@@ -1,0 +1,65 @@
+{
+  "id": "09-semana-coach-cansado",
+  "mode": "coach_week",
+  "config": "claude-haiku-5-5-medium",
+  "ok": true,
+  "seconds": 15.6,
+  "cost": 0.003575,
+  "coldCost": 0.003575,
+  "usage": {
+    "input_tokens": 4229,
+    "output_tokens": 2672,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 14529
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Descarga: TSB −28 y el coach pide absorber, así que no hay intervalos por encima de 75 % ni sesiones duras esta semana.",
+      "Carga de bici: ~86 TSS, cerca del 18 % de su promedio reciente (465 TSS), muy por debajo del tope de 60 %.",
+      "De su biblioteca: Recuperación 40 tal cual lunes y sábado; Endurance 75 recortada a 60 min al 65 % por el límite de descarga.",
+      "FTP 230 confirmado, sin lesiones registradas; la semana queda solo en fondo y recuperación."
+    ],
+    "workouts": [
+      {
+        "name": "Recuperación 40",
+        "description": "Una rodada corta para soltar las piernas y que el cuerpo sienta que la semana va en modo absorción. Puedes dejar el ERG prendido o apagado, como te resulte más cómodo, pero que vaya suave de principio a fin. Debes poder hablar en frases completas durante todo el rato. Te deja listo para el martes con las piernas sueltas.",
+        "intervals": [],
+        "targetTSS": 22,
+        "dayOfWeek": "mon",
+        "fromLibraryId": "tpl-rec",
+        "libraryChange": null
+      },
+      {
+        "name": "Fondo de 60 min",
+        "description": "Una salida larga y tranquila en zona de fondo, sin buscar ritmo ni subir el pulso. Te recomiendo el ERG prendido para que no te pases de potencia, con la cadencia libre. Si en algún momento no puedes hablar en frases completas, baja un poco y anótalo. Es de las sesiones que más te ayudan a absorber esta semana.",
+        "intervals": [
+          {
+            "name": "Fondo",
+            "type": "steady",
+            "duration_s": 3600,
+            "power_pct": 65
+          }
+        ],
+        "targetTSS": 42,
+        "dayOfWeek": "wed",
+        "fromLibraryId": "tpl-z2",
+        "libraryChange": "De 75 a 60 min al 65 %: descarga, TSB −28"
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Otra rodada suave para cerrar la semana con las piernas frescas. Ve sin prisa, con el pulso bajo y la cadencia que te salga natural. Si sientes pesadez, acórtala sin problema.",
+        "intervals": [],
+        "targetTSS": 22,
+        "dayOfWeek": "sat",
+        "fromLibraryId": "tpl-rec",
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\":[\"Descarga: TSB −28 y el coach pide absorber, así que no hay intervalos por encima de 75 % ni sesiones duras esta semana.\",\"Carga de bici: ~86 TSS, cerca del 18 % de su promedio reciente (465 TSS), muy por debajo del tope de 60 %.\",\"De su biblioteca: Recuperación 40 tal cual lunes y sábado; Endurance 75 recortada a 60 min al 65 % por el límite de descarga.\",\"FTP 230 confirmado, sin lesiones registradas; la semana queda solo en fondo y recuperación.\"],\"workouts\":[{\"name\":\"Recuperación 40\",\"description\":\"Una rodada corta para soltar las piernas y que el cuerpo sienta que la semana va en modo absorción. Puedes dejar el ERG prendido o apagado, como te resulte más cómodo, pero que vaya suave de principio a fin. Debes poder hablar en frases completas durante todo el rato. Te deja listo para el martes con las piernas sueltas.\",\"intervals\":[],\"targetTSS\":22,\"dayOfWeek\":\"mon\",\"fromLibraryId\":\"tpl-rec\",\"libraryChange\":null},{\"name\":\"Fondo de 60 min\",\"description\":\"Una salida larga y tranquila en zona de fondo, sin buscar ritmo ni subir el pulso. Te recomiendo el ERG prendido para que no te pases de potencia, con la cadencia libre. Si en algún momento no puedes hablar en frases completas, baja un poco y anótalo. Es de las sesiones que más te ayudan a absorber esta semana.\",\"intervals\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3600,\"power_pct\":65}],\"targetTSS\":42,\"dayOfWeek\":\"wed\",\"fromLibraryId\":\"tpl-z2\",\"libraryChange\":\"De 75 a 60 min al 65 %: descarga, TSB −28\"},{\"name\":\"Recuperación 40\",\"description\":\"Otra rodada suave para cerrar la semana con las piernas frescas. Ve sin prisa, con el pulso bajo y la cadencia que te salga natural. Si sientes pesadez, acórtala sin problema.\",\"intervals\":[],\"targetTSS\":22,\"dayOfWeek\":\"sat\",\"fromLibraryId\":\"tpl-rec\",\"libraryChange\":null}]}"
+}

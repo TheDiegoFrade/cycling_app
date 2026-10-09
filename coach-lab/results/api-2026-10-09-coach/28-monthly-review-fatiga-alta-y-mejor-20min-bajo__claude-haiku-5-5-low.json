@@ -1,0 +1,67 @@
+{
+  "id": "28-monthly-review-fatiga-alta-y-mejor-20min-bajo",
+  "mode": "monthly_review",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 10,
+  "cost": 0.002501,
+  "coldCost": 0.002501,
+  "usage": {
+    "input_tokens": 2146,
+    "output_tokens": 1003,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 14276
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "verdict": "attention",
+    "findings": [
+      {
+        "tone": "good",
+        "title": "Volumen y cumplimiento subieron.",
+        "body": "Hizo 31 h y 1980 TSS frente a 22 h y 1390 TSS del mes anterior, con 95 % de cumplimiento (88 % antes)."
+      },
+      {
+        "tone": "good",
+        "title": "Fitness en subida sana.",
+        "body": "El CTL pasó de 44 a 73, unos 29 puntos en el mes, algo por encima del ritmo sostenible de 12-20 al mes; conviene no acelerar más."
+      },
+      {
+        "tone": "warn",
+        "title": "Fatiga acumulada al cierre.",
+        "body": "El TSB terminó en −31, zona de fatiga alta; las últimas semanas, con la semana de 550 TSS, cargaron de más."
+      },
+      {
+        "tone": "warn",
+        "title": "La base aeróbica se está deteriorando.",
+        "body": "El desacople subió de 3.8 % a 8.1 % y la EF bajó de 1.42 a 1.33 en sesiones estables: señal de fatiga y de que la semana 4 fue demasiado dura."
+      },
+      {
+        "tone": "good",
+        "title": "Mejoró el 5 min y el 1 min.",
+        "body": "El mejor de 5 min pasó de 255 a 262 W y el de 1 min de 371 a 388 W; el de 20 min bajó a 188 W, pero no se buscaba ese esfuerzo en el mes."
+      }
+    ],
+    "message": "Sofía, este mes hiciste 31 horas y 1980 de carga, con un 95 % de lo planeado. Ese compromiso es muy valioso y se nota en tu fitness, que subió de 44 a 73.\n\nAhora toca cuidar la fatiga: cerraste con un TSB de −31 y tu desacople pasó de 3.8 % a 8.1 %. Tu cuerpo te está pidiendo recuperación antes de seguir cargando, sobre todo con la molestia lumbar que ya conoces en sesiones largas.\n\nPara noviembre necesitas llegar fresca al estatal. Vamos a bajar la carga, cuidar los bloques largos y trabajar fuerza y movilidad, que quedaron por debajo de lo previsto.",
+    "goals": [
+      {
+        "title": "Recuperar frescura: TSB de −10 o mejor antes del 15 de octubre.",
+        "detail": "Semana de descarga con TSS al 50-60 % y dos días libres; se mide con el TSB diario."
+      },
+      {
+        "title": "Desacople por debajo de 5 % en sesiones estables.",
+        "detail": "Dos rodadas de 60 min o más a RPE 3-4 con deriva de FC controlada, revisando el desacople al cierre del mes."
+      },
+      {
+        "title": "Completar 6 de 8 sesiones de fuerza y movilidad.",
+        "detail": "Hoy van 5 de 16; se cuentan en el registro mensual, sin sesiones de más de 75 min."
+      }
+    ],
+    "notesUpdate": null
+  },
+  "raw": "{\"verdict\":\"attention\",\"findings\":[{\"tone\":\"good\",\"title\":\"Volumen y cumplimiento subieron.\",\"body\":\"Hizo 31 h y 1980 TSS frente a 22 h y 1390 TSS del mes anterior, con 95 % de cumplimiento (88 % antes).\"},{\"tone\":\"good\",\"title\":\"Fitness en subida sana.\",\"body\":\"El CTL pasó de 44 a 73, unos 29 puntos en el mes, algo por encima del ritmo sostenible de 12-20 al mes; conviene no acelerar más.\"},{\"tone\":\"warn\",\"title\":\"Fatiga acumulada al cierre.\",\"body\":\"El TSB terminó en −31, zona de fatiga alta; las últimas semanas, con la semana de 550 TSS, cargaron de más.\"},{\"tone\":\"warn\",\"title\":\"La base aeróbica se está deteriorando.\",\"body\":\"El desacople subió de 3.8 % a 8.1 % y la EF bajó de 1.42 a 1.33 en sesiones estables: señal de fatiga y de que la semana 4 fue demasiado dura.\"},{\"tone\":\"good\",\"title\":\"Mejoró el 5 min y el 1 min.\",\"body\":\"El mejor de 5 min pasó de 255 a 262 W y el de 1 min de 371 a 388 W; el de 20 min bajó a 188 W, pero no se buscaba ese esfuerzo en el mes.\"}],\"message\":\"Sofía, este mes hiciste 31 horas y 1980 de carga, con un 95 % de lo planeado. Ese compromiso es muy valioso y se nota en tu fitness, que subió de 44 a 73.\\n\\nAhora toca cuidar la fatiga: cerraste con un TSB de −31 y tu desacople pasó de 3.8 % a 8.1 %. Tu cuerpo te está pidiendo recuperación antes de seguir cargando, sobre todo con la molestia lumbar que ya conoces en sesiones largas.\\n\\nPara noviembre necesitas llegar fresca al estatal. Vamos a bajar la carga, cuidar los bloques largos y trabajar fuerza y movilidad, que quedaron por debajo de lo previsto.\",\"goals\":[{\"title\":\"Recuperar frescura: TSB de −10 o mejor antes del 15 de octubre.\",\"detail\":\"Semana de descarga con TSS al 50-60 % y dos días libres; se mide con el TSB diario.\"},{\"title\":\"Desacople por debajo de 5 % en sesiones estables.\",\"detail\":\"Dos rodadas de 60 min o más a RPE 3-4 con deriva de FC controlada, revisando el desacople al cierre del mes.\"},{\"title\":\"Completar 6 de 8 sesiones de fuerza y movilidad.\",\"detail\":\"Hoy van 5 de 16; se cuentan en el registro mensual, sin sesiones de más de 75 min.\"}],\"notesUpdate\":null}"
+}

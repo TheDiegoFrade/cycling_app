@@ -1,0 +1,171 @@
+{
+  "id": "13-coach-week-fuerza-rodilla-sin-ftp-confirmado",
+  "mode": "coach_week",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 24.4,
+  "cost": 0.003265,
+  "coldCost": 0.004936,
+  "usage": {
+    "input_tokens": 4576,
+    "output_tokens": 5325,
+    "cache_read_input_tokens": 14529,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [
+    "rationale con 6 razones (se piden 2-5)"
+  ],
+  "output": {
+    "rationale": [
+      "Normal: TSB -3 y la semana previa (260 TSS) no supera 1.3 veces el promedio de las demas; la instruccion esta vacia y no hay senales de fatiga.",
+      "Carga de bici: ~192 TSS, alrededor del 74 % de su promedio reciente (~260), a proposito por el FTP sin confirmar.",
+      "Dos sesiones duras no; solo una: sweet spot 3x12 al 90 % el jueves, con el tope de 95 % por FTP no confirmado.",
+      "Biblioteca: Fondo 60 y Recuperacion 40 tomados tal cual, salvo Fondo 60 con cadencia 85 o mas por la rodilla; Sweet Spot 3x12 con cadencia 85-95 en los bloques.",
+      "Sabado: fondo largo nuevo de 85 min al 65 %, cadencia 85 o mas por la tendinitis rotuliana; sin trabajo a cadencia baja ni sprints.",
+      "Sugiero test de rampa en 1-2 semanas para confirmar el FTP de 210 W antes de subir la intensidad."
+    ],
+    "workouts": [
+      {
+        "name": "Fondo 60",
+        "description": "Hoy es un fondo tranquilo de unos 60 minutos para sostener el motor sin apretar. Puedes prender el ERG a potencia baja o manejarte por sensacion; lo que importa es poder hablar en frases completas. Mantén la cadencia alta, sobre 85, para cuidar la rodilla.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 600,
+            "power_pct": 55
+          },
+          {
+            "name": "Fondo",
+            "type": "steady",
+            "duration_s": 2700,
+            "power_pct": 65,
+            "cadence_min": 85,
+            "cadence_max": 95
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 300,
+            "power_pct": 50
+          }
+        ],
+        "targetTSS": 42,
+        "dayOfWeek": "mon",
+        "fromLibraryId": "lib-fondo-60",
+        "libraryChange": "Cadencia 85-95 en el bloque de fondo por la rodilla; resto igual"
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Una rodada corta y suave para soltar las piernas. Sin presion: el objetivo es terminar mejor de como empezaste. Puedes usar el ERG a potencia baja o ir por sensacion.",
+        "intervals": [],
+        "targetTSS": 20,
+        "dayOfWeek": "wed",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      },
+      {
+        "name": "Sweet Spot 3×12",
+        "description": "Hoy toca sweet spot: tres bloques de 12 minutos al 90 % de tu FTP con cinco minutos suaves entre ellos. Prende el ERG para sostener la potencia y mantén la cadencia entre 85 y 95 durante los bloques. Si en el segundo bloque sientes que no puedes hablar en frases cortas, bajalo un poco y anótalo para tu coach.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 720,
+            "power_pct": 60,
+            "ramp_to_pct": 80,
+            "cadence_min": 85,
+            "cadence_max": 95
+          },
+          {
+            "name": "Sweet spot 1",
+            "type": "interval",
+            "duration_s": 720,
+            "power_pct": 90,
+            "cadence_min": 85,
+            "cadence_max": 95
+          },
+          {
+            "name": "Recuperación 1",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55
+          },
+          {
+            "name": "Sweet spot 2",
+            "type": "interval",
+            "duration_s": 720,
+            "power_pct": 90,
+            "cadence_min": 85,
+            "cadence_max": 95
+          },
+          {
+            "name": "Recuperación 2",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55
+          },
+          {
+            "name": "Sweet spot 3",
+            "type": "interval",
+            "duration_s": 720,
+            "power_pct": 90,
+            "cadence_min": 85,
+            "cadence_max": 95
+          },
+          {
+            "name": "Recuperación 3",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 420,
+            "power_pct": 50
+          }
+        ],
+        "targetTSS": 72,
+        "dayOfWeek": "thu",
+        "fromLibraryId": "lib-ss-3x12",
+        "libraryChange": "Cadencia 85-95 en los bloques de sweet spot por la rodilla; resto igual"
+      },
+      {
+        "name": "Fondo largo",
+        "description": "Hoy es el fondo largo de la semana: unos 85 minutos bien sostenidos al 65 % de tu FTP. Puedes prender el ERG a esa potencia o manejarte por sensacion. Ve cómodo, con respiracion tranquila y la cadencia alta; si la rodilla se queja, baja la marcha en vez de forzar.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 600,
+            "power_pct": 55
+          },
+          {
+            "name": "Fondo sostenido",
+            "type": "steady",
+            "duration_s": 3900,
+            "power_pct": 65,
+            "cadence_min": 85,
+            "cadence_max": 95
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 600,
+            "power_pct": 50
+          }
+        ],
+        "targetTSS": 58,
+        "dayOfWeek": "sat",
+        "fromLibraryId": null,
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\":[\"Normal: TSB -3 y la semana previa (260 TSS) no supera 1.3 veces el promedio de las demas; la instruccion esta vacia y no hay senales de fatiga.\",\"Carga de bici: ~192 TSS, alrededor del 74 % de su promedio reciente (~260), a proposito por el FTP sin confirmar.\",\"Dos sesiones duras no; solo una: sweet spot 3x12 al 90 % el jueves, con el tope de 95 % por FTP no confirmado.\",\"Biblioteca: Fondo 60 y Recuperacion 40 tomados tal cual, salvo Fondo 60 con cadencia 85 o mas por la rodilla; Sweet Spot 3x12 con cadencia 85-95 en los bloques.\",\"Sabado: fondo largo nuevo de 85 min al 65 %, cadencia 85 o mas por la tendinitis rotuliana; sin trabajo a cadencia baja ni sprints.\",\"Sugiero test de rampa en 1-2 semanas para confirmar el FTP de 210 W antes de subir la intensidad.\"],\"workouts\":[{\"name\":\"Fondo 60\",\"description\":\"Hoy es un fondo tranquilo de unos 60 minutos para sostener el motor sin apretar. Puedes prender el ERG a potencia baja o manejarte por sensacion; lo que importa es poder hablar en frases completas. Mantén la cadencia alta, sobre 85, para cuidar la rodilla.\",\"intervals\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55},{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":65,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}],\"targetTSS\":42,\"dayOfWeek\":\"mon\",\"fromLibraryId\":\"lib-fondo-60\",\"libraryChange\":\"Cadencia 85-95 en el bloque de fondo por la rodilla; resto igual\"},{\"name\":\"Recuperación 40\",\"description\":\"Una rodada corta y suave para soltar las piernas. Sin presion: el objetivo es terminar mejor de como empezaste. Puedes usar el ERG a potencia baja o ir por sensacion.\",\"intervals\":[],\"targetTSS\":20,\"dayOfWeek\":\"wed\",\"fromLibraryId\":\"lib-recup-40\",\"libraryChange\":null},{\"name\":\"Sweet Spot 3×12\",\"description\":\"Hoy toca sweet spot: tres bloques de 12 minutos al 90 % de tu FTP con cinco minutos suaves entre ellos. Prende el ERG para sostener la potencia y mantén la cadencia entre 85 y 95 durante los bloques. Si en el segundo bloque sientes que no puedes hablar en frases cortas, bajalo un poco y anótalo para tu coach.\",\"intervals\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":720,\"power_pct\":60,\"ramp_to_pct\":80,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Sweet spot 1\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":90,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Recuperación 1\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55},{\"name\":\"Sweet spot 2\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":90,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Recuperación 2\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55},{\"name\":\"Sweet spot 3\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":90,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Recuperación 3\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":420,\"power_pct\":50}],\"targetTSS\":72,\"dayOfWeek\":\"thu\",\"fromLibraryId\":\"lib-ss-3x12\",\"libraryChange\":\"Cadencia 85-95 en los bloques de sweet spot por la rodilla; resto igual\"},{\"name\":\"Fondo largo\",\"description\":\"Hoy es el fondo largo de la semana: unos 85 minutos bien sostenidos al 65 % de tu FTP. Puedes prender el ERG a esa potencia o manejarte por sensacion. Ve cómodo, con respiracion tranquila y la cadencia alta; si la rodilla se queja, baja la marcha en vez de forzar.\",\"intervals\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55},{\"name\":\"Fondo sostenido\",\"type\":\"steady\",\"duration_s\":3900,\"power_pct\":65,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}],\"targetTSS\":58,\"dayOfWeek\":\"sat\",\"fromLibraryId\":null,\"libraryChange\":null}]}"
+}

@@ -1,0 +1,67 @@
+{
+  "id": "11-coach-week-fatiga-alta-tsb",
+  "mode": "coach_week",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 9.3,
+  "cost": 0.00148,
+  "coldCost": 0.003151,
+  "usage": {
+    "input_tokens": 4408,
+    "output_tokens": 1788,
+    "cache_read_input_tokens": 14529,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Descarga: TSB −29 y el coach reporta cansancio acumulado de las últimas dos semanas.",
+      "Carga de bici: ~124 TSS, cerca de 27 % de su promedio reciente (464 TSS); la semana queda bajo el tope de 60 %.",
+      "Tomé Recuperación 40 y Fondo 60 de su biblioteca tal cual, sin ajustes; no hay intervalos por encima de 75 % ni sesiones duras.",
+      "Sin lesiones registradas. El FTP está confirmado (265 W), pero la semana no lo necesita: el trabajo de calidad vuelve cuando el TSB suba."
+    ],
+    "workouts": [
+      {
+        "name": "Recuperación 40",
+        "description": "Hoy toca rodar suave para soltar las piernas. Cuarenta minutos a un ritmo en el que puedas hablar en frases completas, con la cadencia que te salga cómoda. Con ERG apagado basta; si lo prendes, que sea a una potencia baja y sin pelear con el rodillo.",
+        "intervals": [],
+        "targetTSS": 20,
+        "dayOfWeek": "mon",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      },
+      {
+        "name": "Fondo 60",
+        "description": "Una hora de fondo con el ritmo parejo, sin buscar números. Mantén la respiración controlada y, si te sientes bien, deja que la cadencia fluya sola. Con ERG prendido en 65 % está bien; si lo apagas, cuida que el esfuerzo se quede en conversación.",
+        "intervals": [],
+        "targetTSS": 42,
+        "dayOfWeek": "wed",
+        "fromLibraryId": "lib-fondo-60",
+        "libraryChange": null
+      },
+      {
+        "name": "Fondo 60",
+        "description": "Otra hora de fondo para mantener el ritmo de la semana sin cargar las piernas. Empieza suave los primeros minutos y deja que el cuerpo entre en calor. Si al terminar sientes que te sobró algo, es buena señal: significa que la semana va bien.",
+        "intervals": [],
+        "targetTSS": 42,
+        "dayOfWeek": "fri",
+        "fromLibraryId": "lib-fondo-60",
+        "libraryChange": null
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Cierra la semana con una rodada corta y tranquila. Cuarenta minutos sin presión, cadencia libre y sin mirar la potencia más de lo necesario. Lo que buscas es llegar al lunes con las piernas frescas.",
+        "intervals": [],
+        "targetTSS": 20,
+        "dayOfWeek": "sun",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\":[\"Descarga: TSB −29 y el coach reporta cansancio acumulado de las últimas dos semanas.\",\"Carga de bici: ~124 TSS, cerca de 27 % de su promedio reciente (464 TSS); la semana queda bajo el tope de 60 %.\",\"Tomé Recuperación 40 y Fondo 60 de su biblioteca tal cual, sin ajustes; no hay intervalos por encima de 75 % ni sesiones duras.\",\"Sin lesiones registradas. El FTP está confirmado (265 W), pero la semana no lo necesita: el trabajo de calidad vuelve cuando el TSB suba.\"],\"workouts\":[{\"name\":\"Recuperación 40\",\"description\":\"Hoy toca rodar suave para soltar las piernas. Cuarenta minutos a un ritmo en el que puedas hablar en frases completas, con la cadencia que te salga cómoda. Con ERG apagado basta; si lo prendes, que sea a una potencia baja y sin pelear con el rodillo.\",\"intervals\":[],\"targetTSS\":20,\"dayOfWeek\":\"mon\",\"fromLibraryId\":\"lib-recup-40\",\"libraryChange\":null},{\"name\":\"Fondo 60\",\"description\":\"Una hora de fondo con el ritmo parejo, sin buscar números. Mantén la respiración controlada y, si te sientes bien, deja que la cadencia fluya sola. Con ERG prendido en 65 % está bien; si lo apagas, cuida que el esfuerzo se quede en conversación.\",\"intervals\":[],\"targetTSS\":42,\"dayOfWeek\":\"wed\",\"fromLibraryId\":\"lib-fondo-60\",\"libraryChange\":null},{\"name\":\"Fondo 60\",\"description\":\"Otra hora de fondo para mantener el ritmo de la semana sin cargar las piernas. Empieza suave los primeros minutos y deja que el cuerpo entre en calor. Si al terminar sientes que te sobró algo, es buena señal: significa que la semana va bien.\",\"intervals\":[],\"targetTSS\":42,\"dayOfWeek\":\"fri\",\"fromLibraryId\":\"lib-fondo-60\",\"libraryChange\":null},{\"name\":\"Recuperación 40\",\"description\":\"Cierra la semana con una rodada corta y tranquila. Cuarenta minutos sin presión, cadencia libre y sin mirar la potencia más de lo necesario. Lo que buscas es llegar al lunes con las piernas frescas.\",\"intervals\":[],\"targetTSS\":20,\"dayOfWeek\":\"sun\",\"fromLibraryId\":\"lib-recup-40\",\"libraryChange\":null}]}"
+}

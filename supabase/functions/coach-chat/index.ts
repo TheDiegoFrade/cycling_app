@@ -52,8 +52,8 @@ function adminClient(): AdminClient {
 //    en paralelo. Si falla o no alcanza el tiempo, queda la intención del
 //    coach como descripción (fallbackDescription) — el plan nunca se pierde
 //    por esto.
-// Los demás modos (comentario post-sesión, coach_week, monthly_review)
-// siguen con OTHER_MODEL, sin cambios.
+// coach_week y monthly_review van con Haiku 5.5 (routing.ts); solo el
+// comentario post-sesión, que la app ya no llama, sigue con OTHER_MODEL.
 const WRITER_MODEL = 'claude-haiku-5-5';
 const OTHER_MODEL = 'claude-haiku-4-5-20251001';
 
@@ -190,8 +190,8 @@ Deno.serve(async (req) => {
       // usuario aquí: los datos del atleta siempre van en `messages`.
       { type: 'text' as const, text: COACH_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' as const } },
     ];
-    // Qué modelo decide (routing.ts); null en los modos que no planifican.
-    const choice = planning ? plannerFor(body.mode, context) : null;
+    // Qué modelo responde (routing.ts); null solo en el comentario post-sesión.
+    const choice = plannerFor(body.mode, context);
     if (choice) console.log(`[coach-chat] ${body.mode}: ${choice.model} (${choice.effort}) — ${choice.reason}`);
     // Cada llamada a Claude queda en coach_calls (usage-log.ts).
     const calls: CallRow[] = [];

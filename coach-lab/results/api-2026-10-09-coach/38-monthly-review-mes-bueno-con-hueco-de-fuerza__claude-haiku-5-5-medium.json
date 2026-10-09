@@ -1,0 +1,67 @@
+{
+  "id": "38-monthly-review-mes-bueno-con-hueco-de-fuerza",
+  "mode": "monthly_review",
+  "config": "claude-haiku-5-5-medium",
+  "ok": true,
+  "seconds": 14.1,
+  "cost": 0.001724,
+  "coldCost": 0.003366,
+  "usage": {
+    "input_tokens": 2161,
+    "output_tokens": 2731,
+    "cache_read_input_tokens": 14276,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "verdict": "on_track",
+    "findings": [
+      {
+        "tone": "good",
+        "title": "Cumplimiento alto y mejor que el mes anterior.",
+        "body": "Completaste 20 de 22 sesiones planeadas (91 %, frente al 88 % de agosto) y sumaste 26 h y 1640 de TSS, un 8 % más de carga que el mes pasado."
+      },
+      {
+        "tone": "good",
+        "title": "El 20 min subió y el FTP se mantiene en 205 W.",
+        "body": "Tu mejor 20 min del mes fue 214 W, frente a 205 W en agosto, y el de 5 min pasó de 255 a 258 W. El FTP no cambia y sigue siendo coherente con estos datos."
+      },
+      {
+        "tone": "good",
+        "title": "Base aeróbica sólida y en mejora.",
+        "body": "El desacople bajó de 3.9 % en la primera semana a 3.2 % en la cuarta, y la EF pasó de 1.42 a 1.47 en sesiones comparables. Eso indica que tu aeróbico responde bien a la carga."
+      },
+      {
+        "tone": "warn",
+        "title": "La fuerza quedó muy por debajo del plan.",
+        "body": "Hiciste 2 de 8 rutinas de fuerza, mientras que la movilidad fue casi completa (7 de 8). Para el estatal y con tu molestia lumbar, la fuerza es parte del plan y no un extra."
+      },
+      {
+        "tone": "good",
+        "title": "Fitness sube y la frescura se mantiene.",
+        "body": "El CTL pasó de 56 a 64 y el TSB cerró en −6, así que construyes sin fatiga acumulada. El ritmo de subida (+8 en el mes) quedó algo corto frente a lo sano, por lo que hay margen para sumar carga con cuidado."
+      }
+    ],
+    "message": "Sofía, este mes salió muy bien: cumpliste 20 de 22 sesiones, subiste tu carga semanal y tu 20 min llegó a 214 W con el FTP en 205. Además, tu base aeróbica sigue mejorando, con el desacople por debajo de 4 % y la EF subiendo semana a semana.\n\nLo que hay que mejorar es la fuerza: hiciste 2 de las 8 rutinas previstas. Con el estatal en noviembre, esa parte del plan sostiene la potencia y cuida la espalda, así que la vamos a poner en el calendario como una sesión fija.\n\nSigue cuidando la molestia lumbar: mantén las sesiones por debajo de 75 minutos y, si necesitas más volumen, súmalo con más días y no con sesiones más largas.",
+    "goals": [
+      {
+        "title": "Completar al menos 6 de 8 rutinas de fuerza.",
+        "detail": "Se mide en el registro de rutinas de octubre (hoy 2 de 8). Ejercicios de core y estabilidad de bajo impacto, sin cargas que tensionen la zona lumbar."
+      },
+      {
+        "title": "Ninguna sesión de bici por encima de 75 minutos.",
+        "detail": "Por la molestia lumbar registrada. La sesión de umbral de 70 minutos es el tope de referencia; el volumen extra se suma con días adicionales."
+      },
+      {
+        "title": "Llevar el CTL a unos 72 con cumplimiento de al menos 85 %.",
+        "detail": "Hoy está en 64. Se mide con el CTL de cierre de octubre y el cumplimiento semanal, subiendo 3 a 5 puntos por semana sin pasar de 7."
+      }
+    ],
+    "notesUpdate": null
+  },
+  "raw": "{\"verdict\":\"on_track\",\"findings\":[{\"tone\":\"good\",\"title\":\"Cumplimiento alto y mejor que el mes anterior.\",\"body\":\"Completaste 20 de 22 sesiones planeadas (91 %, frente al 88 % de agosto) y sumaste 26 h y 1640 de TSS, un 8 % más de carga que el mes pasado.\"},{\"tone\":\"good\",\"title\":\"El 20 min subió y el FTP se mantiene en 205 W.\",\"body\":\"Tu mejor 20 min del mes fue 214 W, frente a 205 W en agosto, y el de 5 min pasó de 255 a 258 W. El FTP no cambia y sigue siendo coherente con estos datos.\"},{\"tone\":\"good\",\"title\":\"Base aeróbica sólida y en mejora.\",\"body\":\"El desacople bajó de 3.9 % en la primera semana a 3.2 % en la cuarta, y la EF pasó de 1.42 a 1.47 en sesiones comparables. Eso indica que tu aeróbico responde bien a la carga.\"},{\"tone\":\"warn\",\"title\":\"La fuerza quedó muy por debajo del plan.\",\"body\":\"Hiciste 2 de 8 rutinas de fuerza, mientras que la movilidad fue casi completa (7 de 8). Para el estatal y con tu molestia lumbar, la fuerza es parte del plan y no un extra.\"},{\"tone\":\"good\",\"title\":\"Fitness sube y la frescura se mantiene.\",\"body\":\"El CTL pasó de 56 a 64 y el TSB cerró en −6, así que construyes sin fatiga acumulada. El ritmo de subida (+8 en el mes) quedó algo corto frente a lo sano, por lo que hay margen para sumar carga con cuidado.\"}],\"message\":\"Sofía, este mes salió muy bien: cumpliste 20 de 22 sesiones, subiste tu carga semanal y tu 20 min llegó a 214 W con el FTP en 205. Además, tu base aeróbica sigue mejorando, con el desacople por debajo de 4 % y la EF subiendo semana a semana.\\n\\nLo que hay que mejorar es la fuerza: hiciste 2 de las 8 rutinas previstas. Con el estatal en noviembre, esa parte del plan sostiene la potencia y cuida la espalda, así que la vamos a poner en el calendario como una sesión fija.\\n\\nSigue cuidando la molestia lumbar: mantén las sesiones por debajo de 75 minutos y, si necesitas más volumen, súmalo con más días y no con sesiones más largas.\",\"goals\":[{\"title\":\"Completar al menos 6 de 8 rutinas de fuerza.\",\"detail\":\"Se mide en el registro de rutinas de octubre (hoy 2 de 8). Ejercicios de core y estabilidad de bajo impacto, sin cargas que tensionen la zona lumbar.\"},{\"title\":\"Ninguna sesión de bici por encima de 75 minutos.\",\"detail\":\"Por la molestia lumbar registrada. La sesión de umbral de 70 minutos es el tope de referencia; el volumen extra se suma con días adicionales.\"},{\"title\":\"Llevar el CTL a unos 72 con cumplimiento de al menos 85 %.\",\"detail\":\"Hoy está en 64. Se mide con el CTL de cierre de octubre y el cumplimiento semanal, subiendo 3 a 5 puntos por semana sin pasar de 7.\"}],\"notesUpdate\":null}"
+}

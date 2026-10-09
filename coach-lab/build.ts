@@ -15,13 +15,14 @@ await Deno.mkdir(outDir, { recursive: true });
 
 // Modelo que corre cada modo en producción (ver index.ts) — probar con otro
 // en el chat da una idea falsa de la calidad real.
+// (ver supabase/functions/coach-chat/routing.ts).
 const PROD_MODEL: Record<Mode, string> = {
-  create_plan: 'Sonnet 5.5',
-  weekly_eval: 'Sonnet 5.5',
-  publish_block: 'Sonnet 5.5',
-  coach_week: 'Haiku (4.5 en producción; 5.5 es el candidato a reemplazo)',
-  monthly_review: 'Haiku (4.5 en producción)',
-  finished_training_eval_comment: 'Haiku (4.5 en producción)',
+  create_plan: 'Sonnet 5.5 (effort low)',
+  weekly_eval: 'Haiku 5.5 low; Sonnet 5.5 low si la semana trae FTP/test',
+  publish_block: 'Sonnet 5.5 (effort low)',
+  coach_week: 'Haiku 5.5 (effort low)',
+  monthly_review: 'Haiku 5.5 (effort medium)',
+  finished_training_eval_comment: 'Haiku 4.5 (la app ya no lo llama)',
 };
 
 await Deno.writeTextFile(new URL('_system-prompt.md', outDir), COACH_SYSTEM_PROMPT.trim() + '\n');

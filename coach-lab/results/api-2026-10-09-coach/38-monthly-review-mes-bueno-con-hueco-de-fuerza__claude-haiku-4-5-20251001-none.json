@@ -1,0 +1,72 @@
+{
+  "id": "38-monthly-review-mes-bueno-con-hueco-de-fuerza",
+  "mode": "monthly_review",
+  "config": "claude-haiku-4-5-20251001-none",
+  "ok": true,
+  "seconds": 21,
+  "cost": 0.009762,
+  "coldCost": 0.022611,
+  "usage": {
+    "input_tokens": 1810,
+    "output_tokens": 1367,
+    "cache_read_input_tokens": 11173,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "verdict": "on_track",
+    "findings": [
+      {
+        "tone": "good",
+        "title": "CTL en rampa sostenible.",
+        "body": "Pasó de 56 a 64 puntos en el mes: +8 puntos, a ritmo de +2 por semana. Dentro del rango sano para construcción de fitness. El cumplimiento de 91% respalda esa ganancia real."
+      },
+      {
+        "tone": "good",
+        "title": "Base aeróbica estable y mejorando.",
+        "body": "Desacople consistente entre 3.2 y 3.9% en todas las semanas (muy por debajo del 5% de alerta). EF subió de 1.42 a 1.47 en el mes: señal clara de economía aeróbica mejor. La molestia lumbar no limitó las sesiones largas de fondo."
+      },
+      {
+        "tone": "good",
+        "title": "Potencia de competencia en línea.",
+        "body": "El best de 20 min subió de 205 a 214 W (+9 W), y el de 5 min de 255 a 258 W. Ambos son datos recientes del mes, no sobre datos viejos: progreso real en umbrales funcionales."
+      },
+      {
+        "tone": "warn",
+        "title": "Fuerza casi abandonada en el mes.",
+        "body": "Solo 2 de 8 sesiones de fuerza completadas (25%). La movilidad va bien (7 de 8), pero sin fuerza el patrón de cadencia baja y resistencia que necesita XCO en noviembre no se va a consolidar. Vuelve a priorizar."
+      },
+      {
+        "tone": "good",
+        "title": "Semana 4 fue más suave, TSB manejable.",
+        "body": "La carga bajó de 425 a 400 TSS en S4; TSB cerró en −6, lo que permite llegar fresca a octubre. No hubo descarga formal, pero el ritmo se autorregulaba dentro del plan."
+      },
+      {
+        "tone": "warn",
+        "title": "Sesión larga de umbral rozó el límite de molestia lumbar.",
+        "body": "El 20/09 hizo 70 min totales (umbral 2×20), cercano a los 75 min de su límite cómodo. Salió bien, pero en entrenamientos más largos o con más volumen de umbral habrá que vigilar la postura y los tiempos en sillín."
+      }
+    ],
+    "message": "El mes fue muy sólido. Ganaste 8 puntos de fitness a ritmo parejo, tus bases aeróbicas están claras (desacople bajando, eficiencia subiendo) y los best de potencia de competencia se movieron en la dirección correcta: 214 W en 20 minutos es hacia dónde necesitas ir.\n\nDos cosas para octubre. Primero: la fuerza se quedó en el camino (solo 2 sesiones de 8). En XCO, los 40:20s y la cadencia baja en subidas te piden ese trabajo. Recupera las dos o tres sesiones de fuerza que se perdieron. Segundo: ese umbral largo del 20/09 estuvo bien hecho (RPE 8, segundo bloque fuerte), pero rozó tus 75 minutos. Mantén esos bloques dentro de 60-70 min totales para que la espalda no sea limitante cuando suba el volumen de umbrales hacia octubre.\n\nNoviembre se acerca: mes que viene es afinar potencia de carrera y acumular sesiones de XCO específicas.",
+    "goals": [
+      {
+        "title": "Recuperar fuerza: 4-5 sesiones en octubre.",
+        "detail": "Cadencia baja en sweet spot (60-70 rpm) y/o trabajo de resistencia media; sin sobrecargar la zona lumbar. Son el puente entre fitness base y capacidad de aceleración en carrera."
+      },
+      {
+        "title": "Llevar CTL a 72-75 puntos sin descarga intermedia.",
+        "detail": "+2 semanas de carga (S1-S2) más sostenida que septiembre, seguida de una descarga parcial antes de la especialización de XCO. Ritmo de ~3 puntos por semana."
+      },
+      {
+        "title": "Validar umbral en sesión submáxima o corta.",
+        "detail": "Si el FTP se siente conservador después de los best del mes, una sesión de 2-3 × 8 min al 95% te da el dato sin riesgo. El 214 W en 20 min sugiere que hay margen arriba."
+      }
+    ],
+    "notesUpdate": "Mes 9: base aeróbica muy clara (EF 1.42→1.47, desacople <4% todas las semanas). CTL +8 en rampa sostenible (56→64, ritmo de +2/semana). Cumplimiento 91%, 20 de 22 sesiones. Potencia de 20 min pasó de 205 a 214 W. Molestia lumbar no limitó fondo; umbral 2×20 del 20/09 (70 min, NP 209, RPE 8) salió bien pero cerca del techo de 75 min. Fuerza solo 2/8 sesiones: hay que recuperar en octubre para XCO. Movilidad consistente (7/8). TSB −6 al cierre. Lista para rampa de especificidad en octubre sin necesidad de descarga."
+  },
+  "raw": "{\"verdict\": \"on_track\", \"findings\": [{\"tone\": \"good\", \"title\": \"CTL en rampa sostenible.\", \"body\": \"Pasó de 56 a 64 puntos en el mes: +8 puntos, a ritmo de +2 por semana. Dentro del rango sano para construcción de fitness. El cumplimiento de 91% respalda esa ganancia real.\"}, {\"tone\": \"good\", \"title\": \"Base aeróbica estable y mejorando.\", \"body\": \"Desacople consistente entre 3.2 y 3.9% en todas las semanas (muy por debajo del 5% de alerta). EF subió de 1.42 a 1.47 en el mes: señal clara de economía aeróbica mejor. La molestia lumbar no limitó las sesiones largas de fondo.\"}, {\"tone\": \"good\", \"title\": \"Potencia de competencia en línea.\", \"body\": \"El best de 20 min subió de 205 a 214 W (+9 W), y el de 5 min de 255 a 258 W. Ambos son datos recientes del mes, no sobre datos viejos: progreso real en umbrales funcionales.\"}, {\"tone\": \"warn\", \"title\": \"Fuerza casi abandonada en el mes.\", \"body\": \"Solo 2 de 8 sesiones de fuerza completadas (25%). La movilidad va bien (7 de 8), pero sin fuerza el patrón de cadencia baja y resistencia que necesita XCO en noviembre no se va a consolidar. Vuelve a priorizar.\"}, {\"tone\": \"good\", \"title\": \"Semana 4 fue más suave, TSB manejable.\", \"body\": \"La carga bajó de 425 a 400 TSS en S4; TSB cerró en −6, lo que permite llegar fresca a octubre. No hubo descarga formal, pero el ritmo se autorregulaba dentro del plan.\"}, {\"tone\": \"warn\", \"title\": \"Sesión larga de umbral rozó el límite de molestia lumbar.\", \"body\": \"El 20/09 hizo 70 min totales (umbral 2×20), cercano a los 75 min de su límite cómodo. Salió bien, pero en entrenamientos más largos o con más volumen de umbral habrá que vigilar la postura y los tiempos en sillín.\"}], \"message\": \"El mes fue muy sólido. Ganaste 8 puntos de fitness a ritmo parejo, tus bases aeróbicas están claras (desacople bajando, eficiencia subiendo) y los best de potencia de competencia se movieron en la dirección correcta: 214 W en 20 minutos es hacia dónde necesitas ir.\\n\\nDos cosas para octubre. Primero: la fuerza se quedó en el camino (solo 2 sesiones de 8). En XCO, los 40:20s y la cadencia baja en subidas te piden ese trabajo. Recupera las dos o tres sesiones de fuerza que se perdieron. Segundo: ese umbral largo del 20/09 estuvo bien hecho (RPE 8, segundo bloque fuerte), pero rozó tus 75 minutos. Mantén esos bloques dentro de 60-70 min totales para que la espalda no sea limitante cuando suba el volumen de umbrales hacia octubre.\\n\\nNoviembre se acerca: mes que viene es afinar potencia de carrera y acumular sesiones de XCO específicas.\", \"goals\": [{\"title\": \"Recuperar fuerza: 4-5 sesiones en octubre.\", \"detail\": \"Cadencia baja en sweet spot (60-70 rpm) y/o trabajo de resistencia media; sin sobrecargar la zona lumbar. Son el puente entre fitness base y capacidad de aceleración en carrera.\"}, {\"title\": \"Llevar CTL a 72-75 puntos sin descarga intermedia.\", \"detail\": \"+2 semanas de carga (S1-S2) más sostenida que septiembre, seguida de una descarga parcial antes de la especialización de XCO. Ritmo de ~3 puntos por semana.\"}, {\"title\": \"Validar umbral en sesión submáxima o corta.\", \"detail\": \"Si el FTP se siente conservador después de los best del mes, una sesión de 2-3 × 8 min al 95% te da el dato sin riesgo. El 214 W en 20 min sugiere que hay margen arriba.\"}], \"notesUpdate\": \"Mes 9: base aeróbica muy clara (EF 1.42→1.47, desacople <4% todas las semanas). CTL +8 en rampa sostenible (56→64, ritmo de +2/semana). Cumplimiento 91%, 20 de 22 sesiones. Potencia de 20 min pasó de 205 a 214 W. Molestia lumbar no limitó fondo; umbral 2×20 del 20/09 (70 min, NP 209, RPE 8) salió bien pero cerca del techo de 75 min. Fuerza solo 2/8 sesiones: hay que recuperar en octubre para XCO. Movilidad consistente (7/8). TSB −6 al cierre. Lista para rampa de especificidad en octubre sin necesidad de descarga.\"}"
+}

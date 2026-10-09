@@ -1,0 +1,72 @@
+{
+  "id": "28-monthly-review-fatiga-alta-y-mejor-20min-bajo",
+  "mode": "monthly_review",
+  "config": "claude-haiku-4-5-20251001-none",
+  "ok": true,
+  "seconds": 23.1,
+  "cost": 0.023599,
+  "coldCost": 0.023599,
+  "usage": {
+    "input_tokens": 1803,
+    "output_tokens": 1566,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 11173
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "verdict": "attention",
+    "findings": [
+      {
+        "tone": "good",
+        "title": "Carga bien absorbida y consistencia alta.",
+        "body": "31 horas en septiembre vs. 22 el mes anterior (+41 %), con TSS de 1980 vs. 1390 (+42 %). Cumplimiento del 95 % en 21 de 22 sesiones planeadas muestra disciplina y disponibilidad real. La progresión semana a semana (430, 480, 520, 550 TSS) fue controlada, sin saltos bruscos."
+      },
+      {
+        "tone": "warn",
+        "title": "CTL subió 29 puntos en un mes: ritmo muy acelerado.",
+        "body": "El fitness pasó de 44 a 73 (+66 % en cuatro semanas). Eso equivale a ~7 puntos por semana, en el tope superior de lo sostenible. Es ganancia real, pero el riesgo de fatiga acumulada crece si se mantiene este ritmo más allá de este mes."
+      },
+      {
+        "tone": "warn",
+        "title": "TSB en −31: fatiga profunda acumulada.",
+        "body": "Cierre con TSB ≤ −25 indica estrés de carga importante. Con una molestia lumbar que aparece en sesiones de más de 75 min y solo 5 sesiones de fuerza y movilidad de las 16 planeadas, la recuperación estructurada quedó corta."
+      },
+      {
+        "tone": "bad",
+        "title": "Últimas dos semanas: desacople y EF se deterioraron.",
+        "body": "Semanas 3 y 4 mostraron desacople de 6.9 % y 8.1 % (vs. 3.8 % y 4.4 % en S1 y S2), y EF cayó de 1.42 a 1.33. Señal de fatiga aeróbica acumulada. La sesión clave del 24/9 (40:20s) no se completó (RPE 9, última serie abandonada)."
+      },
+      {
+        "tone": "warn",
+        "title": "Mejor de 20 min bajó de 201 a 188 W.",
+        "body": "El esfuerzo sostenido se resintió: 13 W menos. No es alarma por una sola métrica, pero coincide con el deterioro de desacople y con la fatiga reportada en la sesión del 24/9."
+      },
+      {
+        "tone": "good",
+        "title": "Potencia de VO2 y sprints subieron.",
+        "body": "5 min: 262 W (vs. 255 anterior). 1 min: 388 W (vs. 371 anterior). Los trabajos intermitentes de MTB (XCO específico) dejaron huella positiva, línea con el objetivo estatal."
+      }
+    ],
+    "message": "El mes fue fuerte: 31 horas, carga subida 42 %, y casi todo lo planeado hecho. Tu consistencia es sólida y los números cortos (1 min, 5 min) subieron bien — eso pinta bien para el ritmo de XCO en noviembre.\n\nPero hay dos cosas para cuidar. Una: ganaste demasiado fitness muy rápido (29 puntos de CTL en cuatro semanas). Tu cuerpo puede, pero sostenido quema. La otra: cierre muy cargado. TSB en −31 es fatiga profunda, y en las últimas dos semanas viste cómo el desacople creció (hasta 8 %) y no completaste la sesión del 24/9. Eso no es fracaso tuyo — es tu cuerpo pidiendo aire.\n\nSeptiembre pasó bien porque cargaste un bloque específico de XCO con intermitencia y potencia punta. Octubre tiene que bajar volumen un poco y sumar más recuperación: las sesiones de fuerza y movilidad que planeamos casi no aparecieron (3 de 8, 2 de 8). Eso pesa en la lumbar, que ya tuvo molestias. Vamos a redespejar el TSB en la primera semana y luego mantener intensidad sin cargar más volumen — conservar la potencia punta que ganaste sin quebrar.",
+    "goals": [
+      {
+        "title": "Bajar TSB a rango −15/−20 en la primera semana de octubre.",
+        "detail": "Semana de carga baja (TSS ~250-300) con sesiones suaves y una sola sesión técnica de XCO. Confirmar que la molestia lumbar no aparece en rodadas cortas (< 60 min)."
+      },
+      {
+        "title": "Completar al menos 6 de 8 sesiones de fuerza y movilidad.",
+        "detail": "Crucial para sostener potencia en XCO sin sobrecargar la espalda baja. Programadas en días diferentes a los entrenamientos duros."
+      },
+      {
+        "title": "Confirmar potencia de 20 min en una sesión estable.",
+        "detail": "Esa métrica bajó 13 W; una sesión de 2 × 12-15 min al 90-92 % FTP al comienzo de octubre dirá si es fatiga pasajera (recuperable) o cambio real."
+      }
+    ],
+    "notesUpdate": "Sofía completó el mes de septiembre con muy buen cumplimiento (95 %) y carga consistente, ganando 29 puntos de CTL en cuatro semanas. CTL subió más rápido que lo ideal (7 puntos/semana). TSB cierre −31 indica fatiga profunda; semanas 3 y 4 mostraron desacople creciente (hasta 8.1 %) y EF en declive (1.42 a 1.33). Sesión clave del 24/9 (40:20s 3×8) no se completó, RPE 9. Potencia de 20 min bajó de 201 a 188 W, probable fatiga; potencia corta (1 y 5 min) subió bien (371→388 y 255→262 W), indicador positivo para XCO. Molestia lumbar reportada en sesiones >75 min; sesiones de fuerza y movilidad cumplimiento bajo (3/8 y 2/8). Octubre debe ser descarga controlada de volumen con énfasis en recuperación estructurada y validación de potencia sostenida."
+  },
+  "raw": "{\"verdict\":\"attention\",\"findings\":[{\"tone\":\"good\",\"title\":\"Carga bien absorbida y consistencia alta.\",\"body\":\"31 horas en septiembre vs. 22 el mes anterior (+41 %), con TSS de 1980 vs. 1390 (+42 %). Cumplimiento del 95 % en 21 de 22 sesiones planeadas muestra disciplina y disponibilidad real. La progresión semana a semana (430, 480, 520, 550 TSS) fue controlada, sin saltos bruscos.\"},{\"tone\":\"warn\",\"title\":\"CTL subió 29 puntos en un mes: ritmo muy acelerado.\",\"body\":\"El fitness pasó de 44 a 73 (+66 % en cuatro semanas). Eso equivale a ~7 puntos por semana, en el tope superior de lo sostenible. Es ganancia real, pero el riesgo de fatiga acumulada crece si se mantiene este ritmo más allá de este mes.\"},{\"tone\":\"warn\",\"title\":\"TSB en −31: fatiga profunda acumulada.\",\"body\":\"Cierre con TSB ≤ −25 indica estrés de carga importante. Con una molestia lumbar que aparece en sesiones de más de 75 min y solo 5 sesiones de fuerza y movilidad de las 16 planeadas, la recuperación estructurada quedó corta.\"},{\"tone\":\"bad\",\"title\":\"Últimas dos semanas: desacople y EF se deterioraron.\",\"body\":\"Semanas 3 y 4 mostraron desacople de 6.9 % y 8.1 % (vs. 3.8 % y 4.4 % en S1 y S2), y EF cayó de 1.42 a 1.33. Señal de fatiga aeróbica acumulada. La sesión clave del 24/9 (40:20s) no se completó (RPE 9, última serie abandonada).\"},{\"tone\":\"warn\",\"title\":\"Mejor de 20 min bajó de 201 a 188 W.\",\"body\":\"El esfuerzo sostenido se resintió: 13 W menos. No es alarma por una sola métrica, pero coincide con el deterioro de desacople y con la fatiga reportada en la sesión del 24/9.\"},{\"tone\":\"good\",\"title\":\"Potencia de VO2 y sprints subieron.\",\"body\":\"5 min: 262 W (vs. 255 anterior). 1 min: 388 W (vs. 371 anterior). Los trabajos intermitentes de MTB (XCO específico) dejaron huella positiva, línea con el objetivo estatal.\"}],\"message\":\"El mes fue fuerte: 31 horas, carga subida 42 %, y casi todo lo planeado hecho. Tu consistencia es sólida y los números cortos (1 min, 5 min) subieron bien — eso pinta bien para el ritmo de XCO en noviembre.\\n\\nPero hay dos cosas para cuidar. Una: ganaste demasiado fitness muy rápido (29 puntos de CTL en cuatro semanas). Tu cuerpo puede, pero sostenido quema. La otra: cierre muy cargado. TSB en −31 es fatiga profunda, y en las últimas dos semanas viste cómo el desacople creció (hasta 8 %) y no completaste la sesión del 24/9. Eso no es fracaso tuyo — es tu cuerpo pidiendo aire.\\n\\nSeptiembre pasó bien porque cargaste un bloque específico de XCO con intermitencia y potencia punta. Octubre tiene que bajar volumen un poco y sumar más recuperación: las sesiones de fuerza y movilidad que planeamos casi no aparecieron (3 de 8, 2 de 8). Eso pesa en la lumbar, que ya tuvo molestias. Vamos a redespejar el TSB en la primera semana y luego mantener intensidad sin cargar más volumen — conservar la potencia punta que ganaste sin quebrar.\",\"goals\":[{\"title\":\"Bajar TSB a rango −15/−20 en la primera semana de octubre.\",\"detail\":\"Semana de carga baja (TSS ~250-300) con sesiones suaves y una sola sesión técnica de XCO. Confirmar que la molestia lumbar no aparece en rodadas cortas (< 60 min).\"},{\"title\":\"Completar al menos 6 de 8 sesiones de fuerza y movilidad.\",\"detail\":\"Crucial para sostener potencia en XCO sin sobrecargar la espalda baja. Programadas en días diferentes a los entrenamientos duros.\"},{\"title\":\"Confirmar potencia de 20 min en una sesión estable.\",\"detail\":\"Esa métrica bajó 13 W; una sesión de 2 × 12-15 min al 90-92 % FTP al comienzo de octubre dirá si es fatiga pasajera (recuperable) o cambio real.\"}],\"notesUpdate\":\"Sofía completó el mes de septiembre con muy buen cumplimiento (95 %) y carga consistente, ganando 29 puntos de CTL en cuatro semanas. CTL subió más rápido que lo ideal (7 puntos/semana). TSB cierre −31 indica fatiga profunda; semanas 3 y 4 mostraron desacople creciente (hasta 8.1 %) y EF en declive (1.42 a 1.33). Sesión clave del 24/9 (40:20s 3×8) no se completó, RPE 9. Potencia de 20 min bajó de 201 a 188 W, probable fatiga; potencia corta (1 y 5 min) subió bien (371→388 y 255→262 W), indicador positivo para XCO. Molestia lumbar reportada en sesiones >75 min; sesiones de fuerza y movilidad cumplimiento bajo (3/8 y 2/8). Octubre debe ser descarga controlada de volumen con énfasis en recuperación estructurada y validación de potencia sostenida.\"}"
+}

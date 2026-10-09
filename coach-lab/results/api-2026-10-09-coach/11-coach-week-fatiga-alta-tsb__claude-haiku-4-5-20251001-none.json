@@ -1,0 +1,105 @@
+{
+  "id": "11-coach-week-fatiga-alta-tsb",
+  "mode": "coach_week",
+  "config": "claude-haiku-4-5-20251001-none",
+  "ok": true,
+  "seconds": 10.5,
+  "cost": 0.009112,
+  "coldCost": 0.022212,
+  "usage": {
+    "input_tokens": 3513,
+    "output_tokens": 892,
+    "cache_read_input_tokens": 11391,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Descarga: TSB −29 y el coach reporta cansancio acumulado tras dos semanas de carga alta (520 y 545 TSS). El ATL de 91 está disparado.",
+      "Límites: máximo 4 sesiones de bici, ninguna dura (≤75 %), duración máx 60 min por sesión, TSS total ≤60 % del promedio reciente (~400 TSS) = ~240 TSS de bici.",
+      "Se usan dos plantillas suaves de la biblioteca (Fondo 60 y Recuperación 40); diseña dos sesiones suaves nuevas para variar el estímulo sin intensidad.",
+      "Estructura: lunes, miércoles, viernes y domingo con bici suave; martes, jueves y sábado descanso o movimiento suave sin bici."
+    ],
+    "workouts": [
+      {
+        "name": "Fondo 60",
+        "description": "Rodada tranquila para empezar la semana sin prisa. Potencia baja, cadencia cómoda, y la respiración es tu control: si puedes hablar en frases completas vas bien. ERG prendido o apagado, como prefieras. Esto es absorber carga, no ganar forma.",
+        "intervals": [],
+        "targetTSS": 42,
+        "dayOfWeek": "mon",
+        "fromLibraryId": "lib-fondo-60",
+        "libraryChange": null
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Cuarenta minutos de pedaleo suave, casi como moverse. Sin intensidad, sin pensar en vatios. Deja las piernas fluidas y prepara el miércoles.",
+        "intervals": [],
+        "targetTSS": 20,
+        "dayOfWeek": "wed",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      },
+      {
+        "name": "Fondo Suave 50",
+        "description": "Media hora pedaleando al trote, sin presión. Busca mantener un ritmo que te deje hablar: es suficiente para esta semana. Cadencia entre 80 y 95 rpm, ritmo parejo.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 600,
+            "power_pct": 50
+          },
+          {
+            "name": "Fondo principal",
+            "type": "steady",
+            "duration_s": 1800,
+            "power_pct": 65
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 300,
+            "power_pct": 45
+          }
+        ],
+        "targetTSS": 28,
+        "dayOfWeek": "fri",
+        "fromLibraryId": null,
+        "libraryChange": null
+      },
+      {
+        "name": "Rodada de Recuperación 45",
+        "description": "Termina la semana con una vuelta fácil y larga. Nada de esfuerzo, solo disfrutar la bici con cadencia cómoda. Esto cierra la descarga y deja el cuerpo listo para la semana que viene.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 300,
+            "power_pct": 50
+          },
+          {
+            "name": "Fondo suave",
+            "type": "steady",
+            "duration_s": 2250,
+            "power_pct": 62
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 300,
+            "power_pct": 45
+          }
+        ],
+        "targetTSS": 32,
+        "dayOfWeek": "sun",
+        "fromLibraryId": null,
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\": [\"Descarga: TSB −29 y el coach reporta cansancio acumulado tras dos semanas de carga alta (520 y 545 TSS). El ATL de 91 está disparado.\", \"Límites: máximo 4 sesiones de bici, ninguna dura (≤75 %), duración máx 60 min por sesión, TSS total ≤60 % del promedio reciente (~400 TSS) = ~240 TSS de bici.\", \"Se usan dos plantillas suaves de la biblioteca (Fondo 60 y Recuperación 40); diseña dos sesiones suaves nuevas para variar el estímulo sin intensidad.\", \"Estructura: lunes, miércoles, viernes y domingo con bici suave; martes, jueves y sábado descanso o movimiento suave sin bici.\"], \"workouts\": [{\"name\": \"Fondo 60\", \"description\": \"Rodada tranquila para empezar la semana sin prisa. Potencia baja, cadencia cómoda, y la respiración es tu control: si puedes hablar en frases completas vas bien. ERG prendido o apagado, como prefieras. Esto es absorber carga, no ganar forma.\", \"intervals\": [], \"targetTSS\": 42, \"dayOfWeek\": \"mon\", \"fromLibraryId\": \"lib-fondo-60\", \"libraryChange\": null}, {\"name\": \"Recuperación 40\", \"description\": \"Cuarenta minutos de pedaleo suave, casi como moverse. Sin intensidad, sin pensar en vatios. Deja las piernas fluidas y prepara el miércoles.\", \"intervals\": [], \"targetTSS\": 20, \"dayOfWeek\": \"wed\", \"fromLibraryId\": \"lib-recup-40\", \"libraryChange\": null}, {\"name\": \"Fondo Suave 50\", \"description\": \"Media hora pedaleando al trote, sin presión. Busca mantener un ritmo que te deje hablar: es suficiente para esta semana. Cadencia entre 80 y 95 rpm, ritmo parejo.\", \"intervals\": [{\"name\": \"Calentamiento\", \"type\": \"warmup\", \"duration_s\": 600, \"power_pct\": 50}, {\"name\": \"Fondo principal\", \"type\": \"steady\", \"duration_s\": 1800, \"power_pct\": 65}, {\"name\": \"Enfriamiento\", \"type\": \"cooldown\", \"duration_s\": 300, \"power_pct\": 45}], \"targetTSS\": 28, \"dayOfWeek\": \"fri\", \"fromLibraryId\": null, \"libraryChange\": null}, {\"name\": \"Rodada de Recuperación 45\", \"description\": \"Termina la semana con una vuelta fácil y larga. Nada de esfuerzo, solo disfrutar la bici con cadencia cómoda. Esto cierra la descarga y deja el cuerpo listo para la semana que viene.\", \"intervals\": [{\"name\": \"Calentamiento\", \"type\": \"warmup\", \"duration_s\": 300, \"power_pct\": 50}, {\"name\": \"Fondo suave\", \"type\": \"steady\", \"duration_s\": 2250, \"power_pct\": 62}, {\"name\": \"Enfriamiento\", \"type\": \"cooldown\", \"duration_s\": 300, \"power_pct\": 45}], \"targetTSS\": 32, \"dayOfWeek\": \"sun\", \"fromLibraryId\": null, \"libraryChange\": null}]}"
+}

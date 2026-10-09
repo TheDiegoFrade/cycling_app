@@ -87,11 +87,38 @@ por medio, y un plan nuevo de vez en cuando.
 - Evaluaciones semanales: de ~$0.30 a ~$0.07 al mes (**−75 %**).
 - Plan nuevo: de ~$0.13 a ~$0.11, y unos 15 s más rápido.
 
+## coach_week y monthly_review (2026-10-09)
+
+7 escenarios: 5 de semana del coach y 2 de revisión mensual (el 38 es nuevo:
+un mes bueno). Se probaron con Haiku 4.5 (lo de antes), Haiku 5.5 low y
+Haiku 5.5 medium. Costo de esta prueba: $0.17. Sin reintento, igual que
+producción en estos modos.
+
+| | Haiku 4.5 | Haiku 5.5 low | Haiku 5.5 medium |
+|---|---|---|---|
+| Costo frío promedio | $0.024 | $0.0032 | $0.0041 |
+| Tiempo promedio | 17 s | 11 s | 19 s |
+| Reglas rotas | 2 (caso 13) | 0 | 0 |
+
+- **13** (fuerza de pierna y rodilla, FTP sin confirmar): Haiku 4.5 puso
+  sweet spot el día antes de la fuerza de pierna. También usó tal cual un
+  over-under que pasa de 95 % con el FTP sin confirmar. Haiku 5.5 respetó
+  todo y sugirió un test.
+- **28** (mes con fatiga): Haiku 4.5 leyó la baja del mejor 20 min como
+  pérdida de forma. Haiku 5.5 low lo leyó bien, pero puso como "good" una
+  subida de CTL que él mismo dice que es excesiva. Solo Haiku 5.5 medium dio
+  off_track con el hallazgo "bad" de fatiga, recuperar como primer objetivo
+  y fuerza/movilidad.
+- **38** (mes bueno): los tres dieron on_track. Haiku 4.5 inventó que "la
+  molestia lumbar no limitó" y propuso subir el CTL sin descarga.
+
+Decisión: coach_week con Haiku 5.5 low y monthly_review con Haiku 5.5
+medium (una al mes por atleta, el costo extra es despreciable). En
+coach_week, medium no mejoró nada.
+
 ## Pendiente
 
 - Correr el SQL de `coach_calls` y desplegar. Con eso, la vista
   `coach_cost_by_mode` dice el costo real y si la caché se aprovecha (paso
   4.4).
-- Probar `coach_week`/`monthly_review` en Haiku 5.5 (hoy Haiku 4.5, ~10× más
-  caro). La prueba de antes vio errores de Haiku 4.5 ("310 TSB").
 - Paso 4.3 (prompt por modo) y 4.6 (revisión de tu coach).

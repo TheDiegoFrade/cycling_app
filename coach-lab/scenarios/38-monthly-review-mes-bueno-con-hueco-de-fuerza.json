@@ -1,0 +1,142 @@
+{
+  "id": "38-monthly-review-mes-bueno-con-hueco-de-fuerza",
+  "mode": "monthly_review",
+  "title": "Mes sólido y sostenible: CTL +8, desacople estable y mejor 20 min nuevo; solo falla la fuerza",
+  "expect": [
+    "verdict = on_track: carga que sube ~2 CTL por semana, TSB −6, cumplimiento 91 %.",
+    "Reconoce el mejor 20 min nuevo (214 vs. 205) como señal real (el mes trajo bloques de umbral) y sugiere confirmarlo con un test antes de tocar el FTP; no cambia el FTP por su cuenta.",
+    "Lee el desacople estable (3-4 %) y el EF subiendo como base aeróbica que mejora.",
+    "Señala la fuerza (2 de 8) como lo único a corregir, sin regañar.",
+    "Objetivos medibles y respetan la molestia lumbar (nada de sesiones de más de 75 min).",
+    "Nunca escribe una carga (1640, 420) como TSB; message de tú, sin adjetivos con género."
+  ],
+  "context": {
+    "athleteId": "3f2b8c1e-5d47-4a9b-8e21-6c0d9f7a1b23",
+    "monthKey": "2026-09",
+    "inProgress": false,
+    "athlete": {
+      "name": "Sofía",
+      "ftp": 205,
+      "weightKg": 58,
+      "discipline": "mountain",
+      "injuries": "Molestia lumbar en sesiones de más de 75 min.",
+      "goal": "XCO estatal en noviembre"
+    },
+    "kpis": {
+      "hours": 26,
+      "hoursPrev": 24,
+      "tss": 1640,
+      "tssPrev": 1520,
+      "plannedCount": 22,
+      "doneCount": 20,
+      "compliancePct": 91,
+      "compliancePrevPct": 88,
+      "ctlStart": 56,
+      "ctlEnd": 64,
+      "ftp": 205,
+      "ftpPrev": 205,
+      "tsbEnd": -6
+    },
+    "weeks": [
+      {
+        "label": "S1",
+        "plannedTss": 400,
+        "doneTss": 395
+      },
+      {
+        "label": "S2",
+        "plannedTss": 420,
+        "doneTss": 420
+      },
+      {
+        "label": "S3",
+        "plannedTss": 440,
+        "doneTss": 425
+      },
+      {
+        "label": "S4",
+        "plannedTss": 420,
+        "doneTss": 400
+      }
+    ],
+    "bests": [
+      {
+        "label": "5 min",
+        "month": 258,
+        "prev": 255,
+        "best90": 262
+      },
+      {
+        "label": "20 min",
+        "month": 214,
+        "prev": 205,
+        "best90": 214
+      },
+      {
+        "label": "1 min",
+        "month": 372,
+        "prev": 371,
+        "best90": 388
+      }
+    ],
+    "intensityHours": {
+      "z1": 5,
+      "z2": 14,
+      "z3": 3,
+      "z4": 3,
+      "z5": 1,
+      "z6": 0
+    },
+    "hoursWithoutPower": 0,
+    "aerobic": [
+      {
+        "label": "S1",
+        "decouplingPct": 3.9,
+        "ef": 1.42
+      },
+      {
+        "label": "S2",
+        "decouplingPct": 3.5,
+        "ef": 1.44
+      },
+      {
+        "label": "S3",
+        "decouplingPct": 3.6,
+        "ef": 1.45
+      },
+      {
+        "label": "S4",
+        "decouplingPct": 3.2,
+        "ef": 1.47
+      }
+    ],
+    "routines": [
+      {
+        "kind": "strength",
+        "planned": 8,
+        "done": 2
+      },
+      {
+        "kind": "mobility",
+        "planned": 8,
+        "done": 7
+      }
+    ],
+    "srpeTotal": 7600,
+    "keySessions": [
+      {
+        "date": "2026-09-20",
+        "name": "Umbral 2×20",
+        "minutes": 70,
+        "np": 209,
+        "intensityFactor": 1.02,
+        "tss": 88,
+        "rpe": 8,
+        "note": "Me sentí muy bien, el segundo bloque salió más fuerte"
+      }
+    ],
+    "missedDays": 1,
+    "partialDays": 1,
+    "coachDraft": ""
+  }
+}

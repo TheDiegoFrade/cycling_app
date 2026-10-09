@@ -24,3 +24,11 @@ describe('plannerFor', () => {
     expect(plannerFor('weekly_eval', { ...week(), nextWeekStart: '2026-10-12', lastTest: { date: '2026-09-01' } }).model).toBe(HAIKU);
   });
 });
+
+describe('modos del coach humano', () => {
+  it('coach_week con Haiku low, monthly_review con Haiku medium', () => {
+    expect(plannerFor('coach_week', {})).toMatchObject({ model: HAIKU, effort: 'low' });
+    expect(plannerFor('monthly_review', {})).toMatchObject({ model: HAIKU, effort: 'medium' });
+    expect(plannerFor('finished_training_eval_comment', {})).toBeNull();
+  });
+});

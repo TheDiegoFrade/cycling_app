@@ -1,0 +1,192 @@
+{
+  "id": "13-coach-week-fuerza-rodilla-sin-ftp-confirmado",
+  "mode": "coach_week",
+  "config": "claude-haiku-5-5-medium",
+  "ok": true,
+  "seconds": 32.2,
+  "cost": 0.004238,
+  "coldCost": 0.005909,
+  "usage": {
+    "input_tokens": 4576,
+    "output_tokens": 7270,
+    "cache_read_input_tokens": 14529,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Normal: TSB −3 y la semana pasada (260 TSS) no supera 1.3 veces su promedio; no hay fatiga reportada ni instrucción de descarga.",
+      "Carga de bici: ~226 TSS, unos 87 % de su promedio reciente (262) y bajo el tope de 297 (110 % de su semana más alta).",
+      "Biblioteca: Fondo 60 y Recuperación 40 tal cual. Sweet Spot 3×12 va dos veces (jueves y sábado) con cadencia 85-90 en los bloques por la tendinitis rotuliana; nunca duras en días seguidos ni cerca del martes de fuerza.",
+      "FTP sin confirmar: nada por encima de 90 %. Sugiere un test de rampa en las próximas semanas, con la sesión de fuerza y la rodilla en buen estado."
+    ],
+    "workouts": [
+      {
+        "name": "Fondo 60",
+        "description": "Arranca la semana tranquila: una hora en zona de fondo, a un ritmo en el que puedas hablar en frases completas. Te recomiendo dejar el ERG prendido en 65 % y pedalear con la cadencia que te resulte cómoda. Así llegas fresca al martes de fuerza.",
+        "intervals": [],
+        "targetTSS": 42,
+        "dayOfWeek": "mon",
+        "fromLibraryId": "lib-fondo-60",
+        "libraryChange": null
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Un rato suave para soltar las piernas después de la fuerza del martes. Déjalo con cadencia libre y sin prisa.",
+        "intervals": [],
+        "targetTSS": 20,
+        "dayOfWeek": "wed",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      },
+      {
+        "name": "Sweet Spot 3×12 con cadencia controlada",
+        "description": "Hoy toca sweet spot: tres bloques de 12 min al 90 % con el ERG prendido, porque la potencia fija es justo lo que quieres sostener. Pedalea entre 85 y 90 rpm para cuidar la rodilla; si no puedes sostener la potencia sin subir la cadencia, baja un poco la potencia y anótalo. Espera un esfuerzo parejo, sensación de 6 o 7, con frases cortas. Esto deja las piernas listas para el sábado.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 720,
+            "power_pct": 50,
+            "ramp_to_pct": 70,
+            "cadence_min": 85,
+            "cadence_max": 95
+          },
+          {
+            "name": "Sweet spot 1",
+            "type": "interval",
+            "duration_s": 720,
+            "power_pct": 90,
+            "cadence_min": 85,
+            "cadence_max": 90
+          },
+          {
+            "name": "Recuperación 1",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55
+          },
+          {
+            "name": "Sweet spot 2",
+            "type": "interval",
+            "duration_s": 720,
+            "power_pct": 90,
+            "cadence_min": 85,
+            "cadence_max": 90
+          },
+          {
+            "name": "Recuperación 2",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55
+          },
+          {
+            "name": "Sweet spot 3",
+            "type": "interval",
+            "duration_s": 720,
+            "power_pct": 90,
+            "cadence_min": 85,
+            "cadence_max": 90
+          },
+          {
+            "name": "Recuperación 3",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 420,
+            "power_pct": 45
+          }
+        ],
+        "targetTSS": 72,
+        "dayOfWeek": "thu",
+        "fromLibraryId": "lib-ss-3x12",
+        "libraryChange": "De 3×12 al 90 % sin cambios de tiempo ni potencia: cadencia 85-90 en los bloques por la tendinitis rotuliana."
+      },
+      {
+        "name": "Sweet Spot 3×12 con cadencia controlada",
+        "description": "Repetimos el sweet spot, ahora con el ERG prendido para sostener el 90 % en los tres bloques de 12 min. Mantén la cadencia entre 85 y 90 rpm; esa es la forma de cuidar la rodilla sin perder el trabajo. Busca la sensación de 6 o 7: puedes decir frases cortas, pero no conversar. Llegas al domingo con las piernas cansadas, pero sin dolor.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 720,
+            "power_pct": 50,
+            "ramp_to_pct": 70,
+            "cadence_min": 85,
+            "cadence_max": 95
+          },
+          {
+            "name": "Sweet spot 1",
+            "type": "interval",
+            "duration_s": 720,
+            "power_pct": 90,
+            "cadence_min": 85,
+            "cadence_max": 90
+          },
+          {
+            "name": "Recuperación 1",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55
+          },
+          {
+            "name": "Sweet spot 2",
+            "type": "interval",
+            "duration_s": 720,
+            "power_pct": 90,
+            "cadence_min": 85,
+            "cadence_max": 90
+          },
+          {
+            "name": "Recuperación 2",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55
+          },
+          {
+            "name": "Sweet spot 3",
+            "type": "interval",
+            "duration_s": 720,
+            "power_pct": 90,
+            "cadence_min": 85,
+            "cadence_max": 90
+          },
+          {
+            "name": "Recuperación 3",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 420,
+            "power_pct": 45
+          }
+        ],
+        "targetTSS": 72,
+        "dayOfWeek": "sat",
+        "fromLibraryId": "lib-ss-3x12",
+        "libraryChange": "De 3×12 al 90 % sin cambios de tiempo ni potencia: cadencia 85-90 en los bloques por la tendinitis rotuliana."
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Cierra la semana con un rodado suave de 40 minutos. Cadencia libre, sin presión.",
+        "intervals": [],
+        "targetTSS": 20,
+        "dayOfWeek": "sun",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\":[\"Normal: TSB −3 y la semana pasada (260 TSS) no supera 1.3 veces su promedio; no hay fatiga reportada ni instrucción de descarga.\",\"Carga de bici: ~226 TSS, unos 87 % de su promedio reciente (262) y bajo el tope de 297 (110 % de su semana más alta).\",\"Biblioteca: Fondo 60 y Recuperación 40 tal cual. Sweet Spot 3×12 va dos veces (jueves y sábado) con cadencia 85-90 en los bloques por la tendinitis rotuliana; nunca duras en días seguidos ni cerca del martes de fuerza.\",\"FTP sin confirmar: nada por encima de 90 %. Sugiere un test de rampa en las próximas semanas, con la sesión de fuerza y la rodilla en buen estado.\"],\"workouts\":[{\"name\":\"Fondo 60\",\"description\":\"Arranca la semana tranquila: una hora en zona de fondo, a un ritmo en el que puedas hablar en frases completas. Te recomiendo dejar el ERG prendido en 65 % y pedalear con la cadencia que te resulte cómoda. Así llegas fresca al martes de fuerza.\",\"intervals\":[],\"targetTSS\":42,\"dayOfWeek\":\"mon\",\"fromLibraryId\":\"lib-fondo-60\",\"libraryChange\":null},{\"name\":\"Recuperación 40\",\"description\":\"Un rato suave para soltar las piernas después de la fuerza del martes. Déjalo con cadencia libre y sin prisa.\",\"intervals\":[],\"targetTSS\":20,\"dayOfWeek\":\"wed\",\"fromLibraryId\":\"lib-recup-40\",\"libraryChange\":null},{\"name\":\"Sweet Spot 3×12 con cadencia controlada\",\"description\":\"Hoy toca sweet spot: tres bloques de 12 min al 90 % con el ERG prendido, porque la potencia fija es justo lo que quieres sostener. Pedalea entre 85 y 90 rpm para cuidar la rodilla; si no puedes sostener la potencia sin subir la cadencia, baja un poco la potencia y anótalo. Espera un esfuerzo parejo, sensación de 6 o 7, con frases cortas. Esto deja las piernas listas para el sábado.\",\"intervals\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":720,\"power_pct\":50,\"ramp_to_pct\":70,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Sweet spot 1\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":90,\"cadence_min\":85,\"cadence_max\":90},{\"name\":\"Recuperación 1\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55},{\"name\":\"Sweet spot 2\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":90,\"cadence_min\":85,\"cadence_max\":90},{\"name\":\"Recuperación 2\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55},{\"name\":\"Sweet spot 3\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":90,\"cadence_min\":85,\"cadence_max\":90},{\"name\":\"Recuperación 3\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":420,\"power_pct\":45}],\"targetTSS\":72,\"dayOfWeek\":\"thu\",\"fromLibraryId\":\"lib-ss-3x12\",\"libraryChange\":\"De 3×12 al 90 % sin cambios de tiempo ni potencia: cadencia 85-90 en los bloques por la tendinitis rotuliana.\"},{\"name\":\"Sweet Spot 3×12 con cadencia controlada\",\"description\":\"Repetimos el sweet spot, ahora con el ERG prendido para sostener el 90 % en los tres bloques de 12 min. Mantén la cadencia entre 85 y 90 rpm; esa es la forma de cuidar la rodilla sin perder el trabajo. Busca la sensación de 6 o 7: puedes decir frases cortas, pero no conversar. Llegas al domingo con las piernas cansadas, pero sin dolor.\",\"intervals\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":720,\"power_pct\":50,\"ramp_to_pct\":70,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Sweet spot 1\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":90,\"cadence_min\":85,\"cadence_max\":90},{\"name\":\"Recuperación 1\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55},{\"name\":\"Sweet spot 2\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":90,\"cadence_min\":85,\"cadence_max\":90},{\"name\":\"Recuperación 2\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55},{\"name\":\"Sweet spot 3\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":90,\"cadence_min\":85,\"cadence_max\":90},{\"name\":\"Recuperación 3\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":420,\"power_pct\":45}],\"targetTSS\":72,\"dayOfWeek\":\"sat\",\"fromLibraryId\":\"lib-ss-3x12\",\"libraryChange\":\"De 3×12 al 90 % sin cambios de tiempo ni potencia: cadencia 85-90 en los bloques por la tendinitis rotuliana.\"},{\"name\":\"Recuperación 40\",\"description\":\"Cierra la semana con un rodado suave de 40 minutos. Cadencia libre, sin presión.\",\"intervals\":[],\"targetTSS\":20,\"dayOfWeek\":\"sun\",\"fromLibraryId\":\"lib-recup-40\",\"libraryChange\":null}]}"
+}

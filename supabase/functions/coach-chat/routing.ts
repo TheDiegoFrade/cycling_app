@@ -4,7 +4,11 @@
 // igual que Sonnet a ~1/15 del costo, pero se equivocó justo donde hay que
 // razonar sobre el FTP (un test con ERG fijo que no midió un máximo, un FTP
 // que quedó alto tras la rampa). Sonnet low rindió como medium, más rápido
-// y un poco más barato. Lógica pura.
+// y un poco más barato. En coach_week y monthly_review (2026-10-09,
+// coach-lab/results/api-2026-10-09-coach) Haiku 5.5 rindió igual o mejor
+// que Haiku 4.5 a ~1/6 del costo; en la revisión mensual con fatiga solo
+// Haiku 5.5 medium acertó el veredicto y no leyó una baja del 20 min como
+// pérdida de forma. Lógica pura.
 import type { Mode } from './schemas.ts';
 
 export const SONNET = 'claude-sonnet-5-5';
@@ -39,8 +43,12 @@ export function weekNeedsFtpReasoning(ctx: Record<string, unknown>): string | nu
   return null;
 }
 
-/** Modelo y effort del coach para este modo y contexto (no del redactor). */
-export function plannerFor(mode: Mode, ctx: Record<string, unknown>): ModelChoice {
+/** Modelo y effort del coach para este modo y contexto (no del redactor).
+ * null = finished_training_eval_comment, que la app ya no llama. */
+export function plannerFor(mode: Mode, ctx: Record<string, unknown>): ModelChoice | null {
+  if (mode === 'coach_week') return { model: HAIKU, effort: 'low', reason: 'semana del coach' };
+  if (mode === 'monthly_review') return { model: HAIKU, effort: 'medium', reason: 'revisión mensual (una al mes)' };
+  if (mode === 'finished_training_eval_comment') return null;
   if (mode === 'weekly_eval') {
     const why = weekNeedsFtpReasoning(ctx);
     return why ? { model: SONNET, effort: 'low', reason: why } : { model: HAIKU, effort: 'low', reason: 'semana sin FTP ni test de por medio' };
