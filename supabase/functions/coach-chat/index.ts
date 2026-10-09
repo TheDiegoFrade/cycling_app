@@ -18,9 +18,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Anthropic from 'npm:@anthropic-ai/sdk@0';
 import { zodOutputFormat } from 'npm:@anthropic-ai/sdk@0/helpers/zod';
-import { betaZodOutputFormat } from 'npm:@anthropic-ai/sdk@0/helpers/beta/zod';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
+import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
 import { COACH_SYSTEM_PROMPT, WRITER_SYSTEM_PROMPT } from './prompt.ts';
 import { buildUserMessage } from './message.ts';
 import { PLANNING_MODES, WorkoutDescriptionsSchema, schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
@@ -29,7 +29,8 @@ import { resolveFromLibrary, type CoachWeekWorkout, type LibraryTemplate } from 
 import { acceptAiNotes, notesDueOnWeeklyEval, type StoredNotes } from './notes.ts';
 import { callRow, logCalls, type CallRow, type CallStep, type UsageLike } from './usage-log.ts';
 import { correctionMessage, guardOutput } from './guard.ts';
-import { SONNET, plannerFor, type ModelChoice } from './routing.ts';
+import { plannerFor } from './routing.ts';
+import { OTHER_MODEL, callCoach, readResponse } from './coach-call.ts';
 import { deliverDraft, emailKey, planDraftOf, weekDraftOf } from './coach-email.ts';
 
 type AdminClient = ReturnType<typeof createClient>;
@@ -56,7 +57,6 @@ function adminClient(): AdminClient {
 // coach_week y monthly_review van con Haiku 5.5 (routing.ts); solo el
 // comentario post-sesión, que la app ya no llama, sigue con OTHER_MODEL.
 const WRITER_MODEL = 'claude-haiku-5-5';
-const OTHER_MODEL = 'claude-haiku-4-5-20251001';
 
 // Supabase Free corta la función a los ~150 s. El redactor solo arranca si
 // al coach le sobró tiempo, y con un tope propio para no pasarse.
@@ -99,15 +99,6 @@ const MONTHLY_WEEKLY_EVAL_LIMIT = 10;
 
 const DAY_OFFSET: Record<string, number> = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun: 6 };
 
-// Lanzamiento controlado — el coach llama a Claude (dinero real por
-// request) y todavía no está listo para abrirse a toda la base de
-// usuarios. Solo estos user_id pueden usarlo mientras tanto. Quitar
-// esta lista (o vaciarla) es la forma de abrirlo a todos después.
-const ALLOWED_USER_IDS = new Set([
-  '68c9ddae-cee4-4d2f-8d0f-9553f9fe5782', // dperezcf@gmail.com — usuario dummy de pruebas
-  '1d868aa6-bd45-4a1a-83aa-7d9f54c8d24b', // andrea.guerrero.guzman@gmail.com
-  '95b1f5fc-a167-4c9e-ae16-95d158280c3d', // dpcfrade@gmail.com — dueño de la app y coach
-]);
 
 interface CoachChatRequest {
   mode: Mode;
@@ -1075,66 +1066,6 @@ function tokensOf(usage: UsageLike): number {
  * generar el primer byte. output_config.format sigue aplicando igual en
  * modo streaming (lo fuerza el servidor, no el transporte); solo hay que
  * parsear el texto final a mano (readResponse). */
-async function callCoach(
-  client: Anthropic,
-  choice: ModelChoice | null,
-  system: Anthropic.TextBlockParam[],
-  messages: Anthropic.MessageParam[],
-  schema: ReturnType<typeof schemaForMode>,
-) {
-  if (choice) {
-    return await client.beta.messages
-      .stream({
-        model: choice.model,
-        // La salida compacta ronda unos pocos miles de tokens; el techo
-        // alto es solo margen (se cobra lo generado, no el techo).
-        max_tokens: 32000,
-        // low: en la prueba rindió igual que medium, más rápido y barato.
-        output_config: { effort: choice.effort, format: betaZodOutputFormat(schema) },
-        // Si un clasificador de seguridad rechazara la petición a Sonnet,
-        // el servidor la reintenta con otro modelo en la misma llamada.
-        ...(choice.model === SONNET ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' } : {}),
-        system,
-        messages,
-      })
-      .finalMessage();
-  }
-  return await client.messages
-    .stream({
-      model: OTHER_MODEL,
-      max_tokens: 48000,
-      system,
-      messages,
-      output_config: { format: zodOutputFormat(schema) },
-    })
-    .finalMessage();
-}
-
-/** Texto, JSON y schema de una respuesta; el error que ve el atleta si no. */
-function readResponse(
-  response: { stop_reason: string | null; content: unknown[] },
-  schema: ReturnType<typeof schemaForMode>,
-): { ok: true; text: string; data: Record<string, unknown> } | { ok: false; error: string } {
-  if (response.stop_reason === 'refusal') {
-    return { ok: false, error: 'el coach no pudo procesar esta petición — intenta de nuevo o ajusta tu objetivo' };
-  }
-  if (response.stop_reason === 'max_tokens') {
-    return { ok: false, error: 'la respuesta del coach se cortó por longitud (max_tokens) — intenta de nuevo' };
-  }
-  const text = (response.content as { type: string; text?: string }[]).find((b) => b.type === 'text')?.text ?? '';
-  let parsedJson: unknown;
-  try {
-    parsedJson = JSON.parse(text);
-  } catch {
-    // JSON truncado o malformado: mensaje explícito para que la próxima
-    // falla de este tipo sea diagnosticable sin gastar otra llamada.
-    return { ok: false, error: 'el modelo no devolvió JSON válido, intenta de nuevo' };
-  }
-  const parsed = schema.safeParse(parsedJson);
-  if (!parsed.success) return { ok: false, error: 'el modelo no devolvió una salida válida, intenta de nuevo' };
-  return { ok: true, text, data: parsed.data as Record<string, unknown> };
-}
-
 /** Corrige la reserva al número REAL de la llamada que sí terminó bien —
  * resta la reserva y suma lo que de verdad reportó la API. Si esto nunca se
  * llama (la función murió antes), la reserva de arriba se queda tal cual. */

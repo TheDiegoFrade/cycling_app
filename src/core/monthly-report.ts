@@ -186,6 +186,11 @@ export function monthLabel(monthKey: string): string {
 export function monthName(monthKey: string): string {
   return MONTHS_ES[Number(monthKey.slice(5, 7)) - 1];
 }
+/** "semana del 29 sep": así se le nombran las semanas a la IA (y al atleta),
+ * nunca por número ISO ("S40"), que nadie reconoce. */
+export function weekOfLabel(mondayKey: string): string {
+  return `semana del ${Number(mondayKey.slice(8, 10))} ${MONTHS_ES[Number(mondayKey.slice(5, 7)) - 1].slice(0, 3)}`;
+}
 
 function dateOf(s: ReportSession): string {
   return s.startedAt.slice(0, 10);
@@ -569,11 +574,11 @@ export function reviewAiContext(r: MonthlyReport, athleteId: string, athlete: Re
       ftpPrev: k.ftpPrev,
       tsbEnd: round1(k.tsbEnd),
     },
-    weeks: r.weeks.map((w) => ({ label: w.label, plannedTss: w.plannedTss, doneTss: w.doneTss })),
+    weeks: r.weeks.map((w) => ({ label: weekOfLabel(w.mondayKey), plannedTss: w.plannedTss, doneTss: w.doneTss })),
     bests: r.bests.map((b) => ({ label: b.label, month: b.month, prev: b.prev, best90: b.best90 })),
     intensityHours: Object.fromEntries(r.intensity.map((i) => [INTENSITY_LABELS[i.bucket], round1(i.hours)])),
     hoursWithoutPower: round1(r.hoursWithoutPower),
-    aerobic: r.aerobic.map((a) => ({ label: a.label, decouplingPct: r1OrNull(a.decouplingPct), ef: a.ef === null ? null : Math.round(a.ef * 100) / 100 })),
+    aerobic: r.aerobic.map((a) => ({ label: weekOfLabel(a.mondayKey), decouplingPct: r1OrNull(a.decouplingPct), ef: a.ef === null ? null : Math.round(a.ef * 100) / 100 })),
     routines: r.routines.map((x) => ({ kind: x.kind, planned: x.planned, done: x.done })),
     srpeTotal: r.srpeTotal,
     keySessions: r.keySessions.map((s) => ({

@@ -229,7 +229,12 @@ export function renderPerfil(container: HTMLElement): void {
               <a href="#/review" class="perfil-coach-reports">Reportes mensuales de tu coach →</a>
               <div id="coach-unlink-result"></div>
             </div>`
-                : ''
+                : `
+            <div class="panel perfil-panel">
+              <h2 class="perfil-h2">Tus reportes</h2>
+              <div class="perfil-alert-hint">Cada mes el coach de Torq revisa tu mes: tus números, lo que vio y el enfoque para el siguiente. También te llega por correo.</div>
+              <a href="#/review" class="perfil-coach-reports">Reportes mensuales →</a>
+            </div>`
             }
 
             <div class="panel perfil-panel">

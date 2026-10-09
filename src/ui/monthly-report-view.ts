@@ -5,6 +5,7 @@
 import type { DayStatus, MonthlyReport, ReviewFinding, ReviewGoal, ReviewVerdict } from '../core/monthly-report';
 import { INTENSITY_LABELS, MAX_FINDINGS, MAX_GOALS, VERDICT_LABELS, monthLabel, monthName, shiftMonth } from '../core/monthly-report';
 import { NON_BIKE_KIND_LABELS } from '../core/session-kind';
+import { signedNumber, tsbZone } from '../core/monthly-report-email';
 import { sourceLabel } from './coach-ui';
 import { escapeHtml } from './workout-cover';
 
@@ -42,10 +43,7 @@ function fmtDuration(s: number): string {
   const m = Math.round(s / 60);
   return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
 }
-function signed(n: number, digits = 0): string {
-  const v = digits ? nf1.format(Math.abs(n)) : nf.format(Math.abs(Math.round(n)));
-  return n > 0 ? `+${v}` : n < 0 ? `−${v}` : v;
-}
+const signed = signedNumber;
 function delta(n: number | null, unit: string, digits = 0, neutral = false): string {
   if (n === null || !Number.isFinite(n)) return '<div class="rpt-delta flat">sin comparación</div>';
   const r = digits ? Math.round(n * 10) / 10 : Math.round(n);
@@ -53,12 +51,7 @@ function delta(n: number | null, unit: string, digits = 0, neutral = false): str
   const v = digits ? nf1.format(Math.abs(r)) : nf.format(Math.abs(r));
   return `<div class="rpt-delta ${neutral ? 'flat' : r > 0 ? 'up' : 'down'}">${r > 0 ? '▲' : '▼'} ${v}${unit}</div>`;
 }
-function tsbZone(tsb: number): string {
-  if (tsb > 5) return 'Fresca';
-  if (tsb >= -10) return 'Transición';
-  if (tsb >= -30) return 'Zona productiva';
-  return 'Fatiga alta';
-}
+
 function paragraphs(text: string): string {
   return text
     .split(/\n{2,}/)
@@ -416,22 +409,5 @@ export function renderReportSheet(d: SheetData): string {
     </article>`;
 }
 
-/** Los mismos números del resumen, en texto, para el correo. */
-export function emailKpis(r: MonthlyReport): { label: string; value: string; delta: string }[] {
-  const k = r.kpis;
-  const prev = monthName(shiftMonth(r.monthKey, -1));
-  const vs = (n: number | null, unit: string, digits = 0) => {
-    if (n === null || !Number.isFinite(n)) return 'sin comparación';
-    const v = digits ? Math.round(n * 10) / 10 : Math.round(n);
-    return v === 0 ? `igual que ${prev}` : `${v > 0 ? '+' : '−'}${digits ? nf1.format(Math.abs(v)) : nf.format(Math.abs(v))}${unit} vs. ${prev}`;
-  };
-  const out = [
-    { label: 'Horas de bici', value: `${nf1.format(k.hours)} h`, delta: vs(k.hours - k.hoursPrev, ' h', 1) },
-    { label: 'Carga (TSS)', value: nf.format(k.tss), delta: vs(k.tssPrev > 0 ? ((k.tss - k.tssPrev) / k.tssPrev) * 100 : null, ' %') },
-    { label: 'Cumplimiento', value: k.compliancePct === null ? '—' : `${k.compliancePct} %`, delta: k.compliancePct === null ? 'sin plan agendado' : `${k.doneCount} de ${k.plannedCount} sesiones` },
-    { label: 'Fitness (CTL)', value: nf.format(k.ctlEnd), delta: `${signed(k.ctlEnd - k.ctlStart)} desde ${nf.format(k.ctlStart)}` },
-    { label: 'FTP', value: k.ftp ? `${nf.format(k.ftp)} W` : '—', delta: k.ftp && k.ftpPrev ? vs(k.ftp - k.ftpPrev, ' W') : 'sin comparación' },
-    { label: 'Forma (TSB)', value: signed(k.tsbEnd), delta: tsbZone(k.tsbEnd) },
-  ];
-  return out;
-}
+/** Ver src/core/monthly-report-email.ts (lo usa también el reporte sin coach). */
+export { emailKpis } from '../core/monthly-report-email';
