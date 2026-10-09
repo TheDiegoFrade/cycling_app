@@ -1,6 +1,8 @@
-// Reporte mensual para el atleta SIN coach humano. Lo dispara pg_cron el día 1
-// de cada mes (ver supabase/schema.sql): por cada atleta del lanzamiento
-// controlado sin coach activo y con datos el mes anterior, calcula el reporte
+// Reporte mensual para el atleta SIN coach humano. pg_cron la llama todos los
+// días (ver supabase/schema.sql); solo genera del 1 al 5 de cada mes, y como
+// es idempotente (uno por atleta y mes), si un día falla lo reintenta el
+// siguiente. Por cada atleta del lanzamiento controlado que entrenó el mes
+// anterior, sin coach activo y sin su reporte todavía, calcula el reporte
 // (el mismo cálculo que la vista del coach, src/core vía _shared/core.gen.js),
 // la IA lo redacta como su coach y queda publicado en monthly_reviews
 // (coach_id null = Coach Torq): el atleta lo ve en la app (#/review) y le llega
@@ -8,11 +10,12 @@
 //
 // Auth: header x-cron-secret = secreto CRON_SECRET (no usa JWT de usuario).
 // body (todo opcional): { monthKey: "YYYY-MM", userIds: [uuid], dryRun: true }
+//   (con monthKey se corre a mano, fuera de la ventana del 1 al 5)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Anthropic from 'npm:@anthropic-ai/sdk@0';
 import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
 import { appUrl, EMAIL_TEST_RECIPIENT, sendEmail } from '../_shared/mailer.ts';
-import { addDays, buildMonthlyReport, emailKpis, localDateKey, monthEnd, monthStart, mondayOfWeek, reviewAiContext, shiftMonth } from '../_shared/core.gen.js';
+import { addDays, buildMonthlyReport, emailKpis, localDateKey, monthEnd, monthStart, mondayOfWeek, reviewAiContext, shiftMonth, startPhase } from '../_shared/core.gen.js';
 import { callCoach, readResponse } from '../coach-chat/coach-call.ts';
 import { SELF_MONTHLY_REVIEW_HEADER } from '../coach-chat/message.ts';
 import { COACH_SYSTEM_PROMPT } from '../coach-chat/prompt.ts';
@@ -28,6 +31,9 @@ const COACH_NAME = 'Coach Torq';
 const ATHLETE_TIME_ZONE = 'America/Mexico_City';
 const PMC_SEED_DAYS = 180; // igual que src/sync/monthly-reviews.ts
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+// Del 1 al 5 genera el reporte del mes anterior; después ya no (un reporte
+// de septiembre que llega el 25 de octubre no sirve). A mano, con monthKey, siempre.
+const GENERATE_UNTIL_DAY = 5;
 
 type Admin = ReturnType<typeof createClient>;
 type Row = Record<string, unknown>;
@@ -108,6 +114,14 @@ async function reportFor(admin: Admin, client: Anthropic, userId: string, monthK
   if (coach) return out('skipped', 'tiene coach: su coach hace la revisión');
   if (existing) return out('skipped', 'ya tiene su reporte de este mes');
 
+  const planRow = plan as { goal?: string; data?: { startDate?: string; form?: { goal?: string } } } | null;
+  // Cuándo empezó a entrenar con Torq: su primera sesión o el inicio de su
+  // plan, lo que sea antes (no se guarda: se deriva). Ver core/self-report-start.ts.
+  const firstStarted = (firstSession as { started_at?: string } | null)?.started_at;
+  const starts = [firstStarted ? localDateKey(new Date(firstStarted), ATHLETE_TIME_ZONE) : undefined, planRow?.data?.startDate].filter((d): d is string => !!d).sort();
+  const phase = startPhase(starts[0] ?? null, monthKey);
+  if (phase.kind === 'skip_short_first') return out('skipped', `arranque corto (${phase.days} días desde el ${phase.startedOn}): va en el reporte del mes siguiente`);
+
   const p = (profile ?? {}) as Row;
   const ftp = typeof p.ftp === 'number' && p.ftp > 0 ? p.ftp : 0;
   const input = await loadReportInput(admin, userId, monthKey);
@@ -115,13 +129,6 @@ async function reportFor(admin: Admin, client: Anthropic, userId: string, monthK
   if (!report.hasData) return out('skipped', 'sin datos ese mes');
   if (dryRun) return out('skipped', `dry run: ${report.kpis.doneCount} sesiones, ${Math.round(report.kpis.tss)} TSS`);
 
-  const planRow = plan as { goal?: string; data?: { startDate?: string; form?: { goal?: string } } } | null;
-  // Cuándo empezó a entrenar con Torq: su primera sesión o el inicio de su
-  // plan, lo que sea antes. Si cae a mitad de este mes, es su mes de arranque
-  // y las semanas anteriores no cuentan como faltas.
-  const firstStarted = (firstSession as { started_at?: string } | null)?.started_at;
-  const starts = [firstStarted ? localDateKey(new Date(firstStarted), ATHLETE_TIME_ZONE) : undefined, planRow?.data?.startDate].filter((d): d is string => !!d).sort();
-  const startedOn = starts[0] && starts[0] > monthStart(monthKey) ? starts[0] : null;
   const ctx = reviewAiContext(
     report,
     userId,
@@ -138,7 +145,7 @@ async function reportFor(admin: Admin, client: Anthropic, userId: string, monthK
   const valid = MonthlyReviewInputContextSchema.safeParse(ctx);
   if (!valid.success) return out('error', `contexto inválido: ${valid.error.issues.map((i) => i.path.join('.')).join(', ')}`);
   const notesBody = (notes as { body?: string } | null)?.body;
-  const data = { ...valid.data, ...(notesBody ? { athleteNotes: notesBody } : {}), ...(startedOn ? { startedOn } : {}) };
+  const data = { ...valid.data, ...(notesBody ? { athleteNotes: notesBody } : {}), ...startContext(phase) };
 
   // Claude: mismo system prompt (con caché) y reglas que la revisión del coach.
   const choice = plannerFor('monthly_review', data);
@@ -200,6 +207,34 @@ async function reportFor(admin: Admin, client: Anthropic, userId: string, monthK
   return out('sent', `enviado a ${sent.sentTo}`);
 }
 
+/** Quién podría tener reporte: entrenó ese mes (sin Strava), está en el
+ * lanzamiento controlado y todavía no tiene su reporte. Lo demás (coach,
+ * arranque corto, días reales en su zona) lo decide reportFor. */
+async function candidates(admin: Admin, monthKey: string): Promise<string[]> {
+  const [{ data: rows, error }, { data: done }] = await Promise.all([
+    admin
+      .from('sessions')
+      .select('user_id')
+      .neq('source', 'strava')
+      // un día de holgura: started_at está en UTC y el día se decide en la zona del atleta
+      .gte('started_at', `${addDays(monthStart(monthKey), -1)}T00:00:00Z`)
+      .lte('started_at', `${addDays(monthEnd(monthKey), 1)}T23:59:59.999Z`)
+      .limit(10000),
+    admin.from('monthly_reviews').select('athlete_id').is('coach_id', null).eq('month', `${monthKey}-01`),
+  ]);
+  if (error) throw new Error(`candidatos: ${error.message}`);
+  const reported = new Set(((done ?? []) as { athlete_id: string }[]).map((r) => r.athlete_id));
+  const trained = new Set(((rows ?? []) as { user_id: string }[]).map((r) => r.user_id));
+  return [...trained].filter((u) => ALLOWED_USER_IDS.has(u) && !reported.has(u));
+}
+
+/** Lo que la IA sabe del arranque del atleta (ver SELF_MONTHLY_REVIEW_HEADER). */
+function startContext(phase: ReturnType<typeof startPhase>): Record<string, unknown> {
+  if (phase.kind === 'first_partial') return { startedOn: phase.startedOn };
+  if (phase.kind === 'first_full_after_short') return { startedOn: phase.startedOn, firstFullMonth: true };
+  return {};
+}
+
 Deno.serve(async (req) => {
   const secret = Deno.env.get('CRON_SECRET');
   if (!secret || req.headers.get('x-cron-secret') !== secret) return json({ error: 'no autorizado' }, 401);
@@ -208,10 +243,12 @@ Deno.serve(async (req) => {
     const todayKey = localDateKey(new Date(), ATHLETE_TIME_ZONE);
     // Por defecto, el mes que acaba de terminar.
     const monthKey = typeof body.monthKey === 'string' && MONTH.test(body.monthKey) ? body.monthKey : shiftMonth(todayKey.slice(0, 7), -1);
+    const manual = typeof body.monthKey === 'string';
+    if (!manual && Number(todayKey.slice(8, 10)) > GENERATE_UNTIL_DAY) return json({ monthKey, results: [], note: `solo genera del 1 al ${GENERATE_UNTIL_DAY} de cada mes` });
     const requested = Array.isArray(body.userIds) ? body.userIds.filter((u): u is string => typeof u === 'string') : null;
-    const userIds = [...ALLOWED_USER_IDS].filter((u) => !requested || requested.includes(u));
 
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!) as Admin;
+    const userIds = (await candidates(admin, monthKey)).filter((u) => !requested || requested.includes(u));
     const client = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
     const results: Outcome[] = [];
     for (const userId of userIds) {
