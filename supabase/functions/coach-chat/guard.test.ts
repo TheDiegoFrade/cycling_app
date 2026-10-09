@@ -27,7 +27,7 @@ function weeklyCtx(over: Record<string, unknown> = {}) {
 }
 const weeklyOut = (workouts: unknown[], over: Record<string, unknown> = {}) => ({
   decision: 'progress',
-  reasoning: 'r',
+  reasoning: 'Cumpliste la semana completa y no hay señales de fatiga, así que subimos una variable.',
   nextWeekWorkouts: workouts,
   nextTest: null,
   notesUpdate: null,
@@ -110,5 +110,17 @@ describe('nombre contra contenido', () => {
   it('un "Fondo" con trabajo duro es falla', () => {
     const w = { ...hard('tue'), name: 'Fondo tranquilo' };
     expect(guardOutput('weekly_eval', weeklyCtx(), weeklyOut([w])).fails[0]).toContain('se llama como sesión suave');
+  });
+});
+
+describe('absorción y textos', () => {
+  it('insert_recovery con algo sobre 75 % es falla', () => {
+    const tempo = { ...easy('tue'), name: 'Tempo', segments: [{ repeat: 1, steps: [step(20, 82)] }] };
+    const g = guardOutput('weekly_eval', weeklyCtx(), weeklyOut([tempo, easy('thu')], { decision: 'insert_recovery' }));
+    expect(g.fails).toEqual([expect.stringContaining('«Tempo» llega a 82 %')]);
+  });
+
+  it('reasoning vacío es falla', () => {
+    expect(guardOutput('weekly_eval', weeklyCtx(), weeklyOut([easy('tue')], { reasoning: '' })).fails[0]).toContain('reasoning vacío');
   });
 });

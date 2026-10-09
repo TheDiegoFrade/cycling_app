@@ -1,0 +1,730 @@
+{
+  "id": "15-create-plan-sin-ftp-con-oficio",
+  "mode": "create_plan",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 54.3,
+  "cost": 0.006865,
+  "coldCost": 0.008655,
+  "usage": {
+    "input_tokens": 1605,
+    "output_tokens": 13097,
+    "cache_read_input_tokens": 15566,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "planName": "Base y FTP para XCO de marzo",
+    "blocks": [
+      {
+        "name": "Calibración y base",
+        "weeks": 3,
+        "focus": "Escalera de ajuste, test de 20 min y base aeróbica con primer contacto con sweet spot",
+        "targetHoursPerWeek": 5
+      },
+      {
+        "name": "Construcción sweet spot",
+        "weeks": 6,
+        "focus": "Sweet spot y umbral largo, una variable a la vez, retest al abrir el bloque",
+        "targetHoursPerWeek": 6.5
+      },
+      {
+        "name": "Específico XCO",
+        "weeks": 6,
+        "focus": "Umbral con picos, over-unders, 40:20s y salidas simuladas, con fuerza a cadencia baja",
+        "targetHoursPerWeek": 7
+      },
+      {
+        "name": "Pico y llegada fresca",
+        "weeks": 3,
+        "focus": "Intensidad controlada, descarga final y llegada fresca a la temporada",
+        "targetHoursPerWeek": 5
+      }
+    ],
+    "firstBlockWeeks": [
+      {
+        "weekIndex": 0,
+        "workouts": [
+          {
+            "name": "Escalera de ajuste",
+            "dayOfWeek": "tue",
+            "targetTSS": 28,
+            "erg": "on",
+            "intent": "Escalera submáxima para calibrar tu FTP provisional: 4 minutos en cada escalón de 50, 60, 70, 80 y 90 % del FTP. Sube mientras puedas hablar en frases completas y apunta en tu nota hasta qué escalón llegaste cómodo. Si pierdes el habla antes del 70 %, el provisional está alto.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 480,
+                    "power_pct": 40,
+                    "ramp_to_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 50",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 60",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 70",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 80",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 80
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 90",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 90
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo con cadencia",
+            "dayOfWeek": "wed",
+            "targetTSS": 42,
+            "erg": "on",
+            "intent": "Fondo conversacional a 65 % del FTP provisional. Debes poder hablar en frases completas durante toda la sesión; si no puedes, baja un poco la potencia y apúntalo. Mantén una cadencia estable y sin subir el pulso de forma continua.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 45,
+                    "ramp_to_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2400,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo de deriva",
+            "dayOfWeek": "thu",
+            "targetTSS": 30,
+            "erg": "on",
+            "intent": "Rodada corta de fondo al 65 %. Controla que el pulso no se vaya subiendo en la segunda mitad; si sube, anota la diferencia en tu nota. La sensación es de conversación cómoda.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 45,
+                    "ramp_to_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2100,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo largo",
+            "dayOfWeek": "sat",
+            "targetTSS": 48,
+            "erg": "on",
+            "intent": "Sesión larga de base a 65 % del FTP provisional, sin picos. Es tu sesión suave de la semana y prepara el test del domingo, así que no la hagas más dura de lo indicado.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 45,
+                    "ramp_to_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo largo",
+                    "type": "steady",
+                    "duration_s": 3000,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Test de 20 min",
+            "dayOfWeek": "sun",
+            "targetTSS": 42,
+            "erg": "off",
+            "intent": "Test de 20 minutos con ERG apagado: tres ataques de 1 min y luego 20 min al máximo que sostengas. Los primeros 5 minutos deben sentirse contenidos; no arranques al 100 %. Al terminar, el FTP es 95 % del promedio (90 % si el pulso no dejó de subir) y debes actualizarlo en tu perfil.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 45,
+                    "ramp_to_pct": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 3,
+                "steps": [
+                  {
+                    "name": "Ataque",
+                    "type": "interval",
+                    "duration_s": 60,
+                    "power_pct": 100
+                  },
+                  {
+                    "name": "Suave",
+                    "type": "recovery",
+                    "duration_s": 60,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Suave previo",
+                    "type": "steady",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Máximo 20 min",
+                    "type": "free",
+                    "duration_s": 1200,
+                    "power_pct": 100
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 720,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": "test"
+          }
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workouts": [
+          {
+            "name": "Sweet spot inicial",
+            "dayOfWeek": "tue",
+            "targetTSS": 56,
+            "erg": "on",
+            "intent": "Primer contacto con sweet spot: 3 bloques de 8 min al 89 % con 4 min suaves entre ellos. Mantén un ritmo parejo desde el primero; la sensación es de esfuerzo sostenido, RPE 6-7, con respiración fuerte pero controlada.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 45,
+                    "ramp_to_pct": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 3,
+                "steps": [
+                  {
+                    "name": "Sweet spot",
+                    "type": "steady",
+                    "duration_s": 480,
+                    "power_pct": 89
+                  },
+                  {
+                    "name": "Recuperación",
+                    "type": "recovery",
+                    "duration_s": 240,
+                    "power_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo con cadencia",
+            "dayOfWeek": "wed",
+            "targetTSS": 42,
+            "erg": "on",
+            "intent": "Fondo conversacional al 65 %. Puedes hablar en frases completas; si no, baja la potencia y anótalo. Es la sesión que deja recuperar la de ayer.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 45,
+                    "ramp_to_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2400,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo de deriva",
+            "dayOfWeek": "thu",
+            "targetTSS": 30,
+            "erg": "on",
+            "intent": "Rodada corta al 65 %. Fíjate si el pulso sube en la segunda mitad; si no sube, esa potencia es tu fondo real.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 45,
+                    "ramp_to_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2100,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo largo",
+            "dayOfWeek": "sat",
+            "targetTSS": 52,
+            "erg": "on",
+            "intent": "Sesión larga de base al 65 %, sin picos. Pedalea con cadencia estable y sin apretar en las subidas virtuales; la sensación es conversacional.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 45,
+                    "ramp_to_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo largo",
+                    "type": "steady",
+                    "duration_s": 3300,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workouts": [
+          {
+            "name": "Sweet spot",
+            "dayOfWeek": "tue",
+            "targetTSS": 64,
+            "erg": "on",
+            "intent": "Tres bloques de 10 min al 89 % con 4 min suaves entre ellos. Sostén la potencia sin subirla en el último; si cae, es señal de que el provisional está alto y lo anotas.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 45,
+                    "ramp_to_pct": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 3,
+                "steps": [
+                  {
+                    "name": "Sweet spot",
+                    "type": "steady",
+                    "duration_s": 600,
+                    "power_pct": 89
+                  },
+                  {
+                    "name": "Recuperación",
+                    "type": "recovery",
+                    "duration_s": 240,
+                    "power_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo con cadencia",
+            "dayOfWeek": "wed",
+            "targetTSS": 42,
+            "erg": "on",
+            "intent": "Fondo conversacional al 65 %. Mantén la cadencia parejo y el pulso estable; no busques ritmo de carrera.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 45,
+                    "ramp_to_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2400,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo de deriva",
+            "dayOfWeek": "thu",
+            "targetTSS": 30,
+            "erg": "on",
+            "intent": "Rodada corta al 65 %. Vigila que la respiración siga conversacional hasta el final.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 45,
+                    "ramp_to_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2100,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo largo",
+            "dayOfWeek": "sat",
+            "targetTSS": 52,
+            "erg": "on",
+            "intent": "Sesión larga de base al 65 %, sin picos. Es tu sesión de volumen de la semana; termínala con energía, no vacío.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 45,
+                    "ramp_to_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo largo",
+                    "type": "steady",
+                    "duration_s": 3300,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      }
+    ],
+    "coachNote": "Tienes 7 años en bici y compites, así que te trato como ciclista con oficio y no como principiante. Como no hay FTP medido, pon 200 W en tu perfil como FTP provisional: es un punto de partida, no una medición, y lo afinamos juntos. Esta semana haces la escalera el martes y el test de 20 min el domingo, después de la sesión suave del sábado. El rodillo no entrena técnica: en XCO sal a rodar afuera en cuanto puedas.",
+    "suggestedFtp": 200,
+    "nextTest": {
+      "weekIndex": 0,
+      "type": "test20",
+      "reason": "Ciclista con oficio que compite: el test de 20 min va el domingo de la semana 1, después de la escalera y una sesión suave, para fijar el FTP de arranque."
+    }
+  },
+  "raw": "{\"planName\":\"Base y FTP para XCO de marzo\",\"blocks\":[{\"name\":\"Calibración y base\",\"weeks\":3,\"focus\":\"Escalera de ajuste, test de 20 min y base aeróbica con primer contacto con sweet spot\",\"targetHoursPerWeek\":5},{\"name\":\"Construcción sweet spot\",\"weeks\":6,\"focus\":\"Sweet spot y umbral largo, una variable a la vez, retest al abrir el bloque\",\"targetHoursPerWeek\":6.5},{\"name\":\"Específico XCO\",\"weeks\":6,\"focus\":\"Umbral con picos, over-unders, 40:20s y salidas simuladas, con fuerza a cadencia baja\",\"targetHoursPerWeek\":7},{\"name\":\"Pico y llegada fresca\",\"weeks\":3,\"focus\":\"Intensidad controlada, descarga final y llegada fresca a la temporada\",\"targetHoursPerWeek\":5}],\"firstBlockWeeks\":[{\"weekIndex\":0,\"workouts\":[{\"name\":\"Escalera de ajuste\",\"dayOfWeek\":\"tue\",\"targetTSS\":28,\"erg\":\"on\",\"intent\":\"Escalera submáxima para calibrar tu FTP provisional: 4 minutos en cada escalón de 50, 60, 70, 80 y 90 % del FTP. Sube mientras puedas hablar en frases completas y apunta en tu nota hasta qué escalón llegaste cómodo. Si pierdes el habla antes del 70 %, el provisional está alto.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":480,\"power_pct\":40,\"ramp_to_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 50\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 60\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 70\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 80\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":80}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 90\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":90}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo con cadencia\",\"dayOfWeek\":\"wed\",\"targetTSS\":42,\"erg\":\"on\",\"intent\":\"Fondo conversacional a 65 % del FTP provisional. Debes poder hablar en frases completas durante toda la sesión; si no puedes, baja un poco la potencia y apúntalo. Mantén una cadencia estable y sin subir el pulso de forma continua.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo de deriva\",\"dayOfWeek\":\"thu\",\"targetTSS\":30,\"erg\":\"on\",\"intent\":\"Rodada corta de fondo al 65 %. Controla que el pulso no se vaya subiendo en la segunda mitad; si sube, anota la diferencia en tu nota. La sensación es de conversación cómoda.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":45,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2100,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo largo\",\"dayOfWeek\":\"sat\",\"targetTSS\":48,\"erg\":\"on\",\"intent\":\"Sesión larga de base a 65 % del FTP provisional, sin picos. Es tu sesión suave de la semana y prepara el test del domingo, así que no la hagas más dura de lo indicado.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo largo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Test de 20 min\",\"dayOfWeek\":\"sun\",\"targetTSS\":42,\"erg\":\"off\",\"intent\":\"Test de 20 minutos con ERG apagado: tres ataques de 1 min y luego 20 min al máximo que sostengas. Los primeros 5 minutos deben sentirse contenidos; no arranques al 100 %. Al terminar, el FTP es 95 % del promedio (90 % si el pulso no dejó de subir) y debes actualizarlo en tu perfil.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":70}]},{\"repeat\":3,\"steps\":[{\"name\":\"Ataque\",\"type\":\"interval\",\"duration_s\":60,\"power_pct\":100},{\"name\":\"Suave\",\"type\":\"recovery\",\"duration_s\":60,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Suave previo\",\"type\":\"steady\",\"duration_s\":300,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Máximo 20 min\",\"type\":\"free\",\"duration_s\":1200,\"power_pct\":100}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":720,\"power_pct\":45}]}],\"kind\":\"test\"}]},{\"weekIndex\":1,\"workouts\":[{\"name\":\"Sweet spot inicial\",\"dayOfWeek\":\"tue\",\"targetTSS\":56,\"erg\":\"on\",\"intent\":\"Primer contacto con sweet spot: 3 bloques de 8 min al 89 % con 4 min suaves entre ellos. Mantén un ritmo parejo desde el primero; la sensación es de esfuerzo sostenido, RPE 6-7, con respiración fuerte pero controlada.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":70}]},{\"repeat\":3,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"steady\",\"duration_s\":480,\"power_pct\":89},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":240,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo con cadencia\",\"dayOfWeek\":\"wed\",\"targetTSS\":42,\"erg\":\"on\",\"intent\":\"Fondo conversacional al 65 %. Puedes hablar en frases completas; si no, baja la potencia y anótalo. Es la sesión que deja recuperar la de ayer.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo de deriva\",\"dayOfWeek\":\"thu\",\"targetTSS\":30,\"erg\":\"on\",\"intent\":\"Rodada corta al 65 %. Fíjate si el pulso sube en la segunda mitad; si no sube, esa potencia es tu fondo real.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":45,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2100,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo largo\",\"dayOfWeek\":\"sat\",\"targetTSS\":52,\"erg\":\"on\",\"intent\":\"Sesión larga de base al 65 %, sin picos. Pedalea con cadencia estable y sin apretar en las subidas virtuales; la sensación es conversacional.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo largo\",\"type\":\"steady\",\"duration_s\":3300,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null}]},{\"weekIndex\":2,\"workouts\":[{\"name\":\"Sweet spot\",\"dayOfWeek\":\"tue\",\"targetTSS\":64,\"erg\":\"on\",\"intent\":\"Tres bloques de 10 min al 89 % con 4 min suaves entre ellos. Sostén la potencia sin subirla en el último; si cae, es señal de que el provisional está alto y lo anotas.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":70}]},{\"repeat\":3,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"steady\",\"duration_s\":600,\"power_pct\":89},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":240,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo con cadencia\",\"dayOfWeek\":\"wed\",\"targetTSS\":42,\"erg\":\"on\",\"intent\":\"Fondo conversacional al 65 %. Mantén la cadencia parejo y el pulso estable; no busques ritmo de carrera.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo de deriva\",\"dayOfWeek\":\"thu\",\"targetTSS\":30,\"erg\":\"on\",\"intent\":\"Rodada corta al 65 %. Vigila que la respiración siga conversacional hasta el final.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":45,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2100,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo largo\",\"dayOfWeek\":\"sat\",\"targetTSS\":52,\"erg\":\"on\",\"intent\":\"Sesión larga de base al 65 %, sin picos. Es tu sesión de volumen de la semana; termínala con energía, no vacío.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo largo\",\"type\":\"steady\",\"duration_s\":3300,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null}]}],\"coachNote\":\"Tienes 7 años en bici y compites, así que te trato como ciclista con oficio y no como principiante. Como no hay FTP medido, pon 200 W en tu perfil como FTP provisional: es un punto de partida, no una medición, y lo afinamos juntos. Esta semana haces la escalera el martes y el test de 20 min el domingo, después de la sesión suave del sábado. El rodillo no entrena técnica: en XCO sal a rodar afuera en cuanto puedas.\",\"suggestedFtp\":200,\"nextTest\":{\"weekIndex\":0,\"type\":\"test20\",\"reason\":\"Ciclista con oficio que compite: el test de 20 min va el domingo de la semana 1, después de la escalera y una sesión suave, para fijar el FTP de arranque.\"}}"
+}

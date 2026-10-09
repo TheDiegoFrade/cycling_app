@@ -1,0 +1,127 @@
+{
+  "id": "33-weekly-eval-lasttest-erg-fijo-sin-nota",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-medium",
+  "ok": true,
+  "seconds": 18.5,
+  "cost": 0.002199,
+  "coldCost": 0.00397,
+  "usage": {
+    "input_tokens": 1785,
+    "output_tokens": 3732,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [
+    "decision=insert_recovery con TSB -11 y 94 % de cumplimiento"
+  ],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Terminaste la semana al 94 % del TSS planeado, pero escribiste que terminaste fundido, y eso pesa más que el cumplimiento: la semana que viene es de absorción. El test fue con ERG fijo, así que 170 W mide que aguantas esa potencia, no tu máximo; además la FC subió 6 % entre mitades y cerró al 99 % de tu máximo. Mantenemos el FTP en 200 W porque el test se hizo con fatiga y no midió tu techo; lo repetimos con ERG apagado cuando estés fresco.",
+    "contradictionFlag": "Cumpliste 94 % del TSS planeado, pero dices que terminaste fundido: me quedo con lo que sientes.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo suave",
+        "dayOfWeek": "tue",
+        "targetTSS": 32,
+        "erg": "on",
+        "intent": "Rodada de fondo a sensación, RPE 3-4, puedes hablar en frases completas durante todo el bloque. Mantén el 65 % sin subir aunque te sientas bien; el objetivo es recuperar, no sumar.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 1800,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Vuelta a la calma",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo controlado",
+        "dayOfWeek": "sat",
+        "targetTSS": 44,
+        "erg": "on",
+        "intent": "Fondo de una hora con potencia estable al 70 %, sin esfuerzos ni picos. Si la FC empieza a subir sola a la misma potencia, baja a 65 % y acórtalo; respiración cómoda y RPE 3-4.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 70
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Vuelta a la calma",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "keep",
+    "suggestedFtp": null,
+    "nextTest": {
+      "weekIndex": 4,
+      "type": "test20",
+      "reason": "Repetir el test de 20 min con ERG apagado, con el atleta fresco y después de al menos 4 semanas, para medir el máximo real."
+    },
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Terminaste la semana al 94 % del TSS planeado, pero escribiste que terminaste fundido, y eso pesa más que el cumplimiento: la semana que viene es de absorción. El test fue con ERG fijo, así que 170 W mide que aguantas esa potencia, no tu máximo; además la FC subió 6 % entre mitades y cerró al 99 % de tu máximo. Mantenemos el FTP en 200 W porque el test se hizo con fatiga y no midió tu techo; lo repetimos con ERG apagado cuando estés fresco.\",\"contradictionFlag\":\"Cumpliste 94 % del TSS planeado, pero dices que terminaste fundido: me quedo con lo que sientes.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo suave\",\"dayOfWeek\":\"tue\",\"targetTSS\":30,\"erg\":\"on\",\"intent\":\"Rodada de fondo a sensación, RPE 3-4, puedes hablar en frases completas durante todo el bloque. Mantén el 65 % sin subir aunque te sientas bien; el objetivo es recuperar, no sumar.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Vuelta a la calma\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo controlado\",\"dayOfWeek\":\"sat\",\"targetTSS\":46,\"erg\":\"on\",\"intent\":\"Fondo de una hora con potencia estable al 70 %, sin esfuerzos ni picos. Si la FC empieza a subir sola a la misma potencia, baja a 65 % y acórtalo; respiración cómoda y RPE 3-4.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Vuelta a la calma\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":\"keep\",\"suggestedFtp\":null,\"nextTest\":{\"weekIndex\":4,\"type\":\"test20\",\"reason\":\"Repetir el test de 20 min con ERG apagado, con el atleta fresco y después de al menos 4 semanas, para medir el máximo real.\"},\"notesUpdate\":null}"
+}

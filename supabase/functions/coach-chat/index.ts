@@ -29,6 +29,7 @@ import { resolveFromLibrary, type CoachWeekWorkout, type LibraryTemplate } from 
 import { acceptAiNotes, notesDueOnWeeklyEval, type StoredNotes } from './notes.ts';
 import { callRow, logCalls, type CallRow, type CallStep, type UsageLike } from './usage-log.ts';
 import { correctionMessage, guardOutput } from './guard.ts';
+import { SONNET, plannerFor, type ModelChoice } from './routing.ts';
 
 type AdminClient = ReturnType<typeof createClient>;
 
@@ -38,12 +39,14 @@ function adminClient(): AdminClient {
 
 // Dos modelos para los modos que planifican (create_plan, weekly_eval,
 // publish_block):
-//  - PLANNER_MODEL (Sonnet) razona como coach y decide el plan, pero con una
+//  - El coach (routing.ts: Sonnet low para planes y bloques y para las
+//    semanas donde hay que razonar el FTP; Haiku 5.5 low para las demás
+//    evaluaciones semanales) razona y decide el plan, pero con una
 //    salida corta: las series en forma compacta (`repeat`) y una intención
 //    por workout. Antes Sonnet 5 escribía TODO (cada intervalo + una
 //    descripción de 3-5 oraciones por workout, ~15k tokens) y se pasaba de
 //    los 150 s de Supabase (IDLE_TIMEOUT en ~1 de cada 3-4 llamadas); por
-//    eso se había bajado a Haiku, que razona peor.
+//    eso se había bajado a Haiku 4.5, que razona peor.
 //  - Los intervalos los desenrolla código (expand.ts): mecánico, sin pierde.
 //  - WRITER_MODEL (Haiku) redacta las descripciones, una llamada por semana
 //    en paralelo. Si falla o no alcanza el tiempo, queda la intención del
@@ -51,7 +54,6 @@ function adminClient(): AdminClient {
 //    por esto.
 // Los demás modos (comentario post-sesión, coach_week, monthly_review)
 // siguen con OTHER_MODEL, sin cambios.
-const PLANNER_MODEL = 'claude-sonnet-5-5';
 const WRITER_MODEL = 'claude-haiku-5-5';
 const OTHER_MODEL = 'claude-haiku-4-5-20251001';
 
@@ -188,13 +190,16 @@ Deno.serve(async (req) => {
       // usuario aquí: los datos del atleta siempre van en `messages`.
       { type: 'text' as const, text: COACH_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' as const } },
     ];
+    // Qué modelo decide (routing.ts); null en los modos que no planifican.
+    const choice = planning ? plannerFor(body.mode, context) : null;
+    if (choice) console.log(`[coach-chat] ${body.mode}: ${choice.model} (${choice.effort}) — ${choice.reason}`);
     // Cada llamada a Claude queda en coach_calls (usage-log.ts).
     const calls: CallRow[] = [];
     const ask = async (step: CallStep, messages: Anthropic.MessageParam[]) => {
       const callStarted = Date.now();
-      const base = { userId, mode: body.mode, step, model: planning ? PLANNER_MODEL : OTHER_MODEL, startedMs: callStarted };
+      const base = { userId, mode: body.mode, step, model: choice?.model ?? OTHER_MODEL, startedMs: callStarted };
       try {
-        const r = await callCoach(client, planning, system, messages, schema);
+        const r = await callCoach(client, choice, system, messages, schema);
         calls.push(callRow({ ...base, model: r.model }, r.usage));
         return r;
       } catch (err) {
@@ -262,7 +267,7 @@ Deno.serve(async (req) => {
     const parseResult = { data: guard.out };
 
     // Modos que planifican: el coach ya decidió; ahora el código desenrolla
-    // los intervalos y Haiku redacta las descripciones (ver PLANNER_MODEL).
+    // los intervalos y Haiku redacta las descripciones (ver routing.ts).
     const output = planning
       ? await finishPlannedWorkouts(client, admin, userId, period, body.mode, context, parseResult.data, startedAt, calls)
       : parseResult.data;
@@ -1004,24 +1009,23 @@ function tokensOf(usage: UsageLike): number {
  * parsear el texto final a mano (readResponse). */
 async function callCoach(
   client: Anthropic,
-  planning: boolean,
+  choice: ModelChoice | null,
   system: Anthropic.TextBlockParam[],
   messages: Anthropic.MessageParam[],
   schema: ReturnType<typeof schemaForMode>,
 ) {
-  if (planning) {
+  if (choice) {
     return await client.beta.messages
       .stream({
-        model: PLANNER_MODEL,
+        model: choice.model,
         // La salida compacta ronda unos pocos miles de tokens; el techo
         // alto es solo margen (se cobra lo generado, no el techo).
         max_tokens: 32000,
-        // medium: buen razonamiento sin alargar la llamada de más.
-        output_config: { effort: 'medium', format: betaZodOutputFormat(schema) },
-        // Si un clasificador de seguridad rechazara la petición, el
-        // servidor la reintenta con otro modelo en la misma llamada.
-        betas: ['server-side-fallback-2026-07-01'],
-        fallbacks: 'default',
+        // low: en la prueba rindió igual que medium, más rápido y barato.
+        output_config: { effort: choice.effort, format: betaZodOutputFormat(schema) },
+        // Si un clasificador de seguridad rechazara la petición a Sonnet,
+        // el servidor la reintenta con otro modelo en la misma llamada.
+        ...(choice.model === SONNET ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' } : {}),
         system,
         messages,
       })

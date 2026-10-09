@@ -1,0 +1,211 @@
+{
+  "id": "37-weekly-eval-vfc-baja-y-mal-sueno",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 19.8,
+  "cost": 0.00257,
+  "coldCost": 0.004342,
+  "usage": {
+    "input_tokens": 2894,
+    "output_tokens": 4254,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [
+    "decision=insert_recovery con TSB -5 y 92 % de cumplimiento"
+  ],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Diego, esta semana no sigue con lo que tocaba: hay tres señales de fatiga a la vez. Él mismo reporta mal sueño y piernas regulares, su VFC de 7 días está en 41 frente a una base de 55, su pulso en reposo subió 6 lpm sobre su base de 48 y el sueño de 7 días es 5.9 h. Cumplió el 92 % del TSS, pero eso no pesa más que estas señales. La semana siguiente es de absorción: nada por encima del 75 %, sesiones de 60 min o menos, un día libre extra y carga cercana a la mitad de la anterior. El FTP de 285 W se mantiene, porque no hay test ni pregunta sobre él y el número sigue siendo válido.",
+    "contradictionFlag": "Cumplió el 92 % del TSS planeado, pero el sueño, la VFC y el pulso en reposo apuntan a fatiga; decido con estas señales, no con el cumplimiento.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo martes",
+        "dayOfWeek": "tue",
+        "targetTSS": 46,
+        "erg": "on",
+        "intent": "Rodada de fondo para absorber carga sin estrés. Sube suave en los primeros 10 min y mantén el 72 % constante en el bloque central; si el pulso empieza a subir sin que subas potencia, baja a 68 %. Debes poder hablar en frases completas (RPE 3-4).",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 72
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo jueves",
+        "dayOfWeek": "thu",
+        "targetTSS": 46,
+        "erg": "on",
+        "intent": "Fondo controlado con el ERG prendido para que no subas de más por sensación. Mantén una cadencia cómoda y respiración nasal o frases cortas durante el bloque central. Si al final te sientes mejor, no lo conviertas en intensidad: la semana sigue siendo de absorción.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 72
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo sábado",
+        "dayOfWeek": "sat",
+        "targetTSS": 46,
+        "erg": "on",
+        "intent": "Sesión suave de volumen moderado para mantener la base sin añadir fatiga. Mantén el 72 % y no busques picos; el reloj de pulso debe quedarse estable en la segunda mitad (RPE 3-4). Si el sueño de la noche anterior fue malo, baja a 65 % sin problema.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 72
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo domingo",
+        "dayOfWeek": "sun",
+        "targetTSS": 46,
+        "erg": "on",
+        "intent": "Cierre suave de la semana de absorción. Pedalea sin buscar intensidad y termina con las piernas mejor que al empezar. Si al calentar sientes las piernas pesadas, acorta a 40 min sin culpa.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 72
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": null,
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Diego, esta semana no sigue con lo que tocaba: hay tres señales de fatiga a la vez. Él mismo reporta mal sueño y piernas regulares, su VFC de 7 días está en 41 frente a una base de 55, su pulso en reposo subió 6 lpm sobre su base de 48 y el sueño de 7 días es 5.9 h. Cumplió el 92 % del TSS, pero eso no pesa más que estas señales. La semana siguiente es de absorción: nada por encima del 75 %, sesiones de 60 min o menos, un día libre extra y carga cercana a la mitad de la anterior. El FTP de 285 W se mantiene, porque no hay test ni pregunta sobre él y el número sigue siendo válido.\",\"contradictionFlag\":\"Cumplió el 92 % del TSS planeado, pero el sueño, la VFC y el pulso en reposo apuntan a fatiga; decido con estas señales, no con el cumplimiento.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo martes\",\"dayOfWeek\":\"tue\",\"targetTSS\":46,\"erg\":\"on\",\"intent\":\"Rodada de fondo para absorber carga sin estrés. Sube suave en los primeros 10 min y mantén el 72 % constante en el bloque central; si el pulso empieza a subir sin que subas potencia, baja a 68 %. Debes poder hablar en frases completas (RPE 3-4).\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo jueves\",\"dayOfWeek\":\"thu\",\"targetTSS\":46,\"erg\":\"on\",\"intent\":\"Fondo controlado con el ERG prendido para que no subas de más por sensación. Mantén una cadencia cómoda y respiración nasal o frases cortas durante el bloque central. Si al final te sientes mejor, no lo conviertas en intensidad: la semana sigue siendo de absorción.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo sábado\",\"dayOfWeek\":\"sat\",\"targetTSS\":46,\"erg\":\"on\",\"intent\":\"Sesión suave de volumen moderado para mantener la base sin añadir fatiga. Mantén el 72 % y no busques picos; el reloj de pulso debe quedarse estable en la segunda mitad (RPE 3-4). Si el sueño de la noche anterior fue malo, baja a 65 % sin problema.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo domingo\",\"dayOfWeek\":\"sun\",\"targetTSS\":46,\"erg\":\"on\",\"intent\":\"Cierre suave de la semana de absorción. Pedalea sin buscar intensidad y termina con las piernas mejor que al empezar. Si al calentar sientes las piernas pesadas, acorta a 40 min sin culpa.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":null,\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

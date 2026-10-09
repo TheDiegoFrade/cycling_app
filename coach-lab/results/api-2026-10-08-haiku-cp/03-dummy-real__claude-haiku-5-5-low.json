@@ -1,0 +1,448 @@
+{
+  "id": "03-dummy-real",
+  "mode": "create_plan",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 48.3,
+  "cost": 0.005672,
+  "coldCost": 0.007462,
+  "usage": {
+    "input_tokens": 1679,
+    "output_tokens": 10696,
+    "cache_read_input_tokens": 15566,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [
+    "TSS sube 54 % de S2 a S3 (50 → 77)"
+  ],
+  "output": {
+    "planName": "Base aeróbica y umbral para fondo MTB",
+    "blocks": [
+      {
+        "name": "Base y ajuste",
+        "weeks": 6,
+        "focus": "Base aeróbica con fondo y deriva, escalera de ajuste y arranque de tempo corto",
+        "targetHoursPerWeek": 1.5
+      },
+      {
+        "name": "Umbral y tempo",
+        "weeks": 6,
+        "focus": "Tempo y umbral en bloques cortos, cadencia baja progresiva, FTP medido y confirmado",
+        "targetHoursPerWeek": 3.5
+      },
+      {
+        "name": "Especificidad MTB y pico",
+        "weeks": 4,
+        "focus": "Sweet spot y umbral largos, intermitencia tipo 40:20s y descarga antes del evento",
+        "targetHoursPerWeek": 5
+      }
+    ],
+    "firstBlockWeeks": [
+      {
+        "weekIndex": 0,
+        "workouts": [
+          {
+            "name": "Escalera de ajuste",
+            "dayOfWeek": "thu",
+            "targetTSS": 18,
+            "erg": "on",
+            "intent": "Es la escalera para afinar el FTP provisional de 120 W. Sube de escalón solo mientras puedas hablar en frases completas y anota en tu nota hasta qué escalón llegaste cómodo. No es un test de máximo.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 480,
+                    "power_pct": 40,
+                    "ramp_to_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 50",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 60",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 70",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 80",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 80
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 90",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 90
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Rodada de deriva",
+            "dayOfWeek": "sat",
+            "targetTSS": 24,
+            "erg": "on",
+            "intent": "Fondo constante a RPE 3-4, en el que puedas hablar en frases completas. Revisa al final si el pulso subió poco en la segunda mitad; eso dice cuál es tu fondo real. Cadencia cómoda, sin empujar.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 1800,
+                    "power_pct": 60,
+                    "cadence_min": 65,
+                    "cadence_max": 85
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workouts": [
+          {
+            "name": "Fondo",
+            "dayOfWeek": "tue",
+            "targetTSS": 24,
+            "erg": "on",
+            "intent": "Fondo conversacional a RPE 3-4. Mantén la cadencia entre 65 y 85 y no subas el ritmo aunque te sientas bien; hoy construyes base.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 45,
+                    "ramp_to_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 1800,
+                    "power_pct": 60,
+                    "cadence_min": 65,
+                    "cadence_max": 85
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Rodada de deriva",
+            "dayOfWeek": "sat",
+            "targetTSS": 26,
+            "erg": "on",
+            "intent": "Fondo sostenido a RPE 3-4, la mitad de la sesión a la misma potencia. Si al final la frecuencia cardíaca subió más de 5 % frente a la primera mitad, anótalo; es el dato que más nos importa esta semana.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 1800,
+                    "power_pct": 62,
+                    "cadence_min": 65,
+                    "cadence_max": 85
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workouts": [
+          {
+            "name": "Fondo con tempo",
+            "dayOfWeek": "tue",
+            "targetTSS": 24,
+            "erg": "on",
+            "intent": "Fondo con un tramo de tempo al 62 % para sentir el paso del fondo al ritmo de carrera. Respiración controlada, RPE 4-5 en el tramo.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 1800,
+                    "power_pct": 62,
+                    "cadence_min": 65,
+                    "cadence_max": 85
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Tempo intermitente",
+            "dayOfWeek": "thu",
+            "targetTSS": 23,
+            "erg": "on",
+            "intent": "Cuatro tramos de 2 minutos a 82 % con 3 minutos suaves entre medio. Sostén la cadencia entre 65 y 85 y sube al tramo con RPE 5-6, no más. Si no puedes sostenerlo, baja a 80 % en la siguiente.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 720,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 4,
+                "steps": [
+                  {
+                    "name": "Tempo",
+                    "type": "interval",
+                    "duration_s": 120,
+                    "power_pct": 82,
+                    "cadence_min": 65,
+                    "cadence_max": 85
+                  },
+                  {
+                    "name": "Recuperación",
+                    "type": "recovery",
+                    "duration_s": 180,
+                    "power_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Test de rampa",
+            "dayOfWeek": "sat",
+            "targetTSS": 30,
+            "erg": "on",
+            "intent": "Rampa para medir tu FTP real: el rodillo sube la potencia solo y sigues hasta que no sostengas la cadencia. Descansa el viernes, llega fresco y no te guardes nada al final; cuando termines, pedalea suave.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 40,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento 50 %",
+                    "type": "steady",
+                    "duration_s": 180,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Rampa",
+                    "type": "steady",
+                    "duration_s": 1500,
+                    "power_pct": 50,
+                    "ramp_to_pct": 200
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 40
+                  }
+                ]
+              }
+            ],
+            "kind": "test"
+          }
+        ]
+      }
+    ],
+    "coachNote": "Tu perfil se contradice: dices experiencia pero cero años sobre la bici, así que arranco como si fueras nuevo en bici. Pon 120 W como FTP provisional en tu perfil antes de la primera sesión; es un punto de partida, no una medición. El rodillo no entrena manejo ni técnica en MTB, así que sal a rodar afuera cuando puedas. Tu base actual es de 0.3 h a la semana, por eso empezamos suave y la carga sube en semanas.",
+    "suggestedFtp": 120,
+    "nextTest": {
+      "weekIndex": 2,
+      "type": "ramp",
+      "reason": "Sin FTP medido y con base de cuatro semanas, la rampa al final de la semana 3 es el primer test seguro; llegarás fresco y con la escalera ya hecha."
+    }
+  },
+  "raw": "{\"planName\":\"Base aeróbica y umbral para fondo MTB\",\"blocks\":[{\"name\":\"Base y ajuste\",\"weeks\":6,\"focus\":\"Base aeróbica con fondo y deriva, escalera de ajuste y arranque de tempo corto\",\"targetHoursPerWeek\":1.5},{\"name\":\"Umbral y tempo\",\"weeks\":6,\"focus\":\"Tempo y umbral en bloques cortos, cadencia baja progresiva, FTP medido y confirmado\",\"targetHoursPerWeek\":3.5},{\"name\":\"Especificidad MTB y pico\",\"weeks\":4,\"focus\":\"Sweet spot y umbral largos, intermitencia tipo 40:20s y descarga antes del evento\",\"targetHoursPerWeek\":5}],\"firstBlockWeeks\":[{\"weekIndex\":0,\"workouts\":[{\"name\":\"Escalera de ajuste\",\"dayOfWeek\":\"thu\",\"targetTSS\":18,\"erg\":\"on\",\"intent\":\"Es la escalera para afinar el FTP provisional de 120 W. Sube de escalón solo mientras puedas hablar en frases completas y anota en tu nota hasta qué escalón llegaste cómodo. No es un test de máximo.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":480,\"power_pct\":40,\"ramp_to_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 50\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 60\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 70\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 80\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":80}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 90\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":90}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"sat\",\"targetTSS\":24,\"erg\":\"on\",\"intent\":\"Fondo constante a RPE 3-4, en el que puedas hablar en frases completas. Revisa al final si el pulso subió poco en la segunda mitad; eso dice cuál es tu fondo real. Cadencia cómoda, sin empujar.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":60,\"cadence_min\":65,\"cadence_max\":85}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null}]},{\"weekIndex\":1,\"workouts\":[{\"name\":\"Fondo\",\"dayOfWeek\":\"tue\",\"targetTSS\":24,\"erg\":\"on\",\"intent\":\"Fondo conversacional a RPE 3-4. Mantén la cadencia entre 65 y 85 y no subas el ritmo aunque te sientas bien; hoy construyes base.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":60,\"cadence_min\":65,\"cadence_max\":85}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"sat\",\"targetTSS\":26,\"erg\":\"on\",\"intent\":\"Fondo sostenido a RPE 3-4, la mitad de la sesión a la misma potencia. Si al final la frecuencia cardíaca subió más de 5 % frente a la primera mitad, anótalo; es el dato que más nos importa esta semana.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":62,\"cadence_min\":65,\"cadence_max\":85}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null}]},{\"weekIndex\":2,\"workouts\":[{\"name\":\"Fondo con tempo\",\"dayOfWeek\":\"tue\",\"targetTSS\":24,\"erg\":\"on\",\"intent\":\"Fondo con un tramo de tempo al 62 % para sentir el paso del fondo al ritmo de carrera. Respiración controlada, RPE 4-5 en el tramo.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":62,\"cadence_min\":65,\"cadence_max\":85}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Tempo intermitente\",\"dayOfWeek\":\"thu\",\"targetTSS\":23,\"erg\":\"on\",\"intent\":\"Cuatro tramos de 2 minutos a 82 % con 3 minutos suaves entre medio. Sostén la cadencia entre 65 y 85 y sube al tramo con RPE 5-6, no más. Si no puedes sostenerlo, baja a 80 % en la siguiente.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":720,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":4,\"steps\":[{\"name\":\"Tempo\",\"type\":\"interval\",\"duration_s\":120,\"power_pct\":82,\"cadence_min\":65,\"cadence_max\":85},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":180,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Test de rampa\",\"dayOfWeek\":\"sat\",\"targetTSS\":30,\"erg\":\"on\",\"intent\":\"Rampa para medir tu FTP real: el rodillo sube la potencia solo y sigues hasta que no sostengas la cadencia. Descansa el viernes, llega fresco y no te guardes nada al final; cuando termines, pedalea suave.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":40,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento 50 %\",\"type\":\"steady\",\"duration_s\":180,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Rampa\",\"type\":\"steady\",\"duration_s\":1500,\"power_pct\":50,\"ramp_to_pct\":200}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":40}]}],\"kind\":\"test\"}]}],\"coachNote\":\"Tu perfil se contradice: dices experiencia pero cero años sobre la bici, así que arranco como si fueras nuevo en bici. Pon 120 W como FTP provisional en tu perfil antes de la primera sesión; es un punto de partida, no una medición. El rodillo no entrena manejo ni técnica en MTB, así que sal a rodar afuera cuando puedas. Tu base actual es de 0.3 h a la semana, por eso empezamos suave y la carga sube en semanas.\",\"suggestedFtp\":120,\"nextTest\":{\"weekIndex\":2,\"type\":\"ramp\",\"reason\":\"Sin FTP medido y con base de cuatro semanas, la rampa al final de la semana 3 es el primer test seguro; llegarás fresco y con la escalera ya hecha.\"}}"
+}

@@ -1,0 +1,163 @@
+{
+  "id": "33-weekly-eval-lasttest-erg-fijo-sin-nota",
+  "mode": "weekly_eval",
+  "config": "claude-sonnet-5-5-low",
+  "ok": true,
+  "seconds": 10,
+  "cost": 0.021571,
+  "coldCost": 0.057005,
+  "usage": {
+    "input_tokens": 1785,
+    "output_tokens": 1492,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "maintain",
+    "reasoning": "Cumpliste 141 de 150 de TSS (94 %) y las 3 sesiones, sin reglas disparadas. Pero el test no fue un máximo: con ERG fijo en 170 W solo demuestra que aguantas esa potencia, y el pulso subió de 162 a 180 (+6 % entre mitades, 99 % de tu máximo) con la cadencia cayendo 6 rpm. Eso es estar por encima de tu umbral, no una medición limpia. Además terminaste fundido: tu nota pesa más que el cumplimiento. Con CTL 9 y TSB -11 no toca subir carga. Mantengo el FTP en 200 W: el test con ERG fijo no es base válida para cambiarlo. Este test queda como familiarización. Mi duda es si tu FTP de 200 está alto; lo confirmamos con bloques de 12 min al 90 % y, si el pulso sigue subiendo, baja 5 % (190 W). Semana sin sesiones duras, repetimos la carga.",
+    "contradictionFlag": "Cumpliste 94 % del TSS, pero terminaste fundido y el pulso subió sin parar hasta el 99 % del máximo. Me quedo con lo que reportas y con el pulso: el test no fue un máximo válido.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo base",
+        "dayOfWeek": "tue",
+        "targetTSS": 40,
+        "erg": "on",
+        "intent": "Fondo continuo para consolidar base tras el test. Mantén una potencia constante con ERG y respiración conversacional, RPE 3-4. Si no puedes hablar en frases completas, baja unos puntos.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 62
+              },
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 65,
+                "cadence_min": 85,
+                "cadence_max": 95
+              },
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Tempo suave",
+        "dayOfWeek": "thu",
+        "targetTSS": 47,
+        "erg": "on",
+        "intent": "Bloques de tempo bajo para trabajar ritmo sostenido sin llegar al umbral. Dos bloques de 12 min al 80 %, RPE 5, con el pulso aplanándose en la segunda mitad. Si el pulso sigue subiendo, lo tomamos como señal de que el FTP está alto.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 2,
+            "steps": [
+              {
+                "name": "Tempo",
+                "type": "interval",
+                "duration_s": 720,
+                "power_pct": 80,
+                "cadence_min": 85,
+                "cadence_max": 95
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 600,
+                "power_pct": 62
+              },
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Rodada de deriva",
+        "dayOfWeek": "sat",
+        "targetTSS": 51,
+        "erg": "on",
+        "intent": "Rodada estable para medir tu base aeróbica. Potencia constante a RPE 3-4 y, si puedes hablar y el pulso casi no sube en la segunda mitad, esa potencia es tu fondo real. Anota cómo se comportó el pulso.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              },
+              {
+                "name": "Fondo constante",
+                "type": "steady",
+                "duration_s": 3300,
+                "power_pct": 68,
+                "cadence_min": 85,
+                "cadence_max": 95
+              },
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "keep",
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"maintain\",\"reasoning\":\"Cumpliste 141 de 150 de TSS (94 %) y las 3 sesiones, sin reglas disparadas. Pero el test no fue un máximo: con ERG fijo en 170 W solo demuestra que aguantas esa potencia, y el pulso subió de 162 a 180 (+6 % entre mitades, 99 % de tu máximo) con la cadencia cayendo 6 rpm. Eso es estar por encima de tu umbral, no una medición limpia. Además terminaste fundido: tu nota pesa más que el cumplimiento. Con CTL 9 y TSB -11 no toca subir carga. Mantengo el FTP en 200 W: el test con ERG fijo no es base válida para cambiarlo. Este test queda como familiarización. Mi duda es si tu FTP de 200 está alto; lo confirmamos con bloques de 12 min al 90 % y, si el pulso sigue subiendo, baja 5 % (190 W). Semana sin sesiones duras, repetimos la carga.\",\"contradictionFlag\":\"Cumpliste 94 % del TSS, pero terminaste fundido y el pulso subió sin parar hasta el 99 % del máximo. Me quedo con lo que reportas y con el pulso: el test no fue un máximo válido.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo base\",\"dayOfWeek\":\"tue\",\"targetTSS\":40,\"erg\":\"on\",\"intent\":\"Fondo continuo para consolidar base tras el test. Mantén una potencia constante con ERG y respiración conversacional, RPE 3-4. Si no puedes hablar en frases completas, baja unos puntos.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":62},{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":65,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Tempo suave\",\"dayOfWeek\":\"thu\",\"targetTSS\":50,\"erg\":\"on\",\"intent\":\"Bloques de tempo bajo para trabajar ritmo sostenido sin llegar al umbral. Dos bloques de 12 min al 80 %, RPE 5, con el pulso aplanándose en la segunda mitad. Si el pulso sigue subiendo, lo tomamos como señal de que el FTP está alto.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":2,\"steps\":[{\"name\":\"Tempo\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":80,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":600,\"power_pct\":62},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"sat\",\"targetTSS\":52,\"erg\":\"on\",\"intent\":\"Rodada estable para medir tu base aeróbica. Potencia constante a RPE 3-4 y, si puedes hablar y el pulso casi no sube en la segunda mitad, esa potencia es tu fondo real. Anota cómo se comportó el pulso.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65},{\"name\":\"Fondo constante\",\"type\":\"steady\",\"duration_s\":3300,\"power_pct\":68,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":\"keep\",\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

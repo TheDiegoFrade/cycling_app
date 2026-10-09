@@ -38,6 +38,8 @@ const DAY_OFFSET: Record<string, number> = Object.fromEntries(DAYS.map((d, i) =>
 const DEFAULT_CAP_MIN = 90;
 /** Sin FTP medido, lo más alto que puede pedir algo que no sea test. */
 const NO_FTP_MAX_PCT = 90;
+/** Semana de absorción: nada por encima de esto (prompt.ts, "Fatiga"). */
+const ABSORPTION_MAX_PCT = 75;
 
 // Misma cuenta que dateForWeek/mondayOf en index.ts.
 function mondayOf(d: Date): Date {
@@ -118,6 +120,18 @@ function dayUsable(day: string, wi: number, o: WeekOpts): boolean {
 }
 
 const ftpUnknown = (ctx: Any) => ctx.profile && ctx.profile.ftp === null;
+
+function checkAbsorption(f: Finding[], workouts: Any[], why: string) {
+  for (const w of workouts) {
+    if (isTest(w)) continue;
+    const top = maxPct(flat(w.segments));
+    if (top > ABSORPTION_MAX_PCT) f.push({ level: 'fail', msg: `${why}: «${w.name}» llega a ${top} % y en absorción nada pasa de ${ABSORPTION_MAX_PCT} %` });
+  }
+}
+
+function checkText(f: Finding[], field: string, text: unknown) {
+  if (typeof text !== 'string' || text.trim().length < 40) f.push({ level: 'fail', msg: `${field} vacío o de una línea: el atleta se queda sin explicación` });
+}
 
 // ─── Arreglos mecánicos ────────────────────────────────────────────────────
 
@@ -255,10 +269,9 @@ function checkCreatePlan(ctx: Any, out: Any): Finding[] {
   if (weeks.length > out.blocks[0].weeks) f.push({ level: 'fail', msg: `concretó ${weeks.length} semanas pero el bloque 1 dura ${out.blocks[0].weeks}` });
   checkPlannedWeeks(f, weeks, weekOpts('create_plan', ctx));
 
+  checkText(f, 'coachNote', out.coachNote);
   const tsb = ctx.recentHistory?.tsb;
-  if (tsb !== undefined && tsb <= -25) {
-    for (const w of weeks[0]?.workouts ?? []) if (!isTest(w) && isHard(flat(w.segments))) f.push({ level: 'fail', msg: `TSB ${tsb} y aun así la semana 1 trae «${w.name}» duro` });
-  }
+  if (tsb !== undefined && tsb <= -25) checkAbsorption(f, weeks[0]?.workouts ?? [], `TSB ${tsb}, la semana 1 es de absorción`);
   const novice = ctx.experienceLevel === 'new_to_cycling' || ctx.generalFitnessLevel === 'sedentary';
   if (novice) {
     for (const [wi, week] of weeks.entries())
@@ -293,7 +306,9 @@ function checkWeeklyEval(ctx: Any, out: Any): Finding[] {
   if (!tired && tsb > -15 && adherence >= 0.9 && ['reduce', 'insert_recovery'].includes(out.decision)) {
     f.push({ level: 'warn', msg: `decision=${out.decision} con TSB ${tsb} y ${Math.round(adherence * 100)} % de cumplimiento` });
   }
-  if (tsb <= -25) {
+  checkText(f, 'reasoning', out.reasoning);
+  if (out.decision === 'insert_recovery') checkAbsorption(f, out.nextWeekWorkouts, 'decision=insert_recovery');
+  else if (tsb <= -25) {
     for (const w of out.nextWeekWorkouts) if (!isTest(w) && isHard(flat(w.segments))) f.push({ level: 'fail', msg: `TSB ${tsb} y la semana siguiente trae «${w.name}» duro` });
   }
   checkPlannedWeeks(f, [{ workouts: out.nextWeekWorkouts }], weekOpts('weekly_eval', ctx));

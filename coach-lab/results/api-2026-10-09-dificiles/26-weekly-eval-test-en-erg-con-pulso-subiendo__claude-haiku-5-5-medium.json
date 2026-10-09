@@ -1,0 +1,186 @@
+{
+  "id": "26-weekly-eval-test-en-erg-con-pulso-subiendo",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-medium",
+  "ok": true,
+  "seconds": 32.9,
+  "cost": 0.003689,
+  "coldCost": 0.005461,
+  "usage": {
+    "input_tokens": 1663,
+    "output_tokens": 6737,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "maintain",
+    "reasoning": "Cumpliste el 94 % del TSS planeado, pero tu nota dice que terminaste fundido y el test fue una carga nueva, así que repito la semana sin subir carga. No, 162 no es tu FTP: con el ERG prendido, los 170 W fueron potencia fija, y tu pulso subió de 162 a 180 con la cadencia cayendo, lo que indica que ese esfuerzo estaba por encima de tu umbral. Mantén el FTP del perfil hasta repetir un test de 20 min con el ERG apagado, en unas 4 semanas. En el mensaje no vienen tus días disponibles, así que usé lunes, miércoles y sábado; dime si cambian.",
+    "contradictionFlag": "La nota dice test de 20 minutos, pero se hizo con el ERG prendido: 170 W es una potencia fija, no tu máximo.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo",
+        "dayOfWeek": "mon",
+        "targetTSS": 40,
+        "erg": "on",
+        "intent": "Rodada suave para recuperar piernas después del test. Mantén el 65 % con ERG y ve conversando en frases completas, RPE 3-4. Si la FC sube sin que subas la potencia, baja el esfuerzo.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Tempo",
+        "dayOfWeek": "wed",
+        "targetTSS": 49,
+        "erg": "on",
+        "intent": "Tres bloques de 8 minutos al 80 % con 4 minutos de recuperación, y 10 minutos de fondo al 65 % al final. Mantén el tempo firme pero controlado, RPE 5-6, y sin subir al 88 % aunque te sientas bien.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 3,
+            "steps": [
+              {
+                "name": "Tempo",
+                "type": "steady",
+                "duration_s": 480,
+                "power_pct": 80
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 240,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 600,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo largo",
+        "dayOfWeek": "sat",
+        "targetTSS": 50,
+        "erg": "on",
+        "intent": "Sesión larga de base a 65 % con ERG, en 75 minutos. Lleva un ritmo constante, sin acelerar en las subidas del ERG, y come algo a mitad de sesión. RPE 3-4, puedes hablar en frases completas.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 3600,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "keep",
+    "suggestedFtp": null,
+    "nextTest": {
+      "weekIndex": 4,
+      "type": "test20",
+      "reason": "Repetir el test de 20 minutos con el ERG apagado, al menos 4 semanas después y con el atleta fresco, para tener un FTP válido."
+    },
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"maintain\",\"reasoning\":\"Cumpliste el 94 % del TSS planeado, pero tu nota dice que terminaste fundido y el test fue una carga nueva, así que repito la semana sin subir carga. No, 162 no es tu FTP: con el ERG prendido, los 170 W fueron potencia fija, y tu pulso subió de 162 a 180 con la cadencia cayendo, lo que indica que ese esfuerzo estaba por encima de tu umbral. Mantén el FTP del perfil hasta repetir un test de 20 min con el ERG apagado, en unas 4 semanas. En el mensaje no vienen tus días disponibles, así que usé lunes, miércoles y sábado; dime si cambian.\",\"contradictionFlag\":\"La nota dice test de 20 minutos, pero se hizo con el ERG prendido: 170 W es una potencia fija, no tu máximo.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo\",\"dayOfWeek\":\"mon\",\"targetTSS\":40,\"erg\":\"on\",\"intent\":\"Rodada suave para recuperar piernas después del test. Mantén el 65 % con ERG y ve conversando en frases completas, RPE 3-4. Si la FC sube sin que subas la potencia, baja el esfuerzo.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Tempo\",\"dayOfWeek\":\"wed\",\"targetTSS\":46,\"erg\":\"on\",\"intent\":\"Tres bloques de 8 minutos al 80 % con 4 minutos de recuperación, y 10 minutos de fondo al 65 % al final. Mantén el tempo firme pero controlado, RPE 5-6, y sin subir al 88 % aunque te sientas bien.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65}]},{\"repeat\":3,\"steps\":[{\"name\":\"Tempo\",\"type\":\"steady\",\"duration_s\":480,\"power_pct\":80},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":240,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":600,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo largo\",\"dayOfWeek\":\"sat\",\"targetTSS\":49,\"erg\":\"on\",\"intent\":\"Sesión larga de base a 65 % con ERG, en 75 minutos. Lleva un ritmo constante, sin acelerar en las subidas del ERG, y come algo a mitad de sesión. RPE 3-4, puedes hablar en frases completas.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3600,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":\"keep\",\"suggestedFtp\":null,\"nextTest\":{\"weekIndex\":4,\"type\":\"test20\",\"reason\":\"Repetir el test de 20 minutos con el ERG apagado, al menos 4 semanas después y con el atleta fresco, para tener un FTP válido.\"},\"notesUpdate\":null}"
+}

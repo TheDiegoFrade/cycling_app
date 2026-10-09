@@ -6,6 +6,7 @@
 //
 //   ANTHROPIC_API_KEY=... deno run -A coach-lab/api-run.ts <carpeta> <modelo>:<effort>[,...] <escenario> [...]
 //   p. ej.  ... api-run.ts results/api-1 claude-sonnet-5-5:medium,claude-haiku-5-5:low 07-eval-fatiga 08-eval-progreso
+//   `auto` como configuración usa la misma elección que producción (routing.ts).
 //
 // Escribe <carpeta>/<escenario>__<modelo>-<effort>.json (salida + métricas)
 // y <carpeta>/resumen.json. No llama al redactor (Haiku, ~$0.002 por plan,
@@ -18,6 +19,7 @@ import { buildUserMessage } from '../supabase/functions/coach-chat/message.ts';
 import { inputContextSchemaForMode, schemaForMode, type Mode } from '../supabase/functions/coach-chat/schemas.ts';
 import { correctionMessage, guardOutput } from '../supabase/functions/coach-chat/guard.ts';
 import { costUsd, MODEL_PRICES, type UsageLike } from '../supabase/functions/coach-chat/usage-log.ts';
+import { plannerFor } from '../supabase/functions/coach-chat/routing.ts';
 
 const here = new URL('.', import.meta.url);
 const [dirArg, configsArg, ...ids] = Deno.args;
@@ -29,7 +31,7 @@ const outDir = new URL(`${dirArg.replace(/\/?$/, '/')}`, here);
 await Deno.mkdir(outDir, { recursive: true });
 const configs = configsArg.split(',').map((c) => {
   const [model, effort] = c.split(':');
-  return { model, effort: effort as 'low' | 'medium' | 'high' };
+  return { model, effort: effort as 'low' | 'medium' | 'high' | undefined };
 });
 
 const client = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
@@ -71,8 +73,11 @@ for (const id of ids) {
   const schema = schemaForMode(mode);
   // En paralelo por escenario: todas las configuraciones a la vez.
   const rows = await Promise.all(
-    configs.map(async ({ model, effort }) => {
-      const tag = `${model}-${effort}`;
+    configs.map(async (cfg) => {
+      const auto = cfg.model === 'auto' ? plannerFor(mode, ctx) : null;
+      const model = auto?.model ?? cfg.model;
+      const effort = auto?.effort ?? cfg.effort ?? 'low';
+      const tag = auto ? `auto-${model}-${effort}` : `${model}-${effort}`;
       try {
         const first = await call(model, effort, schema, [{ role: 'user', content: userMessage }]);
         const usages = [first.r.usage as UsageLike];

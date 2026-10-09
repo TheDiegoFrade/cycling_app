@@ -1,0 +1,177 @@
+{
+  "id": "26-weekly-eval-test-en-erg-con-pulso-subiendo",
+  "mode": "weekly_eval",
+  "config": "claude-sonnet-5-5-low",
+  "ok": true,
+  "seconds": 20.5,
+  "cost": 0.069881,
+  "coldCost": 0.069881,
+  "usage": {
+    "input_tokens": 1663,
+    "output_tokens": 2804,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 15406
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "progress",
+    "reasoning": "Cumpliste 141 de 150 de TSS y las 3 sesiones, sin señales de fatiga que cambien el plan. Un detalle: 162 fue tu pulso al arrancar, no tu FTP. El test salió con ERG fijo a 170 W, así que solo demuestra que aguantaste esa potencia, no es un máximo. El pulso subió de 162 a 180 (más de 10 %) y la cadencia cayó de 78 a 72, señal de que 170 W estaba por encima de tu umbral. Mi estimación es que tu FTP de trabajo ronda 150 W (≈ 88-90 % de 170). Es una estimación, con ±5-10 % de error. Pon 150 W en tu perfil antes de la primera sesión. Esta semana solo hay un primer contacto con sweet spot (3 × 8 min), que es la confirmación. Si el pulso se aplana, 150 sirve; si sigue subiendo, bajamos 5 %. Tu TSB está en −11 y tu CTL en 9, así que sube la carga solo un poco.",
+    "contradictionFlag": "Hiciste 170 W con ERG, que parece un FTP de 160-170 W, pero el pulso subió sin parar y la cadencia cayó. Me quedo con el pulso y la cadencia: el esfuerzo estaba sobre tu umbral y por eso el FTP de trabajo es ≈ 150 W.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo conversacional",
+        "dayOfWeek": "tue",
+        "targetTSS": 42,
+        "erg": "on",
+        "intent": "Fondo suave para absorber el test. Con ERG prendido, ritmo en el que puedas hablar en frases completas (RPE 3-4). Si el pulso se dispara, baja un poco la potencia.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 65,
+                "cadence_min": 80,
+                "cadence_max": 90
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Sweet spot: primer contacto",
+        "dayOfWeek": "thu",
+        "targetTSS": 53,
+        "erg": "on",
+        "intent": "Con el FTP de 150 W en tu perfil, 3 bloques de 8 min al 89 % para confirmar el número. Cadencia estable de 80 o más, y que el pulso se aplane en cada bloque; RPE 6-7. Si no completas un bloque o el pulso sigue subiendo, avísame en tu nota.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 3,
+            "steps": [
+              {
+                "name": "Sweet spot",
+                "type": "interval",
+                "duration_s": 480,
+                "power_pct": 89,
+                "cadence_min": 80,
+                "cadence_max": 90
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 240,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Rodada de fondo larga",
+        "dayOfWeek": "sat",
+        "targetTSS": 50,
+        "erg": "on",
+        "intent": "La sesión larga de la semana, a ritmo constante de fondo. Si puedes hablar y el pulso casi no sube en la segunda mitad, esa potencia es tu fondo real. RPE 3-4.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 3600,
+                "power_pct": 65,
+                "cadence_min": 80,
+                "cadence_max": 90
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "change",
+    "suggestedFtp": 150,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"progress\",\"reasoning\":\"Cumpliste 141 de 150 de TSS y las 3 sesiones, sin señales de fatiga que cambien el plan. Un detalle: 162 fue tu pulso al arrancar, no tu FTP. El test salió con ERG fijo a 170 W, así que solo demuestra que aguantaste esa potencia, no es un máximo. El pulso subió de 162 a 180 (más de 10 %) y la cadencia cayó de 78 a 72, señal de que 170 W estaba por encima de tu umbral. Mi estimación es que tu FTP de trabajo ronda 150 W (≈ 88-90 % de 170). Es una estimación, con ±5-10 % de error. Pon 150 W en tu perfil antes de la primera sesión. Esta semana solo hay un primer contacto con sweet spot (3 × 8 min), que es la confirmación. Si el pulso se aplana, 150 sirve; si sigue subiendo, bajamos 5 %. Tu TSB está en −11 y tu CTL en 9, así que sube la carga solo un poco.\",\"contradictionFlag\":\"Hiciste 170 W con ERG, que parece un FTP de 160-170 W, pero el pulso subió sin parar y la cadencia cayó. Me quedo con el pulso y la cadencia: el esfuerzo estaba sobre tu umbral y por eso el FTP de trabajo es ≈ 150 W.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo conversacional\",\"dayOfWeek\":\"tue\",\"targetTSS\":42,\"erg\":\"on\",\"intent\":\"Fondo suave para absorber el test. Con ERG prendido, ritmo en el que puedas hablar en frases completas (RPE 3-4). Si el pulso se dispara, baja un poco la potencia.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":65,\"cadence_min\":80,\"cadence_max\":90}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Sweet spot: primer contacto\",\"dayOfWeek\":\"thu\",\"targetTSS\":47,\"erg\":\"on\",\"intent\":\"Con el FTP de 150 W en tu perfil, 3 bloques de 8 min al 89 % para confirmar el número. Cadencia estable de 80 o más, y que el pulso se aplane en cada bloque; RPE 6-7. Si no completas un bloque o el pulso sigue subiendo, avísame en tu nota.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":3,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"interval\",\"duration_s\":480,\"power_pct\":89,\"cadence_min\":80,\"cadence_max\":90},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":240,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Rodada de fondo larga\",\"dayOfWeek\":\"sat\",\"targetTSS\":50,\"erg\":\"on\",\"intent\":\"La sesión larga de la semana, a ritmo constante de fondo. Si puedes hablar y el pulso casi no sube en la segunda mitad, esa potencia es tu fondo real. RPE 3-4.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3600,\"power_pct\":65,\"cadence_min\":80,\"cadence_max\":90}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":\"change\",\"suggestedFtp\":150,\"nextTest\":null,\"notesUpdate\":null}"
+}

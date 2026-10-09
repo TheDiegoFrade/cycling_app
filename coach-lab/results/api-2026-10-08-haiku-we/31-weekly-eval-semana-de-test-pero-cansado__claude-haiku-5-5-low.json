@@ -1,0 +1,133 @@
+{
+  "id": "31-weekly-eval-semana-de-test-pero-cansado",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 19,
+  "cost": 0.002172,
+  "coldCost": 0.003943,
+  "usage": {
+    "input_tokens": 2325,
+    "output_tokens": 3570,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Mateo, cumpliste 325 de 310 TSS, pero tu nota habla de 5 horas de sueño casi diario y piernas pesadas, y el TSB de -24 con el techo de pulso disparado en 4 sesiones confirma la fatiga. Eso son dos señales a la vez, así que la semana que viene es de absorción: dos sesiones de fondo de 50 a 60 min, nada por encima del 75 % y un día libre extra. Por eso el TSS caerá a unos 80-90, muy por debajo del 50-60 % de la semana anterior, porque con esos límites no cabe más carga. El test de rampa se mueve a la semana 5 para llegar fresco; el FTP provisional se mantiene sin cambios.",
+    "contradictionFlag": "El plan se cumplió en números (325 de 310 TSS) pero tú sientes fatiga; gana lo que sientes.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo absorción",
+        "dayOfWeek": "tue",
+        "targetTSS": 50,
+        "erg": "on",
+        "intent": "Rodada de fondo a ritmo de conversación, sin buscar watts. Mantén el 70-74 % con el ERG prendido y no subas aunque te sientas bien. Deberías poder hablar en frases completas durante todo el bloque.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 72,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo suave",
+        "dayOfWeek": "sun",
+        "targetTSS": 35,
+        "erg": "on",
+        "intent": "Sesión corta y suave para cerrar la semana sin acumular fatiga. Mantén 70 % y corta si las piernas siguen pesadas. Respiración cómoda, RPE 3-4.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 1800,
+                "power_pct": 70,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": null,
+    "suggestedFtp": null,
+    "nextTest": {
+      "weekIndex": 5,
+      "type": "ramp",
+      "reason": "Se mueve después de la semana de absorción, cuando llegues fresco y con sueño recuperado."
+    },
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Mateo, cumpliste 325 de 310 TSS, pero tu nota habla de 5 horas de sueño casi diario y piernas pesadas, y el TSB de -24 con el techo de pulso disparado en 4 sesiones confirma la fatiga. Eso son dos señales a la vez, así que la semana que viene es de absorción: dos sesiones de fondo de 50 a 60 min, nada por encima del 75 % y un día libre extra. Por eso el TSS caerá a unos 80-90, muy por debajo del 50-60 % de la semana anterior, porque con esos límites no cabe más carga. El test de rampa se mueve a la semana 5 para llegar fresco; el FTP provisional se mantiene sin cambios.\",\"contradictionFlag\":\"El plan se cumplió en números (325 de 310 TSS) pero tú sientes fatiga; gana lo que sientes.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo absorción\",\"dayOfWeek\":\"tue\",\"targetTSS\":50,\"erg\":\"on\",\"intent\":\"Rodada de fondo a ritmo de conversación, sin buscar watts. Mantén el 70-74 % con el ERG prendido y no subas aunque te sientas bien. Deberías poder hablar en frases completas durante todo el bloque.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":72,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo suave\",\"dayOfWeek\":\"sun\",\"targetTSS\":35,\"erg\":\"on\",\"intent\":\"Sesión corta y suave para cerrar la semana sin acumular fatiga. Mantén 70 % y corta si las piernas siguen pesadas. Respiración cómoda, RPE 3-4.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":70,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null}],\"ftpAction\":null,\"suggestedFtp\":null,\"nextTest\":{\"weekIndex\":5,\"type\":\"ramp\",\"reason\":\"Se mueve después de la semana de absorción, cuando llegues fresco y con sueño recuperado.\"},\"notesUpdate\":null}"
+}
