@@ -135,7 +135,7 @@ export function renderPerfil(container: HTMLElement): void {
                 <label>Peso${appState.coach.myCoach ? ' <span class="perfil-alert-hint">· tu coach lo ve para calcular tus W/kg</span>' : ''}<span class="perfil-numfield-row"><input type="number" id="profile-weight" min="30" max="200" step="0.1" value="${appState.profile.weight_kg ?? ''}"><span class="live-col-label">kg</span></span></label>
                 <label>Sexo
                   <select id="profile-sex">
-                    <option value="" ${!appState.profile.sex ? 'selected' : ''}>Prefiero no decir</option>
+                    ${!appState.profile.sex ? '<option value="" selected disabled>Elige…</option>' : ''}
                     <option value="M" ${appState.profile.sex === 'M' ? 'selected' : ''}>Hombre</option>
                     <option value="F" ${appState.profile.sex === 'F' ? 'selected' : ''}>Mujer</option>
                     <option value="other" ${appState.profile.sex === 'other' ? 'selected' : ''}>Otro</option>

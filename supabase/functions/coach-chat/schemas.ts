@@ -186,9 +186,9 @@ export const CreatePlanInputContextSchema = z.object({
     // null = el atleta marcó "no sé mi pulso máximo": antes llegaba el 185
     // por defecto del perfil como si fuera un dato real (a cualquier edad).
     hr_max: z.number().min(120).max(230).nullable(),
-    // null = no dijo/prefiere no decir — en ese caso nunca uses lenguaje
-    // con género gramatical (ver "Disciplina de salida").
-    sex: z.enum(['M', 'F', 'other']).nullable(),
+    // Obligatorio para crear un plan (el cuestionario ya no deja seguir sin
+    // él). "other" = sin lenguaje con género gramatical.
+    sex: z.enum(['M', 'F', 'other'], { error: 'elige tu sexo en tu perfil para crear el plan' }),
     // null = no lo puso en Perfil — en ese caso no inventes un nombre ni
     // uses genéricos como "atleta" en su lugar, simplemente no te dirijas
     // a nadie por nombre (ver "Disciplina de salida").

@@ -12,9 +12,12 @@ import { saveSession } from '../storage/session-store';
 import { pushSessionToCloud } from '../sync/cloud-sync';
 
 /** Lo mínimo para que create_plan tenga con qué trabajar — el resto de los
- * campos del cuestionario son enriquecimiento opcional, no bloquean nada. */
+ * campos del cuestionario son enriquecimiento opcional, no bloquean nada.
+ * El sexo es obligatorio: el coach lo usa para el género gramatical y para
+ * leer el FTP y el pulso. */
 export function isCoachProfileComplete(profile: Profile): boolean {
   return (
+    profile.sex !== undefined &&
     profile.experienceLevel !== undefined &&
     profile.generalFitnessLevel !== undefined &&
     profile.discipline !== undefined &&
@@ -81,7 +84,19 @@ function modalHtml(p: Profile): string {
           ${sectionHtml(
             1,
             'Tu experiencia',
-            `<p class="ob-q">¿Qué tanto has entrenado con estructura?</p>
+            `<p class="ob-q">Sexo</p>
+            <div class="ob-chips" id="ob-sex">
+              ${(
+                [
+                  ['M', 'Hombre'],
+                  ['F', 'Mujer'],
+                  ['other', 'Otro'],
+                ] as const
+              )
+                .map(([v, label]) => `<button type="button" class="ob-chip${p.sex === v ? ' on' : ''}" data-sex="${v}" aria-pressed="${p.sex === v}">${label}</button>`)
+                .join('')}
+            </div>
+            <p class="ob-q">¿Qué tanto has entrenado con estructura?</p>
             <div class="ob-options" id="ob-experience">
               ${optionHtml('data-level', 'new_to_cycling', experience === 'new_to_cycling', 'Nunca con estructura', 'Empiezo desde cero con zonas y planes.')}
               ${optionHtml('data-level', 'returning_or_new_to_app', experience === 'returning_or_new_to_app', 'Ya entreno, pero no en Torq', 'Tengo experiencia; es mi primera vez aquí.')}
@@ -192,6 +207,7 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
   let experienceLevel: Profile['experienceLevel'] = p.experienceLevel ?? 'experienced';
   let generalFitnessLevel: Profile['generalFitnessLevel'] = p.generalFitnessLevel ?? 'active_other_sport';
   let discipline: Profile['discipline'] = p.discipline ?? 'mountain';
+  let sex: Profile['sex'] = p.sex;
 
   if (!allowSkip) backdrop.querySelector('#onboarding-skip')?.remove();
 
@@ -209,6 +225,14 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
       chip.classList.add('on');
       chip.setAttribute('aria-pressed', 'true');
       generalFitnessLevel = chip.dataset.level as typeof generalFitnessLevel;
+    });
+  });
+  backdrop.querySelectorAll<HTMLButtonElement>('#ob-sex .ob-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      backdrop.querySelectorAll('#ob-sex .ob-chip').forEach((c) => { c.classList.remove('on'); c.setAttribute('aria-pressed', 'false'); });
+      chip.classList.add('on');
+      chip.setAttribute('aria-pressed', 'true');
+      sex = chip.dataset.sex as typeof sex;
     });
   });
   backdrop.querySelectorAll<HTMLButtonElement>('#ob-discipline .ob-chip').forEach((chip) => {
@@ -279,6 +303,11 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
 
   backdrop.querySelector('#onboarding-submit')?.addEventListener('click', async () => {
     const status = backdrop.querySelector<HTMLElement>('#onboarding-status')!;
+    if (!sex) {
+      status.textContent = 'Elige tu sexo para continuar.';
+      backdrop.querySelector('#ob-sex')?.scrollIntoView({ block: 'center' });
+      return;
+    }
     const yearsRiding = Number(backdrop.querySelector<HTMLInputElement>('#ob-years')!.value) || 0;
     const structuredTrainingYears = Number(backdrop.querySelector<HTMLInputElement>('#ob-structured-years')!.value) || 0;
     const competes = competesCheckbox.checked;
@@ -293,6 +322,7 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     // objeto completo (ver memoria: podría borrar FTP/pulso ya guardados).
     appState.profile = {
       ...appState.profile,
+      sex,
       experienceLevel,
       generalFitnessLevel,
       discipline,
