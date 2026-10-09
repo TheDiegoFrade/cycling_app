@@ -1,4 +1,4 @@
-import type { ConnectionState, HrAdapter, TrainerAdapter, TrainerReading } from './types';
+import type { ConnectionState, FreeMode, HrAdapter, TrainerAdapter, TrainerReading } from './types';
 
 /** Adaptador simulado: mismo contrato que el FTMS/HR real, para poder
  * construir y probar toda la UI (M3) sin hardware, y que M4 sea un cambio
@@ -9,6 +9,8 @@ export class SimulatedTrainerAdapter implements TrainerAdapter {
   private cadence = 90;
   private ergMode = true;
   private resistancePercent = 30;
+  private gradePct: number | null = null;
+  freeMode: FreeMode = 'sim';
   private readingCbs = new Set<(r: TrainerReading) => void>();
   private stateCbs = new Set<(s: ConnectionState) => void>();
   private timer: ReturnType<typeof setInterval> | null = null;
@@ -36,7 +38,18 @@ export class SimulatedTrainerAdapter implements TrainerAdapter {
    * más variación (ya no hay un objetivo fijo tirando de ella). */
   setResistance(percent: number): void {
     this.resistancePercent = percent;
+    this.gradePct = null;
     this.ergMode = false;
+  }
+
+  /** Simula la calle: plano ≈ 150 W, cada 1 % de pendiente ≈ +25 W. */
+  setSimulation(gradePct: number): void {
+    this.gradePct = gradePct;
+    this.ergMode = false;
+  }
+
+  onFreeModeChange(_cb: (mode: FreeMode) => void): () => void {
+    return () => {};
   }
 
   onReading(cb: (r: TrainerReading) => void): () => void {
@@ -55,7 +68,7 @@ export class SimulatedTrainerAdapter implements TrainerAdapter {
   }
 
   private emitReading(): void {
-    const base = this.ergMode ? this.target : this.resistancePercent * 2.5;
+    const base = this.ergMode ? this.target : this.gradePct !== null ? Math.max(60, 150 + this.gradePct * 25) : this.resistancePercent * 2.5;
     const noise = this.ergMode ? 16 : 30;
     const power = Math.max(0, Math.round(base + (Math.random() * noise - noise / 2)));
     this.cadence = Math.max(0, Math.round(this.cadence + (Math.random() * 4 - 2)));

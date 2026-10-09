@@ -59,7 +59,38 @@ export const CONTROL_POINT_OPCODE = {
   setTargetPower: 0x05,
   start: 0x07,
   setResistanceLevel: 0x04,
+  setIndoorBikeSimulation: 0x11,
 } as const;
+
+/** `fitness_machine_feature`: dos campos de 32 bits (lo que mide y lo que se
+ * le puede pedir). Solo nos interesa el segundo: qué modos de control acepta. */
+export interface FtmsTargetFeatures {
+  resistance: boolean;
+  power: boolean;
+  simulation: boolean;
+}
+
+export function parseFitnessMachineFeature(data: DataView): FtmsTargetFeatures | null {
+  if (data.byteLength < 8) return null;
+  const target = data.getUint32(4, true);
+  return { resistance: (target & (1 << 2)) !== 0, power: (target & (1 << 3)) !== 0, simulation: (target & (1 << 13)) !== 0 };
+}
+
+/** Calle simulada (sin ERG), como Rouvy, Zwift o MyWhoosh: el rodillo
+ * calcula el freno con tu velocidad real, la pendiente, el rodamiento y el
+ * aire, así que se siente con inercia y el esfuerzo lo pones tú con los
+ * cambios. Valores por defecto: sin viento, asfalto (Crr 0.004) y un
+ * ciclista en posición normal (CdA·ρ/2 ≈ 0.51 kg/m). */
+export function buildSetIndoorBikeSimulation(gradePct: number, opts: { windSpeedMs?: number; crr?: number; cwKgPerM?: number } = {}): Uint8Array {
+  const buf = new ArrayBuffer(7);
+  const dv = new DataView(buf);
+  dv.setUint8(0, CONTROL_POINT_OPCODE.setIndoorBikeSimulation);
+  dv.setInt16(1, Math.round((opts.windSpeedMs ?? 0) * 1000), true); // m/s, resolución 0.001
+  dv.setInt16(3, Math.round(gradePct * 100), true); // %, resolución 0.01
+  dv.setUint8(5, Math.round((opts.crr ?? 0.004) * 10000)); // resolución 0.0001
+  dv.setUint8(6, Math.round((opts.cwKgPerM ?? 0.51) * 100)); // kg/m, resolución 0.01
+  return new Uint8Array(buf);
+}
 
 export function buildRequestControl(): Uint8Array {
   return new Uint8Array([CONTROL_POINT_OPCODE.requestControl]);
