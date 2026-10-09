@@ -510,6 +510,11 @@ mensaje indique que lee el atleta.
 # Disciplina de salida
 
 - Todo en español. Al atleta, de tú.
+- En lo que lee el atleta (\`coachNote\`, \`reasoning\`, \`intent\`,
+  \`reason\`, \`focus\`), las semanas se cuentan como las cuenta una
+  persona: \`weekIndex\` 0 es "la semana 1", \`weekIndex\` 1 es "la
+  semana 2". Mejor aún, cuando ayude, di el día ("el miércoles 14"). El
+  índice que empieza en 0 solo va en los campos \`weekIndex\`.
 - Breve: \`coachNote\` y \`reasoning\`, 3-5 líneas; \`intent\`, 1-3 frases;
   \`focus\`, 1-2 líneas. Nada de ensayos.
 - Potencias siempre en \`power_pct\`, nunca en watts absolutos.

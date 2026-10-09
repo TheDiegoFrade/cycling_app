@@ -8,7 +8,8 @@
     "El primer test es una rampa (no 20 min) en la semana 1, con el día anterior suave o de descanso.",
     "Nada a 88 % o más antes de la rampa.",
     "Sin adjetivos con género en coachNote ni en intent (sex es null).",
-    "Semana 1 de 3-4.5 h, no las 6 h disponibles."
+    "Semana 1 de 3-4.5 h, no las 6 h disponibles.",
+    "En coachNote y en reason las semanas se cuentan desde 1 (weekIndex 0 = \"semana 1\"): si el test va en weekIndex 1, el texto dice \"semana 2\" o el día."
   ],
   "context": {
     "startDate": "2026-10-12",
