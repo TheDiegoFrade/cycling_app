@@ -2805,6 +2805,11 @@ a {
 .kind-flexibility {
   --kind-color: var(--mobility);
 }
+.kind-running,
+.kind-crossfit,
+.kind-swimming {
+  --kind-color: var(--strength);
+}
 .kind-other {
   --kind-color: var(--text-soft);
 }
@@ -5635,5 +5640,25 @@ button.plan-month-done-label {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 14px;
+  margin-top: 8px;
+}
+
+/* Otras actividades del cuestionario */
+.ob-other-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.ob-other-row {
+  border: 1px solid var(--border-control);
+  border-radius: 12px;
+  padding: 12px;
+}
+.ob-chip-sm {
+  padding: 5px 10px;
+  font-size: 13px;
+}
+.ob-other-remove {
   margin-top: 8px;
 }

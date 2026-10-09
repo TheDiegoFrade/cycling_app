@@ -4,17 +4,22 @@
  * `undefined`/null = sesión de bici de la que no sabemos si fue en interior
  * o exterior (un .fit subido a mano, o una sesión de antes de esta columna):
  * se trata como bici en todo. */
-export type SessionKind = 'bike_indoor' | 'bike_outdoor' | 'strength' | 'mobility' | 'flexibility' | 'other';
+export type SessionKind = 'bike_indoor' | 'bike_outdoor' | 'strength' | 'mobility' | 'flexibility' | 'running' | 'crossfit' | 'swimming' | 'other';
 
 /** Los que se registran a mano en Registrar (screens/log-session.ts) y se
- * miden con sRPE en vez de TSS. */
-export type NonBikeKind = 'strength' | 'mobility' | 'flexibility' | 'other';
-export const NON_BIKE_KINDS: readonly NonBikeKind[] = ['strength', 'mobility', 'flexibility', 'other'];
+ * miden con sRPE en vez de TSS. Correr, crossfit y natación son las otras
+ * actividades que el atleta declara en el cuestionario (cuentan en su
+ * desgaste aunque no sean bici). */
+export type NonBikeKind = 'strength' | 'mobility' | 'flexibility' | 'running' | 'crossfit' | 'swimming' | 'other';
+export const NON_BIKE_KINDS: readonly NonBikeKind[] = ['strength', 'running', 'crossfit', 'swimming', 'mobility', 'flexibility', 'other'];
 
 export const NON_BIKE_KIND_LABELS: Record<NonBikeKind, string> = {
   strength: 'Fuerza',
   mobility: 'Movilidad',
   flexibility: 'Flexibilidad',
+  running: 'Correr',
+  crossfit: 'Crossfit',
+  swimming: 'Natación',
   other: 'Otro',
 };
 

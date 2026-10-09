@@ -152,7 +152,7 @@ function isoWeekLabel(mondayKey2) {
 }
 
 // src/core/session-kind.ts
-var NON_BIKE_KINDS = ["strength", "mobility", "flexibility", "other"];
+var NON_BIKE_KINDS = ["strength", "running", "crossfit", "swimming", "mobility", "flexibility", "other"];
 function isNonBikeKind(kind) {
   return kind !== null && kind !== void 0 && NON_BIKE_KINDS.includes(kind);
 }

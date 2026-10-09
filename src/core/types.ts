@@ -1,4 +1,5 @@
 import type { MetricId } from './metrics';
+import type { OtherActivity } from './other-activities';
 import type { PowerZone } from './zones';
 
 export type IntervalType = 'warmup' | 'steady' | 'interval' | 'recovery' | 'cooldown' | 'free';
@@ -137,6 +138,9 @@ export interface Profile {
   ridesOutside?: boolean;
   hasOutdoorPowerMeter?: boolean; // solo relevante si ridesOutside=true
   recentBestResult?: string;
+  /** Lo que hace además de la bici (ver core/other-activities.ts). [] =
+   * contestó que nada; undefined = todavía no contesta. */
+  otherActivities?: OtherActivity[];
   // `ftp`/`hr_max` arriba SIEMPRE tienen un número (el motor lo necesita para
   // zonas/ERG en vivo) — pero puede ser el default sin confirmar
   // (DEFAULT_PROFILE: ftp 200, hr_max 185) de alguien que nunca lo tocó.

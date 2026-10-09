@@ -52,7 +52,7 @@ interface HistoryRow {
 }
 
 /** Abreviatura para el cuadro de color que sustituye a la portada. */
-const KIND_SHORT: Record<NonBikeKind, string> = { strength: 'FZA', mobility: 'MOV', flexibility: 'FLX', other: 'OTRO' };
+const KIND_SHORT: Record<NonBikeKind, string> = { strength: 'FZA', mobility: 'MOV', flexibility: 'FLX', running: 'RUN', crossfit: 'CFT', swimming: 'NAT', other: 'OTRO' };
 
 /** Fila de una sesión que no es de bici — mismas columnas, duración de reloj. */
 function nonBikeRow(

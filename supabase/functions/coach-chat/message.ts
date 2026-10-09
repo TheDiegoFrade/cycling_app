@@ -43,11 +43,13 @@ export function buildUserMessage(mode: Mode, context: Record<string, unknown>): 
       'Modo: create_plan. Genera el esqueleto del plan y concreta las primeras semanas (máximo 3).',
       'Antes de decidir: revisa si el perfil se contradice, dimensiona la carga inicial con lo que el atleta ya hace y elige el arranque según haya o no FTP medido. Si `profile.ftp` es null, no propongas un FTP: hasta el test todo va por sensación y el test da su punto de partida.',
       'Si `goal` menciona una lesión, un dolor o un límite de tiempo, es una instrucción aunque venga en texto libre.',
+      'Si `profile.otherActivities` trae actividades (correr, gym, crossfit…), súmalas a la carga y acomoda la bici alrededor de ellas, sin agendarlas (sección "Otras actividades además de la bici").',
     ].join('\n'),
     weekly_eval: [
       'Modo: weekly_eval. Evalúa la semana recién terminada y decide la que sigue.',
       'Elige `decision` con el orden de casos de tu sección weekly_eval (gana el primero que aplique) y arma `nextWeekWorkouts` coherente con esa decisión.',
       'Si `athleteNote` menciona dolor, enfermedad o cansancio, pesa más que el TSS logrado. Si menciona un test o pregunta por su FTP, `reasoning` le dice si lo cambia (y a cuánto) o lo mantiene.',
+      'Lee también lo que hizo fuera de la bici (`weekJustFinished.otherActivities`, `weekJustFinished.otherActivitiesNote` y `profile.otherActivities`): explica fatiga que la bici sola no explica.',
     ].join('\n'),
     publish_block:
       'Modo: publish_block. Concreta el siguiente bloque con base en cómo fue el anterior completo. Este modo no trae nombre, sexo ni tope de minutos: sin nombre, sin adjetivos con género y con tope de 90 min por sesión.',
