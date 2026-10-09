@@ -259,7 +259,7 @@ export function buildPlanEmail(d: PlanReportData): { subject: string; html: stri
   const testDate = d.nextTest ? testDateOf(d.weeks, d.nextTest) : null;
   const steps = [
     week1 ? `Esta semana: ${week1.workouts.length} ${week1.workouts.length === 1 ? 'sesión' : 'sesiones'}, ${hoursLabel(weekMinutes(week1))} en total.` : '',
-    d.nextTest ? `${TEST_LABELS[d.nextTest.type]}${testDate ? ` el ${shortDate(testDate)}` : ` en tu semana ${d.nextTest.weekNumber}`}: con ese resultado tus sesiones se ajustan a tu nivel real.` : '',
+    d.nextTest ? `${TEST_LABELS[d.nextTest.type]}${testDate ? ` el ${shortDate(testDate)}` : ` en tu semana ${d.nextTest.weekNumber}`}: con ese resultado pones tu FTP en tu perfil y tus sesiones se ajustan a tu nivel real.` : '',
     'Cada semana me cuentas cómo te fue y armo la siguiente con eso.',
   ].filter(Boolean);
   const p = `margin:0 0 12px;font-size:16px;line-height:1.55;color:#3c424d;${FONT}`;
