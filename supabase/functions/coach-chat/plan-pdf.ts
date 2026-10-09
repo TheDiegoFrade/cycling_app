@@ -3,7 +3,7 @@
 // las semanas concretas y el test. A4, Helvetica (WinAnsi: acentos y ñ sí,
 // emojis y flechas no — ver `clean`).
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from 'npm:pdf-lib@1.17.1';
-import { TEST_LABELS, dayList, ergLabel, hoursLabel, longDate, shortDate, testDateOf, type PlanReportData } from './report-email.ts';
+import { TEST_LABELS, dayList, ergLabel, glossaryFor, greeting, hoursLabel, longDate, shortDate, testDateOf, type PlanReportData } from './report-email.ts';
 
 const W = 595.28;
 const H = 841.89;
@@ -124,7 +124,13 @@ export async function buildPlanPdf(d: PlanReportData): Promise<Uint8Array> {
     const name = w.clean(d.athleteName);
     w.page.drawText(name, { x: W - M - regular.widthOfTextAtSize(name, 10), y: H - 46, size: 10, font: regular, color: rgb(0.85, 0.87, 0.9) });
   }
-  w.y = H - bandH - 14;
+  w.y = H - bandH - 8;
+
+  // ── Bienvenida: lo primero que lee ───────────────────────────────────────
+  w.y -= 26;
+  w.page.drawText(w.clean(greeting(d.athleteName)), { x: M, y: w.y, size: 18, font: bold, color: INK });
+  w.y -= 6;
+  w.text(d.welcome, { size: 12, leading: 18, after: 4 });
 
   // Ficha: arranque, días, horas, meta
   const facts: [string, string][] = [
@@ -133,7 +139,7 @@ export async function buildPlanPdf(d: PlanReportData): Promise<Uint8Array> {
     ['Disponibilidad', `hasta ${d.hoursPerWeek} h por semana`],
   ];
   const colW = (W - 2 * M) / facts.length;
-  w.y -= 22;
+  w.y -= 36;
   facts.forEach(([label, value], i) => {
     w.page.drawText(label.toUpperCase(), { x: M + i * colW, y: w.y + 12, size: 7.5, font: regular, color: MUTED });
     const lines = w.wrap(value, bold, 10.5, colW - 10).slice(0, 2);
@@ -143,12 +149,6 @@ export async function buildPlanPdf(d: PlanReportData): Promise<Uint8Array> {
   if (d.goal) {
     w.text(`Tu meta: ${d.goal}`, { size: 10, color: MUTED, after: 2 });
   }
-
-  // ── Mensaje del coach ────────────────────────────────────────────────────
-  w.heading('Mensaje de tu coach');
-  const noteTop = w.y;
-  w.text(d.coachNote, { x: M + 14, size: 11, leading: 16 });
-  if (w.y < noteTop) w.page.drawRectangle({ x: M, y: w.y, width: 3, height: Math.min(noteTop - w.y, noteTop - M), color: BLUE });
 
   // ── Por qué este plan ────────────────────────────────────────────────────
   if (d.why.length) {
@@ -181,7 +181,7 @@ export async function buildPlanPdf(d: PlanReportData): Promise<Uint8Array> {
       x += bw;
     });
     w.y -= 8;
-    w.text(`${total} semanas en ${d.blocks.length} ${d.blocks.length === 1 ? 'bloque' : 'bloques'}. Aquí está el primero completo; los demás se arman con cómo respondas.`, {
+    w.text(`Tu plan completo dura ${total} semanas, en ${d.blocks.length} ${d.blocks.length === 1 ? 'etapa' : 'etapas'}. Te dejo listas las primeras semanas; las siguientes las armo con cómo te vaya.`, {
       size: 9,
       color: MUTED,
       after: 4,
@@ -224,7 +224,19 @@ export async function buildPlanPdf(d: PlanReportData): Promise<Uint8Array> {
     const date = testDateOf(d.weeks, d.nextTest);
     w.text(`${TEST_LABELS[d.nextTest.type]} · semana ${d.nextTest.weekNumber}${date ? ` (${shortDate(date)})` : ''}`, { size: 11, font: bold, color: INK, leading: 16 });
     w.text(d.nextTest.reason, { after: 2 });
-    w.text('El número que salga es tu FTP: ponlo en tu perfil y desde ahí las zonas van en watts.', { size: 9.5, color: MUTED });
+    w.text('El resultado es tu FTP. Cuando lo tengas, lo guardas en tu perfil y desde ese día tus sesiones se ajustan a tu nivel real.', { size: 9.5, color: MUTED });
+  }
+
+  // ── Glosario: solo lo que aparece en su plan ─────────────────────────────
+  const glossary = glossaryFor(d);
+  if (glossary.length) {
+    w.heading('Palabras que vas a ver');
+    for (const g of glossary) {
+      w.ensure(30);
+      w.y -= 4;
+      w.text(g.term, { size: 10.5, font: bold, color: INK, leading: 15 });
+      w.text(g.meaning, { size: 10 });
+    }
   }
 
   // ── Cierre ───────────────────────────────────────────────────────────────
@@ -235,7 +247,7 @@ export async function buildPlanPdf(d: PlanReportData): Promise<Uint8Array> {
   w.page.drawRectangle({ x: M, y: w.y - boxH, width: W - 2 * M, height: boxH, color: INK });
   w.page.drawText('Nos vemos en el camino', { x: M + 16, y: w.y - 24, size: 13, font: bold, color: rgb(1, 1, 1) });
   closingLines.forEach((line, i) => w.page.drawText(line, { x: M + 16, y: w.y - 44 - i * 16, size: 11, font: regular, color: rgb(0.88, 0.9, 0.93) }));
-  w.page.drawText('- Tu coach Torq', { x: M + 16, y: w.y - boxH + 14, size: 9.5, font: regular, color: rgb(0.7, 0.73, 0.78) });
+  w.page.drawText('Tu coach en Torq', { x: M + 16, y: w.y - boxH + 14, size: 9.5, font: regular, color: rgb(0.7, 0.73, 0.78) });
   w.y -= boxH;
 
   return await doc.save();

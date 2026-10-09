@@ -56,6 +56,7 @@ export async function sendCoachEmail(i: CoachEmailInput): Promise<void> {
       days: availability.days,
       hoursPerWeek: availability.hoursPerWeek,
       coachNote: i.planned.coachNote,
+      welcome: i.planned.report?.welcome || i.planned.coachNote,
       why: i.planned.report?.why ?? [],
       closing: i.planned.report?.closing ?? '',
       blocks: i.planned.blocks,

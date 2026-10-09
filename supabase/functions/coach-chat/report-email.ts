@@ -32,6 +32,7 @@ export interface PlanReportData {
   days: string[]; // mon, tue…
   hoursPerWeek: number;
   coachNote: string;
+  welcome: string; // saludo del coach (report.welcome)
   why: { title: string; body: string }[];
   closing: string;
   blocks: { name: string; weeks: number; focus: string; targetHoursPerWeek: number }[];
@@ -94,7 +95,7 @@ export function dayList(days: string[]): string {
 
 export function ergLabel(w: Pick<ReportWorkout, 'erg' | 'isTest'>): string {
   if (w.isTest) return 'Test';
-  return w.erg === 'on' ? 'ERG' : w.erg === 'mixed' ? 'Mixto' : 'Sensación';
+  return w.erg === 'on' ? 'ERG' : w.erg === 'mixed' ? 'Mixto' : 'Por sensación';
 }
 
 function weekMinutes(w: ReportWeek): number {
@@ -175,55 +176,110 @@ function compactText(lines: string[]): string {
   return lines.filter((line, i, all) => !(line === '' && all[i - 1] === '')).join('\n').trim();
 }
 
-/** Correo que acompaña al PDF del plan: corto, el detalle va en el PDF. */
+/** "Hola, Alex" o "Hola" */
+export function greeting(name: string | null): string {
+  return name?.trim() ? `Hola, ${name.trim()}` : 'Hola';
+}
+
+/** Términos que el atleta va a leer en su plan, explicados en una línea. */
+const GLOSSARY: { term: string; match: RegExp; meaning: string }[] = [
+  { term: 'RPE', match: /\bRPE\b/, meaning: 'Qué tan duro se siente, del 1 al 10. Un RPE 3-4 es un esfuerzo en el que puedes platicar.' },
+  { term: 'ERG', match: /\bERG\b/, meaning: 'Modo del rodillo que fija la potencia por ti: tú solo mantienes el pedaleo.' },
+  { term: 'FTP', match: /\bFTP\b/, meaning: 'La potencia que puedes sostener cerca de una hora. De ahí salen todas tus zonas.' },
+  { term: 'Rampa', match: /\brampa\b/i, meaning: 'Test corto en el que la potencia sube poco a poco hasta que ya no puedes sostenerla. Te da tu FTP.' },
+  { term: 'Cadencia', match: /\bcadencia\b|\brpm\b/i, meaning: 'Las vueltas que dan tus pedales por minuto (rpm).' },
+  { term: 'Sweet spot', match: /sweet spot/i, meaning: 'Un esfuerzo firme pero sostenible, un poco por debajo de tu FTP.' },
+  { term: 'Umbral', match: /\bumbral\b/i, meaning: 'Un esfuerzo duro y sostenido, cerca de tu FTP.' },
+  { term: 'Deriva', match: /\bderiva\b/i, meaning: 'Cuánto sube tu pulso con el mismo esfuerzo al pasar el tiempo. Poca deriva es buena señal de fondo.' },
+];
+
+/** Solo los términos que de verdad aparecen en lo que va a leer. */
+export function glossaryFor(d: PlanReportData): { term: string; meaning: string }[] {
+  const all = [
+    d.welcome,
+    d.closing,
+    ...d.why.flatMap((w) => [w.title, w.body]),
+    ...d.blocks.map((b) => b.focus),
+    ...d.weeks.flatMap((w) => w.workouts.flatMap((x) => [x.name, x.intent, ergLabel(x)])),
+    d.nextTest?.reason ?? '',
+  ].join('\n');
+  return GLOSSARY.filter((g) => g.match.test(all)).map(({ term, meaning }) => ({ term, meaning }));
+}
+
+/** La primera sesión del plan (la que viene). */
+export function firstSession(d: PlanReportData): ReportWorkout | null {
+  return d.weeks[0]?.workouts[0] ?? null;
+}
+
+/** Correo de bienvenida del coach: claro y corto; el detalle va en el PDF. */
 export function buildPlanEmail(d: PlanReportData): { subject: string; html: string; text: string } {
-  const subject = `Tu plan está listo: ${d.planName}`;
-  const first = d.weeks[0];
-  const testLine = d.nextTest
-    ? `${TEST_LABELS[d.nextTest.type]} en tu semana ${d.nextTest.weekNumber}${testDateOf(d.weeks, d.nextTest) ? ` (${shortDate(testDateOf(d.weeks, d.nextTest)!)})` : ''}.`
-    : '';
+  const name = d.athleteName?.trim() || null;
+  const subject = name ? `${name}, te doy la bienvenida: así arrancamos` : 'Te doy la bienvenida: así arrancamos';
+  const first = firstSession(d);
+  const week1 = d.weeks[0];
+  const testDate = d.nextTest ? testDateOf(d.weeks, d.nextTest) : null;
+  const steps = [
+    week1 ? `Esta semana: ${week1.workouts.length} ${week1.workouts.length === 1 ? 'sesión' : 'sesiones'}, ${hoursLabel(weekMinutes(week1))} en total.` : '',
+    d.nextTest ? `${TEST_LABELS[d.nextTest.type]}${testDate ? ` el ${shortDate(testDate)}` : ` en tu semana ${d.nextTest.weekNumber}`}: con ese resultado tus sesiones se ajustan a tu nivel real.` : '',
+    'Cada semana me cuentas cómo te fue y armo la siguiente con eso.',
+  ].filter(Boolean);
+  const p = `margin:0 0 12px;font-size:16px;line-height:1.55;color:#3c424d;${FONT}`;
   const body = `
-    <tr><td style="padding:22px 32px 0;${FONT}">
-      <div style="font-size:28px;font-weight:700;color:#0f1115;line-height:1.15;">${escapeHtml(d.planName)}</div>
-      <div style="margin-top:8px;font-size:13px;color:#6b7380;">Arranca el ${escapeHtml(longDate(d.startDate))} · ${escapeHtml(dayList(d.days))} · hasta ${d.hoursPerWeek} h por semana</div>
+    <tr><td style="padding:26px 32px 0;${FONT}">
+      <div style="font-size:26px;font-weight:700;color:#0f1115;line-height:1.2;margin-bottom:14px;">${escapeHtml(greeting(name))} 👋</div>
+      ${paragraphs(d.welcome, p)}
     </td></tr>
-    <tr><td style="padding:16px 32px 0;${FONT}">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-        <td width="4" style="background:#2f6fe0;border-radius:2px;"></td>
-        <td style="padding-left:16px;${FONT}">
-          ${paragraphs(d.coachNote, `margin:0 0 10px;font-size:15px;line-height:1.5;color:#3c424d;${FONT}`)}
-        </td>
-      </tr></table>
-    </td></tr>
-    ${first ? section(`Tu primera semana · ${hoursLabel(weekMinutes(first))}`, weekTable(first)) : ''}
-    ${testLine ? section('Cuándo medimos', `<p style="margin:0;font-size:14px;line-height:1.5;color:#3c424d;${FONT}"><strong>${escapeHtml(testLine)}</strong> ${escapeHtml(d.nextTest!.reason)}</p>`) : ''}
-    <tr><td style="padding:22px 32px 0;${FONT}">
-      <div style="padding:14px 16px;background:#f3f6fc;border-radius:6px;font-size:14px;line-height:1.5;color:#3c424d;">
-        <strong style="color:#0f1115;">En el PDF adjunto</strong> te explico por qué armé el plan así, el camino completo por bloques y tus primeras semanas sesión por sesión.
+    ${
+      first
+        ? `<tr><td style="padding:10px 32px 0;${FONT}">
+      <div style="padding:16px 18px;background:#f3f6fc;border-left:4px solid #2f6fe0;border-radius:6px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#2f6fe0;">Tu primera sesión · ${escapeHtml(shortDate(first.date))}</div>
+        <div style="margin-top:4px;font-size:18px;font-weight:700;color:#0f1115;">${escapeHtml(first.name)} · ${first.minutes} min</div>
+        <div style="margin-top:6px;font-size:14px;line-height:1.5;color:#3c424d;">${escapeHtml(first.intent)}</div>
       </div>
+    </td></tr>`
+        : ''
+    }
+    ${section(
+      'Cómo vamos a trabajar',
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${steps
+        .map(
+          (t, i) => `<tr><td width="30" valign="top" style="padding:0 0 10px;font-size:20px;font-weight:700;color:#2f6fe0;line-height:1.1;${FONT}">${i + 1}</td>
+          <td valign="top" style="padding:0 0 10px;font-size:15px;line-height:1.5;color:#3c424d;${FONT}">${escapeHtml(t)}</td></tr>`,
+        )
+        .join('')}</table>`,
+    )}
+    <tr><td style="padding:18px 32px 0;${FONT}">
+      ${paragraphs(d.closing, p)}
+      <div style="font-size:15px;color:#0f1115;font-weight:600;">Tu coach en Torq</div>
+    </td></tr>
+    <tr><td style="padding:18px 32px 0;${FONT}">
+      <div style="font-size:13px;line-height:1.5;color:#6b7380;">📎 En el PDF adjunto te cuento por qué armé tu plan así y te dejo tus primeras semanas, sesión por sesión.</div>
     </td></tr>
     ${button(d.appUrl, 'Abrir mi plan', '')}`;
   const html = shell({
     subject,
-    kicker: 'Tu plan de entrenamiento',
+    kicker: 'Tu coach',
     athleteName: d.athleteName,
     testIntendedFor: d.testIntendedFor,
     body,
-    footer: 'Recibes este correo porque creaste un plan con el coach de Torq. Las actividades de Strava no se usan en el coach.',
+    footer: 'Recibes este correo porque creaste tu plan con el coach de Torq. Las actividades de Strava no se usan en el coach.',
   });
   const text = compactText([
-    `TORQ · ${d.planName}`,
     d.testIntendedFor ? `(Modo de prueba: este correo iba para ${d.testIntendedFor})` : '',
-    `Arranca el ${longDate(d.startDate)} · ${dayList(d.days)} · hasta ${d.hoursPerWeek} h por semana`,
+    `${greeting(name)}:`,
     '',
-    d.coachNote.trim(),
+    d.welcome.trim(),
     '',
-    first ? `Tu primera semana (${hoursLabel(weekMinutes(first))})` : '',
-    ...(first?.workouts ?? []).map((w) => `- ${shortDate(w.date)}: ${w.name} · ${w.minutes} min · ${ergLabel(w)}`),
+    first ? `Tu primera sesión (${shortDate(first.date)}): ${first.name}, ${first.minutes} min. ${first.intent}` : '',
     '',
-    testLine ? `Cuándo medimos: ${testLine} ${d.nextTest!.reason}` : '',
+    'Cómo vamos a trabajar:',
+    ...steps.map((t, i) => `${i + 1}. ${t}`),
     '',
-    'En el PDF adjunto te explico por qué armé el plan así, el camino por bloques y tus primeras semanas.',
+    d.closing.trim(),
+    'Tu coach en Torq',
+    '',
+    'En el PDF adjunto te cuento por qué armé tu plan así y te dejo tus primeras semanas.',
     `Abrir mi plan: ${d.appUrl}`,
   ]);
   return { subject, html, text };

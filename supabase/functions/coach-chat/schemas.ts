@@ -226,8 +226,9 @@ export const CreatePlanOutputSchema = z.object({
   // test); null si no hay cambio. La app ofrece un botón, el atleta decide.
   suggestedFtp: z.number().positive().nullable(),
   nextTest: NextTestSchema,
-  // Carta del plan: le llega al atleta en PDF por correo (ver report-email.ts).
+  // Correo de bienvenida del plan, con PDF (ver report-email.ts y plan-pdf.ts).
   report: z.object({
+    welcome: z.string(),
     why: z.array(z.object({ title: z.string(), body: z.string() })).min(1),
     closing: z.string(),
   }),

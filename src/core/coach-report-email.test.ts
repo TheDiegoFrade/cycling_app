@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPlanEmail, buildWeeklyEmail, dayList, shortDate, testDateOf } from '../../supabase/functions/coach-chat/report-email';
+import { buildPlanEmail, buildWeeklyEmail, dayList, glossaryFor, shortDate, testDateOf } from '../../supabase/functions/coach-chat/report-email';
 
 const week = (weekNumber: number) => ({
   weekNumber,
@@ -17,6 +17,7 @@ const plan = {
   days: ['mon', 'wed', 'fri', 'sat'],
   hoursPerWeek: 5,
   coachNote: 'Hasta el test vas por sensación.',
+  welcome: 'Qué gusto que empecemos, Alex.',
   why: [{ title: 'Arrancamos por sensación', body: 'No hay FTP medido.' }],
   closing: 'Nos vemos al cerrar el bloque.',
   blocks: [{ name: 'Base', weeks: 4, focus: 'Base y test', targetHoursPerWeek: 4 }],
@@ -32,14 +33,17 @@ describe('correos del coach', () => {
     expect(testDateOf([week(2)], { weekNumber: 2, type: 'ramp', reason: '' })).toBe('2026-10-14');
   });
 
-  it('el correo del plan lleva la nota, la primera semana y el test con su fecha', () => {
+  it('el correo de bienvenida: saludo, primera sesión, cómo vamos a trabajar y test con su fecha', () => {
     const e = buildPlanEmail(plan);
-    expect(e.subject).toBe('Tu plan está listo: Fondo MTB');
-    expect(e.html).toContain('Hasta el test vas por sensación.');
-    expect(e.html).toContain('Test de rampa en tu semana 2 (mié 14 oct).');
+    expect(e.subject).toBe('Alex, te doy la bienvenida: así arrancamos');
+    expect(buildPlanEmail({ ...plan, athleteName: null }).subject).toBe('Te doy la bienvenida: así arrancamos');
+    expect(e.html).toContain('Hola, Alex');
+    expect(e.html).toContain('Qué gusto que empecemos, Alex.');
+    expect(e.html).toContain('Tu primera sesión · lun 12 oct');
+    expect(e.html).toContain('Test de rampa el mié 14 oct');
     expect(e.html).toContain('href="https://app.test"');
     expect(e.html).not.toContain('Modo de prueba');
-    expect(e.text).toContain('- lun 12 oct: Rodada suave · 60 min · Sensación');
+    expect(e.text).toContain('Tu primera sesión (lun 12 oct): Rodada suave, 60 min.');
     expect(buildPlanEmail({ ...plan, testIntendedFor: 'alex@test.com' }).html).toContain('Modo de prueba');
   });
 
@@ -64,7 +68,11 @@ describe('correos del coach', () => {
     expect(buildWeeklyEmail({ ...base, nextTest: { weekNumber: 3, type: 'ramp', reason: '' } }).text).toContain('Test de rampa esta semana: mié 14 oct.');
   });
 
+  it('glosario: solo los términos que aparecen en el plan', () => {
+    expect(glossaryFor(plan).map((g) => g.term)).toEqual(['RPE', 'ERG', 'FTP', 'Rampa', 'Cadencia']);
+  });
+
   it('escapa el HTML de lo que escribe el modelo', () => {
-    expect(buildPlanEmail({ ...plan, coachNote: '<script>x</script>' }).html).not.toContain('<script>x');
+    expect(buildPlanEmail({ ...plan, welcome: '<script>x</script>' }).html).not.toContain('<script>x');
   });
 });
