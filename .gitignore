@@ -28,3 +28,7 @@ supabase/.temp
 
 # coach-lab: texto generado para pegar en claude.ai (npm run coach:build)
 coach-lab/out/
+
+# simulaciones del coach: resultados y secciones del reporte (scripts/coach-sim/README.md)
+scripts/coach-sim/out/
+scripts/coach-sim/report/
