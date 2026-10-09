@@ -110,6 +110,22 @@ function computePmc(entries) {
   return points;
 }
 
+// src/core/day-key.ts
+function pad(n) {
+  return String(n).padStart(2, "0");
+}
+function localDateKey(d, timeZone) {
+  if (timeZone) {
+    return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+  }
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function dayKeyOf(iso, timeZone) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+  const t = Date.parse(iso);
+  return Number.isNaN(t) ? iso.slice(0, 10) : localDateKey(new Date(t), timeZone);
+}
+
 // src/engine/streaks.ts
 function mondayOfWeek(dateKey) {
   const [y, m, d] = dateKey.split("-").map(Number);
@@ -120,7 +136,7 @@ function mondayOfWeek(dateKey) {
 }
 
 // src/core/plan-week.ts
-function pad(n) {
+function pad2(n) {
   return String(n).padStart(2, "0");
 }
 function parseKey(key) {
@@ -132,7 +148,7 @@ function isoWeekLabel(mondayKey) {
   const thursday = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 3);
   const yearStart = new Date(thursday.getFullYear(), 0, 1);
   const week = Math.floor((thursday.getTime() - yearStart.getTime()) / (7 * 864e5)) + 1;
-  return `${thursday.getFullYear()}-W${pad(week)}`;
+  return `${thursday.getFullYear()}-W${pad2(week)}`;
 }
 
 // src/core/session-kind.ts
@@ -192,7 +208,7 @@ function weekOfLabel(mondayKey) {
   return `semana del ${Number(mondayKey.slice(8, 10))} ${MONTHS_ES[Number(mondayKey.slice(5, 7)) - 1].slice(0, 3)}`;
 }
 function dateOf(s) {
-  return s.startedAt.slice(0, 10);
+  return s.dayKey ?? dayKeyOf(s.startedAt);
 }
 function durationS(s) {
   return Math.max(0, (Date.parse(s.finishedAt) - Date.parse(s.startedAt)) / 1e3);
@@ -286,7 +302,7 @@ function buildMonthlyReport(input) {
   const prevMonth = shiftMonth(monthKey, -1);
   const prevStart = monthStart(prevMonth);
   const prevEnd = inProgress ? addDays(prevStart, Number(todayKey.slice(8, 10)) - 1) : monthEnd(prevMonth);
-  const sessions = input.sessions.filter((s) => s.source !== "strava");
+  const sessions = input.sessions.filter((s) => s.source !== "strava").map((s) => ({ ...s, dayKey: dayKeyOf(s.startedAt, input.timeZone) }));
   const bikeAll = sessions.filter(isBikeSession);
   const trainedBike = bikeAll.filter(wasTrained);
   const nonBikeAll = sessions.filter((s) => !isBikeSession(s));
@@ -478,6 +494,7 @@ export {
   buildMonthlyReport,
   defaultReviewMonth,
   emailKpis,
+  localDateKey,
   mondayOfWeek,
   monthEnd,
   monthStart,

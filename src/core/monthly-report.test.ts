@@ -193,3 +193,14 @@ describe('contexto para la IA', () => {
     expect(JSON.stringify(ctx)).not.toContain('Secreta');
   });
 });
+
+describe('día de cada sesión en la zona del atleta', () => {
+  it('una rodada de la noche del 30 de septiembre en CDMX cuenta en septiembre, no en octubre', () => {
+    // 8 pm del 30 de septiembre en CDMX = 02:00 del 1 de octubre en UTC
+    const evening = { ...ride('2026-09-30', { tss: 77 }), startedAt: '2026-10-01T02:00:00.000Z', finishedAt: '2026-10-01T03:00:00.000Z' };
+    const sep = buildMonthlyReport({ monthKey: '2026-09', todayKey: '2026-10-09', sessions: [evening], workouts: [], routines: [], ftp: 250, timeZone: 'America/Mexico_City' });
+    const oct = buildMonthlyReport({ monthKey: '2026-10', todayKey: '2026-10-09', sessions: [evening], workouts: [], routines: [], ftp: 250, timeZone: 'America/Mexico_City' });
+    expect(sep.kpis.tss).toBe(77);
+    expect(oct.kpis.tss).toBe(0);
+  });
+});

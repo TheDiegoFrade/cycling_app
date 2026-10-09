@@ -5,6 +5,7 @@
 // prueba que el atleta aguanta esa potencia, y un pulso que no deja de subir
 // dice que iba por encima de su umbral. Lógica pura, sin I/O.
 import type { Interval, Sample } from './types';
+import { dayKeyOf } from './day-key';
 
 export interface LastTest {
   date: string; // YYYY-MM-DD
@@ -108,7 +109,7 @@ export function readTest(
   const planned = intervals[block.index].duration_s;
 
   return {
-    date: session.startedAt.slice(0, 10),
+    date: dayKeyOf(session.startedAt),
     type: block.type,
     ergFixed,
     blockMinutes: r1(s.length / 60),

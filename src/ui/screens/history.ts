@@ -19,6 +19,7 @@ import { markAchievementsSeen } from '../achievement-toast';
 import { bindChartHover, evenIndexAt, tipRow, tipTitle } from '../chart-hover';
 import { renderAnalysisPanel } from '../analysis-panel';
 import { stateSessionFromCloud, stateSessionFromLocal } from '../athlete-state-data';
+import { dayKeyOf } from '../../core/day-key';
 
 const CHART_WEEKS = 6;
 
@@ -299,7 +300,7 @@ export function localPowerBests(localSessions: SessionRecord[]): Record<'best1mi
   ];
   localSessions.forEach((s) => {
     const a = analyticsOf(s);
-    const dateKey = s.startedAt.slice(0, 10);
+    const dateKey = dayKeyOf(s.startedAt);
     windows.forEach(([key, windowS]) => {
       const watts = a.powerCurve.find((p) => p.windowS === windowS)?.watts ?? null;
       if (watts === null) return;
@@ -398,7 +399,7 @@ export function renderForma(container: HTMLElement): () => void {
 
       const sorted = [...rows].sort((a, b) => b.startedAt.localeCompare(a.startedAt));
 
-      const realEntries = sorted.map((r) => ({ dateKey: r.startedAt.slice(0, 10), tss: r.tss }));
+      const realEntries = sorted.map((r) => ({ dateKey: dayKeyOf(r.startedAt), tss: r.tss }));
       const futureEntries = futureTssEntries(appState.workouts, appState.profile.ftp, todayKey);
       const pmcFull = computePmc([...realEntries, ...futureEntries]);
       const todayIndexInFull = pmcFull.findIndex((p) => p.dateKey === todayKey);
@@ -410,7 +411,7 @@ export function renderForma(container: HTMLElement): () => void {
 
       const efPoints = [...sorted]
         .reverse()
-        .map((r) => ({ dateKey: r.startedAt.slice(0, 10), ef: r.ef }))
+        .map((r) => ({ dateKey: dayKeyOf(r.startedAt), ef: r.ef }))
         .filter((p): p is { dateKey: string; ef: number } => p.ef !== null);
 
       // tarjeta "hoy": qué entrenar según la forma actual, y si ya hay algo
@@ -429,7 +430,7 @@ export function renderForma(container: HTMLElement): () => void {
 
       // rachas, récords, logros y progreso cuentan cualquier sesión completada
       // — grabada en vivo, importada de Strava o subida a mano desde un .fit.
-      const streak = computeWeeklyStreak(sorted.map((r) => r.startedAt.slice(0, 10)), todayKey);
+      const streak = computeWeeklyStreak(sorted.map((r) => dayKeyOf(r.startedAt)), todayKey);
       const bestTssRow = sorted.reduce<HistoryRow | null>((best, r) => (!best || r.tss > best.tss ? r : best), null);
       const longestRow = sorted.reduce<HistoryRow | null>((best, r) => (!best || r.durationS > best.durationS ? r : best), null);
       const withEf = sorted.filter((r): r is HistoryRow & { ef: number } => r.ef !== null);
@@ -442,7 +443,7 @@ export function renderForma(container: HTMLElement): () => void {
       const ftpDeltaW = oldestFtpRow && oldestFtpRow.ftp !== appState.profile.ftp ? appState.profile.ftp - oldestFtpRow.ftp : null;
       const cadencePoints = [...sorted]
         .reverse()
-        .map((r) => ({ dateKey: r.startedAt.slice(0, 10), cadence: r.avgCadence }))
+        .map((r) => ({ dateKey: dayKeyOf(r.startedAt), cadence: r.avgCadence }))
         .filter((p): p is { dateKey: string; cadence: number } => p.cadence !== null);
       const cadenceTrend = cadenceTrendPct(cadencePoints, todayKey);
       const volumeTrend = computeWeeklyVolumeTrend(sorted, todayKey);
@@ -455,7 +456,7 @@ export function renderForma(container: HTMLElement): () => void {
       // hay suficiente historial". Mientras tanto, mostrar lo acumulado en
       // la semana en curso es más honesto que un cero plano.
       const thisWeekStartKey = mondayOfWeek(todayKey);
-      const hoursThisWeekSoFar = sorted.filter((r) => r.startedAt.slice(0, 10) >= thisWeekStartKey).reduce((sum, r) => sum + r.durationS, 0) / 3600;
+      const hoursThisWeekSoFar = sorted.filter((r) => dayKeyOf(r.startedAt) >= thisWeekStartKey).reduce((sum, r) => sum + r.durationS, 0) / 3600;
 
       const local = localPowerBests(localSessions);
       const best1min = bestOf(local.best1min, cloudPowerRecords?.best1min ?? null);

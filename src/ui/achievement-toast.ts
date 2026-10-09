@@ -8,6 +8,7 @@ import type { SessionRecord } from '../storage/session-store';
 import { localPowerBests, bestOf } from './screens/history';
 import { getPowerRecords } from '../sync/cloud-sync';
 import { appState } from './state';
+import { dayKeyOf } from '../core/day-key';
 
 /** Lo mínimo que necesita el toast de celebración para mostrarse — un
  * `Achievement` del catálogo fijo cumple esto de sobra (trae además el
@@ -170,7 +171,7 @@ export async function checkAndCelebrateAchievements(): Promise<void> {
     const allRows = [...localRows, ...cloudRows];
     const todayKey = todayKeyLocal();
     const streak = computeWeeklyStreak(
-      allRows.map((r) => r.startedAt.slice(0, 10)),
+      allRows.map((r) => dayKeyOf(r.startedAt)),
       todayKey,
     );
     const input = buildAchievementInput(allRows, streak, appState.profile.ftp);

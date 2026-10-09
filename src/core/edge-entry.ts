@@ -4,3 +4,4 @@
 export { addDays, buildMonthlyReport, defaultReviewMonth, monthEnd, monthStart, reviewAiContext, shiftMonth } from './monthly-report';
 export { emailKpis } from './monthly-report-email';
 export { mondayOfWeek } from '../engine/streaks';
+export { localDateKey } from './day-key';

@@ -12,7 +12,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Anthropic from 'npm:@anthropic-ai/sdk@0';
 import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
 import { appUrl, EMAIL_TEST_RECIPIENT, sendEmail } from '../_shared/mailer.ts';
-import { addDays, buildMonthlyReport, emailKpis, monthEnd, monthStart, mondayOfWeek, reviewAiContext, shiftMonth } from '../_shared/core.gen.js';
+import { addDays, buildMonthlyReport, emailKpis, localDateKey, monthEnd, monthStart, mondayOfWeek, reviewAiContext, shiftMonth } from '../_shared/core.gen.js';
 import { callCoach, readResponse } from '../coach-chat/coach-call.ts';
 import { SELF_MONTHLY_REVIEW_HEADER } from '../coach-chat/message.ts';
 import { COACH_SYSTEM_PROMPT } from '../coach-chat/prompt.ts';
@@ -22,6 +22,10 @@ import { callRow, logCalls } from '../coach-chat/usage-log.ts';
 import { buildReviewEmail } from '../send-review-email/email.ts';
 
 const COACH_NAME = 'Coach Torq';
+// El servidor corre en UTC: el día de cada sesión (y "hoy") se decide en la
+// zona de los atletas. Hoy todos están en México; si llegan de otras zonas,
+// esto pasa a ser un dato del perfil.
+const ATHLETE_TIME_ZONE = 'America/Mexico_City';
 const PMC_SEED_DAYS = 180; // igual que src/sync/monthly-reviews.ts
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 
@@ -47,8 +51,9 @@ async function loadReportInput(admin: Admin, userId: string, monthKey: string) {
       )
       .eq('user_id', userId)
       .neq('source', 'strava')
-      .gte('started_at', `${addDays(start, -PMC_SEED_DAYS)}T00:00:00Z`)
-      .lte('started_at', `${end}T23:59:59.999Z`)
+      // Un día de holgura: started_at está en UTC y el día se decide en la zona del atleta.
+      .gte('started_at', `${addDays(start, -PMC_SEED_DAYS - 1)}T00:00:00Z`)
+      .lte('started_at', `${addDays(end, 1)}T23:59:59.999Z`)
       .order('started_at', { ascending: true })
       .range(from, from + 999);
     if (error) throw new Error(`sesiones: ${error.message}`);
@@ -106,7 +111,7 @@ async function reportFor(admin: Admin, client: Anthropic, userId: string, monthK
   const p = (profile ?? {}) as Row;
   const ftp = typeof p.ftp === 'number' && p.ftp > 0 ? p.ftp : 0;
   const input = await loadReportInput(admin, userId, monthKey);
-  const report = buildMonthlyReport({ monthKey, todayKey, ...input, ftp });
+  const report = buildMonthlyReport({ monthKey, todayKey, ...input, ftp, timeZone: ATHLETE_TIME_ZONE });
   if (!report.hasData) return out('skipped', 'sin datos ese mes');
   if (dryRun) return out('skipped', `dry run: ${report.kpis.doneCount} sesiones, ${Math.round(report.kpis.tss)} TSS`);
 
@@ -114,7 +119,8 @@ async function reportFor(admin: Admin, client: Anthropic, userId: string, monthK
   // Cuándo empezó a entrenar con Torq: su primera sesión o el inicio de su
   // plan, lo que sea antes. Si cae a mitad de este mes, es su mes de arranque
   // y las semanas anteriores no cuentan como faltas.
-  const starts = [(firstSession as { started_at?: string } | null)?.started_at?.slice(0, 10), planRow?.data?.startDate].filter((d): d is string => !!d).sort();
+  const firstStarted = (firstSession as { started_at?: string } | null)?.started_at;
+  const starts = [firstStarted ? localDateKey(new Date(firstStarted), ATHLETE_TIME_ZONE) : undefined, planRow?.data?.startDate].filter((d): d is string => !!d).sort();
   const startedOn = starts[0] && starts[0] > monthStart(monthKey) ? starts[0] : null;
   const ctx = reviewAiContext(
     report,
@@ -199,7 +205,7 @@ Deno.serve(async (req) => {
   if (!secret || req.headers.get('x-cron-secret') !== secret) return json({ error: 'no autorizado' }, 401);
   try {
     const body = (await req.json().catch(() => ({}))) as { monthKey?: unknown; userIds?: unknown; dryRun?: unknown };
-    const todayKey = new Date().toISOString().slice(0, 10);
+    const todayKey = localDateKey(new Date(), ATHLETE_TIME_ZONE);
     // Por defecto, el mes que acaba de terminar.
     const monthKey = typeof body.monthKey === 'string' && MONTH.test(body.monthKey) ? body.monthKey : shiftMonth(todayKey.slice(0, 7), -1);
     const requested = Array.isArray(body.userIds) ? body.userIds.filter((u): u is string => typeof u === 'string') : null;

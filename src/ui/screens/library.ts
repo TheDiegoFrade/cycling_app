@@ -16,6 +16,7 @@ import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { wireDatePicker } from '../date-picker';
 import { notifyPlanChange, planChangeNotice } from '../coach-notice';
 import { openSessionDetail } from '../open-session';
+import { dayKeyOf } from '../../core/day-key';
 
 type LibraryTab = 'library' | 'activity';
 
@@ -208,7 +209,7 @@ export function renderLibrary(container: HTMLElement): () => void {
 
   function matchesActivityDate(r: HistoryRow): boolean {
     if (!dateFrom && !dateTo) return true;
-    const day = r.startedAt.slice(0, 10);
+    const day = dayKeyOf(r.startedAt);
     if (dateFrom && day < dateFrom) return false;
     if (dateTo && day > dateTo) return false;
     return true;

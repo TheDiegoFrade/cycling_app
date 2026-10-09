@@ -87,8 +87,10 @@ export async function fetchReportSessions(athleteId: string, fromKey: string, to
       )
       .eq('user_id', athleteId)
       .neq('source', 'strava')
-      .gte('started_at', `${fromKey}T00:00:00Z`)
-      .lte('started_at', `${toKey}T23:59:59.999Z`)
+      // Un día de holgura de cada lado: started_at está en UTC y el día de la
+      // sesión se decide en la zona del atleta (buildMonthlyReport filtra).
+      .gte('started_at', `${addDays(fromKey, -1)}T00:00:00Z`)
+      .lte('started_at', `${addDays(toKey, 1)}T23:59:59.999Z`)
       .order('started_at', { ascending: true })
       .range(from, from + PAGE - 1);
     if (error) throw error;

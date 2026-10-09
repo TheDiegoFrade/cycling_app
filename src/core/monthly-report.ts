@@ -12,12 +12,15 @@ import type { SessionCompletion, SessionKind } from './session-kind';
 import type { SessionSource } from './session-source';
 import type { Workout } from './types';
 import { estimateWorkout } from './workout-estimate';
+import { dayKeyOf } from './day-key';
 
 /** Una fila de `sessions` con lo que necesita el reporte. */
 export interface ReportSession {
   id: string;
   workoutName: string;
   startedAt: string;
+  /** Día de la sesión en la zona del atleta; lo pone buildMonthlyReport. */
+  dayKey?: string;
   finishedAt: string;
   tss: number | null;
   rpe: number | null;
@@ -138,6 +141,9 @@ export interface ReportInput {
   routines: readonly PlannedRoutine[];
   /** FTP para estimar el TSS planeado. */
   ftp: number;
+  /** Zona horaria del atleta para decidir el día de cada sesión. Sin ella,
+   * la del dispositivo (la app); el servidor corre en UTC y la pasa. */
+  timeZone?: string;
 }
 
 const PMC_WINDOW_DAYS = 60;
@@ -193,7 +199,7 @@ export function weekOfLabel(mondayKey: string): string {
 }
 
 function dateOf(s: ReportSession): string {
-  return s.startedAt.slice(0, 10);
+  return s.dayKey ?? dayKeyOf(s.startedAt);
 }
 function durationS(s: ReportSession): number {
   return Math.max(0, (Date.parse(s.finishedAt) - Date.parse(s.startedAt)) / 1000);
@@ -316,7 +322,7 @@ export function buildMonthlyReport(input: ReportInput): MonthlyReport {
   // El mes anterior se compara con el mismo número de días si este va en curso.
   const prevEnd = inProgress ? addDays(prevStart, Number(todayKey.slice(8, 10)) - 1) : monthEnd(prevMonth);
 
-  const sessions = input.sessions.filter((s) => s.source !== 'strava');
+  const sessions = input.sessions.filter((s) => s.source !== 'strava').map((s) => ({ ...s, dayKey: dayKeyOf(s.startedAt, input.timeZone) }));
   const bikeAll = sessions.filter(isBikeSession);
   const trainedBike = bikeAll.filter(wasTrained);
   const nonBikeAll = sessions.filter((s) => !isBikeSession(s));
