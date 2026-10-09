@@ -211,3 +211,18 @@ describe('reglas v3', () => {
   });
 });
 
+describe('reglas v3 (2)', () => {
+  it('sin meta de rendimiento no hay tests ni nextTest', () => {
+    const ctx = { startDate: '2026-10-12', goal: 'Quiero desestresarme, sin meta de rendimiento.', experienceLevel: 'returning_or_new_to_app', availability: { days: ['tue', 'thu'], maxSessionMinutes: 45, hoursPerWeek: 3 }, occupiedDates: [], profile: { ftp: null } };
+    const out = { blocks: [{ name: 'Base', weeks: 4, focus: 'x' }], firstBlockWeeks: [{ weekIndex: 0, workouts: [easy('tue', 40)] }], coachNote: 'Todo por sensación, variedad tipo clase y sin números que te presionen esta temporada.', nextTest: { weekIndex: 3, type: 'ramp', reason: 'x' } };
+    const g = guardOutput('create_plan', ctx, out);
+    expect(g.fails.some((f) => f.includes('no busca rendimiento'))).toBe(true);
+    expect(guardOutput('create_plan', ctx, { ...out, nextTest: null }).fails).toEqual([]);
+  });
+
+  it('siglas en el reasoning de la evaluación son falla', () => {
+    const g = guardOutput('weekly_eval', weeklyCtx(), weeklyOut([easy('tue')], { reasoning: 'Cumpliste 195 de 201 TSS y el TSB está en +13, así que mantenemos la semana sin cambios.' }));
+    expect(g.fails.some((f) => f.includes('sin siglas'))).toBe(true);
+  });
+});
+

@@ -165,6 +165,11 @@ const START_MAX_CADENCE_MIN = 70;
 const TIRED_RE = /cansad|agotad|reventad|muy pesad|se me hizo pesad|duermo mal|dormí mal|sin piernas|piernas cargad|fatiga/i;
 /** Jerga interna que no debe llegar al atleta (el reasoning va al correo). */
 const INTERNAL_RE = /weekIndex|\bnotesDue\b|en el contexto|no viene en el contexto|reglas del motor/i;
+/** Siglas que el atleta no tiene por qué conocer (el reasoning va al correo). */
+const ACRONYM_RE = /\b(TSS|TSB|CTL|ATL)\b/;
+/** Objetivo sin meta de rendimiento: nada de tests (prompt.ts, "Fitness, salud o desestrés"). */
+const NO_PERFORMANCE_RE = /sin meta de rendimiento|sin rendimiento|no busco rendimiento|desestr|solo por salud|por salud y ya/i;
+const noPerformance = (ctx: Any) => NO_PERFORMANCE_RE.test(`${ctx.goal ?? ''} ${ctx.plan?.goal ?? ''}`);
 
 function checkAbsorption(f: Finding[], workouts: Any[], why: string) {
   for (const w of workouts) {
@@ -331,7 +336,7 @@ function checkNoFtp(f: Finding[], ctx: Any, out: Any, weeks: { workouts: Any[] }
       if (top >= 95) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % FTP sin FTP medido` });
     }
   }
-  if (!out.nextTest) f.push({ level: 'fail', msg: 'sin FTP medido y nextTest es null: tienes que decir cuándo se mide' });
+  if (!out.nextTest && !noPerformance(ctx)) f.push({ level: 'fail', msg: 'sin FTP medido y nextTest es null: tienes que decir cuándo se mide' });
 }
 
 /** Sin FTP medido, nada que no sea test llega a 88 % antes del primer test
@@ -345,6 +350,12 @@ function checkNothingHardBeforeTest(f: Finding[], weeks: { workouts: Any[] }[]) 
       if (top >= 88) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % antes del test, sin FTP medido (todo por sensación hasta medirlo)` });
     }
   }
+}
+
+function checkNoPerformance(f: Finding[], ctx: Any, out: Any, weeks: { workouts: Any[] }[]) {
+  if (!noPerformance(ctx)) return;
+  if (out.nextTest) f.push({ level: 'fail', msg: 'el atleta dijo que no busca rendimiento: nextTest va null (sin tests salvo que los pida)' });
+  for (const [wi, week] of weeks.entries()) for (const w of week.workouts) if (isTest(w)) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: es un test y el atleta no busca rendimiento` });
 }
 
 function checkCreatePlan(ctx: Any, out: Any): Finding[] {
@@ -364,6 +375,7 @@ function checkCreatePlan(ctx: Any, out: Any): Finding[] {
       }
   }
   checkNoFtp(f, ctx, out, weeks);
+  checkNoPerformance(f, ctx, out, weeks);
   if (ftpUnknown(ctx)) {
     if (out.suggestedFtp != null) f.push({ level: 'warn', msg: `sin FTP medido y suggestedFtp = ${out.suggestedFtp}: el número sale del test, no se estima` });
     if (!weeks.flatMap((w) => w.workouts).some(isTest) && !novice) f.push({ level: 'warn', msg: 'sin FTP y no aparece ningún test en las semanas concretadas' });
@@ -414,6 +426,8 @@ function checkWeeklyEval(ctx: Any, out: Any): Finding[] {
   }
   checkPlannedWeeks(f, [{ workouts: out.nextWeekWorkouts }], weekOpts('weekly_eval', ctx));
   checkNoFtp(f, ctx, out, [{ workouts: out.nextWeekWorkouts }]);
+  checkNoPerformance(f, ctx, out, [{ workouts: out.nextWeekWorkouts }]);
+  if (ACRONYM_RE.test(out.reasoning)) f.push({ level: 'fail', msg: `reasoning usa «${out.reasoning.match(ACRONYM_RE)![0]}»: le llega al atleta por correo; dilo con palabras (carga de la semana, frescura) sin siglas` });
   const prev = ctx.plan?.nextTest;
   if (prev && out.nextTest && prev.weekIndex !== out.nextTest.weekIndex && !/test|rampa/i.test(out.reasoning)) {
     f.push({ level: 'warn', msg: `movió el test de S${prev.weekIndex + 1} a S${out.nextTest.weekIndex + 1} sin explicarlo en reasoning` });
