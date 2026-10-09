@@ -6,9 +6,11 @@
 import { cleanFindings, cleanGoals, defaultReviewMonth, isMonthKey, monthLabel, reviewAiContext, shiftMonth, suggestFindings, suggestVerdict } from '../../core/monthly-report';
 import type { MonthlyReport, ReviewFinding, ReviewVerdict } from '../../core/monthly-report';
 import { requestMonthlyReviewDraft } from '../../sync/coach-ai';
+import { saveNotesAsCoach } from '../../sync/athlete-notes';
 import { listCoachAthletes } from '../../sync/coach-athletes';
 import type { CoachAthlete } from '../../sync/coach-athletes';
 import { fetchCoachReview, loadMonthlyReport, saveReview, sendReviewEmail, setReviewStatus } from '../../sync/monthly-reviews';
+import { EMAIL_MAX_SENDS, emailButtonHtml, emailPanelHtml, newEmailApproval, wireEmailApproval, type EmailApproval } from '../email-approval';
 import type { MonthlyReview, ReviewContent } from '../../sync/monthly-reviews';
 import { athleteName, disciplineLabel, todayUtcKey, errorMessage } from '../coach-ui';
 import { emailKpis, renderReportSheet } from '../monthly-report-view';
@@ -37,8 +39,11 @@ export function renderCoachReview(container: HTMLElement): () => void {
   let status = '';
   let busy = false;
   let drafting = false;
-  let emailing = false;
+  // Envío por correo: el coach escribe un comentario; máximo 2 por revisión.
+  const mail: EmailApproval = newEmailApproval(EMAIL_MAX_SENDS);
   let aiMessage: string | null = null;
+  // Expediente que propuso la IA: el coach lo guarda (desde ahí es suyo) o lo descarta.
+  let aiNotes: string | null = null;
   let disposed = false;
 
   const stale = () => disposed || getRouteParam() !== routeParam;
@@ -85,6 +90,8 @@ export function renderCoachReview(container: HTMLElement): () => void {
 
   function render(): void {
     if (!report) return;
+    mail.remaining = EMAIL_MAX_SENDS - (review?.emailSends.length ?? 0);
+    mail.lastSentAt = review?.emailedAt ?? null;
     const canNext = shiftMonth(monthKey, 1) <= currentMonth;
     shell(`
       <header class="coach-head review-toolbar">
@@ -101,14 +108,25 @@ export function renderCoachReview(container: HTMLElement): () => void {
           <button type="button" id="rv-print">Descargar PDF</button>
           ${
             published()
-              ? `<button type="button" class="btn-light" id="rv-email"${emailing || busy ? ' disabled' : ''}>${emailing ? 'Enviando…' : review?.emailedAt ? 'Reenviar por correo' : 'Enviar por correo'}</button>
+              ? `${busy ? '<button type="button" disabled>Enviar por correo</button>' : emailButtonHtml('rv-email', mail)}
                  <button type="button" id="rv-unpublish"${busy ? ' disabled' : ''}>Regresar a borrador</button>`
               : `<button type="button" class="btn-light" id="rv-publish"${busy ? ' disabled' : ''}>Publicar al atleta</button>`
           }
         </div>
       </header>
+      ${published() ? emailPanelHtml('rv-email', mail, 'la revisión') : ''}
       ${report.inProgress ? '<p class="hint">Este mes sigue en curso: los números cambian hasta que termine.</p>' : ''}
       ${published() ? '<p class="hint">Para corregir algo, regrésala a borrador (tu atleta deja de verla) y vuelve a publicarla.</p>' : '<p class="hint">Los números los arma Torq con las sesiones del mes. Tú escribes el mensaje, revisas los hallazgos y dejas 2 o 3 objetivos. Se guarda solo.</p>'}
+      ${
+        aiNotes
+          ? `<section class="panel coach-card" aria-label="Expediente propuesto">
+        <h2 class="perfil-h2" style="margin:0">La IA propone actualizar el expediente</h2>
+        <span class="hint">Es lo que el coach de IA tiene en cuenta de este atleta en todos sus planes. Revísalo: lo que guardes queda como tuyo.</span>
+        <textarea id="rv-ai-notes" rows="6" maxlength="1200" style="width:100%;resize:vertical;font-family:inherit">${escapeHtml(aiNotes)}</textarea>
+        <div class="row-actions" style="margin:0"><button type="button" class="btn-light" id="rv-save-ai-notes">Guardar en el expediente</button><button type="button" id="rv-dismiss-ai-notes">Descartar</button></div>
+      </section>`
+          : ''
+      }
       <div class="report-desk">${sheet(!published())}</div>`);
     wire();
   }
@@ -161,6 +179,22 @@ export function renderCoachReview(container: HTMLElement): () => void {
   }
 
   function wire(): void {
+    container.querySelector('#rv-save-ai-notes')?.addEventListener('click', async () => {
+      const body = container.querySelector<HTMLTextAreaElement>('#rv-ai-notes')?.value.trim() ?? '';
+      if (!body || !appState.user) return;
+      try {
+        await saveNotesAsCoach(athleteId!, appState.user.id, body);
+        aiNotes = null;
+        status = 'Expediente guardado.';
+      } catch (err) {
+        status = `No se pudo guardar el expediente: ${errorMessage(err)}`;
+      }
+      if (!stale()) render();
+    });
+    container.querySelector('#rv-dismiss-ai-notes')?.addEventListener('click', () => {
+      aiNotes = null;
+      render();
+    });
     container.querySelector('#rv-prev')?.addEventListener('click', () => go(shiftMonth(monthKey, -1)));
     container.querySelector('#rv-next')?.addEventListener('click', () => go(shiftMonth(monthKey, 1)));
     container.querySelector('#rv-print')?.addEventListener('click', () => {
@@ -174,7 +208,7 @@ export function renderCoachReview(container: HTMLElement): () => void {
     });
     container.querySelector('#rv-publish')?.addEventListener('click', () => void publish());
     container.querySelector('#rv-ai')?.addEventListener('click', () => void draftWithAi());
-    container.querySelector('#rv-email')?.addEventListener('click', () => void emailReview());
+    wireEmailApproval(container, 'rv-email', mail, render, emailReview);
     container.querySelector('#rv-unpublish')?.addEventListener('click', () => void unpublish());
     wireSheet();
   }
@@ -271,6 +305,7 @@ export function renderCoachReview(container: HTMLElement): () => void {
       if (!content.coachMessage.trim()) content.coachMessage = message;
       else aiMessage = message && message !== content.coachMessage.trim() ? message : null;
       if (!cleanGoals(content.goals).length) content.goals = cleanGoals(draft.goals);
+      aiNotes = draft.notesUpdate?.trim() || null;
       drafting = false;
       changed(true);
       setStatus('Listo: revisa lo que propuso la IA antes de publicar.');
@@ -281,21 +316,21 @@ export function renderCoachReview(container: HTMLElement): () => void {
     }
   }
 
-  async function emailReview(): Promise<void> {
+  async function emailReview(comment: string): Promise<void> {
     if (!review || !report || !published()) return;
-    const again = review.emailedAt ? ' Ya se había enviado antes.' : '';
-    if (!window.confirm(`¿Enviar la revisión de ${monthLabel(monthKey)} por correo?${again}`)) return;
-    emailing = true;
-    setStatus('Enviando…');
+    mail.sending = true;
+    status = 'Enviando…';
     render();
     try {
-      const res = await sendReviewEmail(review.id, emailKpis(report));
-      review = { ...review, emailedAt: res.emailedAt };
+      const res = await sendReviewEmail(review.id, emailKpis(report), comment);
+      review = { ...review, emailedAt: res.emailedAt, emailSends: res.emailSends };
+      mail.open = false;
+      mail.comment = '';
       status = res.test ? `Enviado en modo de prueba a ${res.sentTo} (tu atleta no lo recibe todavía).` : 'Enviado por correo a tu atleta.';
     } catch (err) {
       status = `No se pudo enviar: ${errorMessage(err)}`;
     } finally {
-      emailing = false;
+      mail.sending = false;
       if (!stale()) render();
     }
   }

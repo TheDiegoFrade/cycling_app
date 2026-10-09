@@ -73,7 +73,8 @@ export function buildFactoryRules(profile: Profile, workout: Pick<Workout, 'inte
     {
       id: 'factory-erg-detached',
       when: { metric: 'power_pct_target', op: '<', value: ERG_DETACHED_THRESHOLD_PCT },
-      scope: 'all',
+      // en un bloque libre (autodosificado) no hay objetivo que perseguir
+      scope: { type: ['warmup', 'steady', 'interval', 'recovery', 'cooldown'] },
       tolerance_s: ERG_DETACHED_TOLERANCE_S,
       repeat_s: ERG_DETACHED_REPEAT_S,
       level: 'adjust',

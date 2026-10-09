@@ -1,0 +1,65 @@
+{
+  "id": "12-coach-week-cansancio-solo-en-instruccion",
+  "mode": "coach_week",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 4.7,
+  "cost": 0.000988,
+  "coldCost": 0.002658,
+  "usage": {
+    "input_tokens": 4428,
+    "output_tokens": 799,
+    "cache_read_input_tokens": 14529,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Descarga: el coach reporta una semana de mal sueño y agotamiento, y el TSB es −5 pero la instrucción manda absorber.",
+      "Carga de bici: Fondo 60 bloqueado (44 TSS) más sesiones suaves, cerca de 60 % del promedio reciente de ~302 TSS.",
+      "Se usó Recuperación 40 y Fondo 60 de la biblioteca; ningún intervalo por encima de 75 % y nada duro esta semana.",
+      "Sin lesiones registradas; FTP confirmado a 198 W, pero no se pide esfuerzo fuerte mientras duerma mal."
+    ],
+    "workouts": [
+      {
+        "name": "Recuperación 40",
+        "description": "Hoy toca rodar suave para soltar las piernas sin pedirle nada al cuerpo. Con ERG prendido a potencia baja, pedalea cómodo y aprovecha la cadencia libre. Debes poder hablar en frases completas durante toda la salida; si no puedes, baja más.",
+        "intervals": [],
+        "targetTSS": 20,
+        "dayOfWeek": "tue",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      },
+      {
+        "name": "Fondo 60",
+        "description": "Una salida de fondo tranquila para sumar horas sin desgastarte. Puedes dejar el ERG prendido o apagado según te sientas; la referencia es poder conversar sin esfuerzo. Si notas que el sueño pesa, acorta la parte central.",
+        "intervals": [],
+        "targetTSS": 42,
+        "dayOfWeek": "thu",
+        "fromLibraryId": "lib-fondo-60",
+        "libraryChange": null
+      },
+      {
+        "name": "Recuperación 40 de fin de semana",
+        "description": "Un rodaje corto y suave para cerrar la semana sin exigir nada. Pedalea con la cadencia que te sea cómoda y mantén la respiración tranquila. Si al terminar te sientes mejor, bien; si no, es la señal de descansar más.",
+        "intervals": [
+          {
+            "name": "Rodaje suave",
+            "type": "steady",
+            "duration_s": 2400,
+            "power_pct": 50
+          }
+        ],
+        "targetTSS": 20,
+        "dayOfWeek": "sun",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": "Sin cambios de plantilla; ajustada a 40 min sin intervalos de esfuerzo"
+      }
+    ]
+  },
+  "raw": "{\"rationale\":[\"Descarga: el coach reporta una semana de mal sueño y agotamiento, y el TSB es −5 pero la instrucción manda absorber.\",\"Carga de bici: Fondo 60 bloqueado (44 TSS) más sesiones suaves, cerca de 60 % del promedio reciente de ~302 TSS.\",\"Se usó Recuperación 40 y Fondo 60 de la biblioteca; ningún intervalo por encima de 75 % y nada duro esta semana.\",\"Sin lesiones registradas; FTP confirmado a 198 W, pero no se pide esfuerzo fuerte mientras duerma mal.\"],\"workouts\":[{\"name\":\"Recuperación 40\",\"description\":\"Hoy toca rodar suave para soltar las piernas sin pedirle nada al cuerpo. Con ERG prendido a potencia baja, pedalea cómodo y aprovecha la cadencia libre. Debes poder hablar en frases completas durante toda la salida; si no puedes, baja más.\",\"intervals\":[],\"targetTSS\":20,\"dayOfWeek\":\"tue\",\"fromLibraryId\":\"lib-recup-40\",\"libraryChange\":null},{\"name\":\"Fondo 60\",\"description\":\"Una salida de fondo tranquila para sumar horas sin desgastarte. Puedes dejar el ERG prendido o apagado según te sientas; la referencia es poder conversar sin esfuerzo. Si notas que el sueño pesa, acorta la parte central.\",\"intervals\":[],\"targetTSS\":42,\"dayOfWeek\":\"thu\",\"fromLibraryId\":\"lib-fondo-60\",\"libraryChange\":null},{\"name\":\"Recuperación 40 de fin de semana\",\"description\":\"Un rodaje corto y suave para cerrar la semana sin exigir nada. Pedalea con la cadencia que te sea cómoda y mantén la respiración tranquila. Si al terminar te sientes mejor, bien; si no, es la señal de descansar más.\",\"intervals\":[{\"name\":\"Rodaje suave\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":50}],\"targetTSS\":20,\"dayOfWeek\":\"sun\",\"fromLibraryId\":\"lib-recup-40\",\"libraryChange\":\"Sin cambios de plantilla; ajustada a 40 min sin intervalos de esfuerzo\"}]}"
+}

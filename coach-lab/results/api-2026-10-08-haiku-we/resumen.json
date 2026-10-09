@@ -1,0 +1,372 @@
+{
+  "prices": {
+    "claude-sonnet-5-5": {
+      "input": 2,
+      "output": 10,
+      "cacheRead": 0.2,
+      "cacheWrite": 2.5
+    },
+    "claude-haiku-5-5": {
+      "input": 0.1,
+      "output": 0.5,
+      "cacheRead": 0.01,
+      "cacheWrite": 0.125
+    },
+    "claude-haiku-4-5": {
+      "input": 1,
+      "output": 5,
+      "cacheRead": 0.1,
+      "cacheWrite": 1.25
+    }
+  },
+  "rows": [
+    {
+      "id": "07-eval-fatiga",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 17,
+      "cost": 0.002027,
+      "coldCost": 0.003798,
+      "usage": {
+        "input_tokens": 1802,
+        "output_tokens": 3385,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "08-eval-progreso",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 35.9,
+      "cost": 0.003438,
+      "coldCost": 0.005209,
+      "usage": {
+        "input_tokens": 1722,
+        "output_tokens": 6223,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "19-weekly-eval-cumplio-pero-agotado",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 18.1,
+      "cost": 0.002318,
+      "coldCost": 0.00409,
+      "usage": {
+        "input_tokens": 1959,
+        "output_tokens": 3936,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "20-weekly-eval-semana-floja-aislada",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 17.2,
+      "cost": 0.002072,
+      "coldCost": 0.003843,
+      "usage": {
+        "input_tokens": 1897,
+        "output_tokens": 3456,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "21-weekly-eval-tercera-semana-floja",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 27.9,
+      "cost": 0.003235,
+      "coldCost": 0.005007,
+      "usage": {
+        "input_tokens": 1924,
+        "output_tokens": 5778,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "22-weekly-eval-dolor-de-rodilla-en-nota",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 27.6,
+      "cost": 0.003227,
+      "coldCost": 0.004999,
+      "usage": {
+        "input_tokens": 1862,
+        "output_tokens": 5774,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "decision=reduce con TSB -6 y 97 % de cumplimiento"
+      ]
+    },
+    {
+      "id": "23-weekly-eval-ftp-alto-tras-test",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 25.6,
+      "cost": 0.002983,
+      "coldCost": 0.004755,
+      "usage": {
+        "input_tokens": 1903,
+        "output_tokens": 5277,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "24-weekly-eval-calibracion-provisional-bajo",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 23.6,
+      "cost": 0.002722,
+      "coldCost": 0.004494,
+      "usage": {
+        "input_tokens": 1638,
+        "output_tokens": 4809,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "25-weekly-eval-pide-subir-ftp-a-mitad-de-bloque",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 22.7,
+      "cost": 0.002722,
+      "coldCost": 0.004494,
+      "usage": {
+        "input_tokens": 1843,
+        "output_tokens": 4768,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "26-weekly-eval-test-en-erg-con-pulso-subiendo",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 17.7,
+      "cost": 0.002195,
+      "coldCost": 0.003967,
+      "usage": {
+        "input_tokens": 1663,
+        "output_tokens": 3750,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "decision=insert_recovery con TSB -11 y 94 % de cumplimiento"
+      ]
+    },
+    {
+      "id": "30-weekly-eval-provisional-con-campos-de-ftp",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 20.4,
+      "cost": 0.002472,
+      "coldCost": 0.004244,
+      "usage": {
+        "input_tokens": 2101,
+        "output_tokens": 4216,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "31-weekly-eval-semana-de-test-pero-cansado",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 19,
+      "cost": 0.002172,
+      "coldCost": 0.003943,
+      "usage": {
+        "input_tokens": 2325,
+        "output_tokens": 3570,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "33-weekly-eval-lasttest-erg-fijo-sin-nota",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 22.6,
+      "cost": 0.002623,
+      "coldCost": 0.004395,
+      "usage": {
+        "input_tokens": 1785,
+        "output_tokens": 4581,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "decision=insert_recovery con TSB -11 y 94 % de cumplimiento"
+      ]
+    },
+    {
+      "id": "34-weekly-eval-umbral-se-cae-fondo-bien",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 31,
+      "cost": 0.00358,
+      "coldCost": 0.005351,
+      "usage": {
+        "input_tokens": 2460,
+        "output_tokens": 6359,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "35-weekly-eval-ficha-3-semanas-no-bastan",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 33.5,
+      "cost": 0.003862,
+      "coldCost": 0.005634,
+      "usage": {
+        "input_tokens": 2830,
+        "output_tokens": 6850,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "36-weekly-eval-expediente-con-nota-del-coach",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 34.6,
+      "cost": 0.004032,
+      "coldCost": 0.005804,
+      "usage": {
+        "input_tokens": 2564,
+        "output_tokens": 7243,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "37-weekly-eval-vfc-baja-y-mal-sueno",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 19.8,
+      "cost": 0.00257,
+      "coldCost": 0.004342,
+      "usage": {
+        "input_tokens": 2894,
+        "output_tokens": 4254,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "decision=insert_recovery con TSB -5 y 92 % de cumplimiento"
+      ]
+    }
+  ]
+}

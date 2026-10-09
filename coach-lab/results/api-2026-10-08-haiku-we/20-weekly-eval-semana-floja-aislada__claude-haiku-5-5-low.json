@@ -1,0 +1,229 @@
+{
+  "id": "20-weekly-eval-semana-floja-aislada",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 17.2,
+  "cost": 0.002072,
+  "coldCost": 0.003843,
+  "usage": {
+    "input_tokens": 1897,
+    "output_tokens": 3456,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "maintain",
+    "reasoning": "Paola, esta semana cumpliste 150 de 310 TSS por el viaje de trabajo, no por fatiga: dices que de piernas estás bien y el TSB es +6. Es una semana floja aislada, así que repetimos el foco sin subir carga. Como el miércoles no puedes, lo quitamos y repartimos las sesiones en lunes, martes, jueves y sábado. Esta semana el TSS planeado queda por debajo de 310 a propósito: lo que vale es sostener la semana, no ponerte al corriente de golpe. No cambio el FTP ni programo test por ahora.",
+    "contradictionFlag": null,
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo base",
+        "dayOfWeek": "mon",
+        "targetTSS": 40,
+        "erg": "on",
+        "intent": "Rodada de fondo a ritmo conversacional para recuperar el hilo tras el viaje. Mantén RPE 3-4 y puedes hablar en frases completas durante todo el bloque.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              },
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Sweet spot",
+        "dayOfWeek": "tue",
+        "targetTSS": 52,
+        "erg": "on",
+        "intent": "Dos bloques de sweet spot al 90 % con recuperación suave. Empieza el primero contenida y sostén RPE 6-7 sin subir el pulso de forma continua; si el ERG se te escapa, baja 3 puntos ese bloque.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 70
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 900,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 2,
+            "steps": [
+              {
+                "name": "Sweet spot",
+                "type": "steady",
+                "duration_s": 480,
+                "power_pct": 90
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 240,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 420,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo con cadencia",
+        "dayOfWeek": "thu",
+        "targetTSS": 44,
+        "erg": "on",
+        "intent": "Rodada continua en zona de fondo para sumar horas sin estrés. Mantén una cadencia estable y fluida, y usa la respiración para controlar la intensidad: si no puedes hablar, baja.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              },
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 3000,
+                "power_pct": 65,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Tempo largo",
+        "dayOfWeek": "sat",
+        "targetTSS": 57,
+        "erg": "on",
+        "intent": "Sesión larga con un bloque de tempo al 75 % y cierre suave. Sostén RPE 5 y reparte el esfuerzo de forma pareja desde el inicio hasta el final del bloque.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 70
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Tempo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 75
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 900,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": null,
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"maintain\",\"reasoning\":\"Paola, esta semana cumpliste 150 de 310 TSS por el viaje de trabajo, no por fatiga: dices que de piernas estás bien y el TSB es +6. Es una semana floja aislada, así que repetimos el foco sin subir carga. Como el miércoles no puedes, lo quitamos y repartimos las sesiones en lunes, martes, jueves y sábado. Esta semana el TSS planeado queda por debajo de 310 a propósito: lo que vale es sostener la semana, no ponerte al corriente de golpe. No cambio el FTP ni programo test por ahora.\",\"contradictionFlag\":null,\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo base\",\"dayOfWeek\":\"mon\",\"targetTSS\":40,\"erg\":\"on\",\"intent\":\"Rodada de fondo a ritmo conversacional para recuperar el hilo tras el viaje. Mantén RPE 3-4 y puedes hablar en frases completas durante todo el bloque.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65},{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Sweet spot\",\"dayOfWeek\":\"tue\",\"targetTSS\":52,\"erg\":\"on\",\"intent\":\"Dos bloques de sweet spot al 90 % con recuperación suave. Empieza el primero contenida y sostén RPE 6-7 sin subir el pulso de forma continua; si el ERG se te escapa, baja 3 puntos ese bloque.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":900,\"power_pct\":65}]},{\"repeat\":2,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"steady\",\"duration_s\":480,\"power_pct\":90},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":240,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":420,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo con cadencia\",\"dayOfWeek\":\"thu\",\"targetTSS\":44,\"erg\":\"on\",\"intent\":\"Rodada continua en zona de fondo para sumar horas sin estrés. Mantén una cadencia estable y fluida, y usa la respiración para controlar la intensidad: si no puedes hablar, baja.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65},{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":65,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Tempo largo\",\"dayOfWeek\":\"sat\",\"targetTSS\":57,\"erg\":\"on\",\"intent\":\"Sesión larga con un bloque de tempo al 75 % y cierre suave. Sostén RPE 5 y reparte el esfuerzo de forma pareja desde el inicio hasta el final del bloque.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Tempo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":75}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":900,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":null,\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

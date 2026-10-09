@@ -1,0 +1,100 @@
+{
+  "id": "10-semana-coach-normal",
+  "mode": "coach_week",
+  "config": "claude-haiku-4-5-20251001-none",
+  "ok": true,
+  "seconds": 10.8,
+  "cost": 0.00894,
+  "coldCost": 0.02204,
+  "usage": {
+    "input_tokens": 3406,
+    "output_tokens": 879,
+    "cache_read_input_tokens": 11391,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Caso NORMAL: TSB −4 (entre −19 y −10 es técnicamente CUIDADO, pero recentWeeks solo trae una semana). La instrucción pide un sweet spot y una larga de fin de semana; con la rodada de grupo bloqueada el sábado (~110 TSS), esa larga ya está.",
+      "Carga de bici: bloqueados 45 + 75 + 110 = 230 TSS. Agregamos sweet spot (~72 TSS) + recuperación (~22 TSS) = ~324 TSS total, 81 % del promedio reciente (400), dentro de rango para caso NORMAL.",
+      "La rodada de grupo del sábado (120 min, 110 TSS) cubre la larga de fin de semana pedida. No es una sesión dura en términos de intensidad (es rodada de grupo), así que no tira el cupo de 2 sesiones duras (ya completado con over-unders del martes).",
+      "Sweet spot tpl-ss se aplica tal cual el jueves: 64 min, 72 TSS, estructura completa. Recuperación el viernes para descansar entre el duro y la rodada larga. Domingo abierto pero no cabe más bici (sería tres duras en zona dura; la rodada ya cubre).",
+      "Lesiones: ninguna. FTP confirmado. Sin restricciones especiales."
+    ],
+    "workouts": [
+      {
+        "name": "Sweet spot 3×12",
+        "description": "Potencia fija, ERG prendido. Calentamiento tranquilo de 10 min, luego tres bloques de 12 minutos cada uno al 90 % del FTP con 5 minutos suaves de recuperación en entre. El ritmo es fuerte pero sostenible: piernas con tensión constante, respiración controlada, sin explosiones. Termina con una vuelta a la calma de 8 minutos. Esta sesión deja tu aeróbica lista para la rodada del sábado.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 600,
+            "power_pct": 65
+          },
+          {
+            "name": "Bloque 1",
+            "type": "steady",
+            "duration_s": 720,
+            "power_pct": 90
+          },
+          {
+            "name": "Recuperación 1",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55
+          },
+          {
+            "name": "Bloque 2",
+            "type": "steady",
+            "duration_s": 720,
+            "power_pct": 90
+          },
+          {
+            "name": "Recuperación 2",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55
+          },
+          {
+            "name": "Bloque 3",
+            "type": "steady",
+            "duration_s": 720,
+            "power_pct": 90
+          },
+          {
+            "name": "Vuelta a la calma",
+            "type": "cooldown",
+            "duration_s": 480,
+            "power_pct": 55
+          }
+        ],
+        "targetTSS": 72,
+        "dayOfWeek": "thu",
+        "fromLibraryId": "tpl-ss",
+        "libraryChange": null
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Piernas sueltas en rodillo suave. 40 minutos al 50-55 % del FTP sin prisa, cadencia libre y ritmo de conversación. Es el puente entre el esfuerzo del jueves y la rodada larga del sábado: tu cuerpo absorbe la carga y llega fresco.",
+        "intervals": [
+          {
+            "name": "Recuperación",
+            "type": "recovery",
+            "duration_s": 2400,
+            "power_pct": 52.5
+          }
+        ],
+        "targetTSS": 22,
+        "dayOfWeek": "fri",
+        "fromLibraryId": "tpl-rec",
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\":[\"Caso NORMAL: TSB −4 (entre −19 y −10 es técnicamente CUIDADO, pero recentWeeks solo trae una semana). La instrucción pide un sweet spot y una larga de fin de semana; con la rodada de grupo bloqueada el sábado (~110 TSS), esa larga ya está.\",\"Carga de bici: bloqueados 45 + 75 + 110 = 230 TSS. Agregamos sweet spot (~72 TSS) + recuperación (~22 TSS) = ~324 TSS total, 81 % del promedio reciente (400), dentro de rango para caso NORMAL.\",\"La rodada de grupo del sábado (120 min, 110 TSS) cubre la larga de fin de semana pedida. No es una sesión dura en términos de intensidad (es rodada de grupo), así que no tira el cupo de 2 sesiones duras (ya completado con over-unders del martes).\",\"Sweet spot tpl-ss se aplica tal cual el jueves: 64 min, 72 TSS, estructura completa. Recuperación el viernes para descansar entre el duro y la rodada larga. Domingo abierto pero no cabe más bici (sería tres duras en zona dura; la rodada ya cubre).\",\"Lesiones: ninguna. FTP confirmado. Sin restricciones especiales.\"],\"workouts\":[{\"name\":\"Sweet spot 3×12\",\"description\":\"Potencia fija, ERG prendido. Calentamiento tranquilo de 10 min, luego tres bloques de 12 minutos cada uno al 90 % del FTP con 5 minutos suaves de recuperación en entre. El ritmo es fuerte pero sostenible: piernas con tensión constante, respiración controlada, sin explosiones. Termina con una vuelta a la calma de 8 minutos. Esta sesión deja tu aeróbica lista para la rodada del sábado.\",\"intervals\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":65},{\"name\":\"Bloque 1\",\"type\":\"steady\",\"duration_s\":720,\"power_pct\":90},{\"name\":\"Recuperación 1\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55},{\"name\":\"Bloque 2\",\"type\":\"steady\",\"duration_s\":720,\"power_pct\":90},{\"name\":\"Recuperación 2\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55},{\"name\":\"Bloque 3\",\"type\":\"steady\",\"duration_s\":720,\"power_pct\":90},{\"name\":\"Vuelta a la calma\",\"type\":\"cooldown\",\"duration_s\":480,\"power_pct\":55}],\"targetTSS\":72,\"dayOfWeek\":\"thu\",\"fromLibraryId\":\"tpl-ss\",\"libraryChange\":null},{\"name\":\"Recuperación 40\",\"description\":\"Piernas sueltas en rodillo suave. 40 minutos al 50-55 % del FTP sin prisa, cadencia libre y ritmo de conversación. Es el puente entre el esfuerzo del jueves y la rodada larga del sábado: tu cuerpo absorbe la carga y llega fresco.\",\"intervals\":[{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":2400,\"power_pct\":52.5}],\"targetTSS\":22,\"dayOfWeek\":\"fri\",\"fromLibraryId\":\"tpl-rec\",\"libraryChange\":null}]}"
+}

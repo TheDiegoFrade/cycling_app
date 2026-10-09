@@ -1,0 +1,103 @@
+{
+  "id": "09-semana-coach-cansado",
+  "mode": "coach_week",
+  "config": "claude-haiku-4-5-20251001-none",
+  "ok": true,
+  "seconds": 10.7,
+  "cost": 0.022056,
+  "coldCost": 0.022056,
+  "usage": {
+    "input_tokens": 3347,
+    "output_tokens": 894,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 11391
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Descarga: TSB −28 y el coach reporta cansancio. Semana anterior acumuló 510 TSS; esta baja a ~140 TSS de bici (27 % de su promedio), máximo 4 sesiones, ninguna por encima de 75 %.",
+      "Martes bloqueado: Fuerza pierna A 45 min. Rodillo lunes suave, miércoles o después de viernes para evitar acumulación alrededor de la fuerza.",
+      "Biblioteca: Recuperación 40 y Endurance 75 encajan en descarga; Sweet spot y VO2 descartados (≥88 %). Las dos suaves se usan tal cual.",
+      "Plan: lunes fondo suave, martes fuerza, miércoles recuperación, jueves suave, viernes descanso, sábado fondo suave, domingo descanso o recuperación si llega bien."
+    ],
+    "workouts": [
+      {
+        "name": "Endurance 75",
+        "description": "Arranca en modo ERG con potencia fija entre 65-70 % y déjate llevar. Esto es absorber: frecuencia cardíaca baja, conversación fluida, cadencia donde te sientas cómoda. Después de la semana fuerte, tu cuerpo necesita rodar sin luchar. Vuelta a la calma incluida.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 600,
+            "power_pct": 65
+          },
+          {
+            "name": "Fondo sostenido",
+            "type": "steady",
+            "duration_s": 3900,
+            "power_pct": 68
+          },
+          {
+            "name": "Vuelta a la calma",
+            "type": "cooldown",
+            "duration_s": 480,
+            "power_pct": 50
+          }
+        ],
+        "targetTSS": 55,
+        "dayOfWeek": "mon",
+        "fromLibraryId": "tpl-z2",
+        "libraryChange": null
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Cuarenta minutos muy suaves con ERG prendido a 50-55 %. Rodillo pasivo: las piernas pedalean solas, la respiración es tranquila. Es el puente entre la fuerza de ayer y volver a rodar sin presión. Lo importante es fluir.",
+        "intervals": [
+          {
+            "name": "Recuperación activa",
+            "type": "recovery",
+            "duration_s": 2400,
+            "power_pct": 52
+          }
+        ],
+        "targetTSS": 22,
+        "dayOfWeek": "wed",
+        "fromLibraryId": "tpl-rec",
+        "libraryChange": null
+      },
+      {
+        "name": "Endurance 75",
+        "description": "Segundo rodillo largo de la semana, mismo rollo que el lunes: 75 minutos a 65-70 % con ERG prendido. Tu cuerpo está asimilando carga, así que nada de sorpresas. Ritmo constante, cabeza en blanco, piernas recuperándose.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 600,
+            "power_pct": 65
+          },
+          {
+            "name": "Fondo sostenido",
+            "type": "steady",
+            "duration_s": 3900,
+            "power_pct": 68
+          },
+          {
+            "name": "Vuelta a la calma",
+            "type": "cooldown",
+            "duration_s": 480,
+            "power_pct": 50
+          }
+        ],
+        "targetTSS": 55,
+        "dayOfWeek": "thu",
+        "fromLibraryId": "tpl-z2",
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\": [\"Descarga: TSB −28 y el coach reporta cansancio. Semana anterior acumuló 510 TSS; esta baja a ~140 TSS de bici (27 % de su promedio), máximo 4 sesiones, ninguna por encima de 75 %.\", \"Martes bloqueado: Fuerza pierna A 45 min. Rodillo lunes suave, miércoles o después de viernes para evitar acumulación alrededor de la fuerza.\", \"Biblioteca: Recuperación 40 y Endurance 75 encajan en descarga; Sweet spot y VO2 descartados (≥88 %). Las dos suaves se usan tal cual.\", \"Plan: lunes fondo suave, martes fuerza, miércoles recuperación, jueves suave, viernes descanso, sábado fondo suave, domingo descanso o recuperación si llega bien.\"], \"workouts\": [{\"name\": \"Endurance 75\", \"description\": \"Arranca en modo ERG con potencia fija entre 65-70 % y déjate llevar. Esto es absorber: frecuencia cardíaca baja, conversación fluida, cadencia donde te sientas cómoda. Después de la semana fuerte, tu cuerpo necesita rodar sin luchar. Vuelta a la calma incluida.\", \"intervals\": [{\"name\": \"Calentamiento\", \"type\": \"warmup\", \"duration_s\": 600, \"power_pct\": 65}, {\"name\": \"Fondo sostenido\", \"type\": \"steady\", \"duration_s\": 3900, \"power_pct\": 68}, {\"name\": \"Vuelta a la calma\", \"type\": \"cooldown\", \"duration_s\": 480, \"power_pct\": 50}], \"targetTSS\": 55, \"dayOfWeek\": \"mon\", \"fromLibraryId\": \"tpl-z2\", \"libraryChange\": null}, {\"name\": \"Recuperación 40\", \"description\": \"Cuarenta minutos muy suaves con ERG prendido a 50-55 %. Rodillo pasivo: las piernas pedalean solas, la respiración es tranquila. Es el puente entre la fuerza de ayer y volver a rodar sin presión. Lo importante es fluir.\", \"intervals\": [{\"name\": \"Recuperación activa\", \"type\": \"recovery\", \"duration_s\": 2400, \"power_pct\": 52}], \"targetTSS\": 22, \"dayOfWeek\": \"wed\", \"fromLibraryId\": \"tpl-rec\", \"libraryChange\": null}, {\"name\": \"Endurance 75\", \"description\": \"Segundo rodillo largo de la semana, mismo rollo que el lunes: 75 minutos a 65-70 % con ERG prendido. Tu cuerpo está asimilando carga, así que nada de sorpresas. Ritmo constante, cabeza en blanco, piernas recuperándose.\", \"intervals\": [{\"name\": \"Calentamiento\", \"type\": \"warmup\", \"duration_s\": 600, \"power_pct\": 65}, {\"name\": \"Fondo sostenido\", \"type\": \"steady\", \"duration_s\": 3900, \"power_pct\": 68}, {\"name\": \"Vuelta a la calma\", \"type\": \"cooldown\", \"duration_s\": 480, \"power_pct\": 50}], \"targetTSS\": 55, \"dayOfWeek\": \"thu\", \"fromLibraryId\": \"tpl-z2\", \"libraryChange\": null}]}"
+}

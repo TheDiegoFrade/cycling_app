@@ -1,0 +1,45 @@
+{
+  "id": "29-create-plan-provisional-lesion-en-perfil",
+  "mode": "create_plan",
+  "title": "provisionalFtp viejo en el perfil, lesión de espalda, peso y edad",
+  "expect": [
+    "No prescribe sobre el provisionalFtp de 130 W ni propone otro: hasta el test va por sensación (erg \"off\" recomendado, steps normales) y suggestedFtp = null.",
+    "Test (rampa o 20 min, lleva 6 años) en la semana 1 después de 1-2 rodadas suaves, adaptado a la espalda; ningún step que no sea test llega a 88 %.",
+    "Adapta por la espalda baja del perfil: sesiones de 60 min o menos o bloques partidos con pausas, y lo dice en coachNote.",
+    "Con 54 años y peso 82 kg no lo trata como novato en bici (lleva 6 años), pero sí arranca conservador.",
+    "Solo martes, jueves y sábado; ninguna sesión > 75 min."
+  ],
+  "context": {
+    "startDate": "2026-10-12",
+    "goal": "Volver a rodar fuerte en la sierra y hacer un gran fondo de ruta en marzo.",
+    "experienceLevel": "returning_or_new_to_app",
+    "generalFitnessLevel": "active_other_sport",
+    "discipline": "road",
+    "yearsRiding": 6,
+    "competes": false,
+    "category": null,
+    "availability": {
+      "hoursPerWeek": 5,
+      "days": [
+        "tue",
+        "thu",
+        "sat"
+      ],
+      "maxSessionMinutes": 75
+    },
+    "occupiedDates": [],
+    "profile": {
+      "ftp": null,
+      "hr_max": 172,
+      "sex": "M",
+      "name": "Jorge",
+      "provisionalFtp": 130,
+      "ftpSource": "provisional",
+      "ftpUpdatedAt": "2026-10-05T18:20:00.000Z",
+      "injuries": "Hernia discal L5 operada hace 2 años; me duele la espalda baja si paso mucho tiempo en la misma posición.",
+      "weightKg": 82,
+      "ageYears": 54
+    },
+    "recentHistory": null
+  }
+}

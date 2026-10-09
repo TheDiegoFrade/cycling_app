@@ -194,6 +194,16 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     latestHr = v;
     lastHrReadingAt = performance.now();
   });
+  // RR de la banda (si los manda), solo mientras corre la sesión: en pausa
+  // el reloj de la sesión no avanza y quedarían todos en el mismo segundo.
+  const rr: NonNullable<SessionRecord['rr']> = { t: [], ms: [] };
+  const unsubRr = hr?.onRr?.((values) => {
+    if (engine.currentState !== 'running') return;
+    for (const ms of values) {
+      rr.t.push(lastElapsedS);
+      rr.ms.push(ms);
+    }
+  });
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;
   let autoStartTimer: ReturnType<typeof setInterval> | null = null;
@@ -204,6 +214,12 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const firedMotivation = new Set<string>();
   let cdShown = -1;
   let currentIndex0 = 0;
+  // Un bloque 'free' es autodosificado (el bloque máximo de un test de 20
+  // min): el atleta regula su potencia, así que el rodillo no puede quedarse
+  // en ERG aunque el atleta lo tenga prendido. Antes el ERG global mantenía
+  // el objetivo del bloque y el "test" medía solo que aguantaba esa potencia.
+  const isSelfPaced = (): boolean => workout.intervals[currentIndex0]?.type === 'free';
+  let ergReleasedForFree = false;
   let currentTimeLeft = workout.intervals[0]?.duration_s ?? 0;
   let ergEnabled = true;
   let lastTargetWatts = 0;
@@ -376,6 +392,10 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       history.push(...draft.samples);
       alerts.push(...draft.alerts);
       intensityChanges.push(...draft.intensityChanges);
+      if (draft.rr) {
+        rr.t.push(...draft.rr.t);
+        rr.ms.push(...draft.rr.ms);
+      }
       resumeAtS = draft.samples[draft.samples.length - 1].t + 1;
       currentIndex0 = intervalIndexAt(plan, resumeAtS);
       currentTimeLeft = workout.intervals[currentIndex0].duration_s - (resumeAtS - plan.segStart[currentIndex0]);
@@ -405,6 +425,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       samples: history,
       alerts,
       intensityChanges,
+      ...(rr.ms.length ? { rr } : {}),
     });
   }
   function onVisibilityChange(): void {
@@ -611,7 +632,13 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         }
 
         lastTargetWatts = event.sample.target;
-        if (ergEnabled) trainer.setTarget(lastTargetWatts);
+        if (ergEnabled && !isSelfPaced()) {
+          trainer.setTarget(lastTargetWatts); // también re-engancha el ERG al salir de un bloque libre
+          ergReleasedForFree = false;
+        } else if (ergEnabled && !ergReleasedForFree) {
+          trainer.setResistance(resistancePercent);
+          ergReleasedForFree = true;
+        }
         draw();
         maybeMotivate();
         ticksSinceDraftSave++;
@@ -632,7 +659,11 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         paintBlockHeader();
         paintTimeline();
         paintLimitsPanel();
-        showBanner('info', event.interval.name, `${event.targetWatts} W · ${event.interval.cadence_min ?? '—'}+ rpm`, 1800);
+        if (event.interval.type === 'free') {
+          showBanner('info', event.interval.name, 'Bloque libre: tú regulas la potencia, el ERG se suelta', 4000);
+        } else {
+          showBanner('info', event.interval.name, `${event.targetWatts} W · ${event.interval.cadence_min ?? '—'}+ rpm`, 1800);
+        }
         return;
       }
       case 'countdown': {
@@ -672,7 +703,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
           // porque pasaron unos segundos aunque el problema siga.
           const holdMs = n.level === 'danger' || n.level === 'adjust' ? null : 2600;
           showBanner(kind, n.message, n.detail ?? '', holdMs);
-          alerts.push({ t: lastElapsedS, level: n.level, message: n.message });
+          alerts.push({ t: lastElapsedS, level: n.level, message: n.message, ruleId: n.rule.id });
         } else {
           beeper.play('tick');
           showBanner('info', n.message, '', 2200);
@@ -726,6 +757,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       samples: history,
       alerts,
       intensityChanges,
+      ...(rr.ms.length ? { rr } : {}),
       source: 'torq',
       kind: 'bike_indoor',
     };
@@ -830,8 +862,14 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     $('erg-quick').classList.toggle('off', !ergEnabled);
     if (ergEnabled) {
       // al reactivarlo, vuelve a mandar el objetivo actual de inmediato en
-      // vez de esperar al próximo tick para que el rodillo enganche ya
-      trainer.setTarget(lastTargetWatts);
+      // vez de esperar al próximo tick para que el rodillo enganche ya —
+      // salvo en un bloque libre, que sigue suelto hasta que termine
+      if (isSelfPaced()) {
+        trainer.setResistance(resistancePercent);
+        ergReleasedForFree = true;
+      } else {
+        trainer.setTarget(lastTargetWatts);
+      }
       // repinta el % de intensidad sin pasar por paintBias: esa función
       // también registra un ajuste de intensidad y no queremos un renglón
       // falso en el historial solo por haber prendido el ERG de nuevo
@@ -1014,6 +1052,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     unsubHrState?.();
     unsubTrainerReading();
     unsubHrReading?.();
+    unsubRr?.();
     if (bannerTimer) clearTimeout(bannerTimer);
   };
 }

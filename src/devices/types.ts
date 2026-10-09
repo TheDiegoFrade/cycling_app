@@ -30,5 +30,8 @@ export interface HrAdapter {
   connect(): Promise<void>;
   disconnect(): void;
   onReading(cb: (hr: number) => void): () => void;
+  /** Intervalos RR (ms) tal como llegan, si la banda los manda. Opcional:
+   * relojes y adaptadores que no los tienen simplemente no lo implementan. */
+  onRr?(cb: (rrMs: number[]) => void): () => void;
   onStateChange(cb: (state: ConnectionState) => void): () => void;
 }

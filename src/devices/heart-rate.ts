@@ -1,4 +1,4 @@
-import { parseHeartRateMeasurement } from './heart-rate-protocol';
+import { parseHeartRateMeasurement, parseRrIntervals } from './heart-rate-protocol';
 import type { ConnectionState, HrAdapter } from './types';
 
 const RECONNECT_DELAYS_MS = [1000, 2000, 4000, 8000, 16000];
@@ -11,6 +11,7 @@ export class BleHrAdapter implements HrAdapter {
   private device: BluetoothDevice | null = null;
   private characteristic: BluetoothRemoteGATTCharacteristic | null = null;
   private readingCbs = new Set<(hr: number) => void>();
+  private rrCbs = new Set<(rrMs: number[]) => void>();
   private stateCbs = new Set<(s: ConnectionState) => void>();
   private reconnectAttempt = 0;
   private manuallyDisconnected = false;
@@ -54,6 +55,11 @@ export class BleHrAdapter implements HrAdapter {
     return () => this.readingCbs.delete(cb);
   }
 
+  onRr(cb: (rrMs: number[]) => void): () => void {
+    this.rrCbs.add(cb);
+    return () => this.rrCbs.delete(cb);
+  }
+
   onStateChange(cb: (s: ConnectionState) => void): () => void {
     this.stateCbs.add(cb);
     return () => this.stateCbs.delete(cb);
@@ -81,6 +87,8 @@ export class BleHrAdapter implements HrAdapter {
       const hr = parseHeartRateMeasurement(this.characteristic.value);
       if (hr === null) return; // paquete más corto de lo esperado — se ignora esta lectura, no toda la conexión
       this.readingCbs.forEach((cb) => cb(hr));
+      const rr = parseRrIntervals(this.characteristic.value);
+      if (rr.length) this.rrCbs.forEach((cb) => cb(rr));
     } catch (err) {
       console.error('[heart-rate] no se pudo leer heart_rate_measurement', err);
     }

@@ -102,5 +102,13 @@ describe('IA del coach', () => {
     const next = m.applyAiProposal(items, [workout('nuevo', '2026-10-08')], today);
     expect(next.map(m.itemName).sort()).toEqual(['F', 'editado', 'nuevo', 'pasado'].sort());
     expect(next.find((i) => m.itemName(i) === 'nuevo')?.origin).toBe('ai');
+    expect(next.find((i) => m.itemName(i) === 'nuevo')?.fromLibrary).toBeUndefined();
+  });
+
+  it('marca lo que la IA sacó de la biblioteca del coach', async () => {
+    const m = await import('./plan-week');
+    const w = workout('sweet', '2026-10-09');
+    const next = m.applyAiProposal([], [w], '2026-10-08', new Map([[w.id, { templateId: 't1', change: 'Bajé a 3×12 por fatiga' }]]));
+    expect(next[0].fromLibrary).toEqual({ templateId: 't1', change: 'Bajé a 3×12 por fatiga' });
   });
 });

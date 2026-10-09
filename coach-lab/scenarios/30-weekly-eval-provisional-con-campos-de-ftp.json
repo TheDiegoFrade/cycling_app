@@ -1,0 +1,73 @@
+{
+  "id": "30-weekly-eval-provisional-con-campos-de-ftp",
+  "mode": "weekly_eval",
+  "title": "Igual que el 24, pero con un provisionalFtp viejo en el perfil",
+  "expect": [
+    "No ajusta el provisionalFtp de 90 ni propone otro número: suggestedFtp = null y ftpAction = null.",
+    "reasoning explica que el número sale del test y cuándo va (hacia la semana 3-4 si cumple y llega fresca).",
+    "Nada a 88 % o más ni test máximo (sigue sin FTP medido, es sedentaria en su semana 2); todo por sensación (erg \"off\" recomendado, ERG como opción).",
+    "Ninguna sesión > 60 min. Usa \"Lucía\" y femenino.",
+    "Solo lunes, miércoles y sábado (plan.days); nextTest sigue sin ir null y, si lo mueve, lo explica."
+  ],
+  "context": {
+    "profile": {
+      "sex": "F",
+      "name": "Lucía",
+      "ftp": null,
+      "provisionalFtp": 90,
+      "ftpSource": "provisional",
+      "ftpUpdatedAt": "2026-10-05T09:00:00.000Z",
+      "injuries": null,
+      "weightKg": 64,
+      "ageYears": 41
+    },
+    "maxSessionMinutes": 60,
+    "occupiedDates": [],
+    "weekJustFinished": {
+      "plannedTSS": 95,
+      "actualTSS": 92,
+      "completedWorkouts": 3,
+      "missedWorkouts": 0,
+      "ruleTriggers": [],
+      "athleteNote": "Primera semana con el FTP provisional de 90 que me dijiste. En la escalera llegué al último escalón (90 %) platicando sin problema y las otras dos sesiones se me hicieron demasiado fáciles, casi no sudé."
+    },
+    "pmcTrend": {
+      "ctl": 3,
+      "atl": 12,
+      "tsb": -9,
+      "ctlRampLast4Weeks": 3
+    },
+    "recentGapPattern": null,
+    "recentWeeksSummary": null,
+    "plan": {
+      "goal": "Ponerme en forma y aguantar una rodada de 2 horas con mis amigos en primavera",
+      "discipline": "road",
+      "experienceLevel": "new_to_cycling",
+      "generalFitnessLevel": "sedentary",
+      "days": [
+        "mon",
+        "wed",
+        "sat"
+      ],
+      "hoursPerWeek": 4,
+      "currentBlock": {
+        "name": "Base aeróbica",
+        "focus": "Costumbre de rodillo y base",
+        "weeks": 4,
+        "weekInBlock": 2
+      },
+      "nextBlock": {
+        "name": "Base 2",
+        "focus": "Más volumen y primer test",
+        "weeks": 4,
+        "targetHoursPerWeek": 4.5
+      },
+      "nextTest": {
+        "weekIndex": 5,
+        "type": "ramp",
+        "reason": "Cuando tolere 3 sesiones por semana sin fatiga"
+      }
+    },
+    "nextWeekStart": "2026-10-19"
+  }
+}

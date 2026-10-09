@@ -17,8 +17,6 @@ import {
   validateRoutineTemplate,
 } from '../../core/coach-templates';
 import type { BikePayload, RoutinePayload, SessionTemplate, TemplateKind } from '../../core/coach-templates';
-import { INTERVAL_TYPES } from '../../core/types';
-import type { Interval, IntervalType } from '../../core/types';
 import { estimateWorkout } from '../../core/workout-estimate';
 import { importWorkoutFile } from '../../core/workout-file-import';
 import { deleteTemplate, listTemplates, saveTemplate } from '../../sync/session-templates';
@@ -27,15 +25,7 @@ import { navigate } from '../router';
 import { saveWorkout } from '../../storage/workout-store';
 import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { escapeHtml, renderWorkoutCover } from '../workout-cover';
-
-const INTERVAL_TYPE_LABELS: Record<IntervalType, string> = {
-  warmup: 'Calentamiento',
-  steady: 'Estable',
-  interval: 'Intervalo',
-  recovery: 'Recuperación',
-  cooldown: 'Vuelta a la calma',
-  free: 'Libre',
-};
+import { blockPreviewHtml, intervalRowsHtml, numOrUndefined, readIntervalInputs, wireIntervalEditor } from '../interval-editor';
 
 interface Draft {
   id?: string;
@@ -59,17 +49,6 @@ function draftFrom(t: SessionTemplate): Draft {
   return t.kind === 'bike'
     ? { ...base, id: t.id, name: t.name, bike: structuredClone(t.payload) }
     : { ...base, id: t.id, name: t.name, routine: structuredClone(t.payload) };
-}
-
-function fmtMin(seconds: number): string {
-  const m = seconds / 60;
-  return Number.isInteger(m) ? String(m) : m.toFixed(1);
-}
-
-function numOrUndefined(value: string): number | undefined {
-  if (value.trim() === '') return undefined;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : undefined;
 }
 
 export function renderCoachLibrary(container: HTMLElement): void {
@@ -120,34 +99,15 @@ export function renderCoachLibrary(container: HTMLElement): void {
   }
 
   function bikeEditorHtml(d: Draft): string {
-    const est = estimateWorkout(d.bike.intervals, appState.profile.ftp);
-    const rows = d.bike.intervals
-      .map(
-        (iv, i) => `
-        <div class="block-row">
-          <select data-b="${i}" data-f="type" aria-label="Tipo de bloque">${INTERVAL_TYPES.map((t) => `<option value="${t}"${t === iv.type ? ' selected' : ''}>${INTERVAL_TYPE_LABELS[t]}</option>`).join('')}</select>
-          <input type="text" data-b="${i}" data-f="name" value="${escapeHtml(iv.name)}" placeholder="Nombre" aria-label="Nombre del bloque">
-          <label class="block-num">Min<input type="number" min="0.1" step="0.5" data-b="${i}" data-f="min" value="${fmtMin(iv.duration_s)}"></label>
-          <label class="block-num">% FTP<input type="number" min="0" max="300" data-b="${i}" data-f="pct" value="${iv.power_pct}"></label>
-          <label class="block-num">Rampa a<input type="number" min="0" max="300" data-b="${i}" data-f="ramp" value="${iv.ramp_to_pct ?? ''}" placeholder="—"></label>
-          <div class="block-actions">
-            <button type="button" data-b-up="${i}" aria-label="Subir bloque"${i === 0 ? ' disabled' : ''}>↑</button>
-            <button type="button" data-b-down="${i}" aria-label="Bajar bloque"${i === d.bike.intervals.length - 1 ? ' disabled' : ''}>↓</button>
-            <button type="button" data-b-del="${i}" aria-label="Quitar bloque" class="week-remove">✕</button>
-          </div>
-        </div>`,
-      )
-      .join('');
     return `
       <label>Descripción (opcional)<textarea id="tpl-desc" rows="2" maxlength="500">${escapeHtml(d.bike.description ?? '')}</textarea></label>
-      <div class="block-preview">${d.bike.intervals.length ? renderWorkoutCover(d.bike.intervals, 'sm') : ''}<span class="hint">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS (con tu FTP)</span></div>
+      <div class="block-preview">${blockPreviewHtml(d.bike.intervals, appState.profile.ftp)}</div>
       ${
         d.bike.comments?.length
           ? `<div class="tpl-comments"><span class="hint">Trae ${d.bike.comments.length} ${d.bike.comments.length === 1 ? 'mensaje' : 'mensajes'} del archivo, que aparecen durante el entrenamiento. Si cambias los bloques y ya no cuadran, quítalos.</span><button type="button" id="tpl-clear-comments">Quitar mensajes</button></div>`
           : ''
       }
-      <div class="block-list">${rows}</div>
-      <div class="row-actions" style="margin:0"><button type="button" id="tpl-add-block">+ Bloque</button></div>`;
+      ${intervalRowsHtml(d.bike.intervals)}`;
   }
 
   function routineEditorHtml(d: Draft): string {
@@ -238,20 +198,7 @@ export function renderCoachLibrary(container: HTMLElement): void {
     const desc = container.querySelector<HTMLTextAreaElement>('#tpl-desc')?.value.trim();
     if (d.kind === 'bike') {
       d.bike.description = desc || undefined;
-      container.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-b]').forEach((el) => {
-        const iv = d.bike.intervals[Number(el.dataset.b)];
-        if (!iv) return;
-        const v = el.value;
-        if (el.dataset.f === 'type') iv.type = v as IntervalType;
-        else if (el.dataset.f === 'name') iv.name = v;
-        else if (el.dataset.f === 'min') iv.duration_s = Math.round((numOrUndefined(v) ?? 0) * 60);
-        else if (el.dataset.f === 'pct') iv.power_pct = numOrUndefined(v) ?? 0;
-        else if (el.dataset.f === 'ramp') {
-          const r = numOrUndefined(v);
-          if (r === undefined) delete iv.ramp_to_pct;
-          else iv.ramp_to_pct = r;
-        }
-      });
+      readIntervalInputs(container, d.bike.intervals);
     } else {
       const p = d.routine;
       p.description = desc || undefined;
@@ -376,33 +323,22 @@ export function renderCoachLibrary(container: HTMLElement): void {
     container.querySelectorAll<HTMLButtonElement>('[data-kind-choice]').forEach((btn) =>
       btn.addEventListener('click', () => edit((d) => (d.kind = btn.dataset.kindChoice as TemplateKind))),
     );
-    container.querySelector('#tpl-add-block')?.addEventListener('click', () =>
-      edit((d) => {
-        const last = d.bike.intervals[d.bike.intervals.length - 1];
-        const next: Interval = { name: 'Bloque', type: 'steady', duration_s: 600, power_pct: last?.ramp_to_pct ?? last?.power_pct ?? 65 };
-        d.bike.intervals.push(next);
-      }),
+    wireIntervalEditor(
+      container,
+      (fn) => edit((d) => fn(d.bike.intervals)),
+      () => {
+        // la vista previa (portada, minutos, TSS) se actualiza al salir de
+        // cada campo, sin re-renderizar (no pierde el foco al tabular)
+        readEditor();
+        const preview = container.querySelector('.block-preview');
+        if (preview && editing) preview.innerHTML = blockPreviewHtml(editing.bike.intervals, appState.profile.ftp);
+      },
     );
-    container.querySelectorAll<HTMLButtonElement>('[data-b-up]').forEach((b) => b.addEventListener('click', () => edit((d) => move(d.bike.intervals, Number(b.dataset.bUp), -1))));
-    container.querySelectorAll<HTMLButtonElement>('[data-b-down]').forEach((b) => b.addEventListener('click', () => edit((d) => move(d.bike.intervals, Number(b.dataset.bDown), 1))));
-    container.querySelectorAll<HTMLButtonElement>('[data-b-del]').forEach((b) => b.addEventListener('click', () => edit((d) => d.bike.intervals.splice(Number(b.dataset.bDel), 1))));
     container.querySelector('#tpl-clear-comments')?.addEventListener('click', () => edit((d) => delete d.bike.comments));
     container.querySelector('#tpl-add-exercise')?.addEventListener('click', () => edit((d) => d.routine.exercises.push({ name: '', dose: '' })));
     container.querySelectorAll<HTMLButtonElement>('[data-e-up]').forEach((b) => b.addEventListener('click', () => edit((d) => move(d.routine.exercises, Number(b.dataset.eUp), -1))));
     container.querySelectorAll<HTMLButtonElement>('[data-e-down]').forEach((b) => b.addEventListener('click', () => edit((d) => move(d.routine.exercises, Number(b.dataset.eDown), 1))));
     container.querySelectorAll<HTMLButtonElement>('[data-e-del]').forEach((b) => b.addEventListener('click', () => edit((d) => d.routine.exercises.splice(Number(b.dataset.eDel), 1))));
-    // la vista previa de bici (portada, minutos, TSS) se actualiza al salir
-    // de cada campo, sin re-renderizar (no pierde el foco al tabular)
-    container.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-b]').forEach((el) =>
-      el.addEventListener('change', () => {
-        readEditor();
-        const preview = container.querySelector('.block-preview');
-        if (!preview || !editing) return;
-        const est = estimateWorkout(editing.bike.intervals, appState.profile.ftp);
-        preview.innerHTML = `${editing.bike.intervals.length ? renderWorkoutCover(editing.bike.intervals, 'sm') : ''}<span class="hint">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS (con tu FTP)</span>`;
-      }),
-    );
-
     container.querySelector('#tpl-save')?.addEventListener('click', async () => {
       readEditor();
       const d = editing!;

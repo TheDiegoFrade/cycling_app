@@ -87,6 +87,9 @@ export interface Workout {
   /** Fecha (YYYY-MM-DD) en la que se agendó este workout — la usa Calendario.
    * Sin fecha, el workout solo vive en la biblioteca de Inicio. */
   scheduledDate?: string;
+  /** 'test' = workout de test que agendó el coach (rampa o 20 min); con
+   * esto la app sabe qué sesión leer como test (ver core/test-reading.ts). */
+  kind?: 'test';
 }
 
 /** Archivo de solo reglas (modo A del prompt de importación): mismas reglas,
@@ -141,7 +144,16 @@ export interface Profile {
   // protocolo de calibración), aunque el motor lo siga usando para entrenar.
   ftpConfirmed?: boolean;
   hrMaxConfirmed?: boolean;
+  // De dónde salió `ftp` (ver core/coach-profile.ts). Ausente en perfiles
+  // viejos: se deduce de ftpConfirmed (true → 'manual', si no 'default').
+  ftpSource?: FtpSource;
+  ftpUpdatedAt?: string; // ISO, cuándo cambió el FTP por última vez
 }
+
+/** 'default' = los 200 W de fábrica · 'provisional' = un punto de partida
+ * que el atleta puso sin medir · 'manual' = un número suyo · 'test_*' = salió
+ * de un test en Torq. */
+export type FtpSource = 'default' | 'provisional' | 'manual' | 'test_ramp' | 'test_20min';
 
 export interface Sample {
   t: number; // segundo desde el inicio

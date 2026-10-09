@@ -1,0 +1,45 @@
+{
+  "id": "02-experimentado-sin-ftp",
+  "mode": "create_plan",
+  "title": "Ciclista con años de experiencia y buena forma, pero sin FTP en la app",
+  "expect": [
+    "Test de FTP temprano (semana 1) porque es experimentado y su CTL lo permite.",
+    "Las primeras sesiones antes del test por RPE/pulso, no en %FTP de un número inventado.",
+    "Recalibrar todo lo demás con el FTP del test (dicho explícitamente al atleta)."
+  ],
+  "context": {
+    "startDate": "2026-10-12",
+    "goal": "Gran fondo de ruta de 160 km en febrero, quiero terminarlo fuerte",
+    "experienceLevel": "experienced",
+    "generalFitnessLevel": "active_cyclist",
+    "discipline": "road",
+    "yearsRiding": 8,
+    "competes": false,
+    "category": null,
+    "availability": {
+      "hoursPerWeek": 8,
+      "days": [
+        "tue",
+        "wed",
+        "thu",
+        "sat",
+        "sun"
+      ],
+      "maxSessionMinutes": 90
+    },
+    "occupiedDates": [],
+    "profile": {
+      "ftp": null,
+      "hr_max": 188,
+      "sex": "M",
+      "name": "Carlos"
+    },
+    "recentHistory": {
+      "weeksOfData": 10,
+      "avgHoursPerWeekLast4": 6.5,
+      "ctl": 58,
+      "atl": 62,
+      "tsb": -4
+    }
+  }
+}

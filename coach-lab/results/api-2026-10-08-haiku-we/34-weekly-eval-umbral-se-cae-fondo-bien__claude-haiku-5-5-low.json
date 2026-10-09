@@ -1,0 +1,227 @@
+{
+  "id": "34-weekly-eval-umbral-se-cae-fondo-bien",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 31,
+  "cost": 0.00358,
+  "coldCost": 0.005351,
+  "usage": {
+    "input_tokens": 2460,
+    "output_tokens": 6359,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "maintain",
+    "reasoning": "Diego cumplió 93 % del TSS planeado (372 de 400) y completó las cuatro sesiones, pero en las dos de umbral el RPE fue 9 y la potencia se le cayó en la tercera serie, con 7 disparos de ERG desenganchado. Eso es una señal de que el estímulo nuevo todavía le cuesta, así que repetimos la semana con los bloques de umbral bajados a 93 % del FTP, unos 4 puntos. Su FTP de 255 W viene de un test de 20 min reciente y no lo cambiamos: el ajuste está en los bloques, no en el número. El volumen de la semana baja porque el tope de 90 min limita la sesión larga; no es un recorte por fatiga. Diego, la prioridad de la semana es terminar la última serie con la potencia intacta, no sumar TSS.",
+    "contradictionFlag": "El TSS logrado (93 %) sugiere que la semana fue bien, pero la nota y el RPE 9 en umbral indican que no sostuvo la potencia; me quedo con la nota porque es evidencia directa de fatiga o de un FTP de trabajo algo alto para esos bloques.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Umbral 4×8",
+        "dayOfWeek": "tue",
+        "targetTSS": 68,
+        "erg": "on",
+        "intent": "Cuatro series de 8 min al 93 % con 4 min suaves entre ellas. El ERG va prendido para que la potencia sea la misma en la última serie que en la primera. Si en la tercera ves que no sostienes el 93 %, baja a 91 % en la cuarta en vez de pelearla; el objetivo es terminar las cuatro.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 900,
+                "power_pct": 55,
+                "ramp_to_pct": 75
+              }
+            ]
+          },
+          {
+            "repeat": 4,
+            "steps": [
+              {
+                "name": "Umbral",
+                "type": "interval",
+                "duration_s": 480,
+                "power_pct": 93
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 240,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo 75",
+        "dayOfWeek": "thu",
+        "targetTSS": 55,
+        "erg": "on",
+        "intent": "Rodada de fondo a potencia constante, conversacional. Debes poder hablar en frases completas durante todo el bloque y la FC no debería subir en la segunda mitad; si sube, baja un poco la potencia.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 3300,
+                "power_pct": 67
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 480,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Umbral 3×10",
+        "dayOfWeek": "sat",
+        "targetTSS": 68,
+        "erg": "on",
+        "intent": "Tres bloques de 10 min al 93 % con 5 min suaves entre ellos. Entra al primero con sensación contenida, con RPE 7 y no 8; el tercero es el que decide si el bloque está bien dosificado.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 900,
+                "power_pct": 55,
+                "ramp_to_pct": 75
+              }
+            ]
+          },
+          {
+            "repeat": 3,
+            "steps": [
+              {
+                "name": "Umbral",
+                "type": "interval",
+                "duration_s": 600,
+                "power_pct": 93
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 300,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo largo",
+        "dayOfWeek": "sun",
+        "targetTSS": 67,
+        "erg": "on",
+        "intent": "Rodada larga con bloques de tempo al 80 % alternados con fondo suave. Es esfuerzo sostenido y controlado, a RPE 5-6, sin subir el tempo aunque te sientas bien en el segundo bloque. La sesión llega al tope de 90 min, no lo pases.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 3,
+            "steps": [
+              {
+                "name": "Tempo",
+                "type": "steady",
+                "duration_s": 900,
+                "power_pct": 80
+              },
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 300,
+                "power_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "keep",
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"maintain\",\"reasoning\":\"Diego cumplió 93 % del TSS planeado (372 de 400) y completó las cuatro sesiones, pero en las dos de umbral el RPE fue 9 y la potencia se le cayó en la tercera serie, con 7 disparos de ERG desenganchado. Eso es una señal de que el estímulo nuevo todavía le cuesta, así que repetimos la semana con los bloques de umbral bajados a 93 % del FTP, unos 4 puntos. Su FTP de 255 W viene de un test de 20 min reciente y no lo cambiamos: el ajuste está en los bloques, no en el número. El volumen de la semana baja porque el tope de 90 min limita la sesión larga; no es un recorte por fatiga. Diego, la prioridad de la semana es terminar la última serie con la potencia intacta, no sumar TSS.\",\"contradictionFlag\":\"El TSS logrado (93 %) sugiere que la semana fue bien, pero la nota y el RPE 9 en umbral indican que no sostuvo la potencia; me quedo con la nota porque es evidencia directa de fatiga o de un FTP de trabajo algo alto para esos bloques.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Umbral 4×8\",\"dayOfWeek\":\"tue\",\"targetTSS\":68,\"erg\":\"on\",\"intent\":\"Cuatro series de 8 min al 93 % con 4 min suaves entre ellas. El ERG va prendido para que la potencia sea la misma en la última serie que en la primera. Si en la tercera ves que no sostienes el 93 %, baja a 91 % en la cuarta en vez de pelearla; el objetivo es terminar las cuatro.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":900,\"power_pct\":55,\"ramp_to_pct\":75}]},{\"repeat\":4,\"steps\":[{\"name\":\"Umbral\",\"type\":\"interval\",\"duration_s\":480,\"power_pct\":93},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":240,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo 75\",\"dayOfWeek\":\"thu\",\"targetTSS\":55,\"erg\":\"on\",\"intent\":\"Rodada de fondo a potencia constante, conversacional. Debes poder hablar en frases completas durante todo el bloque y la FC no debería subir en la segunda mitad; si sube, baja un poco la potencia.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3300,\"power_pct\":67}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":480,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Umbral 3×10\",\"dayOfWeek\":\"sat\",\"targetTSS\":68,\"erg\":\"on\",\"intent\":\"Tres bloques de 10 min al 93 % con 5 min suaves entre ellos. Entra al primero con sensación contenida, con RPE 7 y no 8; el tercero es el que decide si el bloque está bien dosificado.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":900,\"power_pct\":55,\"ramp_to_pct\":75}]},{\"repeat\":3,\"steps\":[{\"name\":\"Umbral\",\"type\":\"interval\",\"duration_s\":600,\"power_pct\":93},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo largo\",\"dayOfWeek\":\"sun\",\"targetTSS\":67,\"erg\":\"on\",\"intent\":\"Rodada larga con bloques de tempo al 80 % alternados con fondo suave. Es esfuerzo sostenido y controlado, a RPE 5-6, sin subir el tempo aunque te sientas bien en el segundo bloque. La sesión llega al tope de 90 min, no lo pases.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":3,\"steps\":[{\"name\":\"Tempo\",\"type\":\"steady\",\"duration_s\":900,\"power_pct\":80},{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":300,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":\"keep\",\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

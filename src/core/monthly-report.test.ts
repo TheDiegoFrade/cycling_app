@@ -188,6 +188,8 @@ describe('contexto para la IA', () => {
     expect(ctx.missedDays).toBe(1);
     expect(ctx.aerobic.find((a) => a.decouplingPct !== null)?.decouplingPct).toBe(4.3);
     expect(ctx.coachDraft).toBe('Buen mes');
+    expect(ctx.weeks[0].label).toBe('semana del 31 ago'); // el 1 de septiembre de 2026 es martes
+    expect(JSON.stringify(ctx)).not.toMatch(/"S\d{2}"/);
     expect(JSON.stringify(ctx)).not.toContain('Secreta');
   });
 });

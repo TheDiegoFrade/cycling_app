@@ -1,0 +1,186 @@
+{
+  "id": "30-weekly-eval-provisional-con-campos-de-ftp",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 20.4,
+  "cost": 0.002472,
+  "coldCost": 0.004244,
+  "usage": {
+    "input_tokens": 2101,
+    "output_tokens": 4216,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "progress",
+    "reasoning": "Lucía, cumpliste 92 de 95 TSS planeado (97 %), sin señales de fatiga, y tu nota es positiva: sube una variable, un 10 % de TSS. Como llegaste al escalón del 90 % hablando sin problema, el provisional de 90 W está bajo; lo subimos un 11 % a 100 W. Eso significa que los mismos porcentajes pasan a ser watts más altos, así que las sesiones dejan de sentirse fáciles sin cambiar el plan. Cambia el FTP de tu perfil a 100 W. El test de rampa sigue previsto para la semana 5, cuando tolere 3 sesiones semanales sin fatiga.",
+    "contradictionFlag": null,
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo con calentamiento",
+        "dayOfWeek": "mon",
+        "targetTSS": 30,
+        "erg": "on",
+        "intent": "Rodada de fondo a ritmo conversacional. Sube suave en el calentamiento y mantén el bloque al 68 % sin subir el pulso. Si no puedes hablar en frases completas, baja un poco la potencia.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 1800,
+                "power_pct": 68
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Tempo corto",
+        "dayOfWeek": "wed",
+        "targetTSS": 40,
+        "erg": "on",
+        "intent": "Dos bloques de 8 minutos al 80 % con 4 minutos suaves entre ellos. Es tu primer trabajo de tempo: mantén el ritmo estable y sin picos. Deberías notar respiración más marcada, RPE 5-6, pero aún puedes decir frases cortas.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 2,
+            "steps": [
+              {
+                "name": "Tempo",
+                "type": "steady",
+                "duration_s": 480,
+                "power_pct": 80
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 240,
+                "power_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 600,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo largo",
+        "dayOfWeek": "sat",
+        "targetTSS": 32,
+        "erg": "on",
+        "intent": "Tu sesión de fondo de la semana: 30 minutos constantes al 65 %, sin acelerar al final. Lo importante es que aguantes con facilidad y sin que el pulso suba. Respira tranquila y mantén RPE 3-4.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 1800,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "change",
+    "suggestedFtp": 100,
+    "nextTest": {
+      "weekIndex": 5,
+      "type": "ramp",
+      "reason": "Mantengo la rampa en la semana 5 si tolera 3 sesiones por semana sin fatiga y el FTP de 100 W se confirma en las semanas siguientes."
+    },
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"progress\",\"reasoning\":\"Lucía, cumpliste 92 de 95 TSS planeado (97 %), sin señales de fatiga, y tu nota es positiva: sube una variable, un 10 % de TSS. Como llegaste al escalón del 90 % hablando sin problema, el provisional de 90 W está bajo; lo subimos un 11 % a 100 W. Eso significa que los mismos porcentajes pasan a ser watts más altos, así que las sesiones dejan de sentirse fáciles sin cambiar el plan. Cambia el FTP de tu perfil a 100 W. El test de rampa sigue previsto para la semana 5, cuando tolere 3 sesiones semanales sin fatiga.\",\"contradictionFlag\":null,\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo con calentamiento\",\"dayOfWeek\":\"mon\",\"targetTSS\":30,\"erg\":\"on\",\"intent\":\"Rodada de fondo a ritmo conversacional. Sube suave en el calentamiento y mantén el bloque al 68 % sin subir el pulso. Si no puedes hablar en frases completas, baja un poco la potencia.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":68}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Tempo corto\",\"dayOfWeek\":\"wed\",\"targetTSS\":40,\"erg\":\"on\",\"intent\":\"Dos bloques de 8 minutos al 80 % con 4 minutos suaves entre ellos. Es tu primer trabajo de tempo: mantén el ritmo estable y sin picos. Deberías notar respiración más marcada, RPE 5-6, pero aún puedes decir frases cortas.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65}]},{\"repeat\":2,\"steps\":[{\"name\":\"Tempo\",\"type\":\"steady\",\"duration_s\":480,\"power_pct\":80},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":240,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":600,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo largo\",\"dayOfWeek\":\"sat\",\"targetTSS\":32,\"erg\":\"on\",\"intent\":\"Tu sesión de fondo de la semana: 30 minutos constantes al 65 %, sin acelerar al final. Lo importante es que aguantes con facilidad y sin que el pulso suba. Respira tranquila y mantén RPE 3-4.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":\"change\",\"suggestedFtp\":100,\"nextTest\":{\"weekIndex\":5,\"type\":\"ramp\",\"reason\":\"Mantengo la rampa en la semana 5 si tolera 3 sesiones por semana sin fatiga y el FTP de 100 W se confirma en las semanas siguientes.\"},\"notesUpdate\":null}"
+}

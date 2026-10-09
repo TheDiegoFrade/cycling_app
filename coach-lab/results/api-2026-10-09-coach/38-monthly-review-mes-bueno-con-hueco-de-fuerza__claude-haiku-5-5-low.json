@@ -1,0 +1,67 @@
+{
+  "id": "38-monthly-review-mes-bueno-con-hueco-de-fuerza",
+  "mode": "monthly_review",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 6.4,
+  "cost": 0.000884,
+  "coldCost": 0.002526,
+  "usage": {
+    "input_tokens": 2161,
+    "output_tokens": 1051,
+    "cache_read_input_tokens": 14276,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "verdict": "on_track",
+    "findings": [
+      {
+        "tone": "good",
+        "title": "Carga y fitness al alza.",
+        "body": "Sumaste 26 h y 1640 TSS (frente a 24 h y 1520 TSS del mes anterior), y el CTL subió de 56 a 64, unos 8 puntos en el mes, dentro de un ritmo sano."
+      },
+      {
+        "tone": "good",
+        "title": "Cumplimiento muy bueno.",
+        "body": "Completaste 20 de 22 sesiones planeadas (91 %), frente al 88 % del mes anterior."
+      },
+      {
+        "tone": "good",
+        "title": "Base aeróbica sólida.",
+        "body": "El desacople se mantuvo entre 3,2 % y 3,9 % (menos de 5 %) y la EF subió de 1,42 a 1,47 a lo largo del mes en sesiones comparables."
+      },
+      {
+        "tone": "good",
+        "title": "Umbral con buena respuesta.",
+        "body": "La sesión de umbral 2×20 del 20 de septiembre salió a 209 W de NP con RPE 8 y el segundo bloque más fuerte que el primero; el 20 min subió de 205 a 214 W."
+      },
+      {
+        "tone": "warn",
+        "title": "Fuerza casi sin hacer.",
+        "body": "Completaste 2 de 8 sesiones de fuerza planeadas, mientras que la movilidad se cumplió casi entera (7 de 8)."
+      }
+    ],
+    "message": "Sofía, este mes salió muy bien: 26 horas, 1640 de carga y 20 de 22 sesiones hechas. Tu fitness subió de 56 a 64 y tu base aeróbica se nota en la EF, que pasó de 1,42 a 1,47. La sesión de umbral del día 20 fue una de las mejores del mes, con el segundo bloque más fuerte que el primero.\n\nLo que hay que mejorar es la fuerza: solo hiciste 2 de 8 sesiones. Para la lumbar y para ganar potencia en las subidas de XCO, la fuerza a cadencia baja tiene que volver al plan, y con cuidado porque tu molestia aparece en sesiones largas.\n\nPara noviembre seguimos sumando con cabeza: sin pasar de 75 minutos en las sesiones largas y cuidando la recuperación.",
+    "goals": [
+      {
+        "title": "Completar al menos 6 de 8 sesiones de fuerza en octubre.",
+        "detail": "Fuerza a cadencia baja, en sesiones de 60 min o menos, para proteger la zona lumbar y sostener la potencia en subidas."
+      },
+      {
+        "title": "Mantener el cumplimiento por encima de 85 % con CTL subiendo 3-5 puntos por semana.",
+        "detail": "Se mide con sesiones hechas frente a planeadas y con el CTL al cierre de octubre, sin bajar de 80."
+      },
+      {
+        "title": "Subir el 20 min por encima de 214 W en un test o bloque libre.",
+        "detail": "Medido con el mejor 20 min del mes, con el ERG apagado y sin pasar de 75 min en la sesión."
+      }
+    ],
+    "notesUpdate": null
+  },
+  "raw": "{\"verdict\":\"on_track\",\"findings\":[{\"tone\":\"good\",\"title\":\"Carga y fitness al alza.\",\"body\":\"Sumaste 26 h y 1640 TSS (frente a 24 h y 1520 TSS del mes anterior), y el CTL subió de 56 a 64, unos 8 puntos en el mes, dentro de un ritmo sano.\"},{\"tone\":\"good\",\"title\":\"Cumplimiento muy bueno.\",\"body\":\"Completaste 20 de 22 sesiones planeadas (91 %), frente al 88 % del mes anterior.\"},{\"tone\":\"good\",\"title\":\"Base aeróbica sólida.\",\"body\":\"El desacople se mantuvo entre 3,2 % y 3,9 % (menos de 5 %) y la EF subió de 1,42 a 1,47 a lo largo del mes en sesiones comparables.\"},{\"tone\":\"good\",\"title\":\"Umbral con buena respuesta.\",\"body\":\"La sesión de umbral 2×20 del 20 de septiembre salió a 209 W de NP con RPE 8 y el segundo bloque más fuerte que el primero; el 20 min subió de 205 a 214 W.\"},{\"tone\":\"warn\",\"title\":\"Fuerza casi sin hacer.\",\"body\":\"Completaste 2 de 8 sesiones de fuerza planeadas, mientras que la movilidad se cumplió casi entera (7 de 8).\"}],\"message\":\"Sofía, este mes salió muy bien: 26 horas, 1640 de carga y 20 de 22 sesiones hechas. Tu fitness subió de 56 a 64 y tu base aeróbica se nota en la EF, que pasó de 1,42 a 1,47. La sesión de umbral del día 20 fue una de las mejores del mes, con el segundo bloque más fuerte que el primero.\\n\\nLo que hay que mejorar es la fuerza: solo hiciste 2 de 8 sesiones. Para la lumbar y para ganar potencia en las subidas de XCO, la fuerza a cadencia baja tiene que volver al plan, y con cuidado porque tu molestia aparece en sesiones largas.\\n\\nPara noviembre seguimos sumando con cabeza: sin pasar de 75 minutos en las sesiones largas y cuidando la recuperación.\",\"goals\":[{\"title\":\"Completar al menos 6 de 8 sesiones de fuerza en octubre.\",\"detail\":\"Fuerza a cadencia baja, en sesiones de 60 min o menos, para proteger la zona lumbar y sostener la potencia en subidas.\"},{\"title\":\"Mantener el cumplimiento por encima de 85 % con CTL subiendo 3-5 puntos por semana.\",\"detail\":\"Se mide con sesiones hechas frente a planeadas y con el CTL al cierre de octubre, sin bajar de 80.\"},{\"title\":\"Subir el 20 min por encima de 214 W en un test o bloque libre.\",\"detail\":\"Medido con el mejor 20 min del mes, con el ERG apagado y sin pasar de 75 min en la sesión.\"}],\"notesUpdate\":null}"
+}

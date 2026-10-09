@@ -2,6 +2,7 @@ import { supabase } from '../../supabase/client';
 import { disconnectStrava, getStravaConnection, isStravaConfigured, redirectToStravaAuthorize } from '../../sync/strava';
 import type { StravaConnection } from '../../sync/strava';
 import type { Profile } from '../../core/types';
+import { ageFromBirthDate, ftpSourceOf, isMeasuredFtp, withFtp } from '../../core/coach-profile';
 import { ZONE_NAMES } from '../../core/zones';
 import type { PowerZone } from '../../core/zones';
 import { beeper } from '../audio';
@@ -12,6 +13,7 @@ import { COACH_TIER_LABELS } from '../../core/coach-invite';
 import { endMyCoachLink } from '../../sync/coach-link';
 import { wireDatePicker } from '../date-picker';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
+import { deleteMyNotes, fetchAthleteNotes } from '../../sync/athlete-notes';
 
 const SOUNDS = [
   { id: 'tick', label: 'Cuenta regresiva' },
@@ -44,17 +46,46 @@ function switchHtml(id: string, checked: boolean): string {
   return `<button class="switch${checked ? ' on' : ''}" role="switch" aria-pressed="${checked}" data-switch="${id}"></button>`;
 }
 
-/** Edad calculada a partir de birth_date, solo como referencia junto al
- * campo — no se guarda como número aparte para no tener que actualizarla
- * cada año. */
-function ageFromBirthDate(birthDate: string): number | null {
-  const parsed = new Date(birthDate);
-  if (Number.isNaN(parsed.getTime())) return null;
-  const now = new Date();
-  let age = now.getFullYear() - parsed.getFullYear();
-  const beforeBirthdayThisYear = now.getMonth() < parsed.getMonth() || (now.getMonth() === parsed.getMonth() && now.getDate() < parsed.getDate());
-  if (beforeBirthdayThisYear) age--;
-  return age;
+/** Tu expediente (athlete_notes): lo que el coach de IA sabe de ti. Solo
+ * aparece si existe; el atleta lo puede borrar, no editar (lo escribe su
+ * coach o la IA). */
+async function paintNotesInto(slot: HTMLElement | null): Promise<void> {
+  if (!slot || !appState.user) return;
+  const userId = appState.user.id;
+  const notes = await fetchAthleteNotes(userId).catch(() => null);
+  if (!notes || !slot.isConnected) return;
+  slot.innerHTML = `
+    <div class="panel perfil-panel">
+      <h2 class="perfil-h2">Tu expediente</h2>
+      <p class="hint" style="margin:0 0 8px">Lo que el coach de IA tiene en cuenta de ti en tus planes. ${notes.updatedBy === 'ai' ? 'Lo escribió la IA con lo que ha visto de tus semanas.' : 'Lo escribió tu coach.'}</p>
+      <p style="white-space:pre-wrap;margin:0 0 10px">${escapeHtml(notes.body)}</p>
+      <button type="button" class="perfil-danger-link" id="profile-notes-delete">Borrar mi expediente</button>
+    </div>`;
+  slot.querySelector('#profile-notes-delete')?.addEventListener('click', async () => {
+    if (!window.confirm('¿Borrar tu expediente? El coach de IA deja de tenerlo en cuenta (y puede volver a escribirlo más adelante).')) return;
+    try {
+      await deleteMyNotes(userId);
+      slot.innerHTML = '';
+    } catch {
+      slot.querySelector('.hint')!.textContent = 'No se pudo borrar. Intenta de nuevo.';
+    }
+  });
+}
+
+/** De dónde salió el FTP, debajo del campo. */
+function ftpHint(p: Profile): string {
+  switch (ftpSourceOf(p)) {
+    case 'default':
+      return 'Valor de fábrica: ponle tu número o uno provisional';
+    case 'provisional':
+      return 'Provisional: se afina con tus sesiones';
+    case 'test_ramp':
+      return 'De tu test de rampa';
+    case 'test_20min':
+      return 'De tu test de 20 min';
+    default:
+      return 'Actualízalo después de cada test';
+  }
 }
 
 type AlertRow = {
@@ -111,15 +142,20 @@ export function renderPerfil(container: HTMLElement): void {
                   </select>
                 </label>
               </div>
-              ${appState.profile.birth_date && ageFromBirthDate(appState.profile.birth_date) !== null ? `<p class="hint" style="margin:6px 0 0">${ageFromBirthDate(appState.profile.birth_date)} años</p>` : ''}
+              ${ageFromBirthDate(appState.profile.birth_date) !== null ? `<p class="hint" style="margin:6px 0 0">${ageFromBirthDate(appState.profile.birth_date)} años</p>` : ''}
             </div>
 
             <div class="panel perfil-panel">
               <h2 class="perfil-h2">Tus números</h2>
               <div class="perfil-numbers">
-                <label class="perfil-numfield"><span class="live-col-label">FTP</span><span class="perfil-numfield-row"><input type="number" data-profile-field="ftp" value="${appState.profile.ftp}" aria-label="FTP en watts" class="perfil-numinput"><span class="live-col-label">W</span></span><span class="perfil-numfield-hint">Actualízalo después de cada test</span></label>
+                <label class="perfil-numfield"><span class="live-col-label">FTP</span><span class="perfil-numfield-row"><input type="number" data-profile-field="ftp" value="${appState.profile.ftp}" aria-label="FTP en watts" class="perfil-numinput"><span class="live-col-label">W</span></span><span class="perfil-numfield-hint">${ftpHint(appState.profile)}</span></label>
                 <label class="perfil-numfield"><span class="live-col-label">Pulso máximo</span><span class="perfil-numfield-row"><input type="number" data-profile-field="hr_max" value="${appState.profile.hr_max}" aria-label="Pulso máximo" class="perfil-numinput"><span class="live-col-label">lpm</span></span><span class="perfil-numfield-hint">Tu máximo real, no el de una sesión</span></label>
               </div>
+              <label class="ob-toggle" style="margin-bottom:14px">
+                <span class="ob-toggle-text"><span class="ob-toggle-title">Mi FTP es provisional</span><span class="ob-toggle-desc">Todavía no hago un test: el coach lo toma como punto de partida y te dice cuándo ajustarlo.</span></span>
+                <input type="checkbox" id="profile-ftp-provisional" class="ob-switch-input" ${isMeasuredFtp(ftpSourceOf(appState.profile)) ? '' : 'checked'}>
+                <span class="ob-switch" aria-hidden="true"></span>
+              </label>
               <div>
                 <div class="live-col-label" style="margin-bottom:8px">Tus zonas de potencia con FTP ${appState.profile.ftp}</div>
                 <div class="perfil-zones">
@@ -139,6 +175,8 @@ export function renderPerfil(container: HTMLElement): void {
               }</p>
               <button class="btn-light" id="profile-open-onboarding">${isCoachProfileComplete(appState.profile) ? 'Editar cuestionario' : 'Contestar cuestionario'}</button>
             </div>
+
+            <div id="profile-notes-slot"></div>
 
             <div class="panel perfil-panel">
               <h2 class="perfil-h2">Alertas</h2>
@@ -191,7 +229,12 @@ export function renderPerfil(container: HTMLElement): void {
               <a href="#/review" class="perfil-coach-reports">Reportes mensuales de tu coach →</a>
               <div id="coach-unlink-result"></div>
             </div>`
-                : ''
+                : `
+            <div class="panel perfil-panel">
+              <h2 class="perfil-h2">Tus reportes</h2>
+              <div class="perfil-alert-hint">Cada mes el coach de Torq revisa tu mes: tus números, lo que vio y el enfoque para el siguiente. También te llega por correo.</div>
+              <a href="#/review" class="perfil-coach-reports">Reportes mensuales →</a>
+            </div>`
             }
 
             <div class="panel perfil-panel">
@@ -251,12 +294,28 @@ export function renderPerfil(container: HTMLElement): void {
       input.addEventListener('change', () => {
         const key = input.dataset.profileField as keyof Profile;
         const value = Number(input.value);
+        if (key === 'ftp' && Number.isFinite(value) && value > 0) {
+          const provisional = container.querySelector<HTMLInputElement>('#profile-ftp-provisional')?.checked ?? false;
+          appState.profile = withFtp(appState.profile, value, provisional ? 'provisional' : 'manual');
+          appState.persistProfile();
+          paint();
+          return;
+        }
         if (Number.isFinite(value)) {
           appState.profile = { ...appState.profile, [key]: value };
           appState.persistProfile();
           if (key === 'ftp') paint();
         }
       });
+    });
+
+    // Marcar/desmarcar sin cambiar el número: "este FTP es mío" o "es un
+    // punto de partida". Lo que el coach recibe depende de esto.
+    container.querySelector<HTMLInputElement>('#profile-ftp-provisional')?.addEventListener('change', (e) => {
+      const provisional = (e.target as HTMLInputElement).checked;
+      appState.profile = withFtp(appState.profile, appState.profile.ftp, provisional ? 'provisional' : 'manual');
+      appState.persistProfile();
+      paint();
     });
 
     container.querySelector<HTMLInputElement>('#profile-name')?.addEventListener('change', (e) => {
@@ -297,6 +356,8 @@ export function renderPerfil(container: HTMLElement): void {
 
     // allowSkip:true — a diferencia de la primera vez (antes de "Crear mi
     // plan", donde es obligatorio), acá es revisión/edición libre.
+    void paintNotesInto(container.querySelector<HTMLElement>('#profile-notes-slot'));
+
     container.querySelector('#profile-open-onboarding')?.addEventListener('click', () => {
       openOnboardingForm(() => paint(), true);
     });

@@ -1,0 +1,50 @@
+{
+  "id": "17-create-plan-tope-90-y-horas-que-no-caben",
+  "mode": "create_plan",
+  "title": "10 h en 4 días con tope de minutos null y una fecha ocupada",
+  "expect": [
+    "Ningún workout suma más de 5400 s (duration_s × repeat de todos los segmentos).",
+    "Ningún workout cae en sábado 17 de octubre (semana 0, dayOfWeek sat).",
+    "Solo usa tue, thu, sat y sun.",
+    "targetHoursPerWeek de cada bloque ≤ 6 (4 días × 90 min) y coachNote explica que 10 h no caben en 4 días de rodillo.",
+    "Semana 1 ≈ 4.5-5 h (parte de lo que ya hace), no 6 h de golpe.",
+    "Usa el FTP 248 sin test en la semana 1; el retest queda al abrir el segundo bloque.",
+    "Los bloques se cuentan hacia atrás desde el 28 de febrero y terminan en una semana de descarga."
+  ],
+  "context": {
+    "startDate": "2026-10-12",
+    "goal": "Gran fondo de 160 km el 28 de febrero. Quiero aprovechar mis 10 horas a la semana.",
+    "experienceLevel": "experienced",
+    "generalFitnessLevel": "active_cyclist",
+    "discipline": "road",
+    "yearsRiding": 5,
+    "competes": false,
+    "category": null,
+    "availability": {
+      "hoursPerWeek": 10,
+      "days": [
+        "tue",
+        "thu",
+        "sat",
+        "sun"
+      ],
+      "maxSessionMinutes": null
+    },
+    "occupiedDates": [
+      "2026-10-17"
+    ],
+    "profile": {
+      "ftp": 248,
+      "hr_max": 181,
+      "sex": "M",
+      "name": "Javier"
+    },
+    "recentHistory": {
+      "weeksOfData": 9,
+      "avgHoursPerWeekLast4": 4.5,
+      "ctl": 46,
+      "atl": 50,
+      "tsb": -4
+    }
+  }
+}

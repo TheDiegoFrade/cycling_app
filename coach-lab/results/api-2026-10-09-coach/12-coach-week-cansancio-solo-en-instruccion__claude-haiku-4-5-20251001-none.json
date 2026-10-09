@@ -1,0 +1,115 @@
+{
+  "id": "12-coach-week-cansancio-solo-en-instruccion",
+  "mode": "coach_week",
+  "config": "claude-haiku-4-5-20251001-none",
+  "ok": true,
+  "seconds": 15.3,
+  "cost": 0.009583,
+  "coldCost": 0.022683,
+  "usage": {
+    "input_tokens": 3534,
+    "output_tokens": 982,
+    "cache_read_input_tokens": 11391,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Descarga: el coach reporta mal sueño y agotamiento durante toda la semana; TSB está en −5 (límite de CUIDADO), pero la instrucción clásica de fatiga acumulada manda descarga.",
+      "Carga de bici: semana con máximo 4 sesiones, todas a 75 % o menos, ≤60 % de su promedio reciente (~300 TSS × 60 % = 180 TSS). Plan: ~155 TSS de bici.",
+      "Lunes bloqueado: Fondo 60 (44 TSS) ya cuenta. De biblioteca, Recuperación 40 (20 TSS) para martes y jueves; Fondo 60 (42 TSS) para miércoles; descanso sábado y domingo, o una sesión muy suave el fin de semana si el estado mejora.",
+      "Sin sesiones duras: nada por encima de 75 % de FTP durante esta semana de absorción; prioridad es que duerma mejor y llegue fresco al siguiente bloque."
+    ],
+    "workouts": [
+      {
+        "name": "Recuperación 40",
+        "description": "Pedalea suave sin prisa, cadencia libre. 40 minutos al 50 % de tu FTP es movimiento puro: tu sistema nervioso descansa, las piernas se activan sin estrés y el pulso baja. Ideal para la mañana o entre otras cosas. Puedes hablar sin agobio; si no, ve más suave aún.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 300,
+            "power_pct": 50
+          },
+          {
+            "name": "Fondo suave",
+            "type": "steady",
+            "duration_s": 2000,
+            "power_pct": 50
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 400,
+            "power_pct": 45
+          }
+        ],
+        "targetTSS": 20,
+        "dayOfWeek": "tue",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      },
+      {
+        "name": "Fondo 60",
+        "description": "Una hora tranquila. 45 minutos al 65 % con calentamiento y enfriamiento; es lo justo para mantener el flujo sin tirar de reservas. Sensación: ritmo de conversación, las piernas acompañan. ERG prendido si lo usas habitualmente; si no, déjate guiar por poder hablar en frases completas.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 600,
+            "power_pct": 50
+          },
+          {
+            "name": "Fondo moderado",
+            "type": "steady",
+            "duration_s": 2700,
+            "power_pct": 65
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 300,
+            "power_pct": 55
+          }
+        ],
+        "targetTSS": 42,
+        "dayOfWeek": "wed",
+        "fromLibraryId": "lib-fondo-60",
+        "libraryChange": null
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Otro día suave, mismo estilo que el martes. 40 minutos sin tensión, cadencia libre, respiración controlada. El objetivo es llegar al fin de semana realmente descansada.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 300,
+            "power_pct": 50
+          },
+          {
+            "name": "Fondo suave",
+            "type": "steady",
+            "duration_s": 2000,
+            "power_pct": 50
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 400,
+            "power_pct": 45
+          }
+        ],
+        "targetTSS": 20,
+        "dayOfWeek": "thu",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\": [\"Descarga: el coach reporta mal sueño y agotamiento durante toda la semana; TSB está en −5 (límite de CUIDADO), pero la instrucción clásica de fatiga acumulada manda descarga.\", \"Carga de bici: semana con máximo 4 sesiones, todas a 75 % o menos, ≤60 % de su promedio reciente (~300 TSS × 60 % = 180 TSS). Plan: ~155 TSS de bici.\", \"Lunes bloqueado: Fondo 60 (44 TSS) ya cuenta. De biblioteca, Recuperación 40 (20 TSS) para martes y jueves; Fondo 60 (42 TSS) para miércoles; descanso sábado y domingo, o una sesión muy suave el fin de semana si el estado mejora.\", \"Sin sesiones duras: nada por encima de 75 % de FTP durante esta semana de absorción; prioridad es que duerma mejor y llegue fresco al siguiente bloque.\"], \"workouts\": [{\"name\": \"Recuperación 40\", \"description\": \"Pedalea suave sin prisa, cadencia libre. 40 minutos al 50 % de tu FTP es movimiento puro: tu sistema nervioso descansa, las piernas se activan sin estrés y el pulso baja. Ideal para la mañana o entre otras cosas. Puedes hablar sin agobio; si no, ve más suave aún.\", \"intervals\": [{\"name\": \"Calentamiento\", \"type\": \"warmup\", \"duration_s\": 300, \"power_pct\": 50}, {\"name\": \"Fondo suave\", \"type\": \"steady\", \"duration_s\": 2000, \"power_pct\": 50}, {\"name\": \"Enfriamiento\", \"type\": \"cooldown\", \"duration_s\": 400, \"power_pct\": 45}], \"targetTSS\": 20, \"dayOfWeek\": \"tue\", \"fromLibraryId\": \"lib-recup-40\", \"libraryChange\": null}, {\"name\": \"Fondo 60\", \"description\": \"Una hora tranquila. 45 minutos al 65 % con calentamiento y enfriamiento; es lo justo para mantener el flujo sin tirar de reservas. Sensación: ritmo de conversación, las piernas acompañan. ERG prendido si lo usas habitualmente; si no, déjate guiar por poder hablar en frases completas.\", \"intervals\": [{\"name\": \"Calentamiento\", \"type\": \"warmup\", \"duration_s\": 600, \"power_pct\": 50}, {\"name\": \"Fondo moderado\", \"type\": \"steady\", \"duration_s\": 2700, \"power_pct\": 65}, {\"name\": \"Enfriamiento\", \"type\": \"cooldown\", \"duration_s\": 300, \"power_pct\": 55}], \"targetTSS\": 42, \"dayOfWeek\": \"wed\", \"fromLibraryId\": \"lib-fondo-60\", \"libraryChange\": null}, {\"name\": \"Recuperación 40\", \"description\": \"Otro día suave, mismo estilo que el martes. 40 minutos sin tensión, cadencia libre, respiración controlada. El objetivo es llegar al fin de semana realmente descansada.\", \"intervals\": [{\"name\": \"Calentamiento\", \"type\": \"warmup\", \"duration_s\": 300, \"power_pct\": 50}, {\"name\": \"Fondo suave\", \"type\": \"steady\", \"duration_s\": 2000, \"power_pct\": 50}, {\"name\": \"Enfriamiento\", \"type\": \"cooldown\", \"duration_s\": 400, \"power_pct\": 45}], \"targetTSS\": 20, \"dayOfWeek\": \"thu\", \"fromLibraryId\": \"lib-recup-40\", \"libraryChange\": null}]}"
+}

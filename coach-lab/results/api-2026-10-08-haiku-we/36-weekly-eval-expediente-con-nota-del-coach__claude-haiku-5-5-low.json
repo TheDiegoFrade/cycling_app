@@ -1,0 +1,225 @@
+{
+  "id": "36-weekly-eval-expediente-con-nota-del-coach",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 34.6,
+  "cost": 0.004032,
+  "coldCost": 0.005804,
+  "usage": {
+    "input_tokens": 2564,
+    "output_tokens": 7243,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "maintain",
+    "reasoning": "Diego, cumpliste 93 % del TSS y las cuatro sesiones, pero no terminaste el umbral: se te cayó la potencia en la tercera serie con RPE 9 y el ERG se desenganchó 7 veces. Eso pesa más que el TSS, así que repito el foco sin subir carga. Bajo el umbral a 95 % (unos 3 puntos) y pido cadencia 85-90 por tu rodilla. Esta semana sumará unos 232 TSS, no 400, porque el tope de 90 min no deja meter ese volumen en cuatro días; si quieres más carga hace falta un quinto día. El FTP de 255 se mantiene: no hiciste test.",
+    "contradictionFlag": "TSS al 93 % y 4 de 4 sesiones, pero el umbral no se completó; le creo a la nota.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Umbral 4×8 (95 %)",
+        "dayOfWeek": "tue",
+        "targetTSS": 67,
+        "erg": "on",
+        "intent": "Objetivo: sostener 4 series de 8 min al 95 % de tu FTP. Mantén cadencia 85-90 en cada serie para no forzar la rodilla; si la potencia se cae, baja 2-3 puntos en la serie siguiente en vez de dejarla caer. RPE esperado 7-8, respiración entrecortada pero controlada.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 900,
+                "power_pct": 60,
+                "ramp_to_pct": 75
+              }
+            ]
+          },
+          {
+            "repeat": 4,
+            "steps": [
+              {
+                "name": "Umbral",
+                "type": "interval",
+                "duration_s": 480,
+                "power_pct": 95,
+                "cadence_min": 85,
+                "cadence_max": 95
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 240,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo 65 %",
+        "dayOfWeek": "thu",
+        "targetTSS": 45,
+        "erg": "on",
+        "intent": "Rodada de base a ritmo cómodo. Puedes hablar en frases completas durante todo el bloque; si no puedes, baja la potencia. RPE 3-4.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 3000,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Umbral 3×10 (94 %)",
+        "dayOfWeek": "sat",
+        "targetTSS": 62,
+        "erg": "on",
+        "intent": "Tres bloques de 10 min al 94 % con 4 min de recuperación suave. Cadencia 85-95 en los bloques; si la potencia se cae, termina el bloque bajando 2-3 puntos en lugar de abandonar. RPE 7-8.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 900,
+                "power_pct": 60,
+                "ramp_to_pct": 75
+              }
+            ]
+          },
+          {
+            "repeat": 3,
+            "steps": [
+              {
+                "name": "Umbral",
+                "type": "interval",
+                "duration_s": 600,
+                "power_pct": 94,
+                "cadence_min": 85,
+                "cadence_max": 95
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 240,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo largo 65 %",
+        "dayOfWeek": "sun",
+        "targetTSS": 58,
+        "erg": "on",
+        "intent": "Fondo largo sin picos, en un ritmo que sostengas platicando. Si al final sientes las piernas muy cargadas, cierra con el enfriamiento sin apretar. RPE 4-5.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 4200,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "keep",
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": "Rodilla izquierda operada en 2024: nada bajo 80 rpm en esfuerzos sobre umbral. Rinde mejor con 2 semanas de carga y 1 de descarga. Semana 2: completó 4 de 4 sesiones (93 % del TSS) pero no terminó el umbral 4×8; se le cayó la potencia en la serie 3 con RPE 9 y el ERG se desenganchó 7 veces. Se baja el umbral a 95 % con cadencia 85-90."
+  },
+  "raw": "{\"decision\":\"maintain\",\"reasoning\":\"Diego, cumpliste 93 % del TSS y las cuatro sesiones, pero no terminaste el umbral: se te cayó la potencia en la tercera serie con RPE 9 y el ERG se desenganchó 7 veces. Eso pesa más que el TSS, así que repito el foco sin subir carga. Bajo el umbral a 95 % (unos 3 puntos) y pido cadencia 85-90 por tu rodilla. Esta semana sumará unos 232 TSS, no 400, porque el tope de 90 min no deja meter ese volumen en cuatro días; si quieres más carga hace falta un quinto día. El FTP de 255 se mantiene: no hiciste test.\",\"contradictionFlag\":\"TSS al 93 % y 4 de 4 sesiones, pero el umbral no se completó; le creo a la nota.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Umbral 4×8 (95 %)\",\"dayOfWeek\":\"tue\",\"targetTSS\":67,\"erg\":\"on\",\"intent\":\"Objetivo: sostener 4 series de 8 min al 95 % de tu FTP. Mantén cadencia 85-90 en cada serie para no forzar la rodilla; si la potencia se cae, baja 2-3 puntos en la serie siguiente en vez de dejarla caer. RPE esperado 7-8, respiración entrecortada pero controlada.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":900,\"power_pct\":60,\"ramp_to_pct\":75}]},{\"repeat\":4,\"steps\":[{\"name\":\"Umbral\",\"type\":\"interval\",\"duration_s\":480,\"power_pct\":95,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":240,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo 65 %\",\"dayOfWeek\":\"thu\",\"targetTSS\":45,\"erg\":\"on\",\"intent\":\"Rodada de base a ritmo cómodo. Puedes hablar en frases completas durante todo el bloque; si no puedes, baja la potencia. RPE 3-4.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Umbral 3×10 (94 %)\",\"dayOfWeek\":\"sat\",\"targetTSS\":62,\"erg\":\"on\",\"intent\":\"Tres bloques de 10 min al 94 % con 4 min de recuperación suave. Cadencia 85-95 en los bloques; si la potencia se cae, termina el bloque bajando 2-3 puntos en lugar de abandonar. RPE 7-8.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":900,\"power_pct\":60,\"ramp_to_pct\":75}]},{\"repeat\":3,\"steps\":[{\"name\":\"Umbral\",\"type\":\"interval\",\"duration_s\":600,\"power_pct\":94,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":240,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo largo 65 %\",\"dayOfWeek\":\"sun\",\"targetTSS\":58,\"erg\":\"on\",\"intent\":\"Fondo largo sin picos, en un ritmo que sostengas platicando. Si al final sientes las piernas muy cargadas, cierra con el enfriamiento sin apretar. RPE 4-5.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":4200,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null}],\"ftpAction\":\"keep\",\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":\"Rodilla izquierda operada en 2024: nada bajo 80 rpm en esfuerzos sobre umbral. Rinde mejor con 2 semanas de carga y 1 de descarga. Semana 2: completó 4 de 4 sesiones (93 % del TSS) pero no terminó el umbral 4×8; se le cayó la potencia en la serie 3 con RPE 9 y el ERG se desenganchó 7 veces. Se baja el umbral a 95 % con cadencia 85-90.\"}"
+}

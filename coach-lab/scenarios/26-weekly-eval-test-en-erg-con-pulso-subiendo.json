@@ -1,0 +1,37 @@
+{
+  "id": "26-weekly-eval-test-en-erg-con-pulso-subiendo",
+  "mode": "weekly_eval",
+  "title": "Test de 20 min corrido en ERG con el pulso subiendo sin parar (caso real)",
+  "expect": [
+    "No acepta 162 W sin más: dice que con ERG fijo el test no midió su máximo y que el pulso subiendo 18 lpm sin aplanarse indica que 170 W está por encima de su umbral.",
+    "Le da un FTP de trabajo de alrededor de 150 W (88-90 % de 170) como estimación y le pide ponerlo en su perfil.",
+    "La semana siguiente trae bloques de 12-15 min al 90 % para confirmar (pulso estable = sirve) y el resto es base a intensidad controlada; nada de VO2.",
+    "Menciona la duda del calor o el ventilador, o la deja como pregunta, en vez de afirmar una causa.",
+    "No programa otro test máximo antes de 4 semanas; si propone repetirlo, es con ERG apagado.",
+    "Tono que reconoce el esfuerzo, sin nombre, y contesta su pregunta de frente."
+  ],
+  "context": {
+    "profile": {
+      "sex": "M",
+      "name": null
+    },
+    "maxSessionMinutes": 75,
+    "occupiedDates": [],
+    "weekJustFinished": {
+      "plannedTSS": 150,
+      "actualTSS": 141,
+      "completedWorkouts": 3,
+      "missedWorkouts": 0,
+      "ruleTriggers": [],
+      "athleteNote": "Hice el test de 20 minutos. Aguanté 170 W los 20 minutos con el ERG prendido, pero el pulso no dejó de subir: empecé en 162 y terminé en 180, y la cadencia se me fue cayendo de 78 a 72. Terminé fundido. ¿Mi FTP es 162?"
+    },
+    "pmcTrend": {
+      "ctl": 9,
+      "atl": 20,
+      "tsb": -11,
+      "ctlRampLast4Weeks": 9
+    },
+    "recentGapPattern": null,
+    "recentWeeksSummary": null
+  }
+}

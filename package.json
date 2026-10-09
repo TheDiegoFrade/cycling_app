@@ -9,9 +9,13 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "simulate": "vitest run src/engine/simulate.test.ts"
+    "build:edge": "node scripts/build-edge.mjs",
+    "simulate": "vitest run src/engine/simulate.test.ts",
+    "coach:build": "npx --yes deno@2 run --node-modules-dir=none --no-lock --allow-read --allow-write coach-lab/build.ts",
+    "coach:check": "npx --yes deno@2 run --node-modules-dir=none --no-lock --allow-read coach-lab/check.ts"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^3.2.4"

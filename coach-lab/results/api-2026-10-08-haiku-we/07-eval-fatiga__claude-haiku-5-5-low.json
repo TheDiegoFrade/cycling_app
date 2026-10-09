@@ -1,0 +1,209 @@
+{
+  "id": "07-eval-fatiga",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 17,
+  "cost": 0.002027,
+  "coldCost": 0.003798,
+  "usage": {
+    "input_tokens": 1802,
+    "output_tokens": 3385,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Diego cerró la semana con 300 de 420 TSS (71 %), 2 sesiones hechas y 2 perdidas, y reporta que se siente reventado, durmió mal toda la semana y las piernas no responden. Con TSB de -35 y esa nota, hay dos señales de fatiga a la vez, así que esta semana es de absorción: nada por encima de 75 %, sesiones de 60 min o menos, un día libre extra y unos 150 TSS. Los 6 avisos de pulso alto y 3 de cadencia baja confirman que las sesiones ya le pesaban. Bajar carga es el coach haciendo su trabajo; esta semana se trata de recuperar y el plan retoma cuando el cuerpo responda. No hay datos de FTP en este mensaje, así que mantengo el número actual y no propongo cambio ni test por ahora.",
+    "contradictionFlag": null,
+    "recurringPatternFlag": "Dos semanas seguidas con sesiones perdidas y sueño corto por trabajo: conviene revisar si la carga semanal cabe en su tiempo real antes de volver a subir.",
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo suave",
+        "dayOfWeek": "mon",
+        "targetTSS": 33,
+        "erg": "on",
+        "intent": "Rodada suave para desentumecer las piernas sin exigirlas. Mantente en RPE 3, puedes hablar en frases completas durante todo el bloque.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2100,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo con cadencia",
+        "dayOfWeek": "wed",
+        "targetTSS": 40,
+        "erg": "on",
+        "intent": "Fondo sostenido al 68 % con cadencia libre y sin prisa. Si el pulso empieza a subir sin que la potencia cambie, baja un poco; la sesión es de descanso activo.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 68
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo suave",
+        "dayOfWeek": "fri",
+        "targetTSS": 33,
+        "erg": "on",
+        "intent": "Otra rodada de fondo muy tranquila para sumar volumen sin fatiga. Respiración cómoda todo el tiempo y sin subir la potencia si te sientes cargado.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2100,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo de cierre",
+        "dayOfWeek": "sun",
+        "targetTSS": 40,
+        "erg": "on",
+        "intent": "Cierra la semana de absorción con fondo al 68 %, a sensación. Si terminas con las piernas mejor que al empezar, es buena señal; si no, avísame en tu nota.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 68
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": null,
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Diego cerró la semana con 300 de 420 TSS (71 %), 2 sesiones hechas y 2 perdidas, y reporta que se siente reventado, durmió mal toda la semana y las piernas no responden. Con TSB de -35 y esa nota, hay dos señales de fatiga a la vez, así que esta semana es de absorción: nada por encima de 75 %, sesiones de 60 min o menos, un día libre extra y unos 150 TSS. Los 6 avisos de pulso alto y 3 de cadencia baja confirman que las sesiones ya le pesaban. Bajar carga es el coach haciendo su trabajo; esta semana se trata de recuperar y el plan retoma cuando el cuerpo responda. No hay datos de FTP en este mensaje, así que mantengo el número actual y no propongo cambio ni test por ahora.\",\"contradictionFlag\":null,\"recurringPatternFlag\":\"Dos semanas seguidas con sesiones perdidas y sueño corto por trabajo: conviene revisar si la carga semanal cabe en su tiempo real antes de volver a subir.\",\"nextWeekWorkouts\":[{\"name\":\"Fondo suave\",\"dayOfWeek\":\"mon\",\"targetTSS\":33,\"erg\":\"on\",\"intent\":\"Rodada suave para desentumecer las piernas sin exigirlas. Mantente en RPE 3, puedes hablar en frases completas durante todo el bloque.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2100,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo con cadencia\",\"dayOfWeek\":\"wed\",\"targetTSS\":40,\"erg\":\"on\",\"intent\":\"Fondo sostenido al 68 % con cadencia libre y sin prisa. Si el pulso empieza a subir sin que la potencia cambie, baja un poco; la sesión es de descanso activo.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":68}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo suave\",\"dayOfWeek\":\"fri\",\"targetTSS\":33,\"erg\":\"on\",\"intent\":\"Otra rodada de fondo muy tranquila para sumar volumen sin fatiga. Respiración cómoda todo el tiempo y sin subir la potencia si te sientes cargado.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2100,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo de cierre\",\"dayOfWeek\":\"sun\",\"targetTSS\":40,\"erg\":\"on\",\"intent\":\"Cierra la semana de absorción con fondo al 68 %, a sensación. Si terminas con las piernas mejor que al empezar, es buena señal; si no, avísame en tu nota.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":68}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null}],\"ftpAction\":null,\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

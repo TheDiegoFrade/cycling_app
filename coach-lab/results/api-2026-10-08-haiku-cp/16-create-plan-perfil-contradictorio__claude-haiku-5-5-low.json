@@ -1,0 +1,554 @@
+{
+  "id": "16-create-plan-perfil-contradictorio",
+  "mode": "create_plan",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 41.5,
+  "cost": 0.005161,
+  "coldCost": 0.006951,
+  "usage": {
+    "input_tokens": 1581,
+    "output_tokens": 9694,
+    "cache_read_input_tokens": 15566,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "planName": "Arranque MTB: base y ajuste",
+    "blocks": [
+      {
+        "name": "Base y ajuste",
+        "weeks": 6,
+        "focus": "Base aeróbica y FTP medido con test de rampa",
+        "targetHoursPerWeek": 3.5
+      },
+      {
+        "name": "Construcción",
+        "weeks": 8,
+        "focus": "Sweet spot y umbral con progresión de cadencia",
+        "targetHoursPerWeek": 4.5
+      },
+      {
+        "name": "Específico MTB",
+        "weeks": 6,
+        "focus": "40:20s, over/unders y subidas sostenidas",
+        "targetHoursPerWeek": 5.5
+      },
+      {
+        "name": "Puesta a punto",
+        "weeks": 2,
+        "focus": "Descarga y frescura antes de competir",
+        "targetHoursPerWeek": 3
+      }
+    ],
+    "firstBlockWeeks": [
+      {
+        "weekIndex": 0,
+        "workouts": [
+          {
+            "name": "Escalera de ajuste",
+            "dayOfWeek": "mon",
+            "targetTSS": 22,
+            "erg": "on",
+            "intent": "Escalera submáxima con ERG: cinco escalones de 4 minutos. Sube solo mientras puedas hablar en frases completas y cuenta en tu nota hasta qué escalón llegaste cómodo. No fuerces el de 90 %.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 480,
+                    "power_pct": 40,
+                    "ramp_to_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 50",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 60",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 70",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 80",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 80
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Escalón 90",
+                    "type": "steady",
+                    "duration_s": 240,
+                    "power_pct": 90
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo base",
+            "dayOfWeek": "thu",
+            "targetTSS": 33,
+            "erg": "on",
+            "intent": "Rodada a ritmo de fondo con ERG en 60 %. Debes poder hablar en frases completas durante toda la sesión; si no puedes, baja la potencia y cuéntalo en tu nota.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2400,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 40
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Rodada de deriva",
+            "dayOfWeek": "sat",
+            "targetTSS": 34,
+            "erg": "on",
+            "intent": "Rodada de deriva a RPE 3-4 con ERG en 60 %. Al final mira tu pulso: si casi no subió en la segunda mitad, esa potencia es tu fondo real.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo constante",
+                    "type": "steady",
+                    "duration_s": 2700,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 40
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workouts": [
+          {
+            "name": "Fondo base",
+            "dayOfWeek": "mon",
+            "targetTSS": 33,
+            "erg": "on",
+            "intent": "Fondo con ERG en 60 %, conversación cómoda de principio a fin. La progresión de esta semana está en la serie del sábado, no aquí.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2400,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 40
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo base",
+            "dayOfWeek": "thu",
+            "targetTSS": 33,
+            "erg": "on",
+            "intent": "Fondo con ERG en 60 %. Mantén el pulso estable; si sube sin que cambies la potencia, avísame en tu nota.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2400,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 40
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Series cortas",
+            "dayOfWeek": "sat",
+            "targetTSS": 40,
+            "erg": "on",
+            "intent": "Primer contacto con esfuerzo más firme: 4 series de 2 min al 82 % con 3 min suaves. Sostén el bloque sin subir de RPE 6 y no pases de 85 % aunque te sientas bien.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 1200,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 4,
+                "steps": [
+                  {
+                    "name": "Tempo corto",
+                    "type": "interval",
+                    "duration_s": 120,
+                    "power_pct": 82
+                  },
+                  {
+                    "name": "Suave",
+                    "type": "recovery",
+                    "duration_s": 180,
+                    "power_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 600,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 40
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workouts": [
+          {
+            "name": "Fondo base",
+            "dayOfWeek": "mon",
+            "targetTSS": 33,
+            "erg": "on",
+            "intent": "Fondo con ERG en 60 %, conversación cómoda. Llega fresco: es la sesión previa al test.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2400,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 40
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Rodada de deriva",
+            "dayOfWeek": "thu",
+            "targetTSS": 34,
+            "erg": "on",
+            "intent": "Rodada de deriva a RPE 3-4 con ERG en 60 %. Anota la FC de la segunda mitad en tu nota: la necesito para leer el test del sábado.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo constante",
+                    "type": "steady",
+                    "duration_s": 2700,
+                    "power_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 40
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Rampa de FTP",
+            "dayOfWeek": "sat",
+            "targetTSS": 40,
+            "erg": "on",
+            "intent": "Test de rampa con ERG: el rodillo sube solo y tú pedaleas mientras sostengas la cadencia. Cuando no la sostengas, baja a pedalear suave; ahí termina el test. Descansa 48 h antes y ventila bien.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 40,
+                    "ramp_to_pct": 60
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Estabilizar",
+                    "type": "steady",
+                    "duration_s": 180,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Rampa",
+                    "type": "steady",
+                    "duration_s": 1500,
+                    "power_pct": 50,
+                    "ramp_to_pct": 200
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 40
+                  }
+                ]
+              }
+            ],
+            "kind": "test"
+          }
+        ]
+      }
+    ],
+    "coachNote": "Alex, tu perfil se contradice: tienes motor de otro deporte pero cero años sobre la bici, así que arranco como si fueras nuevo en bici y lo ajustamos con tus primeras sesiones. Pon 120 W como FTP provisional en tu perfil antes de la primera sesión: es un punto de partida, no una medición. El lunes haces la escalera y anotas en tu nota hasta qué escalón llegaste hablando. La rampa va el sábado de la semana 3 y al terminarla te diré el FTP para tu perfil. Con 3 sesiones de 60-70 min cubres lo que tu cuerpo absorbe ahora; el rodillo no entrena técnica, así que sal a rodar afuera cuando puedas.",
+    "suggestedFtp": 120,
+    "nextTest": {
+      "weekIndex": 2,
+      "type": "ramp",
+      "reason": "Sin FTP medido y con motor de otro deporte: la rampa es el test indicado y la semana 3 da tiempo a la escalera y dos semanas de fondo."
+    }
+  },
+  "raw": "{\"planName\":\"Arranque MTB: base y ajuste\",\"blocks\":[{\"name\":\"Base y ajuste\",\"weeks\":6,\"focus\":\"Base aeróbica y FTP medido con test de rampa\",\"targetHoursPerWeek\":3.5},{\"name\":\"Construcción\",\"weeks\":8,\"focus\":\"Sweet spot y umbral con progresión de cadencia\",\"targetHoursPerWeek\":4.5},{\"name\":\"Específico MTB\",\"weeks\":6,\"focus\":\"40:20s, over/unders y subidas sostenidas\",\"targetHoursPerWeek\":5.5},{\"name\":\"Puesta a punto\",\"weeks\":2,\"focus\":\"Descarga y frescura antes de competir\",\"targetHoursPerWeek\":3}],\"firstBlockWeeks\":[{\"weekIndex\":0,\"workouts\":[{\"name\":\"Escalera de ajuste\",\"dayOfWeek\":\"mon\",\"targetTSS\":22,\"erg\":\"on\",\"intent\":\"Escalera submáxima con ERG: cinco escalones de 4 minutos. Sube solo mientras puedas hablar en frases completas y cuenta en tu nota hasta qué escalón llegaste cómodo. No fuerces el de 90 %.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":480,\"power_pct\":40,\"ramp_to_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 50\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 60\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 70\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 80\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":80}]},{\"repeat\":1,\"steps\":[{\"name\":\"Escalón 90\",\"type\":\"steady\",\"duration_s\":240,\"power_pct\":90}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo base\",\"dayOfWeek\":\"thu\",\"targetTSS\":33,\"erg\":\"on\",\"intent\":\"Rodada a ritmo de fondo con ERG en 60 %. Debes poder hablar en frases completas durante toda la sesión; si no puedes, baja la potencia y cuéntalo en tu nota.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":40}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"sat\",\"targetTSS\":34,\"erg\":\"on\",\"intent\":\"Rodada de deriva a RPE 3-4 con ERG en 60 %. Al final mira tu pulso: si casi no subió en la segunda mitad, esa potencia es tu fondo real.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo constante\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":40}]}],\"kind\":null}]},{\"weekIndex\":1,\"workouts\":[{\"name\":\"Fondo base\",\"dayOfWeek\":\"mon\",\"targetTSS\":33,\"erg\":\"on\",\"intent\":\"Fondo con ERG en 60 %, conversación cómoda de principio a fin. La progresión de esta semana está en la serie del sábado, no aquí.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":40}]}],\"kind\":null},{\"name\":\"Fondo base\",\"dayOfWeek\":\"thu\",\"targetTSS\":33,\"erg\":\"on\",\"intent\":\"Fondo con ERG en 60 %. Mantén el pulso estable; si sube sin que cambies la potencia, avísame en tu nota.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":40}]}],\"kind\":null},{\"name\":\"Series cortas\",\"dayOfWeek\":\"sat\",\"targetTSS\":40,\"erg\":\"on\",\"intent\":\"Primer contacto con esfuerzo más firme: 4 series de 2 min al 82 % con 3 min suaves. Sostén el bloque sin subir de RPE 6 y no pases de 85 % aunque te sientas bien.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1200,\"power_pct\":60}]},{\"repeat\":4,\"steps\":[{\"name\":\"Tempo corto\",\"type\":\"interval\",\"duration_s\":120,\"power_pct\":82},{\"name\":\"Suave\",\"type\":\"recovery\",\"duration_s\":180,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":600,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":40}]}],\"kind\":null}]},{\"weekIndex\":2,\"workouts\":[{\"name\":\"Fondo base\",\"dayOfWeek\":\"mon\",\"targetTSS\":33,\"erg\":\"on\",\"intent\":\"Fondo con ERG en 60 %, conversación cómoda. Llega fresco: es la sesión previa al test.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":40}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"thu\",\"targetTSS\":34,\"erg\":\"on\",\"intent\":\"Rodada de deriva a RPE 3-4 con ERG en 60 %. Anota la FC de la segunda mitad en tu nota: la necesito para leer el test del sábado.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo constante\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":40}]}],\"kind\":null},{\"name\":\"Rampa de FTP\",\"dayOfWeek\":\"sat\",\"targetTSS\":40,\"erg\":\"on\",\"intent\":\"Test de rampa con ERG: el rodillo sube solo y tú pedaleas mientras sostengas la cadencia. Cuando no la sostengas, baja a pedalear suave; ahí termina el test. Descansa 48 h antes y ventila bien.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":40,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Estabilizar\",\"type\":\"steady\",\"duration_s\":180,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Rampa\",\"type\":\"steady\",\"duration_s\":1500,\"power_pct\":50,\"ramp_to_pct\":200}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":40}]}],\"kind\":\"test\"}]}],\"coachNote\":\"Alex, tu perfil se contradice: tienes motor de otro deporte pero cero años sobre la bici, así que arranco como si fueras nuevo en bici y lo ajustamos con tus primeras sesiones. Pon 120 W como FTP provisional en tu perfil antes de la primera sesión: es un punto de partida, no una medición. El lunes haces la escalera y anotas en tu nota hasta qué escalón llegaste hablando. La rampa va el sábado de la semana 3 y al terminarla te diré el FTP para tu perfil. Con 3 sesiones de 60-70 min cubres lo que tu cuerpo absorbe ahora; el rodillo no entrena técnica, así que sal a rodar afuera cuando puedas.\",\"suggestedFtp\":120,\"nextTest\":{\"weekIndex\":2,\"type\":\"ramp\",\"reason\":\"Sin FTP medido y con motor de otro deporte: la rampa es el test indicado y la semana 3 da tiempo a la escalera y dos semanas de fondo.\"}}"
+}

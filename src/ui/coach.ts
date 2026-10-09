@@ -15,6 +15,17 @@ import { estimateWorkout } from '../core/workout-estimate';
 import { deleteWorkout } from '../storage/workout-store';
 import { escapeHtml } from './workout-cover';
 import { confirmAiWithHumanCoach, humanCoachName } from './coach-notice';
+import { coachFtpFields, coachProfileExtras, ftpSourceOf, isMeasuredFtp, sourceForAcceptedSuggestion, withFtp } from '../core/coach-profile';
+import { planContextFor, plannedTestLabel, weekStartOf } from '../core/plan-context';
+import { ruleTriggersOf } from '../core/rule-triggers';
+import { readTest } from '../core/test-reading';
+import type { LastTest } from '../core/test-reading';
+import { isTestWorkoutDoc, mainZoneOf } from '../core/workout-zone';
+import { computeAthleteState } from '../engine/athlete-state';
+import type { AthleteState } from '../engine/athlete-state';
+import { stateSessionFromCloud, stateSessionFromLocal } from './athlete-state-data';
+import type { WorkoutZone } from '../core/workout-zone';
+import type { CoachPlanContext, PlannedTest, StoredPlanData } from '../core/plan-context';
 
 const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'M', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
 const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
@@ -51,6 +62,7 @@ const THINKING_MESSAGES = [
   '📊 Calculando tu forma actual (CTL/ATL/TSB)…',
   '🗓️ Armando la periodización del plan…',
   '💪 Concretando el primer bloque de entrenamientos…',
+  '🔧 Armando los intervalos de cada sesión…',
   '✍️ Escribiendo las notas del coach…',
 ];
 
@@ -88,7 +100,7 @@ interface ActivePlanRow {
   goal: string;
   data: {
     startDate: string;
-    blocks: { name: string; weeks: number; focus: string; published?: boolean }[];
+    blocks: StoredPlanData['blocks'];
     weeks: PlanWeek[];
     // Lo último que dijo el coach en una weekly_eval — sin esto se perdía
     // apenas se recargaba la página (ver applyModeEffects en coach-chat).
@@ -96,10 +108,70 @@ interface ActivePlanRow {
     // El tope que el atleta puso al crear el plan (ej. "máximo 60 min") —
     // se guarda acá para que weekly_eval lo siga respetando después.
     maxSessionMinutes?: number | null;
+    // FTP que propuso el coach (create_plan o weekly_eval). La app ofrece un
+    // botón para ponerlo en el perfil; nunca lo cambia sola.
+    ftpSuggestion?: FtpSuggestion | null;
+    form?: StoredPlanData['form'];
+    // Próximo test que decidió el coach (lo revisa cada semana).
+    nextTest?: PlannedTest | null;
   };
   current_block_exhausted: boolean;
   last_eval_iso_week: string | null;
   eval_count_this_iso_week: number;
+}
+
+interface FtpSuggestion {
+  watts: number;
+  from: 'create_plan' | 'weekly_eval';
+  at: string;
+}
+
+// "Ahora no" se recuerda solo en este navegador: es una comodidad, no un
+// dato del plan. Si el storage falla, el botón simplemente vuelve a salir.
+const FTP_OFFER_DISMISSED_KEY = 'torq.ftpOfferDismissed';
+
+function ftpOfferDismissed(s: FtpSuggestion): boolean {
+  try {
+    return localStorage.getItem(FTP_OFFER_DISMISSED_KEY) === `${s.watts}@${s.at}`;
+  } catch {
+    return false;
+  }
+}
+
+/** Botón para poner en el perfil el FTP que propuso el coach. Nada si ya es
+ * ese número o el atleta dijo "Ahora no" a esta misma sugerencia. */
+function ftpOfferHtml(s: FtpSuggestion | null | undefined): string {
+  if (!s || s.watts === appState.profile.ftp || ftpOfferDismissed(s)) return '';
+  return `
+    <div class="coach-ftp-offer" data-ftp-watts="${s.watts}" data-ftp-at="${escapeHtml(s.at)}" style="margin-top:10px">
+      <p class="hint" style="margin:0 0 6px">El coach propone ${s.watts} W como tu FTP (hoy tienes ${appState.profile.ftp} W). Tú decides.</p>
+      <button class="btn-light" data-ftp-accept>Usar ${s.watts} W como mi FTP</button>
+      <button class="plan-chip" data-ftp-dismiss>Ahora no</button>
+    </div>`;
+}
+
+function plannedTestHtml(test: PlannedTest, startDate: string): string {
+  const label = plannedTestLabel(test, startDate, isMeasuredFtp(ftpSourceOf(appState.profile)));
+  return `<p class="hint" style="margin-top:8px"><strong>${escapeHtml(label)}</strong> ${escapeHtml(test.reason)} El coach lo confirma o lo mueve cada semana según cómo vayas.</p>`;
+}
+
+function wireFtpOffer(root: HTMLElement): void {
+  root.querySelectorAll<HTMLElement>('.coach-ftp-offer').forEach((offer) => {
+    const watts = Number(offer.dataset.ftpWatts);
+    offer.querySelector('[data-ftp-accept]')?.addEventListener('click', async () => {
+      appState.profile = withFtp(appState.profile, watts, sourceForAcceptedSuggestion(appState.profile));
+      await appState.persistProfile();
+      offer.innerHTML = `<p class="hint" style="margin:0">Listo: tu FTP ahora es ${watts} W.</p>`;
+    });
+    offer.querySelector('[data-ftp-dismiss]')?.addEventListener('click', () => {
+      try {
+        localStorage.setItem(FTP_OFFER_DISMISSED_KEY, `${watts}@${offer.dataset.ftpAt ?? ''}`);
+      } catch {
+        // sin storage: se oculta solo por ahora
+      }
+      offer.remove();
+    });
+  });
 }
 
 const MAX_EVALS_PER_ISO_WEEK = 2; // mismo número que coach-chat/index.ts — la 2ª es un "refresh" de la misma semana
@@ -207,6 +279,8 @@ function planSummaryHtml(plan: ActivePlanRow, weeklyEvalsUsed: number, planActio
       <div class="plan-chip-row" style="margin-top:10px">${blocks}</div>
       <p class="hint" style="margin-top:8px">${plan.current_block_exhausted ? 'El bloque actual ya se completó — toca publicar el siguiente.' : 'Semana en curso dentro del plan.'}</p>
       ${plan.data.lastEvalNote ? coachBubbleHtml(plan.data.lastEvalNote) : ''}
+      ${plan.data.nextTest ? plannedTestHtml(plan.data.nextTest, plan.data.startDate) : ''}
+      ${ftpOfferHtml(plan.data.ftpSuggestion)}
       <div id="coach-eval-zone">${evalZoneHtml(plan, weeklyEvalsUsed)}</div>
       <div id="coach-abandon-zone" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
         <a href="#" class="prepare-link" id="coach-abandon">Dar de baja este plan</a>
@@ -317,6 +391,14 @@ function wireWeeklyEvalButton(slot: HTMLElement, plan: ActivePlanRow, onChange: 
     form.querySelectorAll('label, #coach-eval-submit').forEach((el) => ((el as HTMLElement).style.display = 'none'));
     status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.reasoning));
     if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
+    if (data.result.nextTest) status.insertAdjacentHTML('beforebegin', plannedTestHtml(data.result.nextTest, plan.data.startDate));
+    if (data.result.notesUpdated) {
+      status.insertAdjacentHTML('beforebegin', '<p class="hint" style="margin-top:8px">Actualicé tu expediente con lo que he visto de cómo respondes. Lo ves (y lo puedes borrar) en Perfil.</p>');
+    }
+    if (data.result.ftpAction === 'change' && data.result.suggestedFtp) {
+      status.insertAdjacentHTML('beforebegin', ftpOfferHtml({ watts: Math.round(data.result.suggestedFtp), from: 'weekly_eval', at: new Date().toISOString() }));
+      wireFtpOffer(form);
+    }
     status.insertAdjacentHTML(
       'afterend',
       '<button class="btn-light" id="coach-eval-done" style="margin-top:12px">Entendido</button>',
@@ -437,10 +519,53 @@ export function renderCoachSection(container: HTMLElement, onChange: () => void)
       }
     });
     if (plan) {
+      wireFtpOffer(slot);
       wireAbandonButton(slot, container, onChange);
       wireWeeklyEvalButton(slot, plan, onChange);
     }
   });
+}
+
+// Un test más viejo que esto ya no describe al atleta.
+const LAST_TEST_MAX_AGE_DAYS = 180;
+
+/** Lectura del test más reciente (ver core/test-reading.ts): la sesión cuyo
+ * workout es de test (kind 'test', o por nombre en workouts viejos; la
+ * escalera de ajuste no es test). Solo sesiones de este dispositivo: las de
+ * la nube no traen samples. null si no hay ninguna. */
+async function computeLastTest(): Promise<LastTest | null> {
+  const { localSessions } = await aiEligibleSessions(true);
+  const workouts = new Map(appState.workouts.map((w) => [w.id, w]));
+  const sinceKey = new Date(Date.now() - LAST_TEST_MAX_AGE_DAYS * 86400000).toISOString().slice(0, 10);
+  const tests = localSessions
+    .map((s) => ({ s, w: workouts.get(s.workoutId) }))
+    .filter(({ s, w }) => w && s.startedAt.slice(0, 10) >= sinceKey && isTestWorkoutDoc(w))
+    .sort((a, b) => b.s.startedAt.localeCompare(a.s.startedAt));
+  for (const { s, w } of tests) {
+    const reading = readTest(s, w!.intervals, appState.profile.hr_max);
+    if (reading) return reading;
+  }
+  return null;
+}
+
+const ATHLETE_STATE_DAYS = 180;
+
+/** Ficha del atleta por ventanas (engine/athlete-state.ts) con las sesiones
+ * de bici de los últimos 180 días: las de este dispositivo con sus samples,
+ * las de la nube con sus métricas guardadas. Sin Strava. */
+async function computeSelfAthleteState(): Promise<AthleteState> {
+  const { localSessions, cloudOnly } = await aiEligibleSessions(true);
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const sinceKey = new Date(Date.now() - ATHLETE_STATE_DAYS * 86400000).toISOString().slice(0, 10);
+  const workouts = new Map(appState.workouts.map((w) => [w.id, w]));
+  const sessions = [
+    ...localSessions.filter((s) => s.startedAt.slice(0, 10) >= sinceKey).map((s) => stateSessionFromLocal(s, appState.profile, workouts.get(s.workoutId))),
+    ...cloudOnly.filter((s) => s.startedAt.slice(0, 10) >= sinceKey).map(stateSessionFromCloud),
+  ];
+  const planned = appState.workouts
+    .filter((w) => w.scheduledDate && w.scheduledDate >= sinceKey && w.scheduledDate <= todayKey)
+    .map((w) => ({ id: w.id, dateKey: w.scheduledDate! }));
+  return computeAthleteState(sessions, planned, todayKey);
 }
 
 interface RecentHistory {
@@ -512,6 +637,20 @@ async function computeOccupiedDates(startDate: string, weeksAhead: number): Prom
   return Array.from(new Set([...scheduled, ...localDates, ...cloudDates]));
 }
 
+/** Una sesión planeada de la semana que terminó, con lo que pasó en ella. */
+interface WeekWorkoutRow {
+  dayOfWeek: string;
+  name: string;
+  zone: WorkoutZone;
+  plannedTSS: number;
+  actualTSS: number | null;
+  completed: boolean;
+  rpe: number | null;
+  hrDriftPct: number | null;
+  efficiencyFactor: number | null;
+  ruleTriggers: { ruleId: string; count: number }[];
+}
+
 interface WeekSummary {
   weekIndex: number;
   plannedTSS: number;
@@ -536,13 +675,18 @@ async function computeWeekEvalContext(
     missedWorkouts: number;
     ruleTriggers: { ruleId: string; count: number }[];
     athleteNote: string | null;
+    workouts: WeekWorkoutRow[];
   };
   pmcTrend: { ctl: number; atl: number; tsb: number; ctlRampLast4Weeks: number };
   recentGapPattern: { startDate: string; endDate: string; days: number }[] | null;
   recentWeeksSummary: WeekSummary[] | null;
-  profile: { sex: 'M' | 'F' | 'other' | null; name: string | null };
+  profile: { sex: 'M' | 'F' | 'other' | null; name: string | null } & ReturnType<typeof coachFtpFields> & ReturnType<typeof coachProfileExtras>;
   maxSessionMinutes: number | null;
   occupiedDates: string[];
+  plan: CoachPlanContext;
+  nextWeekStart: string;
+  lastTest: LastTest | null;
+  athleteState: AthleteState;
 } | null> {
   const weeks = plan.data.weeks;
   if (weeks.length === 0) return null;
@@ -591,8 +735,54 @@ async function computeWeekEvalContext(
     return { weekIndex: week.weekIndex, plannedTSS, actualTSS, completedWorkouts, missedWorkouts };
   }
 
+  /** Cada workout planeado de la semana con su sesión, si la hubo: la de
+   * este dispositivo (con samples, alertas y análisis completo) o la de la
+   * nube con el mismo workoutId (solo sus números ya calculados). */
+  function weekWorkoutRows(week: PlanWeek): WeekWorkoutRow[] {
+    const round = (x: number | null | undefined, d = 1) => (x === null || x === undefined || !Number.isFinite(x) ? null : Math.round(x * 10 ** d) / 10 ** d);
+    return appState.workouts
+      .filter((w) => week.workoutIds.includes(w.id))
+      .sort((a, b) => (a.scheduledDate ?? '').localeCompare(b.scheduledDate ?? ''))
+      .map((w): WeekWorkoutRow => {
+        const base = {
+          dayOfWeek: w.scheduledDate ? DAY_ORDER[(new Date(`${w.scheduledDate}T00:00:00Z`).getUTCDay() + 6) % 7] : '',
+          name: w.name,
+          zone: mainZoneOf(w),
+          plannedTSS: Math.round(estimateWorkout(w.intervals, appState.profile.ftp).tss ?? 0),
+        };
+        const local = localSessions.find((s) => s.workoutId === w.id);
+        if (local) {
+          const a = computeSessionAnalytics(local.samples, { ...appState.profile, ftp: local.ftp });
+          return {
+            ...base,
+            actualTSS: round(a.trainingStressScore, 0),
+            completed: true,
+            rpe: local.rpe ?? null,
+            hrDriftPct: round(a.hrDriftPct),
+            efficiencyFactor: round(a.efficiencyFactor, 2),
+            ruleTriggers: ruleTriggersOf(local.alerts),
+          };
+        }
+        const cloud = cloudOnly.find((s) => s.workoutId === w.id);
+        if (cloud) {
+          return {
+            ...base,
+            actualTSS: round(cloud.trainingStressScore, 0),
+            completed: true,
+            rpe: cloud.rpe,
+            hrDriftPct: round(cloud.hrDriftPct),
+            efficiencyFactor: round(cloud.efficiencyFactor, 2),
+            ruleTriggers: [],
+          };
+        }
+        return { ...base, actualTSS: null, completed: false, rpe: null, hrDriftPct: null, efficiencyFactor: null, ruleTriggers: [] };
+      });
+  }
+
   const weekSummaries = weeks.map(summarizeWeek);
   const lastWeek = weekSummaries[weekSummaries.length - 1];
+  const [lastStartKey, lastEndKey] = weekDateRange(lastWeek.weekIndex);
+  const inLastWeek = (dateKey: string) => dateKey >= lastStartKey && dateKey <= lastEndKey;
 
   const pmc = computePmc(allEntries.map((e) => ({ dateKey: e.dateKey, tss: e.tss })));
   const latest = pmc[pmc.length - 1];
@@ -619,18 +809,26 @@ async function computeWeekEvalContext(
 
   const occupiedDates = await computeOccupiedDates(new Date().toISOString().slice(0, 10), 1);
 
+  // La semana que va a generar el servidor: la siguiente, o la misma si es
+  // el "refresh" de esta semana ISO (mismo criterio que applyModeEffects).
+  const isRefresh = plan.last_eval_iso_week === currentIsoWeek();
+  const nextWeekIndex = isRefresh ? weeks.length - 1 : weeks.length;
+  const planWorkoutIds = new Set(weeks.flatMap((w) => w.workoutIds));
+  const workoutDays = appState.workouts
+    .filter((w) => planWorkoutIds.has(w.id) && w.scheduledDate)
+    .map((w) => DAY_ORDER[(new Date(`${w.scheduledDate}T00:00:00Z`).getUTCDay() + 6) % 7]);
+
   return {
     weekJustFinished: {
       plannedTSS: lastWeek.plannedTSS,
       actualTSS: lastWeek.actualTSS,
       completedWorkouts: lastWeek.completedWorkouts,
       missedWorkouts: lastWeek.missedWorkouts,
-      // No se trackea ruleId por sesión hoy (SessionRecord.alerts solo
-      // guarda level/message, no el id de la regla) — vacío en vez de
-      // inventar números. El resto de la jerarquía de evidencia (TSS real,
-      // PMC, huecos) ya cubre la señal que más importa.
-      ruleTriggers: [],
+      // Solo de las sesiones de este dispositivo: las alertas no se suben a
+      // la nube. Sesiones guardadas antes de registrar ruleId no cuentan.
+      ruleTriggers: ruleTriggersOf(localSessions.filter((s) => inLastWeek(s.startedAt.slice(0, 10))).flatMap((s) => s.alerts)),
       athleteNote,
+      workouts: weekWorkoutRows(weeks[weeks.length - 1]),
     },
     pmcTrend: {
       ctl: Math.round(latest.ctl * 10) / 10,
@@ -640,9 +838,18 @@ async function computeWeekEvalContext(
     },
     recentGapPattern: gaps.length > 0 ? gaps.slice(-5) : null,
     recentWeeksSummary: weekSummaries.length > 1 ? weekSummaries : null,
-    profile: { sex: appState.profile.sex ?? null, name: appState.profile.name ?? null },
+    profile: {
+      sex: appState.profile.sex ?? null,
+      name: appState.profile.name ?? null,
+      ...coachFtpFields(appState.profile),
+      ...coachProfileExtras(appState.profile),
+    },
     maxSessionMinutes: plan.data.maxSessionMinutes ?? null,
     occupiedDates,
+    plan: planContextFor(plan, appState.profile, nextWeekIndex, workoutDays),
+    nextWeekStart: weekStartOf(plan.data.startDate, nextWeekIndex),
+    lastTest: await computeLastTest(),
+    athleteState: await computeSelfAthleteState(),
   };
 }
 
@@ -702,7 +909,12 @@ function openCreateModal(onChange: () => void): void {
     const startDate = new Date().toISOString().slice(0, 10);
     const maxMinutesInput = (backdrop.querySelector<HTMLInputElement>('#coach-max-minutes')!).value.trim();
     const maxSessionMinutes = maxMinutesInput ? Number(maxMinutesInput) : null;
-    const [recentHistory, occupiedDates] = await Promise.all([computeRecentHistory(), computeOccupiedDates(startDate, 3)]);
+    const [recentHistory, occupiedDates, lastTest, athleteState] = await Promise.all([
+      computeRecentHistory(),
+      computeOccupiedDates(startDate, 3),
+      computeLastTest(),
+      computeSelfAthleteState(),
+    ]);
     const context = {
       startDate,
       goal,
@@ -714,8 +926,12 @@ function openCreateModal(onChange: () => void): void {
       category: p.competes ? (p.category ?? null) : null,
       availability: { hoursPerWeek, days: Array.from(selectedDays), maxSessionMinutes },
       occupiedDates,
-      profile: { ftp: p.ftpConfirmed ? p.ftp : null, hr_max: p.hr_max, sex: p.sex ?? null, name: p.name ?? null },
+      // ftp solo si es medido; un provisional va en provisionalFtp (ver
+      // core/coach-profile.ts). Edad en vez de fecha de nacimiento.
+      profile: { ...coachFtpFields(p), hr_max: p.hr_max, sex: p.sex ?? null, name: p.name ?? null, ...coachProfileExtras(p) },
       recentHistory,
+      lastTest,
+      athleteState,
     };
 
     const { data, error } = await supabase.functions.invoke('coach-chat', { body: { mode: 'create_plan', context } });
@@ -749,6 +965,11 @@ function openCreateModal(onChange: () => void): void {
     form.forEach((el) => ((el as HTMLElement).style.display = 'none'));
     status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.coachNote));
     if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
+    if (data.result.nextTest) status.insertAdjacentHTML('beforebegin', plannedTestHtml(data.result.nextTest, startDate));
+    if (data.result.suggestedFtp) {
+      status.insertAdjacentHTML('beforebegin', ftpOfferHtml({ watts: Math.round(data.result.suggestedFtp), from: 'create_plan', at: new Date().toISOString() }));
+      wireFtpOffer(backdrop);
+    }
     status.insertAdjacentHTML(
       'afterend',
       '<button class="btn-light" id="coach-done" style="margin-top:12px">Entendido</button>',

@@ -1,0 +1,242 @@
+{
+  "id": "08-eval-progreso",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 29.1,
+  "cost": 0.003296,
+  "coldCost": 0.005067,
+  "usage": {
+    "input_tokens": 1722,
+    "output_tokens": 5939,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "progress",
+    "reasoning": "Diego, cumpliste 410 de 400 TSS (102 %) con 4 de 4 sesiones, tu TSB está en -8 y el CTL sube 4.2 en cuatro semanas, así que no hay señales de fatiga. Tu nota de intensidad positiva confirma que puedes subir la calidad. Progreso una variable: el intervalo de sweet spot pasa a 4 series de 12 min. El volumen total no crece más porque el tope de sesión es de 90 min y no se han añadido días; si quieres más TSS, dime cuántos días tienes disponibles. No cambio el FTP esta semana.",
+    "contradictionFlag": null,
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo largo",
+        "dayOfWeek": "mon",
+        "targetTSS": 63,
+        "erg": "on",
+        "intent": "Rodada de fondo constante al 65 % del FTP, con el pulso estable durante toda la sesión. Ritmo conversacional: debes poder hablar en frases completas en todo momento.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 45,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 4200,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 60,
+                "ramp_to_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Sweet spot",
+        "dayOfWeek": "tue",
+        "targetTSS": 79,
+        "erg": "on",
+        "intent": "Cuatro bloques de 12 min al 90 % con 5 min suaves entre ellos. Mantén la cadencia firme y reparte el esfuerzo: el último bloque debe sentirse igual que el primero.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 4,
+            "steps": [
+              {
+                "name": "Sweet spot",
+                "type": "interval",
+                "duration_s": 720,
+                "power_pct": 90
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 300,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo tranquilo",
+        "dayOfWeek": "thu",
+        "targetTSS": 63,
+        "erg": "on",
+        "intent": "Seis series de 6 min al 93 % con 3 min suaves. Es trabajo de umbral sostenido: si el pulso sigue subiendo en la última serie, baja a 91 % en las dos últimas.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 6,
+            "steps": [
+              {
+                "name": "Umbral",
+                "type": "interval",
+                "duration_s": 360,
+                "power_pct": 93
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 180,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo largo de fin de semana",
+        "dayOfWeek": "sat",
+        "targetTSS": 78,
+        "erg": "on",
+        "intent": "Sesión larga al 72 % del FTP con el ERG fijo. Ritmo sostenido y cómodo, sin subir por sensación; el valor del día es el volumen controlado.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Sostenido",
+                "type": "steady",
+                "duration_s": 4200,
+                "power_pct": 72
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 65,
+                "ramp_to_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Rodada suave",
+        "dayOfWeek": "sun",
+        "targetTSS": 30,
+        "erg": "off",
+        "intent": "Rodada suave por sensación, RPE 2-3, para recuperar del fin de semana. Si te sientes cargado, acorta a 40 min sin problema.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Suave",
+                "type": "steady",
+                "duration_s": 3600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": null,
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"progress\",\"reasoning\":\"Diego, cumpliste 410 de 400 TSS (102 %) con 4 de 4 sesiones, tu TSB está en -8 y el CTL sube 4.2 en cuatro semanas, así que no hay señales de fatiga. Tu nota de intensidad positiva confirma que puedes subir la calidad. Progreso una variable: el intervalo de sweet spot pasa a 4 series de 12 min. El volumen total no crece más porque el tope de sesión es de 90 min y no se han añadido días; si quieres más TSS, dime cuántos días tienes disponibles. No cambio el FTP esta semana.\",\"contradictionFlag\":null,\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo largo\",\"dayOfWeek\":\"mon\",\"targetTSS\":63,\"erg\":\"on\",\"intent\":\"Rodada de fondo constante al 65 % del FTP, con el pulso estable durante toda la sesión. Ritmo conversacional: debes poder hablar en frases completas en todo momento.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":4200,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":60,\"ramp_to_pct\":45}]}],\"kind\":null},{\"name\":\"Sweet spot\",\"dayOfWeek\":\"tue\",\"targetTSS\":79,\"erg\":\"on\",\"intent\":\"Cuatro bloques de 12 min al 90 % con 5 min suaves entre ellos. Mantén la cadencia firme y reparte el esfuerzo: el último bloque debe sentirse igual que el primero.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":60}]},{\"repeat\":4,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":90},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo tranquilo\",\"dayOfWeek\":\"thu\",\"targetTSS\":63,\"erg\":\"on\",\"intent\":\"Seis series de 6 min al 93 % con 3 min suaves. Es trabajo de umbral sostenido: si el pulso sigue subiendo en la última serie, baja a 91 % en las dos últimas.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":60}]},{\"repeat\":6,\"steps\":[{\"name\":\"Umbral\",\"type\":\"interval\",\"duration_s\":360,\"power_pct\":93},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":180,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo largo de fin de semana\",\"dayOfWeek\":\"sat\",\"targetTSS\":78,\"erg\":\"on\",\"intent\":\"Sesión larga al 72 % del FTP con el ERG fijo. Ritmo sostenido y cómodo, sin subir por sensación; el valor del día es el volumen controlado.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Sostenido\",\"type\":\"steady\",\"duration_s\":4200,\"power_pct\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":65,\"ramp_to_pct\":45}]}],\"kind\":null},{\"name\":\"Rodada suave\",\"dayOfWeek\":\"sun\",\"targetTSS\":30,\"erg\":\"off\",\"intent\":\"Rodada suave por sensación, RPE 2-3, para recuperar del fin de semana. Si te sientes cargado, acorta a 40 min sin problema.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Suave\",\"type\":\"steady\",\"duration_s\":3600,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":null,\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

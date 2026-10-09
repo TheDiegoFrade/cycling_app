@@ -1,0 +1,50 @@
+{
+  "id": "10-semana-coach-normal",
+  "mode": "coach_week",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 17.2,
+  "cost": 0.002273,
+  "coldCost": 0.003944,
+  "usage": {
+    "input_tokens": 4295,
+    "output_tokens": 3397,
+    "cache_read_input_tokens": 14529,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Normal: TSB −4 y sin señales de fatiga, así que monto el sweet spot y la larga que pidió el coach.",
+      "Carga de bici: ~357 TSS (230 bloqueados + 127 nuevos), 89 % del promedio reciente de 400.",
+      "Sesiones duras: martes y sábado ya están bloqueadas; el sweet spot del jueves es la tercera, permitida porque la instrucción la pide. Jueves y sábado no son consecutivos con otra dura.",
+      "Tomé Sweet spot 3×12 y Endurance 75 de la biblioteca sin cambios. La larga queda en 75 min para no sumar sobre la rodada de 120 min del sábado.",
+      "FTP confirmado en 230: el sweet spot va al 90 %, dentro del límite de 95 %."
+    ],
+    "workouts": [
+      {
+        "name": "Sweet spot 3×12",
+        "description": "Hoy toca sweet spot de verdad: tres bloques de 12 minutos al 90 % con cinco de suave entre ellos. Prende el ERG para que el rodillo sostenga la potencia y tú solo cuida la cadencia. Mide los primeros minutos del primer bloque: si arrancas demasiado fuerte, en el tercero vas a pagar. Debes sentir esfuerzo sostenido, con respiración pesada pero controlada, y poder decir frases cortas. Con esto las piernas quedan listas para el fin de semana.",
+        "intervals": [],
+        "targetTSS": 72,
+        "dayOfWeek": "thu",
+        "fromLibraryId": "tpl-ss",
+        "libraryChange": null
+      },
+      {
+        "name": "Endurance 75",
+        "description": "Salida larga y tranquila para cerrar la semana. Puedes dejar el ERG prendido en 65-70 % o manejarlo tú; lo que manda es poder hablar en frases completas durante toda la rodada. Si el ritmo se te escapa y ya no puedes hablar, baja un poco. Hoy no busques intensidad: busca kilómetros cómodos y piernas sueltas después del sábado.",
+        "intervals": [],
+        "targetTSS": 55,
+        "dayOfWeek": "sun",
+        "fromLibraryId": "tpl-z2",
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\":[\"Normal: TSB −4 y sin señales de fatiga, así que monto el sweet spot y la larga que pidió el coach.\",\"Carga de bici: ~357 TSS (230 bloqueados + 127 nuevos), 89 % del promedio reciente de 400.\",\"Sesiones duras: martes y sábado ya están bloqueadas; el sweet spot del jueves es la tercera, permitida porque la instrucción la pide. Jueves y sábado no son consecutivos con otra dura.\",\"Tomé Sweet spot 3×12 y Endurance 75 de la biblioteca sin cambios. La larga queda en 75 min para no sumar sobre la rodada de 120 min del sábado.\",\"FTP confirmado en 230: el sweet spot va al 90 %, dentro del límite de 95 %.\"],\"workouts\":[{\"name\":\"Sweet spot 3×12\",\"description\":\"Hoy toca sweet spot de verdad: tres bloques de 12 minutos al 90 % con cinco de suave entre ellos. Prende el ERG para que el rodillo sostenga la potencia y tú solo cuida la cadencia. Mide los primeros minutos del primer bloque: si arrancas demasiado fuerte, en el tercero vas a pagar. Debes sentir esfuerzo sostenido, con respiración pesada pero controlada, y poder decir frases cortas. Con esto las piernas quedan listas para el fin de semana.\",\"intervals\":[],\"targetTSS\":72,\"dayOfWeek\":\"thu\",\"fromLibraryId\":\"tpl-ss\",\"libraryChange\":null},{\"name\":\"Endurance 75\",\"description\":\"Salida larga y tranquila para cerrar la semana. Puedes dejar el ERG prendido en 65-70 % o manejarlo tú; lo que manda es poder hablar en frases completas durante toda la rodada. Si el ritmo se te escapa y ya no puedes hablar, baja un poco. Hoy no busques intensidad: busca kilómetros cómodos y piernas sueltas después del sábado.\",\"intervals\":[],\"targetTSS\":55,\"dayOfWeek\":\"sun\",\"fromLibraryId\":\"tpl-z2\",\"libraryChange\":null}]}"
+}

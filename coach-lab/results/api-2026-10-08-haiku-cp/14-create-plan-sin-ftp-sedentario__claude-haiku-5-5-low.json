@@ -1,0 +1,506 @@
+{
+  "id": "14-create-plan-sin-ftp-sedentario",
+  "mode": "create_plan",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 26.6,
+  "cost": 0.003508,
+  "coldCost": 0.005298,
+  "usage": {
+    "input_tokens": 1601,
+    "output_tokens": 6384,
+    "cache_read_input_tokens": 15566,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "planName": "Base para tu primera rodada de 2 horas",
+    "blocks": [
+      {
+        "name": "Base aeróbica",
+        "weeks": 6,
+        "focus": "Fondo cómodo, cadencia progresiva de 60 a 75 rpm y una rodada de deriva por semana",
+        "targetHoursPerWeek": 2.5
+      },
+      {
+        "name": "Base con tempo",
+        "weeks": 6,
+        "focus": "Fondo más largo y bloques cortos de tempo (76-80 %) sin pasar de 60 min por sesión",
+        "targetHoursPerWeek": 3
+      },
+      {
+        "name": "Resistencia",
+        "weeks": 6,
+        "focus": "Subir el tiempo sostenido en fondo y tempo, con una semana de descarga cada 3",
+        "targetHoursPerWeek": 3
+      },
+      {
+        "name": "Preparación para la rodada",
+        "weeks": 4,
+        "focus": "Sostener esfuerzos largos a ritmo de grupo y afinar la cadencia; el FTP se mide al final del bloque",
+        "targetHoursPerWeek": 3
+      }
+    ],
+    "firstBlockWeeks": [
+      {
+        "weekIndex": 0,
+        "workouts": [
+          {
+            "name": "Fondo y cadencia",
+            "dayOfWeek": "mon",
+            "targetTSS": 30,
+            "erg": "on",
+            "intent": "Pedaleo cómodo para conocer la bici y el rodillo. Mantén RPE 3-4 y puedes hablar en frases completas; si no puedes, baja la potencia. Cadencia entre 60 y 70 rpm.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60,
+                    "cadence_min": 60,
+                    "cadence_max": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 1800,
+                    "power_pct": 60,
+                    "cadence_min": 60,
+                    "cadence_max": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Rodada de deriva",
+            "dayOfWeek": "wed",
+            "targetTSS": 25,
+            "erg": "on",
+            "intent": "Rodada estable para medir tu base: mismo esfuerzo de principio a fin. Mantén RPE 3 y fíjate si el pulso casi no sube en la segunda mitad; eso es tu fondo real.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 58,
+                    "cadence_min": 60,
+                    "cadence_max": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Deriva",
+                    "type": "steady",
+                    "duration_s": 1500,
+                    "power_pct": 58,
+                    "cadence_min": 60,
+                    "cadence_max": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo largo",
+            "dayOfWeek": "sat",
+            "targetTSS": 40,
+            "erg": "on",
+            "intent": "La sesión más larga de la semana, a ritmo de conversación. Repartí la carga en pedaleo parejo y, si el pulso sube sin parar, baja 5 % la potencia. Cadencia 62-70 rpm.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60,
+                    "cadence_min": 62,
+                    "cadence_max": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2400,
+                    "power_pct": 62,
+                    "cadence_min": 62,
+                    "cadence_max": 70
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workouts": [
+          {
+            "name": "Fondo y cadencia",
+            "dayOfWeek": "mon",
+            "targetTSS": 32,
+            "erg": "on",
+            "intent": "Igual que la semana pasada con un minuto más de fondo. Sostén cadencia entre 62 y 72 rpm sin apretar; si la subes sin sentir el esfuerzo, es buena señal.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60,
+                    "cadence_min": 62,
+                    "cadence_max": 72
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 1800,
+                    "power_pct": 62,
+                    "cadence_min": 62,
+                    "cadence_max": 72
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Rodada de deriva",
+            "dayOfWeek": "wed",
+            "targetTSS": 27,
+            "erg": "on",
+            "intent": "Rodada estable a RPE 3-4, sin subir el ritmo cuando te sientas bien. Compara el pulso de la segunda mitad con la primera y anótalo en tu nota.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 58,
+                    "cadence_min": 62,
+                    "cadence_max": 72
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Deriva",
+                    "type": "steady",
+                    "duration_s": 1800,
+                    "power_pct": 60,
+                    "cadence_min": 62,
+                    "cadence_max": 72
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo largo",
+            "dayOfWeek": "sat",
+            "targetTSS": 42,
+            "erg": "on",
+            "intent": "Sesión larga en fondo, a ritmo de conversación. Si te cuesta hablar, baja la potencia y cuéntalo en tu nota; el objetivo es aguantar tiempo, no apretar.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60,
+                    "cadence_min": 62,
+                    "cadence_max": 72
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2700,
+                    "power_pct": 63,
+                    "cadence_min": 62,
+                    "cadence_max": 72
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workouts": [
+          {
+            "name": "Fondo y cadencia",
+            "dayOfWeek": "mon",
+            "targetTSS": 34,
+            "erg": "on",
+            "intent": "Fondo a 65 % con cadencia 65-75 rpm. Mantén la respiración tranquila y el RPE en 3-4; si el pulso se dispara en los primeros minutos, baja la potencia.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60,
+                    "cadence_min": 65,
+                    "cadence_max": 75
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 1800,
+                    "power_pct": 65,
+                    "cadence_min": 65,
+                    "cadence_max": 75
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Rodada de deriva",
+            "dayOfWeek": "wed",
+            "targetTSS": 27,
+            "erg": "on",
+            "intent": "Rodada estable para medir tu fondo real. Mismo esfuerzo de principio a fin, RPE 3-4, y compara la FC de la segunda mitad con la primera.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 58,
+                    "cadence_min": 65,
+                    "cadence_max": 75
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Deriva",
+                    "type": "steady",
+                    "duration_s": 1800,
+                    "power_pct": 60,
+                    "cadence_min": 65,
+                    "cadence_max": 75
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo largo",
+            "dayOfWeek": "sat",
+            "targetTSS": 45,
+            "erg": "on",
+            "intent": "La sesión larga de la semana a ritmo de conversación. Repartí el esfuerzo parejo; subir la potencia en la última parte no es la idea.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50,
+                    "ramp_to_pct": 60,
+                    "cadence_min": 65,
+                    "cadence_max": 75
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2700,
+                    "power_pct": 64,
+                    "cadence_min": 65,
+                    "cadence_max": 75
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      }
+    ],
+    "coachNote": "Lucía, para empezar pon 90 W como FTP provisional en tu perfil: es un punto de partida, no una medición, y lo vamos a afinar juntas con la escalera de ajuste en tu primera semana. Tu disponibilidad da para 3 sesiones de 60 min como máximo (lunes, miércoles y sábado), así que son unas 2.5 h a la semana; los viernes quedan libres para descansar. La rodada de 2 horas no cabe dentro del tope de 60 min por sesión: la vamos a construir subiendo volumen, y el fin de semana largo de la primavera lo haces con tus amigos cuando el cuerpo ya lo aguante.",
+    "suggestedFtp": 90,
+    "nextTest": {
+      "weekIndex": 6,
+      "type": "ramp",
+      "reason": "Eres nueva en el rodillo y en el entrenamiento estructurado, así que la rampa es la opción más segura para medir tu FTP; la programo en la semana 7 para que llegues con dos semanas de fondo y cadencia ya estables."
+    }
+  },
+  "raw": "{\"planName\":\"Base para tu primera rodada de 2 horas\",\"blocks\":[{\"name\":\"Base aeróbica\",\"weeks\":6,\"focus\":\"Fondo cómodo, cadencia progresiva de 60 a 75 rpm y una rodada de deriva por semana\",\"targetHoursPerWeek\":2.5},{\"name\":\"Base con tempo\",\"weeks\":6,\"focus\":\"Fondo más largo y bloques cortos de tempo (76-80 %) sin pasar de 60 min por sesión\",\"targetHoursPerWeek\":3},{\"name\":\"Resistencia\",\"weeks\":6,\"focus\":\"Subir el tiempo sostenido en fondo y tempo, con una semana de descarga cada 3\",\"targetHoursPerWeek\":3},{\"name\":\"Preparación para la rodada\",\"weeks\":4,\"focus\":\"Sostener esfuerzos largos a ritmo de grupo y afinar la cadencia; el FTP se mide al final del bloque\",\"targetHoursPerWeek\":3}],\"firstBlockWeeks\":[{\"weekIndex\":0,\"workouts\":[{\"name\":\"Fondo y cadencia\",\"dayOfWeek\":\"mon\",\"targetTSS\":30,\"erg\":\"on\",\"intent\":\"Pedaleo cómodo para conocer la bici y el rodillo. Mantén RPE 3-4 y puedes hablar en frases completas; si no puedes, baja la potencia. Cadencia entre 60 y 70 rpm.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60,\"cadence_min\":60,\"cadence_max\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":60,\"cadence_min\":60,\"cadence_max\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"wed\",\"targetTSS\":25,\"erg\":\"on\",\"intent\":\"Rodada estable para medir tu base: mismo esfuerzo de principio a fin. Mantén RPE 3 y fíjate si el pulso casi no sube en la segunda mitad; eso es tu fondo real.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":58,\"cadence_min\":60,\"cadence_max\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Deriva\",\"type\":\"steady\",\"duration_s\":1500,\"power_pct\":58,\"cadence_min\":60,\"cadence_max\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo largo\",\"dayOfWeek\":\"sat\",\"targetTSS\":40,\"erg\":\"on\",\"intent\":\"La sesión más larga de la semana, a ritmo de conversación. Repartí la carga en pedaleo parejo y, si el pulso sube sin parar, baja 5 % la potencia. Cadencia 62-70 rpm.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60,\"cadence_min\":62,\"cadence_max\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":62,\"cadence_min\":62,\"cadence_max\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null}]},{\"weekIndex\":1,\"workouts\":[{\"name\":\"Fondo y cadencia\",\"dayOfWeek\":\"mon\",\"targetTSS\":32,\"erg\":\"on\",\"intent\":\"Igual que la semana pasada con un minuto más de fondo. Sostén cadencia entre 62 y 72 rpm sin apretar; si la subes sin sentir el esfuerzo, es buena señal.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60,\"cadence_min\":62,\"cadence_max\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":62,\"cadence_min\":62,\"cadence_max\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"wed\",\"targetTSS\":27,\"erg\":\"on\",\"intent\":\"Rodada estable a RPE 3-4, sin subir el ritmo cuando te sientas bien. Compara el pulso de la segunda mitad con la primera y anótalo en tu nota.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":58,\"cadence_min\":62,\"cadence_max\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Deriva\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":60,\"cadence_min\":62,\"cadence_max\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo largo\",\"dayOfWeek\":\"sat\",\"targetTSS\":42,\"erg\":\"on\",\"intent\":\"Sesión larga en fondo, a ritmo de conversación. Si te cuesta hablar, baja la potencia y cuéntalo en tu nota; el objetivo es aguantar tiempo, no apretar.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60,\"cadence_min\":62,\"cadence_max\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":63,\"cadence_min\":62,\"cadence_max\":72}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null}]},{\"weekIndex\":2,\"workouts\":[{\"name\":\"Fondo y cadencia\",\"dayOfWeek\":\"mon\",\"targetTSS\":34,\"erg\":\"on\",\"intent\":\"Fondo a 65 % con cadencia 65-75 rpm. Mantén la respiración tranquila y el RPE en 3-4; si el pulso se dispara en los primeros minutos, baja la potencia.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60,\"cadence_min\":65,\"cadence_max\":75}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":65,\"cadence_min\":65,\"cadence_max\":75}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"wed\",\"targetTSS\":27,\"erg\":\"on\",\"intent\":\"Rodada estable para medir tu fondo real. Mismo esfuerzo de principio a fin, RPE 3-4, y compara la FC de la segunda mitad con la primera.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":58,\"cadence_min\":65,\"cadence_max\":75}]},{\"repeat\":1,\"steps\":[{\"name\":\"Deriva\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":60,\"cadence_min\":65,\"cadence_max\":75}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo largo\",\"dayOfWeek\":\"sat\",\"targetTSS\":45,\"erg\":\"on\",\"intent\":\"La sesión larga de la semana a ritmo de conversación. Repartí el esfuerzo parejo; subir la potencia en la última parte no es la idea.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60,\"cadence_min\":65,\"cadence_max\":75}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":64,\"cadence_min\":65,\"cadence_max\":75}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null}]}],\"coachNote\":\"Lucía, para empezar pon 90 W como FTP provisional en tu perfil: es un punto de partida, no una medición, y lo vamos a afinar juntas con la escalera de ajuste en tu primera semana. Tu disponibilidad da para 3 sesiones de 60 min como máximo (lunes, miércoles y sábado), así que son unas 2.5 h a la semana; los viernes quedan libres para descansar. La rodada de 2 horas no cabe dentro del tope de 60 min por sesión: la vamos a construir subiendo volumen, y el fin de semana largo de la primavera lo haces con tus amigos cuando el cuerpo ya lo aguante.\",\"suggestedFtp\":90,\"nextTest\":{\"weekIndex\":6,\"type\":\"ramp\",\"reason\":\"Eres nueva en el rodillo y en el entrenamiento estructurado, así que la rampa es la opción más segura para medir tu FTP; la programo en la semana 7 para que llegues con dos semanas de fondo y cadencia ya estables.\"}}"
+}

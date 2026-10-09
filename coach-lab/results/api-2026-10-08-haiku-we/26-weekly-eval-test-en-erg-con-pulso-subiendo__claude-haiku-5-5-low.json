@@ -1,0 +1,129 @@
+{
+  "id": "26-weekly-eval-test-en-erg-con-pulso-subiendo",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 17.7,
+  "cost": 0.002195,
+  "coldCost": 0.003967,
+  "usage": {
+    "input_tokens": 1663,
+    "output_tokens": 3750,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [
+    "decision=insert_recovery con TSB -11 y 94 % de cumplimiento"
+  ],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "162 es tu pulso al inicio del test, no tu FTP. Mantén el FTP actual: el test no sirve para cambiarlo. Iba con ERG prendido, así que la potencia quedó fija a 170 W y no midió tu máximo. Además el pulso subió de 162 a 180 y la cadencia cayó de 78 a 72, lo que indica que 170 W estaba por encima de tu umbral. Como terminaste fundido, ponemos una semana de absorción. Repetiremos el test de 20 min con ERG apagado cuando estés fresco.",
+    "contradictionFlag": "Cumpliste 141 de 150 TSS (94 %), pero dices que terminaste fundido: gana lo que sientes para decidir la semana.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo suave",
+        "dayOfWeek": "tue",
+        "targetTSS": 32,
+        "erg": "on",
+        "intent": "Rodada de fondo para absorber la carga, sin buscar intensidad. Mantén un ritmo que te permita hablar en frases completas durante todo el bloque. Si el pulso sube sin que subas la potencia, baja un poco.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2100,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 480,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo con cadencia",
+        "dayOfWeek": "sat",
+        "targetTSS": 40,
+        "erg": "on",
+        "intent": "Rodada de fondo a potencia baja y constante, para recuperar sin cargar piernas. Pedalea con cadencia cómoda, cerca de 85 rpm, y no subas a la zona de tempo aunque te sientas bien. RPE 3-4.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 68,
+                "cadence_min": 85,
+                "cadence_max": 90
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 480,
+                "power_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "keep",
+    "suggestedFtp": null,
+    "nextTest": {
+      "weekIndex": 4,
+      "type": "test20",
+      "reason": "Repetimos el test de 20 min con ERG apagado, con la semana de absorción y dos semanas de fondo antes, para medir tu máximo real."
+    },
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"162 es tu pulso al inicio del test, no tu FTP. Mantén el FTP actual: el test no sirve para cambiarlo. Iba con ERG prendido, así que la potencia quedó fija a 170 W y no midió tu máximo. Además el pulso subió de 162 a 180 y la cadencia cayó de 78 a 72, lo que indica que 170 W estaba por encima de tu umbral. Como terminaste fundido, ponemos una semana de absorción. Repetiremos el test de 20 min con ERG apagado cuando estés fresco.\",\"contradictionFlag\":\"Cumpliste 141 de 150 TSS (94 %), pero dices que terminaste fundido: gana lo que sientes para decidir la semana.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo suave\",\"dayOfWeek\":\"tue\",\"targetTSS\":32,\"erg\":\"on\",\"intent\":\"Rodada de fondo para absorber la carga, sin buscar intensidad. Mantén un ritmo que te permita hablar en frases completas durante todo el bloque. Si el pulso sube sin que subas la potencia, baja un poco.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2100,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":480,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo con cadencia\",\"dayOfWeek\":\"sat\",\"targetTSS\":40,\"erg\":\"on\",\"intent\":\"Rodada de fondo a potencia baja y constante, para recuperar sin cargar piernas. Pedalea con cadencia cómoda, cerca de 85 rpm, y no subas a la zona de tempo aunque te sientas bien. RPE 3-4.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":68,\"cadence_min\":85,\"cadence_max\":90}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":480,\"power_pct\":45}]}],\"kind\":null}],\"ftpAction\":\"keep\",\"suggestedFtp\":null,\"nextTest\":{\"weekIndex\":4,\"type\":\"test20\",\"reason\":\"Repetimos el test de 20 min con ERG apagado, con la semana de absorción y dos semanas de fondo antes, para medir tu máximo real.\"},\"notesUpdate\":null}"
+}

@@ -1,0 +1,58 @@
+{
+  "id": "12-coach-week-cansancio-solo-en-instruccion",
+  "mode": "coach_week",
+  "config": "claude-haiku-5-5-medium",
+  "ok": true,
+  "seconds": 12.9,
+  "cost": 0.001837,
+  "coldCost": 0.003507,
+  "usage": {
+    "input_tokens": 4428,
+    "output_tokens": 2497,
+    "cache_read_input_tokens": 14529,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Descarga: el coach reporta una semana durmiendo mal y agotamiento, así que se aplica descarga aunque el TSB sea −5.",
+      "Carga de bici: ~148 TSS con el Fondo 60 bloqueado del lunes, 49 % de su promedio reciente de 302 TSS.",
+      "De la biblioteca: Recuperación 40 el martes y Fondo 60 el jueves y el sábado, sin cambios. Todo queda por debajo de 75 % y en 60 min o menos.",
+      "Sin sesiones duras. Si el sueño no mejora la semana que viene, conviene mantener la descarga antes de subir carga."
+    ],
+    "workouts": [
+      {
+        "name": "Recuperación 40",
+        "description": "Hoy es un día para rodar sin presión. Son 40 minutos suaves al 50 % de tu FTP, con la cadencia que te resulte cómoda. Puedes dejar el ERG prendido para que no subas sin querer, y si te apetece soltar piernas, de eso se trata. Al terminar deberías sentirte mejor que al empezar.",
+        "intervals": [],
+        "targetTSS": 20,
+        "dayOfWeek": "tue",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      },
+      {
+        "name": "Fondo 60",
+        "description": "Una hora de fondo tranquilo para recuperar sin perder el hilo. Calienta suave, después mantén un ritmo en el que puedas hablar en frases completas. Te recomiendo el ERG prendido para que el esfuerzo se quede parejo. Si el sueño sigue pesando, esta sesión te deja fresca sin cargarte.",
+        "intervals": [],
+        "targetTSS": 42,
+        "dayOfWeek": "thu",
+        "fromLibraryId": "lib-fondo-60",
+        "libraryChange": null
+      },
+      {
+        "name": "Fondo 60",
+        "description": "Otra hora de fondo para cerrar la semana con buenas sensaciones. Cuida que el ritmo sea constante y no te entusiasmes en las subidas o en el tramo llano. Con el ERG prendido el trabajo queda controlado. Si al final sientes las piernas pesadas, es señal de bajar un punto la intensidad.",
+        "intervals": [],
+        "targetTSS": 42,
+        "dayOfWeek": "sat",
+        "fromLibraryId": "lib-fondo-60",
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\":[\"Descarga: el coach reporta una semana durmiendo mal y agotamiento, así que se aplica descarga aunque el TSB sea −5.\",\"Carga de bici: ~148 TSS con el Fondo 60 bloqueado del lunes, 49 % de su promedio reciente de 302 TSS.\",\"De la biblioteca: Recuperación 40 el martes y Fondo 60 el jueves y el sábado, sin cambios. Todo queda por debajo de 75 % y en 60 min o menos.\",\"Sin sesiones duras. Si el sueño no mejora la semana que viene, conviene mantener la descarga antes de subir carga.\"],\"workouts\":[{\"name\":\"Recuperación 40\",\"description\":\"Hoy es un día para rodar sin presión. Son 40 minutos suaves al 50 % de tu FTP, con la cadencia que te resulte cómoda. Puedes dejar el ERG prendido para que no subas sin querer, y si te apetece soltar piernas, de eso se trata. Al terminar deberías sentirte mejor que al empezar.\",\"intervals\":[],\"targetTSS\":20,\"dayOfWeek\":\"tue\",\"fromLibraryId\":\"lib-recup-40\",\"libraryChange\":null},{\"name\":\"Fondo 60\",\"description\":\"Una hora de fondo tranquilo para recuperar sin perder el hilo. Calienta suave, después mantén un ritmo en el que puedas hablar en frases completas. Te recomiendo el ERG prendido para que el esfuerzo se quede parejo. Si el sueño sigue pesando, esta sesión te deja fresca sin cargarte.\",\"intervals\":[],\"targetTSS\":42,\"dayOfWeek\":\"thu\",\"fromLibraryId\":\"lib-fondo-60\",\"libraryChange\":null},{\"name\":\"Fondo 60\",\"description\":\"Otra hora de fondo para cerrar la semana con buenas sensaciones. Cuida que el ritmo sea constante y no te entusiasmes en las subidas o en el tramo llano. Con el ERG prendido el trabajo queda controlado. Si al final sientes las piernas pesadas, es señal de bajar un punto la intensidad.\",\"intervals\":[],\"targetTSS\":42,\"dayOfWeek\":\"sat\",\"fromLibraryId\":\"lib-fondo-60\",\"libraryChange\":null}]}"
+}

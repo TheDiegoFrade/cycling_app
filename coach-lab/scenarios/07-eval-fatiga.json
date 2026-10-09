@@ -1,0 +1,58 @@
+{
+  "id": "07-eval-fatiga",
+  "mode": "weekly_eval",
+  "title": "Semana con fatiga real: TSB -35, faltó a 2, dice que está reventado",
+  "expect": [
+    "Decisión reduce o insert_recovery, nunca progress.",
+    "Nada de VO2/umbral la semana siguiente.",
+    "Tomar en serio la nota del atleta (dormir mal) y explicar qué señal pesó más."
+  ],
+  "context": {
+    "profile": {
+      "sex": "M",
+      "name": "Diego"
+    },
+    "maxSessionMinutes": null,
+    "occupiedDates": [],
+    "recentGapPattern": null,
+    "weekJustFinished": {
+      "plannedTSS": 420,
+      "actualTSS": 300,
+      "completedWorkouts": 2,
+      "missedWorkouts": 2,
+      "ruleTriggers": [
+        {
+          "ruleId": "factory-hr-ceiling",
+          "count": 6
+        },
+        {
+          "ruleId": "factory-cadence-floor",
+          "count": 3
+        }
+      ],
+      "athleteNote": "Me siento reventado, he dormido mal toda la semana por trabajo y las piernas no responden"
+    },
+    "pmcTrend": {
+      "ctl": 64,
+      "atl": 99,
+      "tsb": -35,
+      "ctlRampLast4Weeks": 9.5
+    },
+    "recentWeeksSummary": [
+      {
+        "weekIndex": 0,
+        "plannedTSS": 380,
+        "actualTSS": 390,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 1,
+        "plannedTSS": 420,
+        "actualTSS": 300,
+        "completedWorkouts": 2,
+        "missedWorkouts": 2
+      }
+    ]
+  }
+}

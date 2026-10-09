@@ -1,0 +1,217 @@
+{
+  "id": "23-weekly-eval-ftp-alto-tras-test",
+  "mode": "weekly_eval",
+  "config": "claude-sonnet-5-5-low",
+  "ok": true,
+  "seconds": 11.7,
+  "cost": 0.024797,
+  "coldCost": 0.060231,
+  "usage": {
+    "input_tokens": 1903,
+    "output_tokens": 1791,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [
+    "S1 «Umbral conservador»: TSS 85 → 69 (calculado de la estructura)"
+  ],
+  "warns": [],
+  "output": {
+    "decision": "maintain",
+    "reasoning": "Hiciste la rampa y esta semana no completaste ninguna de las dos sesiones de umbral: ERG desenganchado 7 veces y piso de cadencia 9, con ánimo y sueño bien y TSB -3. Eso no es fatiga, es señal de que el número quedó alto, y el test directo es estimación con ±5-10 % de error. Cumplimiento de 81 % (236/290), con las 4 sesiones hechas. Repetimos la semana con el umbral 4 puntos abajo (91 %) en vez de subir carga. Mantén tu FTP del perfil por ahora: si la semana que viene tampoco completas los bloques, te pediré bajarlo 5 %. Cambio el bloque de umbral a bloques de 12 min para confirmar si el pulso se aplana.",
+    "contradictionFlag": "Cumplimiento de sesiones 4/4 y sin fatiga reportada, pero los intervalos duros no se sostienen. Me quedo con lo que pasó en los intervalos (ERG y cadencia) y no con el TSS agregado: el FTP del test parece alto.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo con cadencia",
+        "dayOfWeek": "mon",
+        "targetTSS": 43,
+        "erg": "on",
+        "intent": "Fondo conversacional para asentar la semana. ERG prendido, debes poder hablar en frases completas (RPE 3-4). Mantén la cadencia cómoda entre 85 y 95 rpm.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              },
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 68,
+                "cadence_min": 85,
+                "cadence_max": 95
+              },
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Sweet spot largo",
+        "dayOfWeek": "wed",
+        "targetTSS": 74,
+        "erg": "on",
+        "intent": "Confirmar el FTP con bloques de 12 min al 90 % del valor de trabajo, ligeramente por debajo de lo que fallaba. Con ERG prendido, mantén cadencia de 85 o más; si el pulso se aplana, el número sirve. RPE 6-7, sensación controlada.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 70
+              },
+              {
+                "name": "Calentamiento activo",
+                "type": "steady",
+                "duration_s": 180,
+                "power_pct": 85
+              }
+            ]
+          },
+          {
+            "repeat": 3,
+            "steps": [
+              {
+                "name": "Bloque",
+                "type": "interval",
+                "duration_s": 720,
+                "power_pct": 88,
+                "cadence_min": 80,
+                "cadence_max": 95
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 300,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Rodada de deriva",
+        "dayOfWeek": "fri",
+        "targetTSS": 49,
+        "erg": "on",
+        "intent": "Rodada estable para ver cómo se comporta tu pulso en la segunda mitad. RPE 3-4, que puedas hablar todo el rato. Si la FC se va subiendo, cuéntalo en tu nota.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              },
+              {
+                "name": "Fondo estable",
+                "type": "steady",
+                "duration_s": 3000,
+                "power_pct": 70,
+                "cadence_min": 85,
+                "cadence_max": 95
+              },
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Umbral conservador",
+        "dayOfWeek": "sun",
+        "targetTSS": 69,
+        "erg": "on",
+        "intent": "Segunda sesión dura de la semana, con umbral bajado a 91 % para que puedas completarla. Con ERG prendido, mantén cadencia de 80 o más; si se te cae a la mitad, termina el bloque suave y cuéntalo en tu nota. RPE 7, sin pasar de 8.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 720,
+                "power_pct": 50,
+                "ramp_to_pct": 75
+              }
+            ]
+          },
+          {
+            "repeat": 3,
+            "steps": [
+              {
+                "name": "Umbral",
+                "type": "interval",
+                "duration_s": 600,
+                "power_pct": 91,
+                "cadence_min": 80,
+                "cadence_max": 95
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 360,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "keep",
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"maintain\",\"reasoning\":\"Hiciste la rampa y esta semana no completaste ninguna de las dos sesiones de umbral: ERG desenganchado 7 veces y piso de cadencia 9, con ánimo y sueño bien y TSB -3. Eso no es fatiga, es señal de que el número quedó alto, y el test directo es estimación con ±5-10 % de error. Cumplimiento de 81 % (236/290), con las 4 sesiones hechas. Repetimos la semana con el umbral 4 puntos abajo (91 %) en vez de subir carga. Mantén tu FTP del perfil por ahora: si la semana que viene tampoco completas los bloques, te pediré bajarlo 5 %. Cambio el bloque de umbral a bloques de 12 min para confirmar si el pulso se aplana.\",\"contradictionFlag\":\"Cumplimiento de sesiones 4/4 y sin fatiga reportada, pero los intervalos duros no se sostienen. Me quedo con lo que pasó en los intervalos (ERG y cadencia) y no con el TSS agregado: el FTP del test parece alto.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo con cadencia\",\"dayOfWeek\":\"mon\",\"targetTSS\":50,\"erg\":\"on\",\"intent\":\"Fondo conversacional para asentar la semana. ERG prendido, debes poder hablar en frases completas (RPE 3-4). Mantén la cadencia cómoda entre 85 y 95 rpm.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65},{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":68,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Sweet spot largo\",\"dayOfWeek\":\"wed\",\"targetTSS\":72,\"erg\":\"on\",\"intent\":\"Confirmar el FTP con bloques de 12 min al 90 % del valor de trabajo, ligeramente por debajo de lo que fallaba. Con ERG prendido, mantén cadencia de 85 o más; si el pulso se aplana, el número sirve. RPE 6-7, sensación controlada.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":70},{\"name\":\"Calentamiento activo\",\"type\":\"steady\",\"duration_s\":180,\"power_pct\":85}]},{\"repeat\":3,\"steps\":[{\"name\":\"Bloque\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":88,\"cadence_min\":80,\"cadence_max\":95},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Rodada de deriva\",\"dayOfWeek\":\"fri\",\"targetTSS\":55,\"erg\":\"on\",\"intent\":\"Rodada estable para ver cómo se comporta tu pulso en la segunda mitad. RPE 3-4, que puedas hablar todo el rato. Si la FC se va subiendo, cuéntalo en tu nota.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65},{\"name\":\"Fondo estable\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":70,\"cadence_min\":85,\"cadence_max\":95},{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Umbral conservador\",\"dayOfWeek\":\"sun\",\"targetTSS\":85,\"erg\":\"on\",\"intent\":\"Segunda sesión dura de la semana, con umbral bajado a 91 % para que puedas completarla. Con ERG prendido, mantén cadencia de 80 o más; si se te cae a la mitad, termina el bloque suave y cuéntalo en tu nota. RPE 7, sin pasar de 8.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":720,\"power_pct\":50,\"ramp_to_pct\":75}]},{\"repeat\":3,\"steps\":[{\"name\":\"Umbral\",\"type\":\"interval\",\"duration_s\":600,\"power_pct\":91,\"cadence_min\":80,\"cadence_max\":95},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":360,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":\"keep\",\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

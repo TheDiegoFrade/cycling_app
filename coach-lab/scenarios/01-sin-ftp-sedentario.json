@@ -1,0 +1,38 @@
+{
+  "id": "01-sin-ftp-sedentario",
+  "mode": "create_plan",
+  "title": "Principiante sedentario, sin FTP ni historial",
+  "expect": [
+    "Nada de intervalos por encima de umbral las primeras semanas: base aeróbica anclada en RPE/pulso.",
+    "Un test o una referencia de FTP solo cuando ya tenga 2-3 semanas de base, y explicado como algo seguro.",
+    "Volumen que empiece por debajo de las horas disponibles y suba gradual.",
+    "Lenguaje sin género (sex null) y sin nombre."
+  ],
+  "context": {
+    "startDate": "2026-10-12",
+    "goal": "Quiero bajar de peso y poder rodar 2 horas seguidas con mis amigos sin quedarme atrás",
+    "experienceLevel": "new_to_cycling",
+    "generalFitnessLevel": "sedentary",
+    "discipline": "other",
+    "yearsRiding": 0,
+    "competes": false,
+    "category": null,
+    "availability": {
+      "hoursPerWeek": 4,
+      "days": [
+        "mon",
+        "wed",
+        "sat"
+      ],
+      "maxSessionMinutes": 60
+    },
+    "occupiedDates": [],
+    "profile": {
+      "ftp": null,
+      "hr_max": 182,
+      "sex": null,
+      "name": null
+    },
+    "recentHistory": null
+  }
+}

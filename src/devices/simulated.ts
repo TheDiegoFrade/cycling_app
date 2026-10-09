@@ -68,8 +68,10 @@ export class SimulatedHrAdapter implements HrAdapter {
   state: ConnectionState = 'disconnected';
   private hr = 90;
   private readingCbs = new Set<(hr: number) => void>();
+  private rrCbs = new Set<(rrMs: number[]) => void>();
   private stateCbs = new Set<(s: ConnectionState) => void>();
   private timer: ReturnType<typeof setInterval> | null = null;
+  private beatDebt = 0;
 
   async connect(): Promise<void> {
     this.setState('connecting');
@@ -89,6 +91,11 @@ export class SimulatedHrAdapter implements HrAdapter {
     return () => this.readingCbs.delete(cb);
   }
 
+  onRr(cb: (rrMs: number[]) => void): () => void {
+    this.rrCbs.add(cb);
+    return () => this.rrCbs.delete(cb);
+  }
+
   onStateChange(cb: (s: ConnectionState) => void): () => void {
     this.stateCbs.add(cb);
     return () => this.stateCbs.delete(cb);
@@ -102,5 +109,10 @@ export class SimulatedHrAdapter implements HrAdapter {
   private emitReading(): void {
     this.hr += (135 - this.hr) * 0.05 + (Math.random() * 2 - 1);
     this.readingCbs.forEach((cb) => cb(Math.round(this.hr)));
+    // los latidos de este segundo, con un poco de variabilidad latido a latido
+    this.beatDebt += this.hr / 60;
+    const rr: number[] = [];
+    for (; this.beatDebt >= 1; this.beatDebt--) rr.push(Math.round(60000 / this.hr + (Math.random() * 30 - 15)));
+    if (rr.length) this.rrCbs.forEach((cb) => cb(rr));
   }
 }

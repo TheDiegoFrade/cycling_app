@@ -1,0 +1,102 @@
+{
+  "id": "12-coach-week-cansancio-solo-en-instruccion",
+  "mode": "coach_week",
+  "title": "El cansancio viene solo en la instrucción del coach; el TSB se ve normal",
+  "expect": [
+    "Clasifica como descarga por la instrucción (sueño y agotamiento) aunque el TSB sea −5: lo que reporta el atleta pesa más.",
+    "Ningún intervalo > 75 %; sesiones ≤ 60 min.",
+    "TSS de la semana contando el lunes bloqueado (44) ≤ 181 (60 % de 302).",
+    "No hay workout el lunes (ya hay bici bloqueada).",
+    "No inventa nombre (name es null) ni usa \"agotada\" u otro adjetivo con género en description."
+  ],
+  "context": {
+    "athleteId": "3f2b8c1e-5d47-4a9b-8e21-6c0d9f7a1b23",
+    "weekStart": "2026-10-12",
+    "instruction": "Me dice que lleva una semana durmiendo mal y se siente agotada. Proponme la semana.",
+    "openDays": [
+      "tue",
+      "wed",
+      "thu",
+      "sat",
+      "sun"
+    ],
+    "lockedItems": [
+      {
+        "dayOfWeek": "mon",
+        "name": "Fondo 60",
+        "kind": "bike",
+        "minutes": 60,
+        "tss": 44,
+        "reason": "past"
+      }
+    ],
+    "athlete": {
+      "name": null,
+      "ftp": 198,
+      "ftpConfirmed": true,
+      "discipline": "road",
+      "injuries": null,
+      "goal": "Gran fondo de 120 km en febrero"
+    },
+    "pmc": {
+      "ctl": 48,
+      "atl": 53,
+      "tsb": -5
+    },
+    "recentWeeks": [
+      {
+        "weekStart": "2026-09-21",
+        "bikeTss": 300,
+        "nonBikeSessions": 0
+      },
+      {
+        "weekStart": "2026-09-28",
+        "bikeTss": 310,
+        "nonBikeSessions": 0
+      },
+      {
+        "weekStart": "2026-10-05",
+        "bikeTss": 295,
+        "nonBikeSessions": 0
+      }
+    ],
+    "maxSessionMinutes": 75,
+    "library": [
+      {
+        "id": "lib-ou-3x9",
+        "name": "Over-Under 3×9",
+        "minutes": 70,
+        "tss": 82,
+        "structure": "Calentamiento 15 min; 3×(3×[2 min al 95 % / 1 min al 105 %]) con 5 min al 55 %; enfriamiento 10 min"
+      },
+      {
+        "id": "lib-vo2-5x4",
+        "name": "VO2 5×4",
+        "minutes": 65,
+        "tss": 85,
+        "structure": "Calentamiento 15 min; 5×(4 min al 112 % / 4 min al 50 %); enfriamiento 10 min"
+      },
+      {
+        "id": "lib-ss-3x12",
+        "name": "Sweet Spot 3×12",
+        "minutes": 70,
+        "tss": 72,
+        "structure": "Calentamiento 12 min; 3×(12 min al 90 % / 5 min al 55 %); enfriamiento 7 min"
+      },
+      {
+        "id": "lib-fondo-60",
+        "name": "Fondo 60",
+        "minutes": 60,
+        "tss": 42,
+        "structure": "Calentamiento 10 min; 45 min al 65 %; enfriamiento 5 min"
+      },
+      {
+        "id": "lib-recup-40",
+        "name": "Recuperación 40",
+        "minutes": 40,
+        "tss": 20,
+        "structure": "40 min al 50 %, cadencia libre"
+      }
+    ]
+  }
+}

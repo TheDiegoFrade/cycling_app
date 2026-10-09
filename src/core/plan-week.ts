@@ -13,8 +13,16 @@ export type PlanWeekItemOrigin = 'athlete' | 'coach' | 'ai';
  * rutina de fuerza/movilidad (`routine`, paso 5) — exactamente uno de los
  * dos. `edited` marca lo que el coach tocó a mano — la IA no lo pisa. */
 export type PlanWeekItem =
-  | { workout: Workout; routine?: undefined; origin: PlanWeekItemOrigin; edited: boolean }
-  | { routine: PlannedRoutine; workout?: undefined; origin: PlanWeekItemOrigin; edited: boolean };
+  | { workout: Workout; routine?: undefined; origin: PlanWeekItemOrigin; edited: boolean; fromLibrary?: LibrarySource }
+  | { routine: PlannedRoutine; workout?: undefined; origin: PlanWeekItemOrigin; edited: boolean; fromLibrary?: undefined };
+
+/** Propuesta de la IA hecha a partir de una plantilla de la biblioteca del
+ * coach: `change` null = copia exacta; si no, qué le ajustó y por qué (el
+ * coach lo revisa y puede editar el workout). */
+export interface LibrarySource {
+  templateId: string;
+  change: string | null;
+}
 
 /** ¿La IA del coach puede reemplazar este elemento? Nunca lo pasado, lo que
  * el coach agregó o editó, ni las rutinas de fuerza/movilidad. */
@@ -43,8 +51,19 @@ export function openDayCodes(mondayKey: string, todayKey: string): DayCode[] {
 
 /** Aplica la propuesta de la IA: se queda todo lo bloqueado (ver
  * isLockedForAi) y lo demás se reemplaza por lo que propuso. */
-export function applyAiProposal(items: readonly PlanWeekItem[], proposed: readonly Workout[], todayKey: string): PlanWeekItem[] {
-  return [...items.filter((i) => isLockedForAi(i, todayKey)), ...proposed.map((workout): PlanWeekItem => ({ workout, origin: 'ai', edited: false }))];
+export function applyAiProposal(
+  items: readonly PlanWeekItem[],
+  proposed: readonly Workout[],
+  todayKey: string,
+  libraryByWorkoutId: ReadonlyMap<string, LibrarySource> = new Map(),
+): PlanWeekItem[] {
+  return [
+    ...items.filter((i) => isLockedForAi(i, todayKey)),
+    ...proposed.map((workout): PlanWeekItem => {
+      const fromLibrary = libraryByWorkoutId.get(workout.id);
+      return { workout, origin: 'ai', edited: false, ...(fromLibrary ? { fromLibrary } : {}) };
+    }),
+  ];
 }
 
 export function itemDate(item: PlanWeekItem): string | undefined {

@@ -1,0 +1,170 @@
+{
+  "id": "33-weekly-eval-lasttest-erg-fijo-sin-nota",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 22.6,
+  "cost": 0.002623,
+  "coldCost": 0.004395,
+  "usage": {
+    "input_tokens": 1785,
+    "output_tokens": 4581,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [
+    "decision=insert_recovery con TSB -11 y 94 % de cumplimiento"
+  ],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Esta semana es de absorción: la nota dice que terminaste fundido y la sesión de test salió con fatiga, así que esta semana baja la carga y no hay intensidad. El test de 20 min fue con ERG fijo a 170 W: sostuviste esa potencia, pero el pulso subió 6 % entre mitades y cerró al 99 % de tu máximo, lo que indica que 170 W ya estaba por encima de tu umbral. El FTP de 200 W parece alto, pero no lo cambio ahora: el test se hizo con fatiga y no se cambia el número en semana de descarga. Lo revisamos con un retest en 4 semanas, con piernas frescas. Si en las próximas sesiones fáciles el pulso ya sube sin que subas la potencia, avísame y bajamos el FTP 3-5 puntos.",
+    "contradictionFlag": "El test de 20 min fue con ERG fijo y con fatiga: 170 W sostenidos con deriva de pulso alta (6 %) y pulso al 99 % del máximo. El FTP en uso (200 W) parece alto frente a esa señal, pero no es un máximo válido, así que se mantiene hasta el retest.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo suave",
+        "dayOfWeek": "tue",
+        "targetTSS": 30,
+        "erg": "on",
+        "intent": "Rodada de fondo a potencia constante y baja, para recuperar sin estrés. Mantén el pulso sin subir: debes poder hablar en frases completas durante todo el bloque. Si al final te sientes bien, no subas la potencia; la semana sirve para absorber.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 1800,
+                "power_pct": 62
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo con pausa",
+        "dayOfWeek": "thu",
+        "targetTSS": 30,
+        "erg": "on",
+        "intent": "Sesión corta de fondo, con la potencia en zona de conversación. Mantén la cadencia cómoda y no busques ritmo. Si la fatiga aparece, corta el bloque principal y ve al enfriamiento.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 1800,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Rodada libre suave",
+        "dayOfWeek": "sat",
+        "targetTSS": 22,
+        "erg": "off",
+        "intent": "Rodada libre a sensación, sin objetivo de potencia. Ritmo de paseo, RPE 2-3, pudiendo hablar sin esfuerzo. Si el día te pide descanso, mejor no salir.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Rodada libre",
+                "type": "steady",
+                "duration_s": 1800,
+                "power_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "keep",
+    "suggestedFtp": null,
+    "nextTest": {
+      "weekIndex": 4,
+      "type": "test20",
+      "reason": "Repetir el test de 20 min con piernas frescas, porque el de esta semana salió con fatiga y con ERG fijo, así que no es un máximo válido."
+    },
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Esta semana es de absorción: la nota dice que terminaste fundido y la sesión de test salió con fatiga, así que esta semana baja la carga y no hay intensidad. El test de 20 min fue con ERG fijo a 170 W: sostuviste esa potencia, pero el pulso subió 6 % entre mitades y cerró al 99 % de tu máximo, lo que indica que 170 W ya estaba por encima de tu umbral. El FTP de 200 W parece alto, pero no lo cambio ahora: el test se hizo con fatiga y no se cambia el número en semana de descarga. Lo revisamos con un retest en 4 semanas, con piernas frescas. Si en las próximas sesiones fáciles el pulso ya sube sin que subas la potencia, avísame y bajamos el FTP 3-5 puntos.\",\"contradictionFlag\":\"El test de 20 min fue con ERG fijo y con fatiga: 170 W sostenidos con deriva de pulso alta (6 %) y pulso al 99 % del máximo. El FTP en uso (200 W) parece alto frente a esa señal, pero no es un máximo válido, así que se mantiene hasta el retest.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo suave\",\"dayOfWeek\":\"tue\",\"targetTSS\":30,\"erg\":\"on\",\"intent\":\"Rodada de fondo a potencia constante y baja, para recuperar sin estrés. Mantén el pulso sin subir: debes poder hablar en frases completas durante todo el bloque. Si al final te sientes bien, no subas la potencia; la semana sirve para absorber.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":62}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo con pausa\",\"dayOfWeek\":\"thu\",\"targetTSS\":30,\"erg\":\"on\",\"intent\":\"Sesión corta de fondo, con la potencia en zona de conversación. Mantén la cadencia cómoda y no busques ritmo. Si la fatiga aparece, corta el bloque principal y ve al enfriamiento.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Rodada libre suave\",\"dayOfWeek\":\"sat\",\"targetTSS\":22,\"erg\":\"off\",\"intent\":\"Rodada libre a sensación, sin objetivo de potencia. Ritmo de paseo, RPE 2-3, pudiendo hablar sin esfuerzo. Si el día te pide descanso, mejor no salir.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Rodada libre\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":\"keep\",\"suggestedFtp\":null,\"nextTest\":{\"weekIndex\":4,\"type\":\"test20\",\"reason\":\"Repetir el test de 20 min con piernas frescas, porque el de esta semana salió con fatiga y con ERG fijo, así que no es un máximo válido.\"},\"notesUpdate\":null}"
+}

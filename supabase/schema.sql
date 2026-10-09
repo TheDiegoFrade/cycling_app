@@ -70,6 +70,13 @@ alter table profiles add column if not exists recent_best_result text;
 -- sigue siendo el default sin tocar (ver core/types.ts Profile).
 alter table profiles add column if not exists ftp_confirmed boolean;
 alter table profiles add column if not exists hr_max_confirmed boolean;
+-- De dónde salió el FTP (ver core/coach-profile.ts): el coach no debe tomar
+-- los 200 W de fábrica ni un provisional por una medición.
+alter table profiles add column if not exists ftp_source text
+  check (ftp_source in ('default', 'provisional', 'manual', 'test_ramp', 'test_20min'));
+alter table profiles add column if not exists ftp_updated_at timestamptz;
+update profiles set ftp_source = case when ftp_confirmed then 'manual' else 'default' end
+  where ftp_source is null;
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- sessions: resumen de cada entrenamiento (sin los samples, ver Storage)
@@ -122,6 +129,12 @@ create index if not exists sessions_user_started_idx on sessions (user_id, start
 -- id de la actividad de Strava de la que se importó esta sesión (si aplica)
 -- — evita importar la misma actividad dos veces.
 alter table sessions add column if not exists strava_activity_id bigint;
+-- Métricas por sesión para la ficha del atleta (curva con calidad de cada
+-- pico, kJ, zonas, torque, tiempo a umbral, sesión estable): ver
+-- src/engine/session-metrics.ts. Sin samples en la nube, esto es lo que
+-- permite mirar 3 y 6 meses desde cualquier dispositivo y desde la vista
+-- del coach.
+alter table sessions add column if not exists metrics jsonb;
 create unique index if not exists sessions_user_strava_activity_idx
   on sessions (user_id, strava_activity_id) where strava_activity_id is not null;
 
@@ -1086,6 +1099,43 @@ create trigger monthly_reviews_stamp before insert or update on monthly_reviews
 -- La función pone emailed_at con service role; el coach solo lo lee.
 alter table monthly_reviews add column if not exists emailed_at timestamptz;
 
+-- Cada envío por correo que aprueba el coach: [{ "at": iso, "comment": "…" }].
+-- Máximo 2 por revisión, cada uno con un comentario suyo (send-review-email).
+alter table monthly_reviews add column if not exists email_sends jsonb not null default '[]'::jsonb;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Reporte mensual SIN coach humano (Edge Function monthly-self-report): la
+-- IA lo redacta como su coach y queda publicado con coach_id null ("Coach
+-- Torq"). El atleta lo lee con la misma política ("atleta lee las
+-- publicadas"); las políticas del coach no aplican (auth.uid() = null nunca).
+-- Uno por atleta y mes.
+-- ─────────────────────────────────────────────────────────────────────────
+alter table monthly_reviews alter column coach_id drop not null;
+create unique index if not exists monthly_reviews_self_once
+  on monthly_reviews (athlete_id, month) where coach_id is null;
+
+-- Disparo mensual: el día 1 a las 14:00 UTC (8:00 en CDMX) pg_cron llama a la
+-- función con el secreto CRON_SECRET, guardado también en el Vault como
+-- 'monthly_self_report_secret' (no va en este archivo):
+--   select vault.create_secret('<CRON_SECRET>', 'monthly_self_report_secret');
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+select cron.schedule(
+  'monthly-self-report',
+  '0 14 1 * *',
+  $cron$
+  select net.http_post(
+    url := 'https://pmshhyyqoghoyjnsedza.supabase.co/functions/v1/monthly-self-report',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'monthly_self_report_secret')
+    ),
+    body := '{}'::jsonb,
+    timeout_milliseconds := 300000
+  );
+  $cron$
+);
+
 -- ─────────────────────────────────────────────────────────────────────────
 -- Vista del coach: detalle de las sesiones de sus atletas y descarga de su
 -- .fit (screens/coach-session.ts). El coach lee un archivo de fit-files solo
@@ -1105,3 +1155,89 @@ create policy "fit-files: coach lee los de sus atletas" on storage.objects for s
         and public.is_coach_of(s.user_id)
     )
   );
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- athlete_notes: el expediente del atleta — lo que lo hace único (cómo
+-- responde, qué sesiones se le caen, cuántas semanas de carga aguanta, qué
+-- le molesta). Lo reciben los seis modos del coach de IA (coach-chat lo lee
+-- con service role y lo mete al context) y manda sobre las reglas generales
+-- del prompt. Lo edita su coach activo; sin coach, la IA lo actualiza cada 4
+-- evaluaciones semanales (updated_by 'ai'). El atleta lo ve y puede borrarlo.
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists athlete_notes (
+  athlete_id uuid primary key references auth.users (id) on delete cascade,
+  body text not null default '' check (char_length(body) <= 1200),
+  updated_by text not null check (updated_by in ('coach', 'ai')),
+  updated_by_user uuid references auth.users (id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+
+alter table athlete_notes enable row level security;
+
+drop policy if exists "athlete_notes: atleta y su coach leen" on athlete_notes;
+create policy "athlete_notes: atleta y su coach leen" on athlete_notes for select
+  using (auth.uid() = athlete_id or is_coach_of(athlete_id));
+
+drop policy if exists "athlete_notes: coach crea" on athlete_notes;
+create policy "athlete_notes: coach crea" on athlete_notes for insert
+  with check (is_coach_of(athlete_id) and updated_by = 'coach' and updated_by_user = auth.uid());
+
+drop policy if exists "athlete_notes: coach edita" on athlete_notes;
+create policy "athlete_notes: coach edita" on athlete_notes for update
+  using (is_coach_of(athlete_id))
+  with check (is_coach_of(athlete_id) and updated_by = 'coach' and updated_by_user = auth.uid());
+
+drop policy if exists "athlete_notes: atleta borra el suyo" on athlete_notes;
+create policy "athlete_notes: atleta borra el suyo" on athlete_notes for delete
+  using (auth.uid() = athlete_id);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- coach_calls: una fila por llamada a Claude desde coach-chat (modo, paso,
+-- modelo, tokens por tipo, duración, costo estimado y lo que hizo la
+-- guardia). Es para medir qué cuesta cada modo y si la caché se aprovecha.
+-- Solo la escribe y la lee la Edge Function (service role): sin políticas,
+-- RLS no deja pasar a nadie más. Se consulta desde el SQL editor.
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists coach_calls (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users (id) on delete set null,
+  mode text not null,
+  step text not null check (step in ('main', 'retry', 'writer')),
+  model text not null,
+  input_tokens integer not null default 0,
+  cache_write_tokens integer not null default 0,
+  cache_read_tokens integer not null default 0,
+  output_tokens integer not null default 0,
+  duration_ms integer not null default 0,
+  cost_usd numeric(10, 6),
+  ok boolean not null default true,
+  error text,
+  guard_fixes smallint not null default 0,
+  guard_fails text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists coach_calls_created_at_idx on coach_calls (created_at desc);
+
+alter table coach_calls enable row level security;
+
+-- Costo por mes, modo y paso. "cache_hit_pct": qué parte de lo que pudo salir
+-- de la caché salió de ahí (si es bajo, la caché cuesta más de lo que ahorra).
+create or replace view coach_cost_by_mode with (security_invoker = true) as
+select
+  date_trunc('month', created_at)::date as month,
+  mode,
+  step,
+  model,
+  count(*) as calls,
+  count(*) filter (where not ok) as failed,
+  round(sum(cost_usd), 4) as cost_usd,
+  round(avg(cost_usd), 4) as avg_cost_usd,
+  round(avg(output_tokens)) as avg_output_tokens,
+  round(avg(duration_ms) / 1000.0, 1) as avg_seconds,
+  round(100.0 * sum(cache_read_tokens) / nullif(sum(cache_read_tokens + cache_write_tokens), 0), 1) as cache_hit_pct,
+  count(*) filter (where guard_fixes > 0) as guard_fixed,
+  count(*) filter (where guard_fails is not null) as guard_failed
+from coach_calls
+group by 1, 2, 3, 4
+order by 1 desc, cost_usd desc nulls last;

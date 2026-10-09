@@ -10,7 +10,7 @@ export async function fetchCloudProfile(userId: string): Promise<Profile | null 
   const { data, error } = await supabase
     .from('profiles')
     .select(
-      'ftp, hr_max, cadence_floor, hr_ceiling, hr_min, cadence_max, name, birth_date, height_cm, weight_kg, sex, experience_level, general_fitness_level, years_riding, structured_training_years, competes, category, discipline, injuries, rides_outside, has_outdoor_power_meter, recent_best_result, ftp_confirmed, hr_max_confirmed',
+      'ftp, hr_max, cadence_floor, hr_ceiling, hr_min, cadence_max, name, birth_date, height_cm, weight_kg, sex, experience_level, general_fitness_level, years_riding, structured_training_years, competes, category, discipline, injuries, rides_outside, has_outdoor_power_meter, recent_best_result, ftp_confirmed, hr_max_confirmed, ftp_source, ftp_updated_at',
     )
     .eq('user_id', userId)
     .maybeSingle();
@@ -44,6 +44,8 @@ export async function fetchCloudProfile(userId: string): Promise<Profile | null 
     recentBestResult: data.recent_best_result ?? undefined,
     ftpConfirmed: data.ftp_confirmed ?? undefined,
     hrMaxConfirmed: data.hr_max_confirmed ?? undefined,
+    ftpSource: data.ftp_source ?? undefined,
+    ftpUpdatedAt: data.ftp_updated_at ?? undefined,
   };
 }
 
@@ -80,6 +82,8 @@ export async function pushProfileToCloud(profile: Profile, userId: string): Prom
       recent_best_result: profile.recentBestResult ?? null,
       ftp_confirmed: profile.ftpConfirmed ?? null,
       hr_max_confirmed: profile.hrMaxConfirmed ?? null,
+      ftp_source: profile.ftpSource ?? null,
+      ftp_updated_at: profile.ftpUpdatedAt ?? null,
     });
     if (error) throw error;
   } catch (err) {

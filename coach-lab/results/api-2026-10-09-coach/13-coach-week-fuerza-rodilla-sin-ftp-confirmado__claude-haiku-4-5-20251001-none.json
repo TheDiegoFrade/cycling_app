@@ -1,0 +1,340 @@
+{
+  "id": "13-coach-week-fuerza-rodilla-sin-ftp-confirmado",
+  "mode": "coach_week",
+  "config": "claude-haiku-4-5-20251001-none",
+  "ok": false,
+  "seconds": 26.7,
+  "cost": 0.019339,
+  "coldCost": 0.032439,
+  "usage": {
+    "input_tokens": 3650,
+    "output_tokens": 2910,
+    "cache_read_input_tokens": 11391,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [
+    "mon «Sweet Spot 3×10»: sesión dura el día antes, el día o el día después de fuerza de pierna"
+  ],
+  "fails": [
+    "mon «Sweet Spot 3×10»: sesión dura el día antes, el día o el día después de fuerza de pierna"
+  ],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Clasificación: NORMAL. TSB −3 indica base sólida sin sobrecarga inmediata; CTL de 41 y semanas previas entre 250-270 TSS sugieren capacidad de absorber estímulo. FTP no confirmado aún: mantener intensidad moderada y validar con RPE.",
+      "Lesión de rodilla (tendinitis rotuliana): cadencia mínima de 85 rpm en todos los esfuerzos; prohibido trabajo a cadencia baja y sprints. Dos sesiones de fuerza bloqueada (martes y viernes) restringen los duros alrededor.",
+      "Carga planteada: ~265 TSS de bici (fondo y sweet spot conservador), dentro del rango semanal. Máximo 2 sesiones duras separadas (lunes y jueves), ambas con cadencia alta y recuperación controlada.",
+      "De biblioteca: Sweet Spot 3×12 ajustado a 3×10 min (cadencia mínima 85 rpm, ~65 TSS) para lunes; Fondo 60 para miércoles; Recuperación 40 para sábado. Martes y viernes bloqueados (fuerza y movilidad).",
+      "MTB maratón en marzo (5 meses): esta semana inicia construcción aeróbica con repeticiones sostenidas. El trabajo de umbral y VO2 entra después de confirmar FTP y ganar base."
+    ],
+    "workouts": [
+      {
+        "name": "Sweet Spot 3×10",
+        "description": "Inicio de semana con tres bloques sostenidos al 90 % para construir potencia aeróbica. ERG prendido: el rodillo mantiene la potencia, vos controlás la cadencia entre 85 y 95 rpm. Vas a sentir las piernas trabajando desde el primer bloque, pero con ritmo constante; si el pulso sube mucho o la respiración se vuelve superficial, bajá mentalmente: esta semana no es el límite. Tres series de 10 minutos te deja fresco para absorber la fuerza de mañana.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 900,
+            "power_pct": 50,
+            "cadence_min": 75,
+            "cadence_max": 95
+          },
+          {
+            "name": "Sweet Spot 1",
+            "type": "interval",
+            "duration_s": 600,
+            "power_pct": 90,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Recuperación 1",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55,
+            "cadence_min": 80,
+            "cadence_max": 100
+          },
+          {
+            "name": "Sweet Spot 2",
+            "type": "interval",
+            "duration_s": 600,
+            "power_pct": 90,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Recuperación 2",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55,
+            "cadence_min": 80,
+            "cadence_max": 100
+          },
+          {
+            "name": "Sweet Spot 3",
+            "type": "interval",
+            "duration_s": 600,
+            "power_pct": 90,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 420,
+            "power_pct": 50,
+            "cadence_min": 75,
+            "cadence_max": 95
+          }
+        ],
+        "targetTSS": 65,
+        "dayOfWeek": "mon",
+        "fromLibraryId": "lib-ss-3x12",
+        "libraryChange": "Reducido de 3×12 a 3×10 min; cadencia mínima 85 rpm por tendinitis rotuliana; TSS ajustado a ~65."
+      },
+      {
+        "name": "Fondo 60",
+        "description": "Miércoles de recuperación activa. 45 minutos en fondo conversacional —deberías poder hablar frases completas sin jadear—, ERG como prefieras. Cadencia cómoda, entre 80 y 95 rpm. Esto activa el sistema sin fatigarte; la rodada prepara las piernas para el bloque fuerte de mañana.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 600,
+            "power_pct": 55,
+            "cadence_min": 75,
+            "cadence_max": 95
+          },
+          {
+            "name": "Fondo sostenido",
+            "type": "steady",
+            "duration_s": 2700,
+            "power_pct": 65,
+            "cadence_min": 80,
+            "cadence_max": 95
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 300,
+            "power_pct": 50,
+            "cadence_min": 75,
+            "cadence_max": 95
+          }
+        ],
+        "targetTSS": 42,
+        "dayOfWeek": "wed",
+        "fromLibraryId": "lib-fondo-60",
+        "libraryChange": null
+      },
+      {
+        "name": "Over-Under 3×9",
+        "description": "Jueves: el segundo duro de la semana. Tres series de ondulaciones entre 95 % y 105 %: dos minutos fuertes, un minuto recuperado dentro del bloque. ERG prendido todo el rato. Es la sesión más exigente porque alterna esfuerzo y microrecuperación; esperá que en la última serie cueste sostener el ritmo de los finales. Cadencia 85 rpm mínimo. Esto fortalece tu capacidad de responder en carrera, donde la potencia no es constante.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 900,
+            "power_pct": 50,
+            "cadence_min": 75,
+            "cadence_max": 95
+          },
+          {
+            "name": "Serie 1 bloque 1 fuerte",
+            "type": "interval",
+            "duration_s": 120,
+            "power_pct": 95,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 1 bloque 1 suave",
+            "type": "recovery",
+            "duration_s": 60,
+            "power_pct": 105,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 1 bloque 2 fuerte",
+            "type": "interval",
+            "duration_s": 120,
+            "power_pct": 95,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 1 bloque 2 suave",
+            "type": "recovery",
+            "duration_s": 60,
+            "power_pct": 105,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 1 bloque 3 fuerte",
+            "type": "interval",
+            "duration_s": 120,
+            "power_pct": 95,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 1 bloque 3 suave",
+            "type": "recovery",
+            "duration_s": 60,
+            "power_pct": 105,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Recuperación entre series",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55,
+            "cadence_min": 75,
+            "cadence_max": 95
+          },
+          {
+            "name": "Serie 2 bloque 1 fuerte",
+            "type": "interval",
+            "duration_s": 120,
+            "power_pct": 95,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 2 bloque 1 suave",
+            "type": "recovery",
+            "duration_s": 60,
+            "power_pct": 105,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 2 bloque 2 fuerte",
+            "type": "interval",
+            "duration_s": 120,
+            "power_pct": 95,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 2 bloque 2 suave",
+            "type": "recovery",
+            "duration_s": 60,
+            "power_pct": 105,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 2 bloque 3 fuerte",
+            "type": "interval",
+            "duration_s": 120,
+            "power_pct": 95,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 2 bloque 3 suave",
+            "type": "recovery",
+            "duration_s": 60,
+            "power_pct": 105,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Recuperación entre series",
+            "type": "recovery",
+            "duration_s": 300,
+            "power_pct": 55,
+            "cadence_min": 75,
+            "cadence_max": 95
+          },
+          {
+            "name": "Serie 3 bloque 1 fuerte",
+            "type": "interval",
+            "duration_s": 120,
+            "power_pct": 95,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 3 bloque 1 suave",
+            "type": "recovery",
+            "duration_s": 60,
+            "power_pct": 105,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 3 bloque 2 fuerte",
+            "type": "interval",
+            "duration_s": 120,
+            "power_pct": 95,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 3 bloque 2 suave",
+            "type": "recovery",
+            "duration_s": 60,
+            "power_pct": 105,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 3 bloque 3 fuerte",
+            "type": "interval",
+            "duration_s": 120,
+            "power_pct": 95,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Serie 3 bloque 3 suave",
+            "type": "recovery",
+            "duration_s": 60,
+            "power_pct": 105,
+            "cadence_min": 85,
+            "cadence_max": 100
+          },
+          {
+            "name": "Enfriamiento",
+            "type": "cooldown",
+            "duration_s": 600,
+            "power_pct": 50,
+            "cadence_min": 75,
+            "cadence_max": 95
+          }
+        ],
+        "targetTSS": 82,
+        "dayOfWeek": "thu",
+        "fromLibraryId": "lib-ou-3x9",
+        "libraryChange": null
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Sábado suave: 40 minutos al 50 %, cadencia libre entre 75 y 95 rpm. Es el pase antes del posible domingo largo; no hay prisa. Conversación, paisaje, sensación de fluidez.",
+        "intervals": [
+          {
+            "name": "Recuperación",
+            "type": "steady",
+            "duration_s": 2400,
+            "power_pct": 50,
+            "cadence_min": 75,
+            "cadence_max": 95
+          }
+        ],
+        "targetTSS": 20,
+        "dayOfWeek": "sat",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\": [\"Clasificación: NORMAL. TSB −3 indica base sólida sin sobrecarga inmediata; CTL de 41 y semanas previas entre 250-270 TSS sugieren capacidad de absorber estímulo. FTP no confirmado aún: mantener intensidad moderada y validar con RPE.\", \"Lesión de rodilla (tendinitis rotuliana): cadencia mínima de 85 rpm en todos los esfuerzos; prohibido trabajo a cadencia baja y sprints. Dos sesiones de fuerza bloqueada (martes y viernes) restringen los duros alrededor.\", \"Carga planteada: ~265 TSS de bici (fondo y sweet spot conservador), dentro del rango semanal. Máximo 2 sesiones duras separadas (lunes y jueves), ambas con cadencia alta y recuperación controlada.\", \"De biblioteca: Sweet Spot 3×12 ajustado a 3×10 min (cadencia mínima 85 rpm, ~65 TSS) para lunes; Fondo 60 para miércoles; Recuperación 40 para sábado. Martes y viernes bloqueados (fuerza y movilidad).\", \"MTB maratón en marzo (5 meses): esta semana inicia construcción aeróbica con repeticiones sostenidas. El trabajo de umbral y VO2 entra después de confirmar FTP y ganar base.\"], \"workouts\": [{\"name\": \"Sweet Spot 3×10\", \"description\": \"Inicio de semana con tres bloques sostenidos al 90 % para construir potencia aeróbica. ERG prendido: el rodillo mantiene la potencia, vos controlás la cadencia entre 85 y 95 rpm. Vas a sentir las piernas trabajando desde el primer bloque, pero con ritmo constante; si el pulso sube mucho o la respiración se vuelve superficial, bajá mentalmente: esta semana no es el límite. Tres series de 10 minutos te deja fresco para absorber la fuerza de mañana.\", \"intervals\": [{\"name\": \"Calentamiento\", \"type\": \"warmup\", \"duration_s\": 900, \"power_pct\": 50, \"cadence_min\": 75, \"cadence_max\": 95}, {\"name\": \"Sweet Spot 1\", \"type\": \"interval\", \"duration_s\": 600, \"power_pct\": 90, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Recuperación 1\", \"type\": \"recovery\", \"duration_s\": 300, \"power_pct\": 55, \"cadence_min\": 80, \"cadence_max\": 100}, {\"name\": \"Sweet Spot 2\", \"type\": \"interval\", \"duration_s\": 600, \"power_pct\": 90, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Recuperación 2\", \"type\": \"recovery\", \"duration_s\": 300, \"power_pct\": 55, \"cadence_min\": 80, \"cadence_max\": 100}, {\"name\": \"Sweet Spot 3\", \"type\": \"interval\", \"duration_s\": 600, \"power_pct\": 90, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Enfriamiento\", \"type\": \"cooldown\", \"duration_s\": 420, \"power_pct\": 50, \"cadence_min\": 75, \"cadence_max\": 95}], \"targetTSS\": 65, \"dayOfWeek\": \"mon\", \"fromLibraryId\": \"lib-ss-3x12\", \"libraryChange\": \"Reducido de 3×12 a 3×10 min; cadencia mínima 85 rpm por tendinitis rotuliana; TSS ajustado a ~65.\"}, {\"name\": \"Fondo 60\", \"description\": \"Miércoles de recuperación activa. 45 minutos en fondo conversacional —deberías poder hablar frases completas sin jadear—, ERG como prefieras. Cadencia cómoda, entre 80 y 95 rpm. Esto activa el sistema sin fatigarte; la rodada prepara las piernas para el bloque fuerte de mañana.\", \"intervals\": [{\"name\": \"Calentamiento\", \"type\": \"warmup\", \"duration_s\": 600, \"power_pct\": 55, \"cadence_min\": 75, \"cadence_max\": 95}, {\"name\": \"Fondo sostenido\", \"type\": \"steady\", \"duration_s\": 2700, \"power_pct\": 65, \"cadence_min\": 80, \"cadence_max\": 95}, {\"name\": \"Enfriamiento\", \"type\": \"cooldown\", \"duration_s\": 300, \"power_pct\": 50, \"cadence_min\": 75, \"cadence_max\": 95}], \"targetTSS\": 42, \"dayOfWeek\": \"wed\", \"fromLibraryId\": \"lib-fondo-60\", \"libraryChange\": null}, {\"name\": \"Over-Under 3×9\", \"description\": \"Jueves: el segundo duro de la semana. Tres series de ondulaciones entre 95 % y 105 %: dos minutos fuertes, un minuto recuperado dentro del bloque. ERG prendido todo el rato. Es la sesión más exigente porque alterna esfuerzo y microrecuperación; esperá que en la última serie cueste sostener el ritmo de los finales. Cadencia 85 rpm mínimo. Esto fortalece tu capacidad de responder en carrera, donde la potencia no es constante.\", \"intervals\": [{\"name\": \"Calentamiento\", \"type\": \"warmup\", \"duration_s\": 900, \"power_pct\": 50, \"cadence_min\": 75, \"cadence_max\": 95}, {\"name\": \"Serie 1 bloque 1 fuerte\", \"type\": \"interval\", \"duration_s\": 120, \"power_pct\": 95, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 1 bloque 1 suave\", \"type\": \"recovery\", \"duration_s\": 60, \"power_pct\": 105, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 1 bloque 2 fuerte\", \"type\": \"interval\", \"duration_s\": 120, \"power_pct\": 95, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 1 bloque 2 suave\", \"type\": \"recovery\", \"duration_s\": 60, \"power_pct\": 105, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 1 bloque 3 fuerte\", \"type\": \"interval\", \"duration_s\": 120, \"power_pct\": 95, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 1 bloque 3 suave\", \"type\": \"recovery\", \"duration_s\": 60, \"power_pct\": 105, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Recuperación entre series\", \"type\": \"recovery\", \"duration_s\": 300, \"power_pct\": 55, \"cadence_min\": 75, \"cadence_max\": 95}, {\"name\": \"Serie 2 bloque 1 fuerte\", \"type\": \"interval\", \"duration_s\": 120, \"power_pct\": 95, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 2 bloque 1 suave\", \"type\": \"recovery\", \"duration_s\": 60, \"power_pct\": 105, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 2 bloque 2 fuerte\", \"type\": \"interval\", \"duration_s\": 120, \"power_pct\": 95, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 2 bloque 2 suave\", \"type\": \"recovery\", \"duration_s\": 60, \"power_pct\": 105, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 2 bloque 3 fuerte\", \"type\": \"interval\", \"duration_s\": 120, \"power_pct\": 95, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 2 bloque 3 suave\", \"type\": \"recovery\", \"duration_s\": 60, \"power_pct\": 105, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Recuperación entre series\", \"type\": \"recovery\", \"duration_s\": 300, \"power_pct\": 55, \"cadence_min\": 75, \"cadence_max\": 95}, {\"name\": \"Serie 3 bloque 1 fuerte\", \"type\": \"interval\", \"duration_s\": 120, \"power_pct\": 95, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 3 bloque 1 suave\", \"type\": \"recovery\", \"duration_s\": 60, \"power_pct\": 105, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 3 bloque 2 fuerte\", \"type\": \"interval\", \"duration_s\": 120, \"power_pct\": 95, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 3 bloque 2 suave\", \"type\": \"recovery\", \"duration_s\": 60, \"power_pct\": 105, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 3 bloque 3 fuerte\", \"type\": \"interval\", \"duration_s\": 120, \"power_pct\": 95, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Serie 3 bloque 3 suave\", \"type\": \"recovery\", \"duration_s\": 60, \"power_pct\": 105, \"cadence_min\": 85, \"cadence_max\": 100}, {\"name\": \"Enfriamiento\", \"type\": \"cooldown\", \"duration_s\": 600, \"power_pct\": 50, \"cadence_min\": 75, \"cadence_max\": 95}], \"targetTSS\": 82, \"dayOfWeek\": \"thu\", \"fromLibraryId\": \"lib-ou-3x9\", \"libraryChange\": null}, {\"name\": \"Recuperación 40\", \"description\": \"Sábado suave: 40 minutos al 50 %, cadencia libre entre 75 y 95 rpm. Es el pase antes del posible domingo largo; no hay prisa. Conversación, paisaje, sensación de fluidez.\", \"intervals\": [{\"name\": \"Recuperación\", \"type\": \"steady\", \"duration_s\": 2400, \"power_pct\": 50, \"cadence_min\": 75, \"cadence_max\": 95}], \"targetTSS\": 20, \"dayOfWeek\": \"sat\", \"fromLibraryId\": \"lib-recup-40\", \"libraryChange\": null}]}"
+}

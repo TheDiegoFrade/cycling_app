@@ -1,0 +1,578 @@
+{
+  "id": "17-create-plan-tope-90-y-horas-que-no-caben",
+  "mode": "create_plan",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 40.1,
+  "cost": 0.005003,
+  "coldCost": 0.006793,
+  "usage": {
+    "input_tokens": 1685,
+    "output_tokens": 9358,
+    "cache_read_input_tokens": 15566,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [
+    "TSS sube 37 % de S1 a S2 (123 → 169)"
+  ],
+  "output": {
+    "planName": "Gran fondo 160 km - 28 feb",
+    "blocks": [
+      {
+        "name": "Base aeróbica",
+        "weeks": 6,
+        "focus": "Volumen aeróbico en Z2 y tempo suave, con un bloque de sweet spot conservador por semana.",
+        "targetHoursPerWeek": 5.5
+      },
+      {
+        "name": "Construcción",
+        "weeks": 6,
+        "focus": "Sweet spot y umbral largos, subiendo volumen de forma gradual.",
+        "targetHoursPerWeek": 7
+      },
+      {
+        "name": "Específico gran fondo",
+        "weeks": 6,
+        "focus": "Sweet spot y umbral largos con sesiones de subida sostenida y una rodada larga semanal.",
+        "targetHoursPerWeek": 8
+      },
+      {
+        "name": "Puesta a punto",
+        "weeks": 2,
+        "focus": "Descarga y mantenimiento de intensidad corta, con la semana final de carrera fresca.",
+        "targetHoursPerWeek": 4
+      }
+    ],
+    "firstBlockWeeks": [
+      {
+        "weekIndex": 0,
+        "workouts": [
+          {
+            "name": "Fondo",
+            "dayOfWeek": "tue",
+            "targetTSS": 38,
+            "erg": "on",
+            "intent": "Rodaje aeróbico a potencia constante, sin buscar cifras. Debes poder hablar en frases completas durante toda la sesión.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 3000,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Sweet spot conservador",
+            "dayOfWeek": "thu",
+            "targetTSS": 37,
+            "erg": "on",
+            "intent": "Dos bloques de 10 min al 88 % con 5 min suaves entre ellos. Con el FTP recién confirmado vas por el lado conservador: si el pulso se dispara en el segundo bloque, baja el segundo a 85 %.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 2,
+                "steps": [
+                  {
+                    "name": "Sweet spot",
+                    "type": "interval",
+                    "duration_s": 600,
+                    "power_pct": 88
+                  },
+                  {
+                    "name": "Recuperación",
+                    "type": "recovery",
+                    "duration_s": 300,
+                    "power_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo con paso",
+            "dayOfWeek": "sun",
+            "targetTSS": 48,
+            "erg": "on",
+            "intent": "Rodaje largo tranquilo, a sensación de RPE 3-4. Si la frecuencia cardiaca sube en la segunda mitad, baja 5 % la potencia.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 3600,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workouts": [
+          {
+            "name": "Fondo",
+            "dayOfWeek": "tue",
+            "targetTSS": 38,
+            "erg": "on",
+            "intent": "Rodaje aeróbico a potencia constante, con RPE 3-4. La sesión sirve para acumular base, no para apretar.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 3000,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Sweet spot tres bloques",
+            "dayOfWeek": "thu",
+            "targetTSS": 42,
+            "erg": "on",
+            "intent": "Tres bloques de 8 min al 88 % con 4 min suaves entre ellos. Mantén el mismo esfuerzo en los tres; el umbral sigue conservador, así que no busques más watts que los que marca el ERG.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 3,
+                "steps": [
+                  {
+                    "name": "Sweet spot",
+                    "type": "interval",
+                    "duration_s": 480,
+                    "power_pct": 88
+                  },
+                  {
+                    "name": "Recuperación",
+                    "type": "recovery",
+                    "duration_s": 240,
+                    "power_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo largo",
+            "dayOfWeek": "sat",
+            "targetTSS": 51,
+            "erg": "on",
+            "intent": "Salida larga a ritmo de fondo, con 1 h 15 min de pedaleo continuo. Comienza suave y no subas el ritmo en la última media hora.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 3600,
+                    "power_pct": 68
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo suave",
+            "dayOfWeek": "sun",
+            "targetTSS": 38,
+            "erg": "on",
+            "intent": "Rodaje suave de recuperación activa tras el sábado. Si te cuesta hablar, baja la potencia.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 3000,
+                    "power_pct": 62
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workouts": [
+          {
+            "name": "Fondo",
+            "dayOfWeek": "tue",
+            "targetTSS": 38,
+            "erg": "on",
+            "intent": "Rodaje aeróbico a potencia constante, con RPE 3-4 y respiración cómoda.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 3000,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Sweet spot largo",
+            "dayOfWeek": "thu",
+            "targetTSS": 41,
+            "erg": "on",
+            "intent": "Dos bloques de 12 min al 88 % con 5 min suaves entre ellos. Es el bloque más largo que te he puesto hasta ahora: reparte el esfuerzo y no empieces el segundo más fuerte que el primero.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 2,
+                "steps": [
+                  {
+                    "name": "Sweet spot",
+                    "type": "interval",
+                    "duration_s": 720,
+                    "power_pct": 88
+                  },
+                  {
+                    "name": "Recuperación",
+                    "type": "recovery",
+                    "duration_s": 300,
+                    "power_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Tempo con fondo",
+            "dayOfWeek": "sat",
+            "targetTSS": 47,
+            "erg": "on",
+            "intent": "Veinte minutos de tempo al 80 % dentro de una salida de fondo. Mantén el tempo estable, sin picos; si el pulso no se aplana, baja a 78 %.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Tempo",
+                    "type": "steady",
+                    "duration_s": 1200,
+                    "power_pct": 80
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 1800,
+                    "power_pct": 66
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo",
+            "dayOfWeek": "sun",
+            "targetTSS": 38,
+            "erg": "on",
+            "intent": "Rodaje suave a RPE 3-4, sin subir la potencia por encima de lo marcado.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 3000,
+                    "power_pct": 65
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 45
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      }
+    ],
+    "coachNote": "Javier, tu FTP de 248 W está medido, así que arrancamos con él desde ya, con el umbral conservador las dos primeras semanas. Con 4 días y tope de 90 min caben 6 h a la semana, no 10: planeo lo que cabe y no alargo sesiones. El sábado 17 está ocupado, así que esta semana entrenas martes, jueves y domingo.",
+    "suggestedFtp": null,
+    "nextTest": {
+      "weekIndex": 6,
+      "type": "test20",
+      "reason": "Retest de 20 min al abrir el bloque de construcción, con más de 4 semanas de base y el atleta fresco."
+    }
+  },
+  "raw": "{\"planName\":\"Gran fondo 160 km - 28 feb\",\"blocks\":[{\"name\":\"Base aeróbica\",\"weeks\":6,\"focus\":\"Volumen aeróbico en Z2 y tempo suave, con un bloque de sweet spot conservador por semana.\",\"targetHoursPerWeek\":5.5},{\"name\":\"Construcción\",\"weeks\":6,\"focus\":\"Sweet spot y umbral largos, subiendo volumen de forma gradual.\",\"targetHoursPerWeek\":7},{\"name\":\"Específico gran fondo\",\"weeks\":6,\"focus\":\"Sweet spot y umbral largos con sesiones de subida sostenida y una rodada larga semanal.\",\"targetHoursPerWeek\":8},{\"name\":\"Puesta a punto\",\"weeks\":2,\"focus\":\"Descarga y mantenimiento de intensidad corta, con la semana final de carrera fresca.\",\"targetHoursPerWeek\":4}],\"firstBlockWeeks\":[{\"weekIndex\":0,\"workouts\":[{\"name\":\"Fondo\",\"dayOfWeek\":\"tue\",\"targetTSS\":38,\"erg\":\"on\",\"intent\":\"Rodaje aeróbico a potencia constante, sin buscar cifras. Debes poder hablar en frases completas durante toda la sesión.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Sweet spot conservador\",\"dayOfWeek\":\"thu\",\"targetTSS\":37,\"erg\":\"on\",\"intent\":\"Dos bloques de 10 min al 88 % con 5 min suaves entre ellos. Con el FTP recién confirmado vas por el lado conservador: si el pulso se dispara en el segundo bloque, baja el segundo a 85 %.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50}]},{\"repeat\":2,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"interval\",\"duration_s\":600,\"power_pct\":88},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo con paso\",\"dayOfWeek\":\"sun\",\"targetTSS\":48,\"erg\":\"on\",\"intent\":\"Rodaje largo tranquilo, a sensación de RPE 3-4. Si la frecuencia cardiaca sube en la segunda mitad, baja 5 % la potencia.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3600,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null}]},{\"weekIndex\":1,\"workouts\":[{\"name\":\"Fondo\",\"dayOfWeek\":\"tue\",\"targetTSS\":38,\"erg\":\"on\",\"intent\":\"Rodaje aeróbico a potencia constante, con RPE 3-4. La sesión sirve para acumular base, no para apretar.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Sweet spot tres bloques\",\"dayOfWeek\":\"thu\",\"targetTSS\":42,\"erg\":\"on\",\"intent\":\"Tres bloques de 8 min al 88 % con 4 min suaves entre ellos. Mantén el mismo esfuerzo en los tres; el umbral sigue conservador, así que no busques más watts que los que marca el ERG.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50}]},{\"repeat\":3,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"interval\",\"duration_s\":480,\"power_pct\":88},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":240,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo largo\",\"dayOfWeek\":\"sat\",\"targetTSS\":51,\"erg\":\"on\",\"intent\":\"Salida larga a ritmo de fondo, con 1 h 15 min de pedaleo continuo. Comienza suave y no subas el ritmo en la última media hora.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3600,\"power_pct\":68}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo suave\",\"dayOfWeek\":\"sun\",\"targetTSS\":38,\"erg\":\"on\",\"intent\":\"Rodaje suave de recuperación activa tras el sábado. Si te cuesta hablar, baja la potencia.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":62}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null}]},{\"weekIndex\":2,\"workouts\":[{\"name\":\"Fondo\",\"dayOfWeek\":\"tue\",\"targetTSS\":38,\"erg\":\"on\",\"intent\":\"Rodaje aeróbico a potencia constante, con RPE 3-4 y respiración cómoda.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Sweet spot largo\",\"dayOfWeek\":\"thu\",\"targetTSS\":41,\"erg\":\"on\",\"intent\":\"Dos bloques de 12 min al 88 % con 5 min suaves entre ellos. Es el bloque más largo que te he puesto hasta ahora: reparte el esfuerzo y no empieces el segundo más fuerte que el primero.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50}]},{\"repeat\":2,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":88},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Tempo con fondo\",\"dayOfWeek\":\"sat\",\"targetTSS\":47,\"erg\":\"on\",\"intent\":\"Veinte minutos de tempo al 80 % dentro de una salida de fondo. Mantén el tempo estable, sin picos; si el pulso no se aplana, baja a 78 %.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Tempo\",\"type\":\"steady\",\"duration_s\":1200,\"power_pct\":80}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1800,\"power_pct\":66}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo\",\"dayOfWeek\":\"sun\",\"targetTSS\":38,\"erg\":\"on\",\"intent\":\"Rodaje suave a RPE 3-4, sin subir la potencia por encima de lo marcado.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":50}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3000,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":45}]}],\"kind\":null}]}],\"coachNote\":\"Javier, tu FTP de 248 W está medido, así que arrancamos con él desde ya, con el umbral conservador las dos primeras semanas. Con 4 días y tope de 90 min caben 6 h a la semana, no 10: planeo lo que cabe y no alargo sesiones. El sábado 17 está ocupado, así que esta semana entrenas martes, jueves y domingo.\",\"suggestedFtp\":null,\"nextTest\":{\"weekIndex\":6,\"type\":\"test20\",\"reason\":\"Retest de 20 min al abrir el bloque de construcción, con más de 4 semanas de base y el atleta fresco.\"}}"
+}

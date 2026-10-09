@@ -1,0 +1,44 @@
+{
+  "id": "04-poco-tiempo-competidor",
+  "mode": "create_plan",
+  "title": "Competidor de ruta con FTP confirmado y solo 3 h por semana, máximo 45 min",
+  "expect": [
+    "Respetar 45 min por sesión sin excepción.",
+    "Con poco volumen, más densidad de calidad (sweet spot/umbral/VO2) pero con un día suave.",
+    "No dos días duros seguidos.",
+    "Usar el FTP real (250) sin pedir test."
+  ],
+  "context": {
+    "startDate": "2026-10-12",
+    "goal": "Subir de categoría: competir en criteriums de cat. 3 en primavera",
+    "experienceLevel": "experienced",
+    "generalFitnessLevel": "active_cyclist",
+    "discipline": "road",
+    "yearsRiding": 5,
+    "competes": true,
+    "category": "Cat 4",
+    "availability": {
+      "hoursPerWeek": 3,
+      "days": [
+        "tue",
+        "thu",
+        "sat"
+      ],
+      "maxSessionMinutes": 45
+    },
+    "occupiedDates": [],
+    "profile": {
+      "ftp": 250,
+      "hr_max": 190,
+      "sex": "F",
+      "name": "Ana"
+    },
+    "recentHistory": {
+      "weeksOfData": 20,
+      "avgHoursPerWeekLast4": 3.2,
+      "ctl": 45,
+      "atl": 47,
+      "tsb": -2
+    }
+  }
+}

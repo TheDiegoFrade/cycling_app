@@ -12,12 +12,18 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
+import { EMAIL_TEST_RECIPIENT } from '../_shared/mailer.ts';
 import { buildReviewEmail, cleanKpis } from './email.ts';
 
-// MODO DE PRUEBA: mientras esto tenga un correo, TODOS los reportes llegan
-// solo ahí (con un aviso de a quién iban) y ningún atleta recibe nada.
-// Ponerlo en null es la forma de empezar a enviarlos a los atletas.
-const TEST_RECIPIENT: string | null = 'dpcfrade@gmail.com';
+// MODO DE PRUEBA: mientras haya un correo en EMAIL_TEST_RECIPIENT
+// (_shared/mailer.ts), TODOS los correos llegan solo ahí (con un aviso de a
+// quién iban) y ningún atleta recibe nada. Es el mismo interruptor para todos.
+const TEST_RECIPIENT = EMAIL_TEST_RECIPIENT;
+
+// El coach aprueba cada envío con un comentario suyo, como máximo MAX_SENDS
+// veces por revisión (monthly_reviews.email_sends).
+const MAX_SENDS = 2;
+const COMMENT_MAX = 600;
 
 // Evita reenvíos por doble clic o por accidente.
 const RESEND_COOLDOWN_MS = 10 * 60 * 1000;
@@ -36,9 +42,12 @@ Deno.serve(async (req) => {
   try {
     // El coach SIEMPRE sale del JWT, nunca del body.
     const userId = await getUserId(req);
-    const body = (await req.json()) as { reviewId?: unknown; kpis?: unknown };
+    const body = (await req.json()) as { reviewId?: unknown; kpis?: unknown; comment?: unknown };
     const reviewId = typeof body?.reviewId === 'string' && UUID.test(body.reviewId) ? body.reviewId : null;
     if (!reviewId) return json({ error: 'falta reviewId' }, 400);
+    const comment = typeof body.comment === 'string' ? body.comment.trim() : '';
+    if (comment.length < 3) return json({ error: 'escribe un comentario para tu atleta: va al inicio del correo' }, 400);
+    if (comment.length > COMMENT_MAX) return json({ error: `el comentario puede tener hasta ${COMMENT_MAX} caracteres` }, 400);
 
     const apiKey = Deno.env.get('RESEND_API_KEY');
     if (!apiKey) return json({ error: 'falta configurar RESEND_API_KEY en Supabase' }, 500);
@@ -47,7 +56,7 @@ Deno.serve(async (req) => {
 
     const { data: review } = await admin
       .from('monthly_reviews')
-      .select('id, athlete_id, coach_id, month, status, verdict, coach_message, findings, goals, coach_name, emailed_at')
+      .select('id, athlete_id, coach_id, month, status, verdict, coach_message, findings, goals, coach_name, emailed_at, email_sends')
       .eq('id', reviewId)
       .eq('coach_id', userId)
       .maybeSingle();
@@ -63,6 +72,8 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!link) return json({ error: 'ese atleta ya no está vinculado contigo' }, 403);
 
+    const sends = (Array.isArray(review.email_sends) ? review.email_sends : []) as { at: string; comment: string }[];
+    if (sends.length >= MAX_SENDS) return json({ error: `ya la enviaste ${MAX_SENDS} veces, que es el máximo` }, 409);
     if (review.emailed_at && Date.now() - Date.parse(review.emailed_at) < RESEND_COOLDOWN_MS) {
       return json({ error: 'ya se envió hace unos minutos; espera un poco para reenviarla' }, 429);
     }
@@ -89,6 +100,7 @@ Deno.serve(async (req) => {
       kpis: cleanKpis(body.kpis),
       reviewUrl: `${appUrl}/#/review/${monthKey}`,
       testIntendedFor: TEST_RECIPIENT ? athleteEmail : null,
+      sendComment: comment,
     });
 
     const res = await fetch('https://api.resend.com/emails', {
@@ -110,9 +122,10 @@ Deno.serve(async (req) => {
     }
 
     const emailedAt = new Date().toISOString();
-    await admin.from('monthly_reviews').update({ emailed_at: emailedAt }).eq('id', review.id);
+    const emailSends = [...sends, { at: emailedAt, comment }];
+    await admin.from('monthly_reviews').update({ emailed_at: emailedAt, email_sends: emailSends }).eq('id', review.id);
     // el correo del atleta no se le regresa al coach
-    return json({ test: TEST_RECIPIENT !== null, sentTo: TEST_RECIPIENT ?? 'atleta', emailedAt });
+    return json({ test: TEST_RECIPIENT !== null, sentTo: TEST_RECIPIENT ?? 'atleta', emailedAt, emailSends, remaining: MAX_SENDS - emailSends.length });
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : String(err) }, 400);
   }

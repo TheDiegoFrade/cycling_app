@@ -1,0 +1,47 @@
+{
+  "id": "03-dummy-real",
+  "mode": "create_plan",
+  "title": "El dummy real: MTB, 'experienced' pero 0 años en bici, activo en otro deporte, casi sin historial",
+  "expect": [
+    "Detectar la contradicción experienced + 0 años y tratarlo con prudencia (no como experto en bici).",
+    "Sin FTP: base corta + test, apoyado en que tiene motor de otro deporte.",
+    "No poner nada el 2026-10-11 (ocupado).",
+    "Ninguna sesión de más de 90 min."
+  ],
+  "context": {
+    "startDate": "2026-10-08",
+    "goal": "Prepararme para un fondo de MTB; quiero base aeróbica, umbral y llegar en pico",
+    "experienceLevel": "experienced",
+    "generalFitnessLevel": "active_other_sport",
+    "discipline": "mountain",
+    "yearsRiding": 0,
+    "competes": false,
+    "category": null,
+    "availability": {
+      "hoursPerWeek": 6,
+      "days": [
+        "tue",
+        "thu",
+        "sat",
+        "sun"
+      ],
+      "maxSessionMinutes": null
+    },
+    "occupiedDates": [
+      "2026-10-11"
+    ],
+    "profile": {
+      "ftp": null,
+      "hr_max": 185,
+      "sex": null,
+      "name": null
+    },
+    "recentHistory": {
+      "weeksOfData": 1,
+      "avgHoursPerWeekLast4": 0.3,
+      "ctl": 0.4,
+      "atl": 2.5,
+      "tsb": 0
+    }
+  }
+}

@@ -1,0 +1,701 @@
+{
+  "id": "18-create-plan-lesion-en-texto-libre",
+  "mode": "create_plan",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 39.8,
+  "cost": 0.005374,
+  "coldCost": 0.007164,
+  "usage": {
+    "input_tokens": 1698,
+    "output_tokens": 10097,
+    "cache_read_input_tokens": 15566,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "planName": "XCO Estatal: base, intermitencia y pico",
+    "blocks": [
+      {
+        "name": "Base y sweet spot",
+        "weeks": 4,
+        "focus": "Base aeróbica con sweet spot corto en bloques de 10-12 min, cadencia alta para cuidar la rodilla",
+        "targetHoursPerWeek": 4
+      },
+      {
+        "name": "Intermitencia XCO",
+        "weeks": 4,
+        "focus": "40:20s, over/unders y umbral con picos, progresando una variable a la vez",
+        "targetHoursPerWeek": 5
+      },
+      {
+        "name": "Específico y pico",
+        "weeks": 4,
+        "focus": "Simulación de carrera, umbral con picos y descarga antes del evento",
+        "targetHoursPerWeek": 5.5
+      }
+    ],
+    "firstBlockWeeks": [
+      {
+        "weekIndex": 0,
+        "workouts": [
+          {
+            "name": "Rodada de base",
+            "dayOfWeek": "mon",
+            "targetTSS": 42,
+            "erg": "off",
+            "intent": "Rodada de fondo a sensación: RPE 3-4 y debes poder hablar en frases completas. Mantén cadencia alta y no subas la potencia en la segunda mitad.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 55,
+                    "ramp_to_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2700,
+                    "power_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Sweet spot corto",
+            "dayOfWeek": "wed",
+            "targetTSS": 45,
+            "erg": "on",
+            "intent": "Dos bloques de 10 min al 90 % con 5 min suaves entre ellos. El rodillo marca el 90 %; si no lo sostienes con cadencia 85-90, bájalo 3-5 puntos y avísanos. RPE 6-7, respiración cortada pero controlada.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 55,
+                    "ramp_to_pct": 70,
+                    "cadence_min": 85,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 2,
+                "steps": [
+                  {
+                    "name": "Sweet spot",
+                    "type": "interval",
+                    "duration_s": 600,
+                    "power_pct": 90,
+                    "cadence_min": 85,
+                    "cadence_max": 90
+                  },
+                  {
+                    "name": "Recuperación",
+                    "type": "recovery",
+                    "duration_s": 300,
+                    "power_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo con deriva",
+            "dayOfWeek": "fri",
+            "targetTSS": 42,
+            "erg": "off",
+            "intent": "Rodada estable a sensación, RPE 3-4. Mide tu control por la FC: en la segunda mitad no debería subir más de 5 %. Si la rodilla protesta, baja a cadencia más alta.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 55,
+                    "ramp_to_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2700,
+                    "power_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Tempo y fondo",
+            "dayOfWeek": "sun",
+            "targetTSS": 44,
+            "erg": "mixed",
+            "intent": "Tempo controlado de 20 min al 80 % con ERG, luego fondo suave. Cadencia 85-95 en todo el bloque; nada de subir desarrollo para empujar watts.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 55,
+                    "ramp_to_pct": 70,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Tempo",
+                    "type": "steady",
+                    "duration_s": 1200,
+                    "power_pct": 80,
+                    "cadence_min": 85,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 1200,
+                    "power_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workouts": [
+          {
+            "name": "Rodada de base",
+            "dayOfWeek": "mon",
+            "targetTSS": 42,
+            "erg": "off",
+            "intent": "Rodada de fondo a sensación: RPE 3-4 y debes poder hablar en frases completas. Mantén cadencia alta y no subas la potencia en la segunda mitad.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 55,
+                    "ramp_to_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2700,
+                    "power_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Sweet spot largo",
+            "dayOfWeek": "wed",
+            "targetTSS": 45,
+            "erg": "on",
+            "intent": "Dos bloques de 12 min al 90 % con 5 min suaves entre ellos. El rodillo marca el 90 %; cadencia 85-90 y sin subir desarrollo. RPE 6-7, respiración controlada.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 55,
+                    "ramp_to_pct": 70,
+                    "cadence_min": 85,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 2,
+                "steps": [
+                  {
+                    "name": "Sweet spot",
+                    "type": "interval",
+                    "duration_s": 720,
+                    "power_pct": 90,
+                    "cadence_min": 85,
+                    "cadence_max": 90
+                  },
+                  {
+                    "name": "Recuperación",
+                    "type": "recovery",
+                    "duration_s": 300,
+                    "power_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo con deriva",
+            "dayOfWeek": "fri",
+            "targetTSS": 42,
+            "erg": "off",
+            "intent": "Rodada estable a sensación, RPE 3-4. Revisa la deriva de FC en la segunda mitad: debe quedar por debajo de 5 %.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 55,
+                    "ramp_to_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2700,
+                    "power_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Tempo y fondo",
+            "dayOfWeek": "sun",
+            "targetTSS": 46,
+            "erg": "mixed",
+            "intent": "Tempo de 20 min al 80 % con ERG y fondo suave después. Cadencia 85-95 en el tempo.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 55,
+                    "ramp_to_pct": 70,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Tempo",
+                    "type": "steady",
+                    "duration_s": 1200,
+                    "power_pct": 80,
+                    "cadence_min": 85,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 1200,
+                    "power_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workouts": [
+          {
+            "name": "Rodada de base",
+            "dayOfWeek": "mon",
+            "targetTSS": 42,
+            "erg": "off",
+            "intent": "Rodada de fondo a sensación: RPE 3-4 y debes poder hablar en frases completas. Mantén cadencia alta y no subas la potencia en la segunda mitad.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 55,
+                    "ramp_to_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2700,
+                    "power_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Sweet spot en series",
+            "dayOfWeek": "wed",
+            "targetTSS": 52,
+            "erg": "on",
+            "intent": "Tres bloques de 10 min al 90 % con 5 min suaves entre ellos. El rodillo marca el 90 %; si el pulso no se aplana en el último bloque, avísanos. Cadencia 85-90, RPE 6-7.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 55,
+                    "ramp_to_pct": 70,
+                    "cadence_min": 85,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 3,
+                "steps": [
+                  {
+                    "name": "Sweet spot",
+                    "type": "interval",
+                    "duration_s": 600,
+                    "power_pct": 90,
+                    "cadence_min": 85,
+                    "cadence_max": 90
+                  },
+                  {
+                    "name": "Recuperación",
+                    "type": "recovery",
+                    "duration_s": 300,
+                    "power_pct": 55
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Fondo con deriva",
+            "dayOfWeek": "fri",
+            "targetTSS": 42,
+            "erg": "off",
+            "intent": "Rodada estable a sensación, RPE 3-4. Revisa la deriva de FC en la segunda mitad: debe quedar por debajo de 5 %.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 55,
+                    "ramp_to_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 2700,
+                    "power_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 300,
+                    "power_pct": 50
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          },
+          {
+            "name": "Tempo y fondo",
+            "dayOfWeek": "sun",
+            "targetTSS": 46,
+            "erg": "mixed",
+            "intent": "Tempo de 20 min al 80 % con ERG y fondo suave después. Cadencia 85-95 en el tempo.",
+            "segments": [
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Calentamiento",
+                    "type": "warmup",
+                    "duration_s": 600,
+                    "power_pct": 55,
+                    "ramp_to_pct": 70,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Tempo",
+                    "type": "steady",
+                    "duration_s": 1200,
+                    "power_pct": 80,
+                    "cadence_min": 85,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Fondo",
+                    "type": "steady",
+                    "duration_s": 1200,
+                    "power_pct": 65,
+                    "cadence_min": 80,
+                    "cadence_max": 95
+                  }
+                ]
+              },
+              {
+                "repeat": 1,
+                "steps": [
+                  {
+                    "name": "Enfriamiento",
+                    "type": "cooldown",
+                    "duration_s": 600,
+                    "power_pct": 50
+                  }
+                ]
+              }
+            ],
+            "kind": null
+          }
+        ]
+      }
+    ],
+    "coachNote": "Tu FTP de 221 W se queda como está: no lo cambies todavía. Esta semana y las siguientes van con cadencia alta (80-95) y sin desarrollos pesados, por la condromalacia en la izquierda; si el dolor aparece en el pedaleo, para la sesión y avísanos. Cuatro días a la semana con 3,8 a 4 h de carga, sin subir de golpe: primero consistencia. El rodillo no entrena técnica de MTB, así que sal a rodar afuera cuando puedas.",
+    "suggestedFtp": null,
+    "nextTest": {
+      "weekIndex": 4,
+      "type": "test20",
+      "reason": "Retest al abrir el bloque de intermitencia, con 4 semanas de base y el atleta fresco; el test de 20 min se hace con ERG off."
+    }
+  },
+  "raw": "{\"planName\":\"XCO Estatal: base, intermitencia y pico\",\"blocks\":[{\"name\":\"Base y sweet spot\",\"weeks\":4,\"focus\":\"Base aeróbica con sweet spot corto en bloques de 10-12 min, cadencia alta para cuidar la rodilla\",\"targetHoursPerWeek\":4},{\"name\":\"Intermitencia XCO\",\"weeks\":4,\"focus\":\"40:20s, over/unders y umbral con picos, progresando una variable a la vez\",\"targetHoursPerWeek\":5},{\"name\":\"Específico y pico\",\"weeks\":4,\"focus\":\"Simulación de carrera, umbral con picos y descarga antes del evento\",\"targetHoursPerWeek\":5.5}],\"firstBlockWeeks\":[{\"weekIndex\":0,\"workouts\":[{\"name\":\"Rodada de base\",\"dayOfWeek\":\"mon\",\"targetTSS\":42,\"erg\":\"off\",\"intent\":\"Rodada de fondo a sensación: RPE 3-4 y debes poder hablar en frases completas. Mantén cadencia alta y no subas la potencia en la segunda mitad.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Sweet spot corto\",\"dayOfWeek\":\"wed\",\"targetTSS\":45,\"erg\":\"on\",\"intent\":\"Dos bloques de 10 min al 90 % con 5 min suaves entre ellos. El rodillo marca el 90 %; si no lo sostienes con cadencia 85-90, bájalo 3-5 puntos y avísanos. RPE 6-7, respiración cortada pero controlada.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":70,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":2,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"interval\",\"duration_s\":600,\"power_pct\":90,\"cadence_min\":85,\"cadence_max\":90},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo con deriva\",\"dayOfWeek\":\"fri\",\"targetTSS\":42,\"erg\":\"off\",\"intent\":\"Rodada estable a sensación, RPE 3-4. Mide tu control por la FC: en la segunda mitad no debería subir más de 5 %. Si la rodilla protesta, baja a cadencia más alta.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Tempo y fondo\",\"dayOfWeek\":\"sun\",\"targetTSS\":44,\"erg\":\"mixed\",\"intent\":\"Tempo controlado de 20 min al 80 % con ERG, luego fondo suave. Cadencia 85-95 en todo el bloque; nada de subir desarrollo para empujar watts.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":70,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Tempo\",\"type\":\"steady\",\"duration_s\":1200,\"power_pct\":80,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1200,\"power_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null}]},{\"weekIndex\":1,\"workouts\":[{\"name\":\"Rodada de base\",\"dayOfWeek\":\"mon\",\"targetTSS\":42,\"erg\":\"off\",\"intent\":\"Rodada de fondo a sensación: RPE 3-4 y debes poder hablar en frases completas. Mantén cadencia alta y no subas la potencia en la segunda mitad.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Sweet spot largo\",\"dayOfWeek\":\"wed\",\"targetTSS\":45,\"erg\":\"on\",\"intent\":\"Dos bloques de 12 min al 90 % con 5 min suaves entre ellos. El rodillo marca el 90 %; cadencia 85-90 y sin subir desarrollo. RPE 6-7, respiración controlada.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":70,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":2,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"interval\",\"duration_s\":720,\"power_pct\":90,\"cadence_min\":85,\"cadence_max\":90},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo con deriva\",\"dayOfWeek\":\"fri\",\"targetTSS\":42,\"erg\":\"off\",\"intent\":\"Rodada estable a sensación, RPE 3-4. Revisa la deriva de FC en la segunda mitad: debe quedar por debajo de 5 %.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Tempo y fondo\",\"dayOfWeek\":\"sun\",\"targetTSS\":46,\"erg\":\"mixed\",\"intent\":\"Tempo de 20 min al 80 % con ERG y fondo suave después. Cadencia 85-95 en el tempo.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":70,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Tempo\",\"type\":\"steady\",\"duration_s\":1200,\"power_pct\":80,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1200,\"power_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null}]},{\"weekIndex\":2,\"workouts\":[{\"name\":\"Rodada de base\",\"dayOfWeek\":\"mon\",\"targetTSS\":42,\"erg\":\"off\",\"intent\":\"Rodada de fondo a sensación: RPE 3-4 y debes poder hablar en frases completas. Mantén cadencia alta y no subas la potencia en la segunda mitad.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Sweet spot en series\",\"dayOfWeek\":\"wed\",\"targetTSS\":52,\"erg\":\"on\",\"intent\":\"Tres bloques de 10 min al 90 % con 5 min suaves entre ellos. El rodillo marca el 90 %; si el pulso no se aplana en el último bloque, avísanos. Cadencia 85-90, RPE 6-7.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":70,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":3,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"interval\",\"duration_s\":600,\"power_pct\":90,\"cadence_min\":85,\"cadence_max\":90},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo con deriva\",\"dayOfWeek\":\"fri\",\"targetTSS\":42,\"erg\":\"off\",\"intent\":\"Rodada estable a sensación, RPE 3-4. Revisa la deriva de FC en la segunda mitad: debe quedar por debajo de 5 %.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Tempo y fondo\",\"dayOfWeek\":\"sun\",\"targetTSS\":46,\"erg\":\"mixed\",\"intent\":\"Tempo de 20 min al 80 % con ERG y fondo suave después. Cadencia 85-95 en el tempo.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":70,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Tempo\",\"type\":\"steady\",\"duration_s\":1200,\"power_pct\":80,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":1200,\"power_pct\":65,\"cadence_min\":80,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null}]}],\"coachNote\":\"Tu FTP de 221 W se queda como está: no lo cambies todavía. Esta semana y las siguientes van con cadencia alta (80-95) y sin desarrollos pesados, por la condromalacia en la izquierda; si el dolor aparece en el pedaleo, para la sesión y avísanos. Cuatro días a la semana con 3,8 a 4 h de carga, sin subir de golpe: primero consistencia. El rodillo no entrena técnica de MTB, así que sal a rodar afuera cuando puedas.\",\"suggestedFtp\":null,\"nextTest\":{\"weekIndex\":4,\"type\":\"test20\",\"reason\":\"Retest al abrir el bloque de intermitencia, con 4 semanas de base y el atleta fresco; el test de 20 min se hace con ERG off.\"}}"
+}

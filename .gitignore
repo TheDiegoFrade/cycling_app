@@ -25,3 +25,6 @@ supabase/.temp
 *.njsproj
 *.sln
 *.sw?
+
+# coach-lab: texto generado para pegar en claude.ai (npm run coach:build)
+coach-lab/out/

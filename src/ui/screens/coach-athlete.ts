@@ -8,8 +8,14 @@ import type { AthleteSummary, CoachSessionRow, WeekLoad } from '../../core/coach
 import { COACH_TIER_LABELS } from '../../core/coach-invite';
 import { COMPLETION_LABELS, NON_BIKE_KIND_LABELS, isNonBikeKind } from '../../core/session-kind';
 import { defaultReviewMonth, monthLabel } from '../../core/monthly-report';
-import { listAthleteSessions, listCoachAthletes } from '../../sync/coach-athletes';
+import { listAthleteSessions, listAthleteStateSessions, listCoachAthletes } from '../../sync/coach-athletes';
+import { renderAnalysisPanel } from '../analysis-panel';
+import { NOTES_MAX_CHARS, fetchAthleteNotes, saveNotesAsCoach } from '../../sync/athlete-notes';
+import type { AthleteNotes } from '../../sync/athlete-notes';
+import { stateSessionFromCloud } from '../athlete-state-data';
 import { fetchCoachReview } from '../../sync/monthly-reviews';
+import { fetchCoachEmails, sendCoachEmail, type CoachEmailItem } from '../../sync/coach-emails';
+import { EMAIL_MAX_SENDS, emailButtonHtml, emailPanelHtml, newEmailApproval, wireEmailApproval } from '../email-approval';
 import type { CoachAthlete } from '../../sync/coach-athletes';
 import {
   COACH_DETAIL_DAYS,
@@ -149,9 +155,12 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
         return;
       }
       const reviewMonth = defaultReviewMonth(todayKey);
-      const [rows, review] = await Promise.all([
+      const [rows, review, stateRows, notes] = await Promise.all([
         listAthleteSessions([athleteId], sinceIso(COACH_DETAIL_DAYS)),
         appState.user ? fetchCoachReview(appState.user.id, athleteId, reviewMonth).catch(() => null) : Promise.resolve(null),
+        // 6 meses con sus métricas: el análisis por ventana de abajo
+        listAthleteStateSessions(athleteId, sinceIso(360)).catch(() => []),
+        fetchAthleteNotes(athleteId).catch((): AthleteNotes | null => null),
       ]);
       if (getRouteParam() !== athleteId) return;
 
@@ -175,6 +184,16 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
 
         <section class="coach-tiles coach-tiles-5" aria-label="Indicadores">${kpisHtml(summary)}</section>
 
+        <section class="panel coach-card" aria-label="Expediente">
+          <div class="coach-card-head">
+            <h2 class="perfil-h2" style="margin:0">Expediente</h2>
+            <span class="hint">${notes ? `${notes.updatedBy === 'ai' ? 'Lo escribió la IA' : 'Editado por coach'} · ${new Date(notes.updatedAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}` : 'Vacío'}</span>
+          </div>
+          <span class="hint">Lo que hace único a este atleta: cómo responde, qué sesiones se le caen, cuántas semanas de carga aguanta, qué le molesta. El coach de IA lo tiene en cuenta en todo lo que propone y manda sobre sus reglas generales. Tu atleta lo puede ver.</span>
+          <textarea id="coach-notes" rows="5" maxlength="${NOTES_MAX_CHARS}" placeholder="Ej. Aguanta 2 semanas de carga y 1 de descarga; con 3 seguidas se le caen los intervalos. Rodilla izquierda: nada bajo 80 rpm." style="width:100%;resize:vertical;font-family:inherit">${escapeHtml(notes?.body ?? '')}</textarea>
+          <div class="row-actions" style="margin:0;align-items:center"><button type="button" class="btn-light" id="coach-notes-save">Guardar expediente</button><span class="hint" id="coach-notes-status"></span></div>
+        </section>
+
         <section class="panel coach-card coach-review-card" aria-label="Revisión mensual">
           <div class="coach-card-head">
             <h2 class="perfil-h2" style="margin:0">Revisión mensual · ${monthLabel(reviewMonth)}</h2>
@@ -190,6 +209,8 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
           <div><a href="#/coach-review/${athlete.userId}/${reviewMonth}" class="coach-btn coach-btn-primary">${review?.status === 'published' ? 'Ver reporte' : review ? 'Continuar revisión' : 'Empezar revisión · ~15 min'}</a></div>
         </section>
 
+        <div id="coach-emails"></div>
+
         <section class="panel coach-card" aria-label="Fitness y fatiga">
           <div class="coach-card-head">
             <h2 class="perfil-h2" style="margin:0">Fitness y fatiga · ${CHART_WEEKS} semanas</h2>
@@ -199,6 +220,14 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
             </div>
           </div>
           ${pmc.length >= 2 ? '<canvas id="coach-pmc" style="width:100%;height:220px;display:block"></canvas>' : '<p class="hint">Todavía no hay sesiones de bici suficientes para la gráfica.</p>'}
+        </section>
+
+        <section class="coach-card" aria-label="Análisis">
+          <div class="coach-card-head">
+            <h2 class="perfil-h2" style="margin:0">Análisis</h2>
+            <span class="hint">Curva de potencia contra la ventana anterior, picos con su calidad, base aeróbica, umbral y volumen</span>
+          </div>
+          <div id="coach-analysis"></div>
         </section>
 
         <section class="panel coach-card" aria-label="Carga por semana">
@@ -223,6 +252,35 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
           <span class="hint">Toca una sesión para ver su detalle y descargar el .fit. La carga de fuerza y movilidad se mide como RPE × minutos y se muestra aparte: no se suma al TSS de la bici. Lo que llega por Strava no se muestra.</span>
         </section>`);
 
+      void mountCoachEmails(container.querySelector<HTMLElement>('#coach-emails')!, athleteId);
+
+      container.querySelector('#coach-notes-save')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget as HTMLButtonElement;
+        const statusEl = container.querySelector<HTMLElement>('#coach-notes-status')!;
+        const body = container.querySelector<HTMLTextAreaElement>('#coach-notes')!.value;
+        if (!appState.user) return;
+        btn.disabled = true;
+        statusEl.textContent = 'Guardando…';
+        try {
+          await saveNotesAsCoach(athleteId, appState.user.id, body);
+          statusEl.textContent = 'Guardado.';
+        } catch (err) {
+          statusEl.textContent = `No se pudo guardar: ${errorMessage(err)}`;
+        }
+        btn.disabled = false;
+      });
+
+      const analysisRoot = container.querySelector<HTMLElement>('#coach-analysis');
+      if (analysisRoot) {
+        renderAnalysisPanel(analysisRoot, {
+          sessions: stateRows.map(stateSessionFromCloud),
+          planned: [], // el plan agendado del atleta no se lee aquí: va sin cumplimiento
+          todayKey,
+          ftp: athlete.ftp ?? 0,
+          storageKey: 'torq.coachAnalysisDays',
+        });
+      }
+
       container.querySelector('#coach-show-all')?.addEventListener('click', (e) => {
         container.querySelectorAll<HTMLElement>('.coach-row-extra').forEach((tr) => (tr.hidden = false));
         (e.currentTarget as HTMLElement).remove();
@@ -240,4 +298,61 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
   })();
 
   return cleanup;
+}
+
+const SHORT_DATE: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
+
+/** Correos de la IA que el coach aprueba para su atleta: bienvenida del plan y
+ * resumen de cada semana. Solo aparece si hay alguno (atleta con plan de IA). */
+async function mountCoachEmails(host: HTMLElement, athleteId: string): Promise<void> {
+  let items: CoachEmailItem[];
+  try {
+    items = await fetchCoachEmails(athleteId);
+  } catch {
+    return; // sin la función desplegada o sin plan: la tarjeta no aparece
+  }
+  if (!items.length) return;
+  // La bienvenida primero; después las semanas, la más reciente arriba.
+  items.sort((a, b) => (a.key === 'plan' ? -1 : b.key === 'plan' ? 1 : (b.weekStart ?? '').localeCompare(a.weekStart ?? '')));
+  const states = new Map(items.map((i) => [i.key, newEmailApproval(i.remaining, i.lastSentAt)]));
+  let status = '';
+  const domId = (key: string) => `ce-${key.replace(':', '-')}`;
+  const title = (i: CoachEmailItem) =>
+    i.key === 'plan' ? 'Bienvenida del plan (con PDF)' : `Semana del ${i.weekStart ? new Date(`${i.weekStart}T00:00:00`).toLocaleDateString('es-MX', SHORT_DATE) : ''}`;
+
+  const render = (): void => {
+    host.innerHTML = `<section class="panel coach-card" aria-label="Correos para tu atleta">
+      <div class="coach-card-head"><h2 class="perfil-h2" style="margin:0">Correos para tu atleta</h2></div>
+      <span class="hint">La IA deja listo un correo cuando arma el plan y cada semana. Se envía solo si tú lo apruebas, con un comentario tuyo, y como máximo ${EMAIL_MAX_SENDS} veces. Lleva las sesiones que publicaste.</span>
+      ${items
+        .map((i) => {
+          const s = states.get(i.key)!;
+          return `<div class="coach-card-head" style="align-items:center"><strong>${escapeHtml(title(i))}</strong>${emailButtonHtml(domId(i.key), s)}</div>${emailPanelHtml(domId(i.key), s, i.key === 'plan' ? 'la bienvenida' : 'el resumen de la semana')}`;
+        })
+        .join('')}
+      <span class="hint" aria-live="polite">${escapeHtml(status)}</span>
+    </section>`;
+    for (const i of items) {
+      const s = states.get(i.key)!;
+      wireEmailApproval(host, domId(i.key), s, render, async (comment) => {
+        s.sending = true;
+        status = 'Enviando…';
+        render();
+        try {
+          const res = await sendCoachEmail(athleteId, i.key, comment);
+          s.remaining = res.remaining;
+          s.lastSentAt = res.sentAt;
+          s.open = false;
+          s.comment = '';
+          status = res.test ? `Enviado en modo de prueba a ${res.sentTo} (tu atleta no lo recibe todavía).` : 'Enviado por correo a tu atleta.';
+        } catch (err) {
+          status = `No se pudo enviar: ${errorMessage(err)}`;
+        } finally {
+          s.sending = false;
+          render();
+        }
+      });
+    }
+  };
+  render();
 }

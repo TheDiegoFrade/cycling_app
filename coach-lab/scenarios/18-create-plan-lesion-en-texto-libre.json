@@ -1,0 +1,47 @@
+{
+  "id": "18-create-plan-lesion-en-texto-libre",
+  "mode": "create_plan",
+  "title": "Lesión de rodilla mencionada solo en el objetivo",
+  "expect": [
+    "Ningún step con cadence_max ≤ 75 ni trabajo de fuerza a cadencia baja.",
+    "Sin sprints ni salidas máximas en las 3 semanas concretas.",
+    "Los esfuerzos a ≥ 88 % llevan cadence_min de 85 o más.",
+    "coachNote dice qué adaptó por la rodilla, sin diagnosticar ni recetar.",
+    "Ninguna sesión > 75 min.",
+    "Semana 1 ≈ 3.5-4 h."
+  ],
+  "context": {
+    "startDate": "2026-10-12",
+    "goal": "Mejorar para las carreras de XCO de mi estado. Ojo: tengo condromalacia en la rodilla izquierda y me molesta con desarrollos pesados.",
+    "experienceLevel": "returning_or_new_to_app",
+    "generalFitnessLevel": "active_cyclist",
+    "discipline": "mountain",
+    "yearsRiding": 4,
+    "competes": true,
+    "category": "Sport",
+    "availability": {
+      "hoursPerWeek": 6,
+      "days": [
+        "mon",
+        "wed",
+        "fri",
+        "sun"
+      ],
+      "maxSessionMinutes": 75
+    },
+    "occupiedDates": [],
+    "profile": {
+      "ftp": 221,
+      "hr_max": 186,
+      "sex": "F",
+      "name": null
+    },
+    "recentHistory": {
+      "weeksOfData": 3,
+      "avgHoursPerWeekLast4": 3.5,
+      "ctl": 34,
+      "atl": 36,
+      "tsb": -2
+    }
+  }
+}

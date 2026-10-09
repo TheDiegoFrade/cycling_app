@@ -1,0 +1,165 @@
+{
+  "id": "07-eval-fatiga",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 12.6,
+  "cost": 0.001535,
+  "coldCost": 0.003306,
+  "usage": {
+    "input_tokens": 1802,
+    "output_tokens": 2401,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Diego, esta semana es de absorción: TSB en -35, dormiste mal toda la semana y dices que las piernas no responden. Con esas señales juntas bajamos carga en vez de empujar. Hiciste 300 de 420 TSS y el pulso topó techo en 6 sesiones y la cadencia cayó en 3, lo que confirma que el cuerpo va cargado. La semana que viene va sin intensidad, con sesiones de 60 min o menos y un día extra de descanso. Mantén las piernas sueltas y prioriza dormir; la calidad vuelve cuando el TSB suba.",
+    "contradictionFlag": null,
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Fondo suave 1",
+        "dayOfWeek": "tue",
+        "targetTSS": 47,
+        "erg": "on",
+        "intent": "Rodada de fondo a ritmo conversacional, sin buscar watts. Entra suave y mantén el ritmo constante durante el bloque principal. Debes poder hablar en frases completas; si no puedes, baja la potencia.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 70
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo suave 2",
+        "dayOfWeek": "thu",
+        "targetTSS": 47,
+        "erg": "on",
+        "intent": "Fondo suave para mover las piernas sin cargarlas. Mantén cadencia cómoda y no subas la potencia aunque te sientas bien. RPE 3-4, respiración tranquila.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 70
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo suave 3",
+        "dayOfWeek": "sat",
+        "targetTSS": 47,
+        "erg": "on",
+        "intent": "Última sesión de la semana de absorción, igual de suave. Si al calentar las piernas siguen sin responder, acorta el bloque principal y termina con el enfriamiento. RPE 3-4.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2700,
+                "power_pct": 70
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": null,
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Diego, esta semana es de absorción: TSB en -35, dormiste mal toda la semana y dices que las piernas no responden. Con esas señales juntas bajamos carga en vez de empujar. Hiciste 300 de 420 TSS y el pulso topó techo en 6 sesiones y la cadencia cayó en 3, lo que confirma que el cuerpo va cargado. La semana que viene va sin intensidad, con sesiones de 60 min o menos y un día extra de descanso. Mantén las piernas sueltas y prioriza dormir; la calidad vuelve cuando el TSB suba.\",\"contradictionFlag\":null,\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Fondo suave 1\",\"dayOfWeek\":\"tue\",\"targetTSS\":47,\"erg\":\"on\",\"intent\":\"Rodada de fondo a ritmo conversacional, sin buscar watts. Entra suave y mantén el ritmo constante durante el bloque principal. Debes poder hablar en frases completas; si no puedes, baja la potencia.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo suave 2\",\"dayOfWeek\":\"thu\",\"targetTSS\":47,\"erg\":\"on\",\"intent\":\"Fondo suave para mover las piernas sin cargarlas. Mantén cadencia cómoda y no subas la potencia aunque te sientas bien. RPE 3-4, respiración tranquila.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo suave 3\",\"dayOfWeek\":\"sat\",\"targetTSS\":47,\"erg\":\"on\",\"intent\":\"Última sesión de la semana de absorción, igual de suave. Si al calentar las piernas siguen sin responder, acorta el bloque principal y termina con el enfriamiento. RPE 3-4.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2700,\"power_pct\":70}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":null,\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

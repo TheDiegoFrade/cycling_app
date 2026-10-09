@@ -6,6 +6,7 @@ import type { CoachSessionRow } from '../core/coach-metrics';
 import type { CoachTier } from '../core/coach-invite';
 import type { Workout } from '../core/types';
 import { supabase } from '../supabase/client';
+import { isBikeSession, wasTrained } from '../core/session-kind';
 import { SESSION_SUMMARY_COLUMNS, rowToCloudSummary } from './cloud-sync';
 import type { CloudSessionSummary } from './cloud-sync';
 
@@ -103,6 +104,23 @@ export async function listAthleteSessions(athleteIds: readonly string[], sinceIs
     }
     if (!data || data.length < PAGE) return rows;
   }
+}
+
+/** Sesiones de bici de un atleta con lo que necesita su ficha (métricas,
+ * desacople, EF): para el athleteState de la semana del coach. Sin Strava
+ * (también lo filtra RLS) y sin registros "No la hice". */
+export async function listAthleteStateSessions(athleteId: string, sinceIso: string): Promise<CloudSessionSummary[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('sessions')
+    .select(SESSION_SUMMARY_COLUMNS)
+    .eq('user_id', athleteId)
+    .neq('source', 'strava')
+    .gte('started_at', sinceIso)
+    .order('started_at', { ascending: false })
+    .limit(PAGE);
+  if (error) throw error;
+  return (data ?? []).map(rowToCloudSummary).filter((s) => wasTrained(s) && isBikeSession(s));
 }
 
 /** Una sesión de un atleta (resumen + fitPath) para el detalle del coach.

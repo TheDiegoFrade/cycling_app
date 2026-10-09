@@ -1,0 +1,72 @@
+{
+  "id": "28-monthly-review-fatiga-alta-y-mejor-20min-bajo",
+  "mode": "monthly_review",
+  "config": "claude-haiku-5-5-medium",
+  "ok": true,
+  "seconds": 24.5,
+  "cost": 0.004228,
+  "coldCost": 0.004228,
+  "usage": {
+    "input_tokens": 2146,
+    "output_tokens": 4457,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 14276
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "verdict": "off_track",
+    "findings": [
+      {
+        "tone": "bad",
+        "title": "Fatiga alta al cierre del mes.",
+        "body": "TSB de -31 al cerrar, con el desacople subiendo de 3,8 % a 8,1 % en cuatro semanas y el EF bajando de 1,42 a 1,33. Es señal de carga acumulada que no se está absorbiendo."
+      },
+      {
+        "tone": "warn",
+        "title": "El CTL subió 29 puntos en el mes.",
+        "body": "Pasó de 44 a 73, unos 6-7 puntos por semana, cerca del límite de lo sostenible. La carga fue de 1 980 TSS, frente a 1 390 el mes anterior (+42 %)."
+      },
+      {
+        "tone": "good",
+        "title": "Cumplimiento de 95 % con 21 de 22 sesiones.",
+        "body": "Mejor que el 88 % del mes anterior. Las cuatro semanas quedaron ligeramente por encima de lo planeado (430/420, 480/470, 520/510, 550/540)."
+      },
+      {
+        "tone": "good",
+        "title": "Potencia máxima en 5 y 1 minuto.",
+        "body": "Subió a 262 W en 5 min (antes 255 W) y a 388 W en 1 min (antes 371 W). Los 20 min quedaron en 188 W frente a 201 W de su mejor, pero el mes no tuvo una sesión pensada para ese tramo, así que no lo tomo como caída."
+      },
+      {
+        "tone": "warn",
+        "title": "Fuerza y movilidad casi sin hacer.",
+        "body": "Hiciste 3 de 8 sesiones de fuerza y 2 de 8 de movilidad. Con la molestia lumbar y el objetivo de noviembre, estas rutinas forman parte del plan."
+      },
+      {
+        "tone": "warn",
+        "title": "Sesión clave con la última serie sin terminar.",
+        "body": "La 40:20s 3×8 del 24 de septiembre duró 68 min, con IF 1,04, RPE 9 y la última serie a medias. Es un aviso de que la intensidad ya pesa más de lo que el número muestra."
+      }
+    ],
+    "message": "Septiembre fue un mes de mucho trabajo: 31 horas, 1 980 de carga y 21 de 22 sesiones. Esa constancia es la que construye el fitness, y tus mejores de 5 y 1 minuto subieron.\n\nLo que hay que cuidar ahora es la fatiga. Cierras el mes con TSB de -31, el desacople llegó a 8,1 %, el EF bajó a 1,33 y la última serie de la 40:20s no se terminó. Eso dice que el cuerpo ya no absorbe la carga al mismo ritmo, y si seguimos así llegamos a noviembre con poca frescura para competir.\n\nEn octubre toca bajar el ritmo: una semana de absorción al inicio y después una carga más moderada, sin subir el CTL tan rápido. Las sesiones de fuerza y movilidad vuelven al plan, porque ayudan a cuidar la zona lumbar y a sostener el bloque.",
+    "goals": [
+      {
+        "title": "Semana de absorción al inicio de octubre con TSB de vuelta por encima de -20.",
+        "detail": "Se mide con el TSB al cierre de esa semana y con el desacople de vuelta por debajo de 5 % en sesiones estables."
+      },
+      {
+        "title": "Completar al menos 6 de 8 sesiones de fuerza y 6 de 8 de movilidad.",
+        "detail": "Hoy van 3 y 2. Son sesiones cortas que se pueden hacer en días sin bici, sin cargar la zona lumbar."
+      },
+      {
+        "title": "Dejar las salidas largas en 75 min o menos mientras dure el bloque de carga.",
+        "detail": "La molestia lumbar aparece en sesiones de más de 75 min. Hay que anotar cualquier molestia en la sesión para decidir con datos antes de subir la duración."
+      }
+    ],
+    "notesUpdate": null
+  },
+  "raw": "{\"verdict\":\"off_track\",\"findings\":[{\"tone\":\"bad\",\"title\":\"Fatiga alta al cierre del mes.\",\"body\":\"TSB de -31 al cerrar, con el desacople subiendo de 3,8 % a 8,1 % en cuatro semanas y el EF bajando de 1,42 a 1,33. Es señal de carga acumulada que no se está absorbiendo.\"},{\"tone\":\"warn\",\"title\":\"El CTL subió 29 puntos en el mes.\",\"body\":\"Pasó de 44 a 73, unos 6-7 puntos por semana, cerca del límite de lo sostenible. La carga fue de 1 980 TSS, frente a 1 390 el mes anterior (+42 %).\"},{\"tone\":\"good\",\"title\":\"Cumplimiento de 95 % con 21 de 22 sesiones.\",\"body\":\"Mejor que el 88 % del mes anterior. Las cuatro semanas quedaron ligeramente por encima de lo planeado (430/420, 480/470, 520/510, 550/540).\"},{\"tone\":\"good\",\"title\":\"Potencia máxima en 5 y 1 minuto.\",\"body\":\"Subió a 262 W en 5 min (antes 255 W) y a 388 W en 1 min (antes 371 W). Los 20 min quedaron en 188 W frente a 201 W de su mejor, pero el mes no tuvo una sesión pensada para ese tramo, así que no lo tomo como caída.\"},{\"tone\":\"warn\",\"title\":\"Fuerza y movilidad casi sin hacer.\",\"body\":\"Hiciste 3 de 8 sesiones de fuerza y 2 de 8 de movilidad. Con la molestia lumbar y el objetivo de noviembre, estas rutinas forman parte del plan.\"},{\"tone\":\"warn\",\"title\":\"Sesión clave con la última serie sin terminar.\",\"body\":\"La 40:20s 3×8 del 24 de septiembre duró 68 min, con IF 1,04, RPE 9 y la última serie a medias. Es un aviso de que la intensidad ya pesa más de lo que el número muestra.\"}],\"message\":\"Septiembre fue un mes de mucho trabajo: 31 horas, 1 980 de carga y 21 de 22 sesiones. Esa constancia es la que construye el fitness, y tus mejores de 5 y 1 minuto subieron.\\n\\nLo que hay que cuidar ahora es la fatiga. Cierras el mes con TSB de -31, el desacople llegó a 8,1 %, el EF bajó a 1,33 y la última serie de la 40:20s no se terminó. Eso dice que el cuerpo ya no absorbe la carga al mismo ritmo, y si seguimos así llegamos a noviembre con poca frescura para competir.\\n\\nEn octubre toca bajar el ritmo: una semana de absorción al inicio y después una carga más moderada, sin subir el CTL tan rápido. Las sesiones de fuerza y movilidad vuelven al plan, porque ayudan a cuidar la zona lumbar y a sostener el bloque.\",\"goals\":[{\"title\":\"Semana de absorción al inicio de octubre con TSB de vuelta por encima de -20.\",\"detail\":\"Se mide con el TSB al cierre de esa semana y con el desacople de vuelta por debajo de 5 % en sesiones estables.\"},{\"title\":\"Completar al menos 6 de 8 sesiones de fuerza y 6 de 8 de movilidad.\",\"detail\":\"Hoy van 3 y 2. Son sesiones cortas que se pueden hacer en días sin bici, sin cargar la zona lumbar.\"},{\"title\":\"Dejar las salidas largas en 75 min o menos mientras dure el bloque de carga.\",\"detail\":\"La molestia lumbar aparece en sesiones de más de 75 min. Hay que anotar cualquier molestia en la sesión para decidir con datos antes de subir la duración.\"}],\"notesUpdate\":null}"
+}

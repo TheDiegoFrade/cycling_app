@@ -1,0 +1,58 @@
+{
+  "id": "09-semana-coach-cansado",
+  "mode": "coach_week",
+  "config": "claude-haiku-5-5-low",
+  "ok": true,
+  "seconds": 6.1,
+  "cost": 0.002557,
+  "coldCost": 0.002557,
+  "usage": {
+    "input_tokens": 4229,
+    "output_tokens": 635,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 14529
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Descarga: TSB −28 y el coach pide absorber por cansancio de la semana pasada.",
+      "Carga de bici: ~190 TSS, cerca del 55 % de su promedio reciente (~465 TSS), sin sesiones duras.",
+      "Usé plantillas suaves de la biblioteca: Recuperación 40 y Endurance 75, sin intervalos por encima de 75 %.",
+      "Martes bloqueado por fuerza de pierna; no se pone bici ese día para no sumar carga. Viernes no tiene sesión dura, así que el día de fuerza no choca con nada."
+    ],
+    "workouts": [
+      {
+        "name": "Recuperación 40",
+        "description": "Esta semana toca soltar las piernas. Pedalea sin prisa, con el ERG apagado si prefieres y la cadencia que te salga cómoda. Debes poder hablar en frases completas en todo momento.",
+        "intervals": [],
+        "targetTSS": 22,
+        "dayOfWeek": "mon",
+        "fromLibraryId": "tpl-rec",
+        "libraryChange": null
+      },
+      {
+        "name": "Endurance 75",
+        "description": "Rodada larga y tranquila para sumar base sin desgastarte. Con el ERG apagado, busca un ritmo constante; si notas que la respiración se acelera, baja un poco. Al terminar deberías sentirte mejor que al empezar.",
+        "intervals": [],
+        "targetTSS": 55,
+        "dayOfWeek": "thu",
+        "fromLibraryId": "tpl-z2",
+        "libraryChange": null
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Un rodaje corto para mantener el movimiento sin cargar las piernas. Cuida la cadencia y no busques potencia. Termina con sensación de frescura.",
+        "intervals": [],
+        "targetTSS": 22,
+        "dayOfWeek": "sat",
+        "fromLibraryId": "tpl-rec",
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\":[\"Descarga: TSB −28 y el coach pide absorber por cansancio de la semana pasada.\",\"Carga de bici: ~190 TSS, cerca del 55 % de su promedio reciente (~465 TSS), sin sesiones duras.\",\"Usé plantillas suaves de la biblioteca: Recuperación 40 y Endurance 75, sin intervalos por encima de 75 %.\",\"Martes bloqueado por fuerza de pierna; no se pone bici ese día para no sumar carga. Viernes no tiene sesión dura, así que el día de fuerza no choca con nada.\"],\"workouts\":[{\"name\":\"Recuperación 40\",\"description\":\"Esta semana toca soltar las piernas. Pedalea sin prisa, con el ERG apagado si prefieres y la cadencia que te salga cómoda. Debes poder hablar en frases completas en todo momento.\",\"intervals\":[],\"targetTSS\":22,\"dayOfWeek\":\"mon\",\"fromLibraryId\":\"tpl-rec\",\"libraryChange\":null},{\"name\":\"Endurance 75\",\"description\":\"Rodada larga y tranquila para sumar base sin desgastarte. Con el ERG apagado, busca un ritmo constante; si notas que la respiración se acelera, baja un poco. Al terminar deberías sentirte mejor que al empezar.\",\"intervals\":[],\"targetTSS\":55,\"dayOfWeek\":\"thu\",\"fromLibraryId\":\"tpl-z2\",\"libraryChange\":null},{\"name\":\"Recuperación 40\",\"description\":\"Un rodaje corto para mantener el movimiento sin cargar las piernas. Cuida la cadencia y no busques potencia. Termina con sensación de frescura.\",\"intervals\":[],\"targetTSS\":22,\"dayOfWeek\":\"sat\",\"fromLibraryId\":\"tpl-rec\",\"libraryChange\":null}]}"
+}

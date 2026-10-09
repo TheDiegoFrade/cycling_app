@@ -1,0 +1,221 @@
+{
+  "id": "23-weekly-eval-ftp-alto-tras-test",
+  "mode": "weekly_eval",
+  "config": "claude-haiku-5-5-medium",
+  "ok": true,
+  "seconds": 37.4,
+  "cost": 0.004277,
+  "coldCost": 0.006049,
+  "usage": {
+    "input_tokens": 1903,
+    "output_tokens": 7866,
+    "cache_read_input_tokens": 15406,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "maintain",
+    "reasoning": "Cumpliste el 81 % del TSS (236 de 290) y no hay señal de fatiga: ánimo y sueño están bien y el TSB es -3. Lo que falló fue la calidad: el ERG se desenganchó y la cadencia cayó en los umbrales, así que repito la semana con esos bloques bajados a sweet spot (90 %) y umbral alto (93 %), sin piso de cadencia. No cambio el FTP: el test de rampa de la semana pasada es reciente y el problema se resuelve con potencia más baja, no con otro número. Si la próxima semana vuelve a pasar, ahí pediré bajar el FTP un 5 %.",
+    "contradictionFlag": "Dices que ánimo y sueño están bien, pero fallaron dos sesiones de umbral: manda lo que muestra la sesión sobre la sensación.",
+    "recurringPatternFlag": "¿La cadencia se te cae al subir la potencia al inicio del bloque o desde el primer minuto, aunque no la subas?",
+    "nextWeekWorkouts": [
+      {
+        "name": "Sweet spot 3x15",
+        "dayOfWeek": "tue",
+        "targetTSS": 65,
+        "erg": "on",
+        "intent": "Tres bloques de 15 minutos al 90 % con recuperación suave entre ellos. Busca sostener la cadencia sin subirla para compensar; si el pedaleo se te cae, baja la potencia del bloque y termina el trabajo.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 70
+              }
+            ]
+          },
+          {
+            "repeat": 3,
+            "steps": [
+              {
+                "name": "Sweet spot",
+                "type": "interval",
+                "duration_s": 600,
+                "power_pct": 90
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 300,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo conversacional",
+        "dayOfWeek": "thu",
+        "targetTSS": 44,
+        "erg": "on",
+        "intent": "Rodada de fondo a sensación cómoda, RPE 3-4, en la que puedas hablar en frases completas. Si la frecuencia cardiaca empieza a subir sin que cambie la potencia, baja un poco.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 300,
+                "power_pct": 50,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 3300,
+                "power_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 300,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Umbral alto 2x15",
+        "dayOfWeek": "sat",
+        "targetTSS": 65,
+        "erg": "on",
+        "intent": "Dos bloques de 15 minutos al 93 %, bajados de lo que hiciste esta semana para que el ERG los sostenga. Si a mitad del primer bloque la cadencia se cae, no pelees con la potencia: ya cuenta como trabajo hecho.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 70
+              }
+            ]
+          },
+          {
+            "repeat": 2,
+            "steps": [
+              {
+                "name": "Umbral alto",
+                "type": "interval",
+                "duration_s": 900,
+                "power_pct": 93
+              },
+              {
+                "name": "Recuperación",
+                "type": "recovery",
+                "duration_s": 300,
+                "power_pct": 55
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Rodada larga de fondo",
+        "dayOfWeek": "sun",
+        "targetTSS": 60,
+        "erg": "on",
+        "intent": "Rodada larga a 68 %, con ritmo estable y respiración controlada. Es base aeróbica: el objetivo es terminar sin cansancio acumulado, no sumar intensidad.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 45,
+                "ramp_to_pct": 60
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo largo",
+                "type": "steady",
+                "duration_s": 3900,
+                "power_pct": 68
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 50
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": "keep",
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"maintain\",\"reasoning\":\"Cumpliste el 81 % del TSS (236 de 290) y no hay señal de fatiga: ánimo y sueño están bien y el TSB es -3. Lo que falló fue la calidad: el ERG se desenganchó y la cadencia cayó en los umbrales, así que repito la semana con esos bloques bajados a sweet spot (90 %) y umbral alto (93 %), sin piso de cadencia. No cambio el FTP: el test de rampa de la semana pasada es reciente y el problema se resuelve con potencia más baja, no con otro número. Si la próxima semana vuelve a pasar, ahí pediré bajar el FTP un 5 %.\",\"contradictionFlag\":\"Dices que ánimo y sueño están bien, pero fallaron dos sesiones de umbral: manda lo que muestra la sesión sobre la sensación.\",\"recurringPatternFlag\":\"¿La cadencia se te cae al subir la potencia al inicio del bloque o desde el primer minuto, aunque no la subas?\",\"nextWeekWorkouts\":[{\"name\":\"Sweet spot 3x15\",\"dayOfWeek\":\"tue\",\"targetTSS\":55,\"erg\":\"on\",\"intent\":\"Tres bloques de 15 minutos al 90 % con recuperación suave entre ellos. Busca sostener la cadencia sin subirla para compensar; si el pedaleo se te cae, baja la potencia del bloque y termina el trabajo.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":70}]},{\"repeat\":3,\"steps\":[{\"name\":\"Sweet spot\",\"type\":\"interval\",\"duration_s\":600,\"power_pct\":90},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Fondo conversacional\",\"dayOfWeek\":\"thu\",\"targetTSS\":42,\"erg\":\"on\",\"intent\":\"Rodada de fondo a sensación cómoda, RPE 3-4, en la que puedas hablar en frases completas. Si la frecuencia cardiaca empieza a subir sin que cambie la potencia, baja un poco.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":300,\"power_pct\":50,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":3300,\"power_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":300,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Umbral alto 2x15\",\"dayOfWeek\":\"sat\",\"targetTSS\":58,\"erg\":\"on\",\"intent\":\"Dos bloques de 15 minutos al 93 %, bajados de lo que hiciste esta semana para que el ERG los sostenga. Si a mitad del primer bloque la cadencia se cae, no pelees con la potencia: ya cuenta como trabajo hecho.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":70}]},{\"repeat\":2,\"steps\":[{\"name\":\"Umbral alto\",\"type\":\"interval\",\"duration_s\":900,\"power_pct\":93},{\"name\":\"Recuperación\",\"type\":\"recovery\",\"duration_s\":300,\"power_pct\":55}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null},{\"name\":\"Rodada larga de fondo\",\"dayOfWeek\":\"sun\",\"targetTSS\":58,\"erg\":\"on\",\"intent\":\"Rodada larga a 68 %, con ritmo estable y respiración controlada. Es base aeróbica: el objetivo es terminar sin cansancio acumulado, no sumar intensidad.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":45,\"ramp_to_pct\":60}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo largo\",\"type\":\"steady\",\"duration_s\":3900,\"power_pct\":68}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}]}],\"kind\":null}],\"ftpAction\":\"keep\",\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

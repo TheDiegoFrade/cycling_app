@@ -1,0 +1,67 @@
+{
+  "id": "11-coach-week-fatiga-alta-tsb",
+  "mode": "coach_week",
+  "config": "claude-haiku-5-5-medium",
+  "ok": true,
+  "seconds": 11.8,
+  "cost": 0.001741,
+  "coldCost": 0.003411,
+  "usage": {
+    "input_tokens": 4408,
+    "output_tokens": 2309,
+    "cache_read_input_tokens": 14529,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Descarga: TSB −29 y el coach reporta cansancio acumulado de las últimas dos semanas.",
+      "Carga de bici: ~124 TSS, 27 % del promedio reciente (464 TSS), muy por debajo del tope de 60 % en descarga.",
+      "Sin intervalos por encima de 75 % y ninguna sesión de más de 60 min; Fondo 60 y Recuperación 40 tomadas de la biblioteca sin cambios.",
+      "FTP confirmado (265 W), así que no hay límite extra por el número. Cuando recupere, conviene agendar un retest en la semana siguiente para el objetivo de diciembre."
+    ],
+    "workouts": [
+      {
+        "name": "Fondo 60",
+        "description": "Una salida tranquila para aflojar las piernas sin cargarlas más. Mantente en fondo: debes poder hablar en frases completas. Si el cuerpo pide menos, baja sin culpa; el objetivo de hoy es recuperar.",
+        "intervals": [],
+        "targetTSS": 42,
+        "dayOfWeek": "mon",
+        "fromLibraryId": "lib-fondo-60",
+        "libraryChange": null
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Pedaleo suave con cadencia libre para mover la sangre y soltar las piernas. Puedes apagar el ERG y dejar que tu cadencia marque el ritmo. Si sientes que te pesa, acórtalo: lo importante es llegar al día siguiente con energía.",
+        "intervals": [],
+        "targetTSS": 20,
+        "dayOfWeek": "tue",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      },
+      {
+        "name": "Fondo 60",
+        "description": "Otra salida de fondo para mantener el ritmo sin exigir. Ponte a una potencia cómoda, con respiración tranquila y sin buscar subir. Si las piernas están pesadas, quédate en la zona baja y disfruta el rodar.",
+        "intervals": [],
+        "targetTSS": 42,
+        "dayOfWeek": "thu",
+        "fromLibraryId": "lib-fondo-60",
+        "libraryChange": null
+      },
+      {
+        "name": "Recuperación 40",
+        "description": "Cierre de semana suave para llegar fresco al siguiente bloque. Pedalea sin presión, con cadencia libre y sin mirar el reloj. Si te sientes bien al terminar, es señal de que la descarga está funcionando.",
+        "intervals": [],
+        "targetTSS": 20,
+        "dayOfWeek": "sat",
+        "fromLibraryId": "lib-recup-40",
+        "libraryChange": null
+      }
+    ]
+  },
+  "raw": "{\"rationale\":[\"Descarga: TSB −29 y el coach reporta cansancio acumulado de las últimas dos semanas.\",\"Carga de bici: ~124 TSS, 27 % del promedio reciente (464 TSS), muy por debajo del tope de 60 % en descarga.\",\"Sin intervalos por encima de 75 % y ninguna sesión de más de 60 min; Fondo 60 y Recuperación 40 tomadas de la biblioteca sin cambios.\",\"FTP confirmado (265 W), así que no hay límite extra por el número. Cuando recupere, conviene agendar un retest en la semana siguiente para el objetivo de diciembre.\"],\"workouts\":[{\"name\":\"Fondo 60\",\"description\":\"Una salida tranquila para aflojar las piernas sin cargarlas más. Mantente en fondo: debes poder hablar en frases completas. Si el cuerpo pide menos, baja sin culpa; el objetivo de hoy es recuperar.\",\"intervals\":[],\"targetTSS\":42,\"dayOfWeek\":\"mon\",\"fromLibraryId\":\"lib-fondo-60\",\"libraryChange\":null},{\"name\":\"Recuperación 40\",\"description\":\"Pedaleo suave con cadencia libre para mover la sangre y soltar las piernas. Puedes apagar el ERG y dejar que tu cadencia marque el ritmo. Si sientes que te pesa, acórtalo: lo importante es llegar al día siguiente con energía.\",\"intervals\":[],\"targetTSS\":20,\"dayOfWeek\":\"tue\",\"fromLibraryId\":\"lib-recup-40\",\"libraryChange\":null},{\"name\":\"Fondo 60\",\"description\":\"Otra salida de fondo para mantener el ritmo sin exigir. Ponte a una potencia cómoda, con respiración tranquila y sin buscar subir. Si las piernas están pesadas, quédate en la zona baja y disfruta el rodar.\",\"intervals\":[],\"targetTSS\":42,\"dayOfWeek\":\"thu\",\"fromLibraryId\":\"lib-fondo-60\",\"libraryChange\":null},{\"name\":\"Recuperación 40\",\"description\":\"Cierre de semana suave para llegar fresco al siguiente bloque. Pedalea sin presión, con cadencia libre y sin mirar el reloj. Si te sientes bien al terminar, es señal de que la descarga está funcionando.\",\"intervals\":[],\"targetTSS\":20,\"dayOfWeek\":\"sat\",\"fromLibraryId\":\"lib-recup-40\",\"libraryChange\":null}]}"
+}

@@ -1,0 +1,119 @@
+{
+  "id": "13-coach-week-fuerza-rodilla-sin-ftp-confirmado",
+  "mode": "coach_week",
+  "title": "Fuerza de pierna bloqueada, lesión de rodilla, FTP sin confirmar y tope de minutos null",
+  "expect": [
+    "Ninguna sesión dura el lunes, martes ni miércoles (fuerza de pierna el martes).",
+    "Máximo 2 sesiones duras y nunca en días seguidos.",
+    "Ningún intervalo > 95 % (FTP sin confirmar) y rationale sugiere un test.",
+    "Sin trabajo a cadencia baja ni sprints; los esfuerzos llevan cadence_min ≥ 85; rationale menciona la rodilla.",
+    "Ninguna sesión pasa de 90 min (suma de duration_s ≤ 5400).",
+    "lib-vo2-5x4 no se usa tal cual (112 % con FTP sin confirmar).",
+    "Suma de TSS ≤ 297 (110 % de la semana más alta)."
+  ],
+  "context": {
+    "athleteId": "3f2b8c1e-5d47-4a9b-8e21-6c0d9f7a1b23",
+    "weekStart": "2026-10-12",
+    "instruction": "",
+    "openDays": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+    ],
+    "lockedItems": [
+      {
+        "dayOfWeek": "tue",
+        "name": "Fuerza pierna A",
+        "kind": "strength",
+        "minutes": 45,
+        "tss": null,
+        "reason": "routine"
+      },
+      {
+        "dayOfWeek": "fri",
+        "name": "Movilidad cadera",
+        "kind": "mobility",
+        "minutes": 20,
+        "tss": null,
+        "reason": "routine"
+      }
+    ],
+    "athlete": {
+      "name": "Mariana",
+      "ftp": 210,
+      "ftpConfirmed": false,
+      "discipline": "mountain",
+      "injuries": "Tendinitis rotuliana en la rodilla derecha; molesta al empujar desarrollos pesados.",
+      "goal": "Maratón de MTB de 60 km en marzo"
+    },
+    "pmc": {
+      "ctl": 41,
+      "atl": 44,
+      "tsb": -3
+    },
+    "recentWeeks": [
+      {
+        "weekStart": "2026-09-14",
+        "bikeTss": 250,
+        "nonBikeSessions": 2
+      },
+      {
+        "weekStart": "2026-09-21",
+        "bikeTss": 265,
+        "nonBikeSessions": 2
+      },
+      {
+        "weekStart": "2026-09-28",
+        "bikeTss": 270,
+        "nonBikeSessions": 2
+      },
+      {
+        "weekStart": "2026-10-05",
+        "bikeTss": 260,
+        "nonBikeSessions": 2
+      }
+    ],
+    "maxSessionMinutes": null,
+    "library": [
+      {
+        "id": "lib-ou-3x9",
+        "name": "Over-Under 3×9",
+        "minutes": 70,
+        "tss": 82,
+        "structure": "Calentamiento 15 min; 3×(3×[2 min al 95 % / 1 min al 105 %]) con 5 min al 55 %; enfriamiento 10 min"
+      },
+      {
+        "id": "lib-vo2-5x4",
+        "name": "VO2 5×4",
+        "minutes": 65,
+        "tss": 85,
+        "structure": "Calentamiento 15 min; 5×(4 min al 112 % / 4 min al 50 %); enfriamiento 10 min"
+      },
+      {
+        "id": "lib-ss-3x12",
+        "name": "Sweet Spot 3×12",
+        "minutes": 70,
+        "tss": 72,
+        "structure": "Calentamiento 12 min; 3×(12 min al 90 % / 5 min al 55 %); enfriamiento 7 min"
+      },
+      {
+        "id": "lib-fondo-60",
+        "name": "Fondo 60",
+        "minutes": 60,
+        "tss": 42,
+        "structure": "Calentamiento 10 min; 45 min al 65 %; enfriamiento 5 min"
+      },
+      {
+        "id": "lib-recup-40",
+        "name": "Recuperación 40",
+        "minutes": 40,
+        "tss": 20,
+        "structure": "40 min al 50 %, cadencia libre"
+      }
+    ]
+  }
+}

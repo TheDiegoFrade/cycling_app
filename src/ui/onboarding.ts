@@ -5,6 +5,7 @@
 // appState.profile existente (mutación de campos + persistProfile()), igual
 // que ya hace Perfil — nunca se reemplaza el objeto completo.
 import type { Profile } from '../core/types';
+import { ftpSourceOf, isMeasuredFtp, withFtp } from '../core/coach-profile';
 import { appState } from './state';
 import { buildCompletedSessionFromFit } from '../core/completed-session-import';
 import { saveSession } from '../storage/session-store';
@@ -34,6 +35,19 @@ function optionHtml(attr: string, value: string, on: boolean, title: string, des
 
 /** Interruptor: checkbox real (oculto) + el dibujo del switch, para que la
  * lógica siga leyendo `.checked`. */
+/** FTP del cuestionario: con "No sé mi FTP" un número escrito es
+ * provisional; sin número se queda el que había (default o provisional). Sin
+ * la casilla, el número es suyo. */
+function ftpFromForm(p: Profile, typed: number, unknown: boolean): Profile {
+  const hasNumber = Number.isFinite(typed) && typed > 0;
+  if (unknown) {
+    if (hasNumber) return withFtp(p, typed, 'provisional');
+    const source = ftpSourceOf(p) === 'provisional' ? 'provisional' : 'default';
+    return { ...p, ftpSource: source, ftpConfirmed: false };
+  }
+  return hasNumber ? withFtp(p, typed, 'manual') : { ...p, ftpSource: 'manual', ftpConfirmed: true };
+}
+
 function toggleHtml(id: string, checked: boolean, title: string, desc = '', extraAttrs = ''): string {
   return `<label class="ob-toggle" ${extraAttrs}>
     <span class="ob-toggle-text"><span class="ob-toggle-title">${title}</span>${desc ? `<span class="ob-toggle-desc">${desc}</span>` : ''}</span>
@@ -47,6 +61,7 @@ function sectionHtml(n: number, title: string, body: string): string {
 }
 
 function modalHtml(p: Profile): string {
+  const ftpMeasured = isMeasuredFtp(ftpSourceOf(p));
   const editing = isCoachProfileComplete(p);
   const experience = p.experienceLevel ?? 'experienced';
   const fitness = p.generalFitnessLevel ?? 'active_other_sport';
@@ -115,9 +130,9 @@ function modalHtml(p: Profile): string {
             'Tus números',
             `<div class="ob-grid">
               <div class="ob-field">
-                <label for="ob-ftp">FTP actual</label>
-                <span class="ob-input-unit"><input type="number" id="ob-ftp" value="${p.ftpConfirmed ? esc(p.ftp) : ''}" placeholder="Ej. 200" inputmode="numeric" ${p.ftpConfirmed ? '' : 'disabled'}><span>W</span></span>
-                ${toggleHtml('ob-no-ftp', !p.ftpConfirmed, 'No sé mi FTP todavía')}
+                <label for="ob-ftp" id="ob-ftp-label">${ftpMeasured ? 'FTP actual' : 'FTP provisional (opcional)'}</label>
+                <span class="ob-input-unit"><input type="number" id="ob-ftp" value="${ftpMeasured || ftpSourceOf(p) === 'provisional' ? esc(p.ftp) : ''}" placeholder="${ftpMeasured ? 'Ej. 200' : 'Si no, el coach te propone uno'}" inputmode="numeric"><span>W</span></span>
+                ${toggleHtml('ob-no-ftp', !ftpMeasured, 'No sé mi FTP todavía', 'Puedes escribir uno provisional: el coach lo toma como punto de partida, no como medición.')}
               </div>
               <div class="ob-field">
                 <label for="ob-hrmax">Pulso máximo</label>
@@ -219,9 +234,9 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
 
   const ftpInput = backdrop.querySelector<HTMLInputElement>('#ob-ftp')!;
   const noFtpCheckbox = backdrop.querySelector<HTMLInputElement>('#ob-no-ftp')!;
+  const ftpLabel = backdrop.querySelector<HTMLElement>('#ob-ftp-label')!;
   noFtpCheckbox.addEventListener('change', () => {
-    ftpInput.disabled = noFtpCheckbox.checked;
-    if (noFtpCheckbox.checked) ftpInput.value = '';
+    ftpLabel.textContent = noFtpCheckbox.checked ? 'FTP provisional (opcional)' : 'FTP actual';
   });
   const hrMaxInput = backdrop.querySelector<HTMLInputElement>('#ob-hrmax')!;
   const noHrMaxCheckbox = backdrop.querySelector<HTMLInputElement>('#ob-no-hrmax')!;
@@ -272,7 +287,6 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     const hasOutdoorPowerMeter = ridesOutside ? backdrop.querySelector<HTMLInputElement>('#ob-outdoor-power')!.checked : undefined;
     const injuries = backdrop.querySelector<HTMLTextAreaElement>('#ob-injuries')!.value.trim() || undefined;
     const recentBestResult = backdrop.querySelector<HTMLInputElement>('#ob-best-result')!.value.trim() || undefined;
-    const ftpConfirmed = !noFtpCheckbox.checked;
     const hrMaxConfirmed = !noHrMaxCheckbox.checked;
 
     // Fusión explícita sobre el perfil existente — nunca reemplazar el
@@ -290,11 +304,10 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
       hasOutdoorPowerMeter,
       injuries,
       recentBestResult,
-      ftpConfirmed,
       hrMaxConfirmed,
-      ftp: ftpConfirmed ? Number(ftpInput.value) || appState.profile.ftp : appState.profile.ftp,
       hr_max: hrMaxConfirmed ? Number(hrMaxInput.value) || appState.profile.hr_max : appState.profile.hr_max,
     };
+    appState.profile = ftpFromForm(appState.profile, Number(ftpInput.value), noFtpCheckbox.checked);
     status.textContent = 'Guardando…';
     await appState.persistProfile();
     close();

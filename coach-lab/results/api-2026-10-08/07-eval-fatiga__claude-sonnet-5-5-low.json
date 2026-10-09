@@ -1,0 +1,174 @@
+{
+  "id": "07-eval-fatiga",
+  "mode": "weekly_eval",
+  "config": "claude-sonnet-5-5-low",
+  "ok": true,
+  "seconds": 17.9,
+  "cost": 0.064749,
+  "coldCost": 0.064749,
+  "usage": {
+    "input_tokens": 1802,
+    "output_tokens": 2263,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 15406
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "decision": "insert_recovery",
+    "reasoning": "Diego, esta semana vas con TSB −35 (CTL 64, ATL 99), duermes mal y las piernas no responden. Además el techo de pulso saltó 6 veces y el piso de cadencia 3. Son varias señales de fatiga a la vez, así que la semana que viene es de absorción: nada por encima de 75 %, sesiones de 60 min, 3 salidas y 4 días libres. Es el coach haciendo su trabajo: con el sueño así, más carga no te mejora, solo te hunde más. Si el sueño y las piernas vuelven a la normalidad, retomamos la progresión la semana siguiente. Intenta proteger las horas de dormir; ahí está la mitad de la recuperación.",
+    "contradictionFlag": "Cumpliste 71 % del TSS planeado (300 de 420), pero lo que reportas (agotamiento, mal sueño, piernas vacías) y el TSB de −35 dicen que vas cargado. Me quedo con lo que reportas y con el TSB, no con el cumplimiento.",
+    "recurringPatternFlag": null,
+    "nextWeekWorkouts": [
+      {
+        "name": "Rodaje de recuperación",
+        "dayOfWeek": "tue",
+        "targetTSS": 40,
+        "erg": "on",
+        "intent": "Soltar las piernas sin sumar fatiga. Ritmo conversacional, RPE 3, que puedas hablar en frases completas. Si el pulso se dispara, baja la potencia: hoy no se gana nada con apretar.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo suave",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 68,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo ligero",
+        "dayOfWeek": "thu",
+        "targetTSS": 44,
+        "erg": "on",
+        "intent": "Fondo fácil para mantener el hábito y mover sangre sin cargar. RPE 3-4, respiración cómoda, sin tocar tempo. Es semana de absorción: si las piernas siguen vacías, acorta y listo.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 72,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      },
+      {
+        "name": "Fondo suave final",
+        "dayOfWeek": "sat",
+        "targetTSS": 44,
+        "erg": "on",
+        "intent": "Cierre de semana suave para llegar fresco a la siguiente. Conversacional, RPE 3-4, sin picos ni arrancadas. Si te sientes mejor, no subas la potencia: guarda esa energía para la semana que viene.",
+        "segments": [
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Calentamiento",
+                "type": "warmup",
+                "duration_s": 600,
+                "power_pct": 50,
+                "ramp_to_pct": 65
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Fondo",
+                "type": "steady",
+                "duration_s": 2400,
+                "power_pct": 72,
+                "cadence_min": 85,
+                "cadence_max": 95
+              }
+            ]
+          },
+          {
+            "repeat": 1,
+            "steps": [
+              {
+                "name": "Enfriamiento",
+                "type": "cooldown",
+                "duration_s": 600,
+                "power_pct": 55,
+                "ramp_to_pct": 45
+              }
+            ]
+          }
+        ],
+        "kind": null
+      }
+    ],
+    "ftpAction": null,
+    "suggestedFtp": null,
+    "nextTest": null,
+    "notesUpdate": null
+  },
+  "raw": "{\"decision\":\"insert_recovery\",\"reasoning\":\"Diego, esta semana vas con TSB −35 (CTL 64, ATL 99), duermes mal y las piernas no responden. Además el techo de pulso saltó 6 veces y el piso de cadencia 3. Son varias señales de fatiga a la vez, así que la semana que viene es de absorción: nada por encima de 75 %, sesiones de 60 min, 3 salidas y 4 días libres. Es el coach haciendo su trabajo: con el sueño así, más carga no te mejora, solo te hunde más. Si el sueño y las piernas vuelven a la normalidad, retomamos la progresión la semana siguiente. Intenta proteger las horas de dormir; ahí está la mitad de la recuperación.\",\"contradictionFlag\":\"Cumpliste 71 % del TSS planeado (300 de 420), pero lo que reportas (agotamiento, mal sueño, piernas vacías) y el TSB de −35 dicen que vas cargado. Me quedo con lo que reportas y con el TSB, no con el cumplimiento.\",\"recurringPatternFlag\":null,\"nextWeekWorkouts\":[{\"name\":\"Rodaje de recuperación\",\"dayOfWeek\":\"tue\",\"targetTSS\":40,\"erg\":\"on\",\"intent\":\"Soltar las piernas sin sumar fatiga. Ritmo conversacional, RPE 3, que puedas hablar en frases completas. Si el pulso se dispara, baja la potencia: hoy no se gana nada con apretar.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo suave\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":68,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo ligero\",\"dayOfWeek\":\"thu\",\"targetTSS\":44,\"erg\":\"on\",\"intent\":\"Fondo fácil para mantener el hábito y mover sangre sin cargar. RPE 3-4, respiración cómoda, sin tocar tempo. Es semana de absorción: si las piernas siguen vacías, acorta y listo.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":72,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":45}]}],\"kind\":null},{\"name\":\"Fondo suave final\",\"dayOfWeek\":\"sat\",\"targetTSS\":44,\"erg\":\"on\",\"intent\":\"Cierre de semana suave para llegar fresco a la siguiente. Conversacional, RPE 3-4, sin picos ni arrancadas. Si te sientes mejor, no subas la potencia: guarda esa energía para la semana que viene.\",\"segments\":[{\"repeat\":1,\"steps\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":50,\"ramp_to_pct\":65}]},{\"repeat\":1,\"steps\":[{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":2400,\"power_pct\":72,\"cadence_min\":85,\"cadence_max\":95}]},{\"repeat\":1,\"steps\":[{\"name\":\"Enfriamiento\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":45}]}],\"kind\":null}],\"ftpAction\":null,\"suggestedFtp\":null,\"nextTest\":null,\"notesUpdate\":null}"
+}

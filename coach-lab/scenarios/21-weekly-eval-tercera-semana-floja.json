@@ -1,0 +1,77 @@
+{
+  "id": "21-weekly-eval-tercera-semana-floja",
+  "mode": "weekly_eval",
+  "title": "Tercera semana seguida por debajo de 70 % con huecos recurrentes",
+  "expect": [
+    "decision = reduce: tercera semana seguida por debajo de 70 %.",
+    "Semana siguiente de 3 sesiones y 190-250 TSS; conserva una sesión de calidad (no hay señales de fatiga, el TSB es +4).",
+    "recurringPatternFlag trae UNA pregunta concreta sobre los huecos de mitad de semana.",
+    "reasoning presenta el ajuste como dimensionar el plan a su semana real, sin culpar.",
+    "Sin nombre y sin adjetivos con género.",
+    "No inventa restricciones de días (athleteNote es null)."
+  ],
+  "context": {
+    "profile": {
+      "sex": null,
+      "name": null
+    },
+    "maxSessionMinutes": 60,
+    "occupiedDates": [],
+    "weekJustFinished": {
+      "plannedTSS": 300,
+      "actualTSS": 170,
+      "completedWorkouts": 2,
+      "missedWorkouts": 2,
+      "ruleTriggers": [],
+      "athleteNote": null
+    },
+    "pmcTrend": {
+      "ctl": 31,
+      "atl": 27,
+      "tsb": 4,
+      "ctlRampLast4Weeks": -3
+    },
+    "recentGapPattern": [
+      {
+        "startDate": "2026-09-16",
+        "endDate": "2026-09-19",
+        "days": 4
+      },
+      {
+        "startDate": "2026-09-30",
+        "endDate": "2026-10-03",
+        "days": 4
+      }
+    ],
+    "recentWeeksSummary": [
+      {
+        "weekIndex": 0,
+        "plannedTSS": 290,
+        "actualTSS": 280,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 1,
+        "plannedTSS": 300,
+        "actualTSS": 190,
+        "completedWorkouts": 3,
+        "missedWorkouts": 1
+      },
+      {
+        "weekIndex": 2,
+        "plannedTSS": 300,
+        "actualTSS": 180,
+        "completedWorkouts": 2,
+        "missedWorkouts": 2
+      },
+      {
+        "weekIndex": 3,
+        "plannedTSS": 300,
+        "actualTSS": 170,
+        "completedWorkouts": 2,
+        "missedWorkouts": 2
+      }
+    ]
+  }
+}

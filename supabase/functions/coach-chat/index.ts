@@ -20,8 +20,18 @@ import Anthropic from 'npm:@anthropic-ai/sdk@0';
 import { zodOutputFormat } from 'npm:@anthropic-ai/sdk@0/helpers/zod';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
-import { COACH_SYSTEM_PROMPT, WORKOUT_CONTRACT } from './prompt.ts';
-import { schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
+import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
+import { COACH_SYSTEM_PROMPT, WRITER_SYSTEM_PROMPT } from './prompt.ts';
+import { buildUserMessage } from './message.ts';
+import { PLANNING_MODES, WorkoutDescriptionsSchema, schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
+import { summarizeSegments, toGeneratedWorkout, totalMinutes, type PlannedWorkout } from './expand.ts';
+import { resolveFromLibrary, type CoachWeekWorkout, type LibraryTemplate } from './library.ts';
+import { acceptAiNotes, notesDueOnWeeklyEval, type StoredNotes } from './notes.ts';
+import { callRow, logCalls, type CallRow, type CallStep, type UsageLike } from './usage-log.ts';
+import { correctionMessage, guardOutput } from './guard.ts';
+import { plannerFor } from './routing.ts';
+import { OTHER_MODEL, callCoach, readResponse } from './coach-call.ts';
+import { deliverDraft, emailKey, planDraftOf, weekDraftOf } from './coach-email.ts';
 
 type AdminClient = ReturnType<typeof createClient>;
 
@@ -29,18 +39,33 @@ function adminClient(): AdminClient {
   return createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 }
 
-// Haiku 4.5, no Sonnet: la tarea sigue siendo generar un plan estructurado
-// con reglas bien definidas (la jerarquía de evidencia, el contrato de
-// Workout), no razonamiento abierto complejo — y Sonnet 5 generando
-// max_tokens altos (48000, con las descripciones ricas por workout) tardaba
-// lo suficiente para toparse con fallas intermitentes tipo IDLE_TIMEOUT en
-// ~1 de cada 3-4 llamadas reales (visto en pruebas: la reserva de tokens se
-// gastaba completa sin reconciliar, señal de que la función moría antes de
-// recibir respuesta). Haiku es mucho más rápido, reduciendo la ventana de
-// riesgo. Si la calidad del plan baja de forma notoria, vale la pena volver
-// a Sonnet y atacar la causa de raíz (streaming real al cliente) en vez de
-// cambiar de modelo otra vez.
-const MODEL = 'claude-haiku-4-5-20251001';
+// Dos modelos para los modos que planifican (create_plan, weekly_eval,
+// publish_block):
+//  - El coach (routing.ts: Sonnet low para planes y bloques y para las
+//    semanas donde hay que razonar el FTP; Haiku 5.5 low para las demás
+//    evaluaciones semanales) razona y decide el plan, pero con una
+//    salida corta: las series en forma compacta (`repeat`) y una intención
+//    por workout. Antes Sonnet 5 escribía TODO (cada intervalo + una
+//    descripción de 3-5 oraciones por workout, ~15k tokens) y se pasaba de
+//    los 150 s de Supabase (IDLE_TIMEOUT en ~1 de cada 3-4 llamadas); por
+//    eso se había bajado a Haiku 4.5, que razona peor.
+//  - Los intervalos los desenrolla código (expand.ts): mecánico, sin pierde.
+//  - WRITER_MODEL (Haiku) redacta las descripciones, una llamada por semana
+//    en paralelo. Si falla o no alcanza el tiempo, queda la intención del
+//    coach como descripción (fallbackDescription) — el plan nunca se pierde
+//    por esto.
+// coach_week y monthly_review van con Haiku 5.5 (routing.ts); solo el
+// comentario post-sesión, que la app ya no llama, sigue con OTHER_MODEL.
+const WRITER_MODEL = 'claude-haiku-5-5';
+
+// Supabase Free corta la función a los ~150 s. El redactor solo arranca si
+// al coach le sobró tiempo, y con un tope propio para no pasarse.
+const WALL_CLOCK_BUDGET_MS = 140_000;
+const WRITER_MIN_REMAINING_MS = 25_000;
+const WRITER_MAX_MS = 40_000;
+// La guardia solo pide una corrección si la primera respuesta llegó antes de
+// esto: el reintento tarda lo mismo que la primera y aún tiene que caber.
+const RETRY_MAX_ELAPSED_MS = 70_000;
 
 // Red de seguridad, no el control principal (ver checkModeAllowed).
 const MONTHLY_TOKEN_CEILING = 500_000;
@@ -74,15 +99,6 @@ const MONTHLY_WEEKLY_EVAL_LIMIT = 10;
 
 const DAY_OFFSET: Record<string, number> = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun: 6 };
 
-// Lanzamiento controlado — el coach llama a Claude (dinero real por
-// request) y todavía no está listo para abrirse a toda la base de
-// usuarios. Solo estos user_id pueden usarlo mientras tanto. Quitar
-// esta lista (o vaciarla) es la forma de abrirlo a todos después.
-const ALLOWED_USER_IDS = new Set([
-  '68c9ddae-cee4-4d2f-8d0f-9553f9fe5782', // dperezcf@gmail.com — usuario dummy de pruebas
-  '1d868aa6-bd45-4a1a-83aa-7d9f54c8d24b', // andrea.guerrero.guzman@gmail.com
-  '95b1f5fc-a167-4c9e-ae16-95d158280c3d', // dpcfrade@gmail.com — dueño de la app y coach
-]);
 
 interface CoachChatRequest {
   mode: Mode;
@@ -96,6 +112,7 @@ interface CoachChatRequest {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  const startedAt = Date.now();
   try {
     const userId = await getUserId(req);
     // Antes de CUALQUIER otra cosa — ni siquiera parsea el body todavía.
@@ -116,10 +133,30 @@ Deno.serve(async (req) => {
       return json({ error: 'context inválido', details: contextCheck.error.issues }, 400);
     }
 
-    const context = contextCheck.data; // ya validado y tipado — usar este, no body.context
+    const validContext = contextCheck.data; // ya validado y tipado — usar este, no body.context
 
-    const allowed = await checkModeAllowed(admin, userId, body.mode, context);
+    const allowed = await checkModeAllowed(admin, userId, body.mode, validContext);
     if (!allowed.ok) return json({ error: allowed.reason }, 429);
+
+    // Expediente del atleta (athlete_notes): lo lee el servidor, nunca viene
+    // del cliente. En los modos del coach es el de su atleta (el vínculo ya
+    // se verificó arriba); en los demás, el del propio usuario.
+    const notesAthleteId = body.mode === 'coach_week' || body.mode === 'monthly_review' ? (validContext as { athleteId: string }).athleteId : userId;
+    const notes = await loadNotes(admin, notesAthleteId);
+    // Sin coach humano, cada 4 evaluaciones semanales la IA propone el
+    // expediente (notesUpdate); con coach lo propone monthly_review y él decide.
+    const notesDue =
+      body.mode === 'weekly_eval' &&
+      notesDueOnWeeklyEval(await getActionCount(admin, userId, 'weekly_eval'), (await activeCoachOf(admin, userId)) !== null);
+    // athleteNotes y notesDue solo los pone el servidor: si el cliente los
+    // mandara, se descartan (los schemas de entrada ya no los aceptan, pero
+    // se borran aquí también por si alguno los dejara pasar).
+    const { athleteNotes: _clientNotes, athleteNotesBy: _clientBy, notesDue: _clientDue, ...cleanContext } = validContext as Record<string, unknown>;
+    const context: Record<string, unknown> = {
+      ...cleanContext,
+      ...(notes?.body ? { athleteNotes: notes.body, athleteNotesBy: notes.updatedBy } : {}),
+      ...(body.mode === 'weekly_eval' ? { notesDue } : {}),
+    };
 
     const usedThisMonth = await getMonthlyTokens(admin, userId);
     if (usedThisMonth >= MONTHLY_TOKEN_CEILING) {
@@ -138,31 +175,34 @@ Deno.serve(async (req) => {
     const schema = schemaForMode(body.mode);
     const userMessage = buildUserMessage(body.mode, context);
 
-    // Streaming, no .parse() directo: Supabase Edge Functions mata la
-    // conexión a los 150s si no hay bytes fluyendo (IDLE_TIMEOUT) — un plan
-    // grande sin streaming puede tardar más que eso en generar el primer
-    // byte. output_config.format sigue aplicando igual en modo streaming
-    // (lo fuerza el servidor, no el transporte); solo hay que parsear el
-    // texto final a mano en vez de depender del parsed_output de .parse().
-    const stream = client.messages.stream({
-      model: MODEL,
-      // create_plan concretiza TODAS las semanas del primer bloque de una
-      // vez — con el protocolo de arranque de 3-6 semanas para perfiles
-      // sedentarios (ver prompt.ts) el JSON completo (bloques + semanas +
-      // intervals de cada workout + coachNote) puede acercarse a 16000
-      // tokens de salida y cortarse a medias. 48000 da margen real sin
-      // costo extra: Anthropic cobra por tokens generados, no por el techo.
-      max_tokens: 48000,
-      system: [
-        // Único bloque con cache_control — contenido 100% estático e
-        // idéntico entre TODOS los usuarios. Nunca pongas datos de un
-        // usuario aquí: los datos del atleta siempre van en `messages`.
-        { type: 'text', text: COACH_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-      ],
-      messages: [{ role: 'user', content: userMessage }],
-      output_config: { format: zodOutputFormat(schema) },
-    });
-    const response = await stream.finalMessage();
+    const planning = PLANNING_MODES.has(body.mode);
+    const system = [
+      // Único bloque con cache_control — contenido 100% estático e
+      // idéntico entre TODOS los usuarios. Nunca pongas datos de un
+      // usuario aquí: los datos del atleta siempre van en `messages`.
+      { type: 'text' as const, text: COACH_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' as const } },
+    ];
+    // Qué modelo responde (routing.ts); null solo en el comentario post-sesión.
+    const choice = plannerFor(body.mode, context);
+    if (choice) console.log(`[coach-chat] ${body.mode}: ${choice.model} (${choice.effort}) — ${choice.reason}`);
+    // Cada llamada a Claude queda en coach_calls (usage-log.ts).
+    const calls: CallRow[] = [];
+    const ask = async (step: CallStep, messages: Anthropic.MessageParam[]) => {
+      const callStarted = Date.now();
+      const base = { userId, mode: body.mode, step, model: choice?.model ?? OTHER_MODEL, startedMs: callStarted };
+      try {
+        const r = await callCoach(client, choice, system, messages, schema);
+        calls.push(callRow({ ...base, model: r.model }, r.usage));
+        return r;
+      } catch (err) {
+        calls.push(callRow(base, null, err instanceof Error ? err.message : String(err)));
+        await logCalls(admin, calls.splice(0));
+        throw err;
+      }
+    };
+
+    const firstMessages: Anthropic.MessageParam[] = [{ role: 'user', content: userMessage }];
+    const response = await ask('main', firstMessages);
 
     // Reconciliar AQUÍ, apenas Claude contestó — sin importar si lo que
     // sigue (parseo, validación, applyModeEffects) sale bien o mal. Antes
@@ -175,28 +215,57 @@ Deno.serve(async (req) => {
     // sesión de pruebas fallaron después de cobrar y se quedaron así.)
     await reconcileUsage(admin, userId, period, response.usage);
 
-    if (response.stop_reason === 'max_tokens') {
-      return json({ error: 'la respuesta del coach se cortó por longitud (max_tokens) — intenta de nuevo' }, 502);
+    let first = readResponse(response, schema);
+    if (!first.ok) {
+      await logCalls(admin, calls.splice(0));
+      return json({ error: first.error }, 502);
     }
 
-    const textBlock = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
-    let parsedJson: unknown = null;
-    try {
-      if (textBlock) parsedJson = JSON.parse(textBlock.text);
-    } catch {
-      // JSON truncado o malformado — antes esto tronaba como excepción no
-      // controlada y caía al catch genérico de abajo (400 con un mensaje
-      // de JSON.parse que el cliente nunca llegaba a mostrar). Mensaje
-      // explícito para que la próxima falla de este tipo sea diagnosticable
-      // sin tener que adivinar ni gastar otra llamada real para probar.
-      return json({ error: 'el modelo no devolvió JSON válido, intenta de nuevo' }, 502);
+    // Guardia (guard.ts): lo mecánico lo arregla el código; si queda algo
+    // que rompe una regla, se le pide al coach que lo corrija UNA vez, con
+    // la lista exacta. Solo en los modos que planifican y si hay tiempo.
+    let guard = guardOutput(body.mode, context, first.data);
+    if (guard.fails.length && planning && Date.now() - startedAt < RETRY_MAX_ELAPSED_MS) {
+      console.log(`[coach-chat] guardia: reintento por ${guard.fails.length} falla(s): ${guard.fails.join(' | ')}`);
+      const retry = await ask('retry', [
+        ...firstMessages,
+        { role: 'assistant', content: first.text },
+        { role: 'user', content: correctionMessage(guard.fails) },
+      ]).catch(() => null); // ya quedó registrado; sigue con la primera respuesta
+      if (retry) await addUsage(admin, userId, period, tokensOf(retry.usage));
+      const second = retry ? readResponse(retry, schema) : null;
+      if (second?.ok) {
+        const g2 = guardOutput(body.mode, context, second.data);
+        // Se queda con la corrección solo si de verdad corrigió algo.
+        if (g2.fails.length < guard.fails.length) {
+          first = second;
+          guard = g2;
+        }
+      }
     }
-    const parseResult = parsedJson !== null ? schema.safeParse(parsedJson) : null;
-    if (!parseResult?.success) {
-      return json({ error: 'el modelo no devolvió una salida válida, intenta de nuevo' }, 502);
+    const lastCall = calls[calls.length - 1];
+    if (lastCall) {
+      lastCall.guard_fixes = guard.fixes.length;
+      lastCall.guard_fails = guard.fails.length ? guard.fails.join(' | ').slice(0, 500) : null;
     }
+    if (guard.fixes.length) console.log(`[coach-chat] guardia arregló: ${guard.fixes.join(' | ')}`);
+    if (guard.warns.length) console.log(`[coach-chat] guardia avisa: ${guard.warns.join(' | ')}`);
+    if (guard.fails.length && planning) {
+      // No se guarda nada ni se gasta ningún tope: el atleta puede volver a pedirlo.
+      console.log(`[coach-chat] guardia rechazó: ${guard.fails.join(' | ')}`);
+      await logCalls(admin, calls.splice(0));
+      return json({ error: 'el coach armó algo que no cumple las reglas de seguridad del plan — intenta de nuevo' }, 502);
+    }
+    const parseResult = { data: guard.out };
 
-    const result = await applyModeEffects(admin, userId, body.mode, context, parseResult.data);
+    // Modos que planifican: el coach ya decidió; ahora el código desenrolla
+    // los intervalos y Haiku redacta las descripciones (ver routing.ts).
+    const output = planning
+      ? await finishPlannedWorkouts(client, admin, userId, period, body.mode, context, parseResult.data, startedAt, calls)
+      : parseResult.data;
+    await logCalls(admin, calls.splice(0));
+
+    const result = await applyModeEffects(admin, userId, body.mode, context, output);
     // Se registra DESPUÉS de que todo salió bien, nunca antes (un intento
     // fallido no debe gastar ningún tope). create_plan cuenta contra
     // MONTHLY_PLAN_ACTION_LIMIT, weekly_eval contra su propio
@@ -204,49 +273,24 @@ Deno.serve(async (req) => {
     if (body.mode === 'create_plan') await logPlanAction(admin, userId, 'create');
     if (body.mode === 'weekly_eval') await logPlanAction(admin, userId, 'weekly_eval');
 
+    // Correo al atleta (coach-email.ts). Sin coach humano sale solo, una vez
+    // por plan y una por semana; con coach se guarda el borrador y el coach
+    // decide si lo manda (send-coach-email). Va en segundo plano: la
+    // respuesta no espera a Resend ni al PDF.
+    if (body.mode === 'create_plan' || body.mode === 'weekly_eval') {
+      const job = emailAthlete(admin, userId, body.mode, context, parseResult.data, result as Record<string, unknown>).catch((err) =>
+        console.log(`[coach-chat] correo de ${body.mode} falló: ${err instanceof Error ? err.message : String(err)}`),
+      );
+      const runtime = (globalThis as { EdgeRuntime?: { waitUntil(p: Promise<unknown>): void } }).EdgeRuntime;
+      if (runtime) runtime.waitUntil(job);
+      else await job;
+    }
+
     return json({ result });
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : String(err) }, 400);
   }
 });
-
-function buildUserMessage(mode: Mode, context: Record<string, unknown>): string {
-  const headers: Record<Mode, string> = {
-    create_plan: 'Modo: create_plan. Genera el esqueleto del plan y concretiza el primer bloque.',
-    weekly_eval: 'Modo: weekly_eval. Evalúa la semana recién terminada y decide la que sigue.',
-    publish_block: 'Modo: publish_block. Concretiza el siguiente bloque con base en cómo fue el anterior completo.',
-    finished_training_eval_comment:
-      'Modo: finished_training_eval_comment. Un comentario corto (1-2 líneas) sobre la sesión que se acaba de terminar. No es una evaluación, no cambia nada del plan.',
-    coach_week: [
-      'Modo: coach_week. Trabajas para el COACH HUMANO de este atleta: él decide y aprueba, tú propones.',
-      'Reacomoda la semana que empieza en `weekStart` siguiendo la `instruction` del coach (si viene vacía, propón la mejor semana con los datos).',
-      'Reglas duras:',
-      '- Solo pon entrenamientos en días de `openDays` (de hoy en adelante). Nunca en días pasados.',
-      '- `lockedItems` ya están decididos y no se tocan ni se repiten: cuéntalos en la carga de la semana y no pongas otro entrenamiento de bici el mismo día que uno bloqueado de bici.',
-      '- Máximo un entrenamiento de bici por día. Respeta `maxSessionMinutes` si viene.',
-      '- Si hay fuerza de pierna bloqueada, sepárala al menos 48 h de intervalos duros (umbral, VO2, sprints).',
-      '- Respeta las lesiones del atleta (`athlete.injuries`).',
-      '- `rationale`: 2-5 razones cortas en español, dirigidas al coach, hablando del atleta en tercera persona. El atleta no las ve.',
-      '- `workouts` puede venir vacío si la indicación pide descanso.',
-    ].join('\n'),
-    monthly_review: [
-      'Modo: monthly_review. Trabajas para el COACH HUMANO de este atleta: redactas un borrador de su revisión mensual; él la edita y decide si la publica.',
-      'Los números ya vienen calculados (sin Strava). Úsalos tal cual: nunca inventes datos, sesiones ni causas que no se vean en ellos. Si algo no se puede saber con los datos, no lo afirmes.',
-      '- `findings`: 3-6 hallazgos concretos, cada uno con al menos un número del mes y comparado con el mes anterior cuando exista. `tone`: good (va bien), warn (a cuidar), bad (importante, actuar ya). `title` corto con punto final; `body` de una o dos frases.',
-      '- Referencias: progresión de CTL sana ≈ 1-7 puntos por semana; desacople < 5 % = buena base aeróbica; TSB entre −10 y −30 = construyendo, < −30 = fatiga alta; cumplimiento ≥ 85 % es muy bueno, < 70 % pide ajustar el plan.',
-      '- `verdict`: on_track si el mes fue bueno, attention si hay 2 o más cosas a cuidar, off_track si hay algo importante (fatiga muy alta, mes casi sin entrenar).',
-      '- `message`: borrador del mensaje AL ATLETA, de tú, cálido y directo, 2-3 párrafos cortos separados por una línea en blanco: qué salió bien, qué hay que mejorar y por qué importa. Sin saludo formal ni firma. Si `coachDraft` trae texto, respeta sus ideas y su tono y complétalo en vez de contradecirlo.',
-      '- `goals`: 2-3 objetivos para el mes siguiente, concretos y medibles (`title`) con cómo se mide o por qué (`detail`). Respeta las lesiones del atleta.',
-      '- Si `inProgress` es true, el mes no ha terminado: dilo con cuidado y no saques conclusiones de lo que falta.',
-      '- Todo en español.',
-    ].join('\n'),
-  };
-  // El contrato de Workout solo aplica a los modos que generan entrenamientos
-  // — mandárselo a finished_training_eval_comment es tokens tirados, nunca
-  // genera intervals.
-  const contract = mode === 'finished_training_eval_comment' || mode === 'monthly_review' ? '' : `${WORKOUT_CONTRACT}\n\n`;
-  return `${headers[mode]}\n\n${contract}Datos:\n${JSON.stringify(context, null, 2)}`;
-}
 
 /**
  * Gate estructural — la frecuencia de llamadas la controla el ESTADO real
@@ -376,7 +420,7 @@ async function materializeWeek(
   userId: string,
   startDate: string,
   weekIndex: number,
-  workouts: { name: string; description?: string; intervals: unknown[]; dayOfWeek: string }[],
+  workouts: { name: string; description?: string; intervals: unknown[]; dayOfWeek: string; kind?: 'test' | null }[],
   // Red de seguridad — aunque el prompt ya le pide al modelo evitar estas
   // fechas, esto nunca deja que se inserte un workout en un día que el
   // atleta ya tiene ocupado, pase lo que pase con lo que decidió el
@@ -404,6 +448,7 @@ async function materializeWeek(
       intervals: w.intervals,
       created_at: new Date().toISOString(),
       scheduledDate,
+      ...(w.kind ? { kind: w.kind } : {}),
     };
     if (coachId) {
       forCoach.push(workoutDoc);
@@ -419,6 +464,60 @@ async function materializeWeek(
 }
 
 /** Coach humano con vínculo activo de este atleta, o null. */
+/** Correo de create_plan / weekly_eval (ver coach-email.ts): sin coach lo
+ * manda si ese plan o esa semana no se mandó ya; con coach guarda el borrador. */
+async function emailAthlete(
+  admin: AdminClient,
+  userId: string,
+  mode: 'create_plan' | 'weekly_eval',
+  context: Record<string, unknown>,
+  planned: Record<string, unknown>,
+  result: Record<string, unknown>,
+): Promise<void> {
+  const { data: plan } = await admin.from('training_plans').select('id, data').eq('user_id', userId).eq('status', 'active').maybeSingle();
+  const row = plan as { id: string; data: { startDate?: string; emails?: Record<string, string> } } | null;
+  const startDate = row?.data?.startDate;
+  if (!row || !startDate) {
+    console.log(`[coach-chat] correo de ${mode} omitido: sin plan activo`);
+    return;
+  }
+  const dateOf = (weekIndex: number, day: string) => dateForWeek(startDate, weekIndex, day);
+  const weekIndex = result.weekIndex as number | undefined;
+  const key = emailKey(mode, weekIndex);
+  const draft = mode === 'create_plan' ? planDraftOf(context, planned, startDate, dateOf) : weekDraftOf(context, planned, weekIndex!, dateOf);
+
+  if (result.sentToCoach) {
+    await mergePlanData(admin, row.id, (data) => ({ ...data, emailDrafts: { ...(data.emailDrafts as object), [key]: draft } }));
+    return;
+  }
+  if (row.data.emails?.[key]) {
+    console.log(`[coach-chat] correo ${key} omitido: ya se mandó el ${row.data.emails[key]}`);
+    return;
+  }
+  const { data: user } = await admin.auth.admin.getUserById(userId);
+  const email = user?.user?.email;
+  if (!email) {
+    console.log(`[coach-chat] correo ${key} omitido: el atleta no tiene correo`);
+    return;
+  }
+  const name = ((context.profile as { name?: string | null } | undefined)?.name ?? null) || null;
+  const sent = await deliverDraft(mode === 'create_plan' ? 'plan' : 'week', draft, { email, name });
+  if (!sent.ok) {
+    console.log(`[coach-chat] correo ${key} falló: ${sent.error}`);
+    return;
+  }
+  console.log(`[coach-chat] correo ${key} enviado a ${sent.sentTo}`);
+  await mergePlanData(admin, row.id, (data) => ({ ...data, emails: { ...(data.emails as object), [key]: new Date().toISOString() } }));
+}
+
+/** Cambia solo una parte de training_plans.data, leyéndolo de nuevo justo antes. */
+async function mergePlanData(admin: AdminClient, planId: string, change: (data: Record<string, unknown>) => Record<string, unknown>): Promise<void> {
+  const { data: fresh } = await admin.from('training_plans').select('data').eq('id', planId).maybeSingle();
+  const current = ((fresh as { data?: Record<string, unknown> } | null)?.data ?? {}) as Record<string, unknown>;
+  const { error } = await admin.from('training_plans').update({ data: change(current) } as never).eq('id', planId);
+  if (error) console.log(`[coach-chat] no se pudo guardar el registro del correo: ${error.message}`);
+}
+
 async function activeCoachOf(admin: AdminClient, athleteId: string): Promise<string | null> {
   const { data } = await admin.from('coach_athletes').select('coach_id').eq('athlete_id', athleteId).eq('status', 'active').maybeSingle();
   return (data?.coach_id as string | undefined) ?? null;
@@ -517,6 +616,118 @@ function blockIndexForWeek(blocks: { weeks: number }[], weekIndex: number): numb
   return blocks.length - 1;
 }
 
+const DAY_NAMES: Record<string, string> = { mon: 'lunes', tue: 'martes', wed: 'miércoles', thu: 'jueves', fri: 'viernes', sat: 'sábado', sun: 'domingo' };
+
+/** Semanas de workouts compactos que devolvió el coach, según el modo. */
+function plannedWeeksOf(mode: Mode, output: Record<string, unknown>): PlannedWorkout[][] {
+  if (mode === 'create_plan') return (output.firstBlockWeeks as { workouts: PlannedWorkout[] }[]).map((w) => w.workouts);
+  if (mode === 'weekly_eval') return [output.nextWeekWorkouts as PlannedWorkout[]];
+  return (output.weeks as { workouts: PlannedWorkout[] }[]).map((w) => w.workouts);
+}
+
+/** Mismo output con cada workout ya completo (intervalos + descripción),
+ * en el shape que espera applyModeEffects/materializeWeek. */
+function withGeneratedWeeks(mode: Mode, output: Record<string, unknown>, weeks: ReturnType<typeof toGeneratedWorkout>[][]): Record<string, unknown> {
+  if (mode === 'create_plan') {
+    return { ...output, firstBlockWeeks: (output.firstBlockWeeks as { weekIndex: number }[]).map((w, i) => ({ ...w, workouts: weeks[i] })) };
+  }
+  if (mode === 'weekly_eval') return { ...output, nextWeekWorkouts: weeks[0] };
+  return { ...output, weeks: (output.weeks as { weekIndex: number }[]).map((w, i) => ({ ...w, workouts: weeks[i] })) };
+}
+
+/** Redacta las descripciones de una semana (Haiku). null si falla o se pasa
+ * del tiempo — el llamador usa la intención del coach en su lugar. */
+async function writeWeekDescriptions(
+  client: Anthropic,
+  athlete: { name: string | null; sex: string | null },
+  workouts: PlannedWorkout[],
+  timeoutMs: number,
+  logAs: { userId: string; mode: string; calls: CallRow[] },
+): Promise<{ descriptions: Map<number, string>; usage: UsageLike } | null> {
+  const callStarted = Date.now();
+  const base = { userId: logAs.userId, mode: logAs.mode, step: 'writer' as const, model: WRITER_MODEL, startedMs: callStarted };
+  try {
+    const payload = {
+      athlete,
+      workouts: workouts.map((w, index) => ({
+        index,
+        name: w.name,
+        day: DAY_NAMES[w.dayOfWeek] ?? w.dayOfWeek,
+        minutes: totalMinutes(w.segments),
+        targetTSS: w.targetTSS,
+        erg: w.erg,
+        intent: w.intent,
+        structure: summarizeSegments(w.segments),
+      })),
+    };
+    const response = await client.messages.create(
+      {
+        model: WRITER_MODEL,
+        max_tokens: 8000,
+        // low: es redacción guiada, no razonamiento — y rápido.
+        output_config: { effort: 'low', format: zodOutputFormat(WorkoutDescriptionsSchema) },
+        system: [{ type: 'text', text: WRITER_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+        messages: [{ role: 'user', content: `Escribe la descripción de cada workout de esta semana.\n\nDatos:\n${JSON.stringify(payload, null, 2)}` }],
+      },
+      { signal: AbortSignal.timeout(timeoutMs), maxRetries: 0 },
+    );
+    const text = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text')?.text;
+    const parsed = text ? WorkoutDescriptionsSchema.safeParse(JSON.parse(text)) : null;
+    const descriptions = new Map<number, string>();
+    if (parsed?.success) for (const d of parsed.data.descriptions) descriptions.set(d.index, d.description);
+    logAs.calls.push(callRow({ ...base, model: response.model }, response.usage, parsed?.success ? null : 'salida del redactor inválida'));
+    return { descriptions, usage: response.usage };
+  } catch (err) {
+    logAs.calls.push(callRow(base, null, err instanceof Error ? err.message : String(err)));
+    return null;
+  }
+}
+
+/** Después de que el coach (Sonnet) decidió: desenrolla los intervalos y
+ * pide las descripciones a Haiku, una llamada por semana en paralelo, solo
+ * si queda tiempo antes del límite de Supabase. */
+async function finishPlannedWorkouts(
+  client: Anthropic,
+  admin: AdminClient,
+  userId: string,
+  period: string,
+  mode: Mode,
+  context: Record<string, unknown>,
+  // deno-lint-ignore no-explicit-any
+  output: any,
+  startedAt: number,
+  calls: CallRow[],
+): Promise<Record<string, unknown>> {
+  // El tope de minutos ya lo aplicó la guardia (guard.ts → fitToCap).
+  const weeks = plannedWeeksOf(mode, output);
+  const profile = context.profile as { name?: string | null; sex?: string | null } | undefined;
+  const athlete = { name: profile?.name ?? null, sex: profile?.sex ?? null };
+
+  const remaining = WALL_CLOCK_BUDGET_MS - (Date.now() - startedAt);
+  const written =
+    remaining >= WRITER_MIN_REMAINING_MS
+      ? await Promise.all(weeks.map((w) => writeWeekDescriptions(client, athlete, w, Math.min(WRITER_MAX_MS, remaining - 5_000), { userId, mode, calls })))
+      : weeks.map(() => null);
+
+  const writerTokens = written.reduce((sum, r) => sum + (r ? tokensOf(r.usage) : 0), 0);
+  if (writerTokens > 0) await addUsage(admin, userId, period, writerTokens);
+
+  const generated = weeks.map((ws, wi) => ws.map((w, i) => toGeneratedWorkout(w, written[wi]?.descriptions.get(i) ?? null)));
+  return withGeneratedWeeks(mode, output, generated);
+}
+
+/** coach_week: trae las plantillas que la IA citó (solo de bici y de ESTE
+ * coach, userId del JWT) y resuelve copia exacta vs. ajuste (library.ts). */
+async function resolveLibraryWorkouts(admin: AdminClient, coachId: string, workouts: CoachWeekWorkout[]): Promise<unknown[]> {
+  const ids = [...new Set(workouts.map((w) => w.fromLibraryId).filter((id): id is string => !!id))];
+  const templates = new Map<string, LibraryTemplate>();
+  if (ids.length > 0) {
+    const { data } = await admin.from('session_templates').select('id, name, payload').eq('coach_id', coachId).eq('kind', 'bike').in('id', ids);
+    for (const t of (data ?? []) as (LibraryTemplate & { id: string })[]) templates.set(t.id, t);
+  }
+  return resolveFromLibrary(workouts, templates);
+}
+
 /** Aplica los efectos de cada modo: materializa workouts reales y
  * actualiza/crea el estado del plan. Devuelve lo que se manda al cliente. */
 async function applyModeEffects(
@@ -534,7 +745,7 @@ async function applyModeEffects(
     const open = new Set((context.openDays as string[]) ?? []);
     return {
       rationale: output.rationale,
-      workouts: (output.workouts as { dayOfWeek: string }[]).filter((w) => open.has(w.dayOfWeek)),
+      workouts: await resolveLibraryWorkouts(admin, userId, (output.workouts as CoachWeekWorkout[]).filter((w) => open.has(w.dayOfWeek))),
     };
   }
 
@@ -601,12 +812,34 @@ async function applyModeEffects(
       user_id: userId,
       status: 'active',
       goal: output.planName,
-      data: { startDate, blocks, weeks, startingPmc, maxSessionMinutes },
+      data: {
+        startDate,
+        blocks,
+        weeks,
+        startingPmc,
+        maxSessionMinutes,
+        ftpSuggestion: ftpSuggestionOf(output.suggestedFtp, 'create_plan'),
+        // Lo que escribió el atleta en el formulario: weekly_eval y
+        // publish_block lo reciben de vuelta en `plan` (src/core/plan-context.ts).
+        form: {
+          goal: context.goal as string,
+          days: (context.availability as { days: string[] }).days,
+          hoursPerWeek: (context.availability as { hoursPerWeek: number }).hoursPerWeek,
+        },
+        nextTest: output.nextTest ?? null,
+      },
       current_block_exhausted: firstBlockExhausted,
     });
     if (error) throw new Error(`no se pudo guardar el plan: ${error.message}`);
 
-    return { planId, coachNote: output.coachNote, weeks, sentToCoach: coachId !== null };
+    return {
+      planId,
+      coachNote: output.coachNote,
+      weeks,
+      sentToCoach: coachId !== null,
+      suggestedFtp: output.suggestedFtp ?? null,
+      nextTest: output.nextTest ?? null,
+    };
   }
 
   // weekly_eval y publish_block parten del plan activo existente.
@@ -665,7 +898,22 @@ async function applyModeEffects(
         // vivía en ningún lado después de eso — un reload (o solo volver
         // mañana) lo perdía por completo. Guardarlo acá hace que
         // planSummaryHtml lo pueda seguir mostrando después.
-        data: { ...planData, weeks, lastEvalNote: output.reasoning },
+        // ftpSuggestion: "change" la reemplaza, "keep" la borra (ya no
+        // aplica), null la deja como estaba (el FTP no vino al caso).
+        data: {
+          ...planData,
+          weeks,
+          lastEvalNote: output.reasoning,
+          // El coach revisa el test agendado cada semana: lo que diga ahora
+          // reemplaza lo anterior (null = no hay test pendiente).
+          nextTest: output.nextTest ?? null,
+          ftpSuggestion:
+            output.ftpAction === 'change'
+              ? ftpSuggestionOf(output.suggestedFtp, 'weekly_eval')
+              : output.ftpAction === 'keep'
+                ? null
+                : ((planData as { ftpSuggestion?: unknown }).ftpSuggestion ?? null),
+        },
         last_eval_iso_week: currentIsoWeek(),
         eval_count_this_iso_week: isRefresh ? (plan.eval_count_this_iso_week ?? 1) + 1 : 1,
         current_block_exhausted: blockExhausted,
@@ -682,6 +930,10 @@ async function applyModeEffects(
       weekIndex: nextWeekIndex,
       workoutIds: ids,
       sentToCoach: coachId !== null,
+      ftpAction: output.ftpAction ?? null,
+      suggestedFtp: output.suggestedFtp ?? null,
+      nextTest: output.nextTest ?? null,
+      notesUpdated: context.notesDue === true ? await saveAiNotes(admin, userId, output.notesUpdate) : false,
     };
   }
 
@@ -690,10 +942,10 @@ async function applyModeEffects(
   if (nextBlockIdx === -1) throw new Error('no hay bloque siguiente por publicar');
   const weeksBeforeBlock = planData.blocks.slice(0, nextBlockIdx).reduce((s, b) => s + b.weeks, 0);
 
-  // TODO: publish_block todavía no tiene UI ni occupiedDates en su schema
-  // (ver PublishBlockInputContextSchema) — cuando se conecte, pasar el
-  // mismo set real que create_plan/weekly_eval en vez de uno vacío.
-  const publishBlockOccupiedDates = new Set<string>();
+  // publish_block todavía no tiene UI; cuando el cliente mande
+  // occupiedDates (ya está en el schema), se respetan igual que en
+  // create_plan/weekly_eval.
+  const publishBlockOccupiedDates = new Set((context.occupiedDates as string[] | undefined) ?? []);
   const newWeeks: { weekIndex: number; workoutIds: string[] }[] = [];
   for (let i = 0; i < output.weeks.length; i++) {
     const weekIndex = weeksBeforeBlock + i;
@@ -706,14 +958,43 @@ async function applyModeEffects(
   const { error } = await admin
     .from('training_plans')
     .update({
-      data: { ...planData, blocks, weeks: [...planData.weeks, ...newWeeks] },
+      data: { ...planData, blocks, weeks: [...planData.weeks, ...newWeeks], nextTest: output.nextTest ?? null },
       current_block_exhausted: false,
       updated_at: new Date().toISOString(),
     })
     .eq('id', plan.id);
   if (error) throw new Error(`no se pudo actualizar el plan: ${error.message}`);
 
-  return { blockName: output.blockName, coachNote: output.coachNote, weeks: newWeeks, sentToCoach: coachId !== null };
+  return { blockName: output.blockName, coachNote: output.coachNote, weeks: newWeeks, sentToCoach: coachId !== null, nextTest: output.nextTest ?? null };
+}
+
+/** FTP que el coach propone poner en el perfil, guardado en el plan para que
+ * la app ofrezca el botón aunque se recargue la página. El atleta decide. */
+function ftpSuggestionOf(watts: number | null | undefined, from: 'create_plan' | 'weekly_eval') {
+  return watts ? { watts: Math.round(watts), from, at: new Date().toISOString() } : null;
+}
+
+async function loadNotes(admin: AdminClient, athleteId: string): Promise<StoredNotes | null> {
+  const { data } = await admin.from('athlete_notes').select('body, updated_by').eq('athlete_id', athleteId).maybeSingle();
+  return data ? { body: data.body as string, updatedBy: data.updated_by as StoredNotes['updatedBy'] } : null;
+}
+
+/** Guarda el expediente que propuso la IA si pasa la guarda (acceptAiNotes:
+ * tope y nunca borrar lo que escribió un coach). true si se guardó. */
+async function saveAiNotes(admin: AdminClient, athleteId: string, proposed: string | null | undefined): Promise<boolean> {
+  const body = acceptAiNotes(proposed, await loadNotes(admin, athleteId));
+  if (!body) return false;
+  const { error } = await admin
+    .from('athlete_notes')
+    .upsert({ athlete_id: athleteId, body, updated_by: 'ai', updated_by_user: null, updated_at: new Date().toISOString() });
+  if (error) console.log(`[coach-chat] no se guardó el expediente: ${error.message}`);
+  return !error;
+}
+
+/** Acciones de un tipo en toda la historia del usuario (no solo el mes). */
+async function getActionCount(admin: AdminClient, userId: string, action: PlanActionType): Promise<number> {
+  const { count } = await admin.from('plan_actions').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('action', action);
+  return count ?? 0;
 }
 
 async function getMonthlyTokens(admin: AdminClient, userId: string): Promise<number> {
@@ -774,11 +1055,22 @@ async function reserveUsage(admin: AdminClient, userId: string): Promise<string>
   return period;
 }
 
+/** Tokens que cuentan contra el tope mensual (la lectura de caché no). */
+function tokensOf(usage: UsageLike): number {
+  return (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0) + (usage.cache_creation_input_tokens ?? 0);
+}
+
+/** Una llamada al coach. Streaming, no .parse() directo: Supabase Edge
+ * Functions mata la conexión a los 150 s si no hay bytes fluyendo
+ * (IDLE_TIMEOUT) — un plan grande sin streaming puede tardar más que eso en
+ * generar el primer byte. output_config.format sigue aplicando igual en
+ * modo streaming (lo fuerza el servidor, no el transporte); solo hay que
+ * parsear el texto final a mano (readResponse). */
 /** Corrige la reserva al número REAL de la llamada que sí terminó bien —
  * resta la reserva y suma lo que de verdad reportó la API. Si esto nunca se
  * llama (la función murió antes), la reserva de arriba se queda tal cual. */
-async function reconcileUsage(admin: AdminClient, userId: string, period: string, usage: Anthropic.Usage): Promise<void> {
-  const actualTokens = (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0) + (usage.cache_creation_input_tokens ?? 0);
+async function reconcileUsage(admin: AdminClient, userId: string, period: string, usage: UsageLike): Promise<void> {
+  const actualTokens = tokensOf(usage);
   const { data: existing } = await admin
     .from('coach_usage')
     .select('tokens_used')
@@ -792,6 +1084,21 @@ async function reconcileUsage(admin: AdminClient, userId: string, period: string
       tokens_used: (existing?.tokens_used ?? PRE_CALL_RESERVE_TOKENS) - PRE_CALL_RESERVE_TOKENS + actualTokens,
       updated_at: new Date().toISOString(),
     })
+    .eq('user_id', userId)
+    .eq('period', period);
+}
+
+/** Suma tokens ya gastados (el redactor) a la fila del mes. */
+async function addUsage(admin: AdminClient, userId: string, period: string, tokens: number): Promise<void> {
+  const { data: existing } = await admin
+    .from('coach_usage')
+    .select('tokens_used')
+    .eq('user_id', userId)
+    .eq('period', period)
+    .maybeSingle();
+  await admin
+    .from('coach_usage')
+    .update({ tokens_used: (existing?.tokens_used ?? 0) + tokens, updated_at: new Date().toISOString() })
     .eq('user_id', userId)
     .eq('period', period);
 }

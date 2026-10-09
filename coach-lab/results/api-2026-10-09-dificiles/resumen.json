@@ -1,0 +1,188 @@
+{
+  "prices": {
+    "claude-sonnet-5-5": {
+      "input": 2,
+      "output": 10,
+      "cacheRead": 0.2,
+      "cacheWrite": 2.5
+    },
+    "claude-haiku-5-5": {
+      "input": 0.1,
+      "output": 0.5,
+      "cacheRead": 0.01,
+      "cacheWrite": 0.125
+    },
+    "claude-haiku-4-5": {
+      "input": 1,
+      "output": 5,
+      "cacheRead": 0.1,
+      "cacheWrite": 1.25
+    }
+  },
+  "rows": [
+    {
+      "id": "26-weekly-eval-test-en-erg-con-pulso-subiendo",
+      "mode": "weekly_eval",
+      "config": "claude-sonnet-5-5-low",
+      "ok": true,
+      "seconds": 20.5,
+      "cost": 0.069881,
+      "coldCost": 0.069881,
+      "usage": {
+        "input_tokens": 1663,
+        "output_tokens": 2804,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 15406
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "26-weekly-eval-test-en-erg-con-pulso-subiendo",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 32.9,
+      "cost": 0.003689,
+      "coldCost": 0.005461,
+      "usage": {
+        "input_tokens": 1663,
+        "output_tokens": 6737,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "33-weekly-eval-lasttest-erg-fijo-sin-nota",
+      "mode": "weekly_eval",
+      "config": "claude-sonnet-5-5-low",
+      "ok": true,
+      "seconds": 10,
+      "cost": 0.021571,
+      "coldCost": 0.057005,
+      "usage": {
+        "input_tokens": 1785,
+        "output_tokens": 1492,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "33-weekly-eval-lasttest-erg-fijo-sin-nota",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 18.5,
+      "cost": 0.002199,
+      "coldCost": 0.00397,
+      "usage": {
+        "input_tokens": 1785,
+        "output_tokens": 3732,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "decision=insert_recovery con TSB -11 y 94 % de cumplimiento"
+      ]
+    },
+    {
+      "id": "23-weekly-eval-ftp-alto-tras-test",
+      "mode": "weekly_eval",
+      "config": "claude-sonnet-5-5-low",
+      "ok": true,
+      "seconds": 11.7,
+      "cost": 0.024797,
+      "coldCost": 0.060231,
+      "usage": {
+        "input_tokens": 1903,
+        "output_tokens": 1791,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [
+        "S1 «Umbral conservador»: TSS 85 → 69 (calculado de la estructura)"
+      ],
+      "warns": []
+    },
+    {
+      "id": "23-weekly-eval-ftp-alto-tras-test",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 37.4,
+      "cost": 0.004277,
+      "coldCost": 0.006049,
+      "usage": {
+        "input_tokens": 1903,
+        "output_tokens": 7866,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "24-weekly-eval-calibracion-provisional-bajo",
+      "mode": "weekly_eval",
+      "config": "claude-sonnet-5-5-low",
+      "ok": true,
+      "seconds": 10.1,
+      "cost": 0.021767,
+      "coldCost": 0.057201,
+      "usage": {
+        "input_tokens": 1638,
+        "output_tokens": 1541,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "24-weekly-eval-calibracion-provisional-bajo",
+      "mode": "weekly_eval",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 29.6,
+      "cost": 0.003344,
+      "coldCost": 0.005116,
+      "usage": {
+        "input_tokens": 1638,
+        "output_tokens": 6052,
+        "cache_read_input_tokens": 15406,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    }
+  ]
+}

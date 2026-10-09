@@ -1,0 +1,70 @@
+{
+  "id": "10-semana-coach-normal",
+  "mode": "coach_week",
+  "config": "claude-haiku-5-5-medium",
+  "ok": true,
+  "seconds": 21.1,
+  "cost": 0.00279,
+  "coldCost": 0.004461,
+  "usage": {
+    "input_tokens": 4295,
+    "output_tokens": 4431,
+    "cache_read_input_tokens": 14529,
+    "cache_creation_input_tokens": 0
+  },
+  "retried": false,
+  "firstFails": [],
+  "fails": [],
+  "fixes": [],
+  "warns": [],
+  "output": {
+    "rationale": [
+      "Normal: TSB −4, sin señales de fatiga ni lesiones, y el coach pide un sweet spot y una larga de fin de semana.",
+      "Carga de bici: ~368 TSS (230 ya bloqueados + 138 nuevos), 92 % de su semana más alta reciente (400).",
+      "Tres sesiones duras (martes, jueves y sábado). Se permite la tercera porque la instrucción pide el sweet spot. Ninguna cae en días seguidos y el viernes queda libre.",
+      "De la biblioteca: Sweet spot 3×12 tal cual el jueves; Endurance 75 ajustada a 90 min el domingo (de 75 a 90 min a 67 %, TSS ~66).",
+      "FTP confirmado en 230 W y sin lesiones registradas, así que no hay ajustes por cadencia ni duración."
+    ],
+    "workouts": [
+      {
+        "name": "Sweet spot 3×12",
+        "description": "Hoy toca sweet spot: tres bloques de 12 min a 90 % de tu FTP con 5 min suaves entre ellos. Prende el ERG para que el rodillo sostenga la potencia y tú solo sostén la cadencia. Anda por sensación: debe costar, pero debes poder respirar con control (RPE 6-7). No te vayas de más en el primer bloque, porque el tercero es el que cuenta. Así llegas al viernes con las piernas listas para el sábado.",
+        "intervals": [],
+        "targetTSS": 72,
+        "dayOfWeek": "thu",
+        "fromLibraryId": "tpl-ss",
+        "libraryChange": null
+      },
+      {
+        "name": "Endurance 75 → 90 (larga de domingo)",
+        "description": "Salida larga de 90 minutos a ritmo de fondo, alrededor del 67 % de tu FTP. La referencia es poder hablar en frases completas; si empiezas a cortar las frases, baja un poco. No es para apretar: es para acumular horas sin que el cuerpo se queje. Prende el ERG si sales al rodillo con potencia fija, o apágalo si prefieres regular tú. Cierra la semana con calma y sin prisa.",
+        "intervals": [
+          {
+            "name": "Calentamiento",
+            "type": "warmup",
+            "duration_s": 600,
+            "power_pct": 55,
+            "ramp_to_pct": 65
+          },
+          {
+            "name": "Fondo",
+            "type": "steady",
+            "duration_s": 4200,
+            "power_pct": 67
+          },
+          {
+            "name": "Vuelta a la calma",
+            "type": "cooldown",
+            "duration_s": 600,
+            "power_pct": 50
+          }
+        ],
+        "targetTSS": 66,
+        "dayOfWeek": "sun",
+        "fromLibraryId": "tpl-z2",
+        "libraryChange": "De 75 a 90 min: bloque de fondo al 67 % para la larga del domingo; TSS ~66 dentro del margen de la semana."
+      }
+    ]
+  },
+  "raw": "{\"rationale\":[\"Normal: TSB −4, sin señales de fatiga ni lesiones, y el coach pide un sweet spot y una larga de fin de semana.\",\"Carga de bici: ~368 TSS (230 ya bloqueados + 138 nuevos), 92 % de su semana más alta reciente (400).\",\"Tres sesiones duras (martes, jueves y sábado). Se permite la tercera porque la instrucción pide el sweet spot. Ninguna cae en días seguidos y el viernes queda libre.\",\"De la biblioteca: Sweet spot 3×12 tal cual el jueves; Endurance 75 ajustada a 90 min el domingo (de 75 a 90 min a 67 %, TSS ~66).\",\"FTP confirmado en 230 W y sin lesiones registradas, así que no hay ajustes por cadencia ni duración.\"],\"workouts\":[{\"name\":\"Sweet spot 3×12\",\"description\":\"Hoy toca sweet spot: tres bloques de 12 min a 90 % de tu FTP con 5 min suaves entre ellos. Prende el ERG para que el rodillo sostenga la potencia y tú solo sostén la cadencia. Anda por sensación: debe costar, pero debes poder respirar con control (RPE 6-7). No te vayas de más en el primer bloque, porque el tercero es el que cuenta. Así llegas al viernes con las piernas listas para el sábado.\",\"intervals\":[],\"targetTSS\":72,\"dayOfWeek\":\"thu\",\"fromLibraryId\":\"tpl-ss\",\"libraryChange\":null},{\"name\":\"Endurance 75 → 90 (larga de domingo)\",\"description\":\"Salida larga de 90 minutos a ritmo de fondo, alrededor del 67 % de tu FTP. La referencia es poder hablar en frases completas; si empiezas a cortar las frases, baja un poco. No es para apretar: es para acumular horas sin que el cuerpo se queje. Prende el ERG si sales al rodillo con potencia fija, o apágalo si prefieres regular tú. Cierra la semana con calma y sin prisa.\",\"intervals\":[{\"name\":\"Calentamiento\",\"type\":\"warmup\",\"duration_s\":600,\"power_pct\":55,\"ramp_to_pct\":65},{\"name\":\"Fondo\",\"type\":\"steady\",\"duration_s\":4200,\"power_pct\":67},{\"name\":\"Vuelta a la calma\",\"type\":\"cooldown\",\"duration_s\":600,\"power_pct\":50}],\"targetTSS\":66,\"dayOfWeek\":\"sun\",\"fromLibraryId\":\"tpl-z2\",\"libraryChange\":\"De 75 a 90 min: bloque de fondo al 67 % para la larga del domingo; TSS ~66 dentro del margen de la semana.\"}]}"
+}

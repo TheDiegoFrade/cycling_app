@@ -1,0 +1,48 @@
+{
+  "id": "08-eval-progreso",
+  "mode": "weekly_eval",
+  "title": "Semana excelente: todo cumplido, TSB -8, se siente fuerte",
+  "expect": [
+    "Decisión progress con un incremento moderado (~5-10 % de TSS).",
+    "No convertirla en semana de récord: mantener un día fácil."
+  ],
+  "context": {
+    "profile": {
+      "sex": "M",
+      "name": "Diego"
+    },
+    "maxSessionMinutes": null,
+    "occupiedDates": [],
+    "recentGapPattern": null,
+    "weekJustFinished": {
+      "plannedTSS": 400,
+      "actualTSS": 410,
+      "completedWorkouts": 4,
+      "missedWorkouts": 0,
+      "ruleTriggers": [],
+      "athleteNote": "Muy bien, me sentí fuerte en los intervalos"
+    },
+    "pmcTrend": {
+      "ctl": 62,
+      "atl": 70,
+      "tsb": -8,
+      "ctlRampLast4Weeks": 4.2
+    },
+    "recentWeeksSummary": [
+      {
+        "weekIndex": 0,
+        "plannedTSS": 360,
+        "actualTSS": 355,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      },
+      {
+        "weekIndex": 1,
+        "plannedTSS": 400,
+        "actualTSS": 410,
+        "completedWorkouts": 4,
+        "missedWorkouts": 0
+      }
+    ]
+  }
+}

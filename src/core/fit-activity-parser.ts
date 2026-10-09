@@ -19,6 +19,11 @@ const TIMESTAMP_FIELD_NUM = 253; // campo común a (casi) todos los tipos de men
 const POWER_FIELD_NUM = 7;
 const CADENCE_FIELD_NUM = 4;
 const HEART_RATE_FIELD_NUM = 3;
+// Mensaje `hrv`: intervalos RR (campo 0, uint16[] en ms; 0xFFFF = vacío).
+// Garmin lo graba si la banda los manda y el reloj tiene activado "registrar
+// VFC"; no trae timestamp, va intercalado entre los `record`.
+const HRV_MESG_NUM = 78;
+const HRV_TIME_FIELD_NUM = 0;
 
 interface FieldDef {
   fieldDefNum: number;
@@ -42,6 +47,9 @@ interface RawRecord {
 
 export interface FitActivityParseResult {
   samples: Sample[];
+  /** Intervalos RR (ms) si el archivo traía mensajes `hrv`, con el segundo
+   * de la actividad del último `record` anterior a cada uno. */
+  rr?: { t: number[]; ms: number[] };
   startedAt: string | null;
   finishedAt: string | null;
   errors: string[];
@@ -70,6 +78,8 @@ export function parseFitActivity(buffer: ArrayBuffer): FitActivityParseResult {
 
   const localDefs = new Map<number, MessageDef>();
   const rawRecords: RawRecord[] = [];
+  const rawRr: { afterTs: number | null; ms: number }[] = [];
+  let lastRecordTs: number | null = null;
 
   while (offset < dataEnd) {
     const headerByte = view.getUint8(offset);
@@ -140,6 +150,11 @@ export function parseFitActivity(buffer: ArrayBuffer): FitActivityParseResult {
       } else if (def.globalMsgNum === RECORD_MESG_NUM && field.fieldDefNum === HEART_RATE_FIELD_NUM && field.size === 1) {
         const v = view.getUint8(offset);
         if (v !== 0xff) heartRate = v;
+      } else if (def.globalMsgNum === HRV_MESG_NUM && field.fieldDefNum === HRV_TIME_FIELD_NUM) {
+        for (let i = 0; i + 2 <= field.size; i += 2) {
+          const v = view.getUint16(offset + i, def.littleEndian);
+          if (v !== 0xffff && v >= 250 && v <= 2500) rawRr.push({ afterTs: lastRecordTs, ms: v });
+        }
       }
       offset += field.size;
     }
@@ -148,6 +163,7 @@ export function parseFitActivity(buffer: ArrayBuffer): FitActivityParseResult {
 
     if (def.globalMsgNum === RECORD_MESG_NUM && timestamp !== undefined) {
       rawRecords.push({ timestamp, power, cadence, heartRate });
+      lastRecordTs = timestamp;
     }
   }
 
@@ -158,6 +174,9 @@ export function parseFitActivity(buffer: ArrayBuffer): FitActivityParseResult {
 
   rawRecords.sort((a, b) => a.timestamp - b.timestamp);
   const startTimestamp = rawRecords[0].timestamp;
+  const rr = rawRr.length
+    ? { t: rawRr.map((r) => Math.max(0, (r.afterTs ?? startTimestamp) - startTimestamp)), ms: rawRr.map((r) => r.ms) }
+    : undefined;
   const samples: Sample[] = rawRecords.map((r) => ({
     t: r.timestamp - startTimestamp,
     power: r.power ?? 0,
@@ -171,5 +190,5 @@ export function parseFitActivity(buffer: ArrayBuffer): FitActivityParseResult {
   const startedAt = new Date((startTimestamp + FIT_EPOCH_OFFSET_S) * 1000).toISOString();
   const finishedAt = new Date((rawRecords[rawRecords.length - 1].timestamp + FIT_EPOCH_OFFSET_S) * 1000).toISOString();
 
-  return { samples, startedAt, finishedAt, errors };
+  return { samples, ...(rr ? { rr } : {}), startedAt, finishedAt, errors };
 }

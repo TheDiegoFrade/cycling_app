@@ -1,0 +1,272 @@
+{
+  "prices": {
+    "claude-sonnet-5-5": {
+      "input": 2,
+      "output": 10,
+      "cacheRead": 0.2,
+      "cacheWrite": 2.5
+    },
+    "claude-haiku-5-5": {
+      "input": 0.1,
+      "output": 0.5,
+      "cacheRead": 0.01,
+      "cacheWrite": 0.125
+    },
+    "claude-haiku-4-5": {
+      "input": 1,
+      "output": 5,
+      "cacheRead": 0.1,
+      "cacheWrite": 1.25
+    }
+  },
+  "rows": [
+    {
+      "id": "01-sin-ftp-sedentario",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 30.9,
+      "cost": 0.004103,
+      "coldCost": 0.005893,
+      "usage": {
+        "input_tokens": 1596,
+        "output_tokens": 7575,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "sin FTP y coachNote no trae un número en watts (FTP provisional)"
+      ]
+    },
+    {
+      "id": "02-experimentado-sin-ftp",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 49.2,
+      "cost": 0.005957,
+      "coldCost": 0.007747,
+      "usage": {
+        "input_tokens": 1670,
+        "output_tokens": 11268,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "03-dummy-real",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 48.3,
+      "cost": 0.005672,
+      "coldCost": 0.007462,
+      "usage": {
+        "input_tokens": 1679,
+        "output_tokens": 10696,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "TSS sube 54 % de S2 a S3 (50 → 77)"
+      ]
+    },
+    {
+      "id": "04-poco-tiempo-competidor",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 44.9,
+      "cost": 0.005207,
+      "coldCost": 0.006997,
+      "usage": {
+        "input_tokens": 1657,
+        "output_tokens": 9772,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "05-dias-ocupados-cansado",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 67.3,
+      "cost": 0.008077,
+      "coldCost": 0.009867,
+      "usage": {
+        "input_tokens": 1691,
+        "output_tokens": 15505,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [
+        "se quitaron 1 semanas concretadas de más (el bloque 1 dura 2)"
+      ],
+      "warns": []
+    },
+    {
+      "id": "06-carrera-6-semanas",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 55.7,
+      "cost": 0.006988,
+      "coldCost": 0.008778,
+      "usage": {
+        "input_tokens": 1688,
+        "output_tokens": 13327,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "14-create-plan-sin-ftp-sedentario",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 26.6,
+      "cost": 0.003508,
+      "coldCost": 0.005298,
+      "usage": {
+        "input_tokens": 1601,
+        "output_tokens": 6384,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "15-create-plan-sin-ftp-con-oficio",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 54.3,
+      "cost": 0.006865,
+      "coldCost": 0.008655,
+      "usage": {
+        "input_tokens": 1605,
+        "output_tokens": 13097,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "16-create-plan-perfil-contradictorio",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 41.5,
+      "cost": 0.005161,
+      "coldCost": 0.006951,
+      "usage": {
+        "input_tokens": 1581,
+        "output_tokens": 9694,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "17-create-plan-tope-90-y-horas-que-no-caben",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 40.1,
+      "cost": 0.005003,
+      "coldCost": 0.006793,
+      "usage": {
+        "input_tokens": 1685,
+        "output_tokens": 9358,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "TSS sube 37 % de S1 a S2 (123 → 169)"
+      ]
+    },
+    {
+      "id": "18-create-plan-lesion-en-texto-libre",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 39.8,
+      "cost": 0.005374,
+      "coldCost": 0.007164,
+      "usage": {
+        "input_tokens": 1698,
+        "output_tokens": 10097,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "29-create-plan-provisional-lesion-en-perfil",
+      "mode": "create_plan",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 40.1,
+      "cost": 0.004994,
+      "coldCost": 0.006784,
+      "usage": {
+        "input_tokens": 1736,
+        "output_tokens": 9330,
+        "cache_read_input_tokens": 15566,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    }
+  ]
+}

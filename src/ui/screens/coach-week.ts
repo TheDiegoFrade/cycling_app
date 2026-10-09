@@ -13,11 +13,15 @@ import { listTemplates } from '../../sync/session-templates';
 import { applyAiProposal, dateOfDayCode, dayCodeOf, isLockedForAi, openDayCodes } from '../../core/plan-week';
 import { summarizeAthlete, weeklyLoads } from '../../core/coach-metrics';
 import type { Interval, Workout } from '../../core/types';
-import { listAthleteSessions } from '../../sync/coach-athletes';
+import { listAthleteSessions, listAthleteStateSessions } from '../../sync/coach-athletes';
+import { computeAthleteState } from '../../engine/athlete-state';
+import { stateSessionFromCloud } from '../athlete-state-data';
 import { requestCoachWeek } from '../../sync/coach-ai';
 import type { CoachWeekContext } from '../../sync/coach-ai';
 import { COACH_OVERVIEW_DAYS, sinceIso, todayUtcKey, errorMessage } from '../coach-ui';
-import type { PlanWeekItem } from '../../core/plan-week';
+import type { LibrarySource, PlanWeekItem } from '../../core/plan-week';
+import { summarizeIntervals } from '../../core/interval-summary';
+import { blockPreviewHtml, intervalRowsHtml, readIntervalInputs, wireIntervalEditor } from '../interval-editor';
 import { validateWorkout } from '../../core/validator';
 import { listCoachAthletes } from '../../sync/coach-athletes';
 import type { CoachAthlete } from '../../sync/coach-athletes';
@@ -89,6 +93,9 @@ export function renderCoachWeek(container: HTMLElement): void {
   let aiInstruction = '';
   let aiBusy = false;
   let aiNote = '';
+  /** Workout de la semana que el coach está editando bloque por bloque. */
+  let editing: { index: number; name: string; description: string; intervals: Interval[] } | null = null;
+  let editErrors: string[] = [];
 
   const ftp = () => athlete?.ftp ?? appState.profile.ftp;
 
@@ -97,6 +104,7 @@ export function renderCoachWeek(container: HTMLElement): void {
     error = '';
     status = '';
     addDay = null;
+    editing = null;
     render();
     try {
       if (!athlete) {
@@ -152,7 +160,18 @@ export function renderCoachWeek(container: HTMLElement): void {
 
   function itemHtml(item: PlanWeekItem, index: number, day: string): string {
     const mine = item.origin === 'coach' || item.edited;
-    const tag = item.origin === 'coach' ? 'Agregado por ti' : item.edited ? 'Editado por ti' : item.origin === 'ai' ? 'Propuesto por IA' : 'Del atleta';
+    const tag =
+      item.origin === 'coach'
+        ? 'Agregado por ti'
+        : item.edited
+          ? 'Editado por ti'
+          : item.fromLibrary
+            ? item.fromLibrary.change
+              ? 'Biblioteca · adaptado'
+              : 'De tu biblioteca'
+            : item.origin === 'ai'
+              ? 'Propuesto por IA'
+              : 'Del atleta';
     const moveOptions = weekDays(monday)
       .map((d, i) => `<option value="${d}"${d === day ? ' selected' : ''}>${DAY_NAMES[i]} ${fmtDayNum(d)}</option>`)
       .join('');
@@ -162,7 +181,8 @@ export function renderCoachWeek(container: HTMLElement): void {
           <div class="week-item-buttons">
             ${
               item.workout
-                ? `<button type="button" data-intensity="${index}" data-delta="-${INTENSITY_STEP}" title="Bajar intensidad ${INTENSITY_STEP}%">−${INTENSITY_STEP}%</button>
+                ? `<button type="button" data-edit="${index}" title="Editar bloques, nombre y descripción">Editar</button>
+            <button type="button" data-intensity="${index}" data-delta="-${INTENSITY_STEP}" title="Bajar intensidad ${INTENSITY_STEP}%">−${INTENSITY_STEP}%</button>
             <button type="button" data-intensity="${index}" data-delta="${INTENSITY_STEP}" title="Subir intensidad ${INTENSITY_STEP}%">+${INTENSITY_STEP}%</button>`
                 : ''
             }
@@ -189,6 +209,7 @@ export function renderCoachWeek(container: HTMLElement): void {
         <div class="week-item-name">${escapeHtml(w.name)}</div>
         <div class="hint">${fmtHM(est.durationS)} · ${est.tss ?? '—'} TSS</div>
         ${pill}
+        ${!item.edited && item.fromLibrary?.change ? `<div class="hint week-item-change">${escapeHtml(item.fromLibrary.change)}</div>` : ''}
         ${actions}
       </div>`;
   }
@@ -246,7 +267,11 @@ export function renderCoachWeek(container: HTMLElement): void {
 
   /** Arma el contexto con lo que el coach puede leer (RLS ya quitó Strava). */
   async function buildAiContext(): Promise<CoachWeekContext> {
-    const rows = await listAthleteSessions([athleteId!], sinceIso(COACH_OVERVIEW_DAYS));
+    const [rows, stateRows] = await Promise.all([
+      listAthleteSessions([athleteId!], sinceIso(COACH_OVERVIEW_DAYS)),
+      // La ficha mira 6 meses; sin el plan agendado del atleta, va sin cumplimiento.
+      listAthleteStateSessions(athleteId!, sinceIso(180)),
+    ]);
     const utcToday = todayUtcKey();
     const summary = summarizeAthlete(rows, utcToday, athlete?.ftpConfirmed ?? null);
     const loads = weeklyLoads(rows, utcToday, 6);
@@ -280,7 +305,31 @@ export function renderCoachWeek(container: HTMLElement): void {
       pmc: rows.length ? { ctl: Math.round(summary.ctl * 10) / 10, atl: Math.round(summary.atl * 10) / 10, tsb: Math.round(summary.tsb * 10) / 10 } : null,
       recentWeeks: loads.map((w) => ({ weekStart: w.mondayKey, bikeTss: Math.round(w.tss), nonBikeSessions: w.nonBike.length })),
       maxSessionMinutes: null,
+      library: (templates ?? []).flatMap((t) => {
+        if (t.kind !== 'bike') return [];
+        const est = estimateWorkout(t.payload.intervals, ftp());
+        return [{ id: t.id, name: t.name, minutes: Math.round(est.durationS / 60), tss: est.tss ?? null, structure: summarizeIntervals(t.payload.intervals) }];
+      }).slice(0, 40),
+      athleteState: computeAthleteState(stateRows.map(stateSessionFromCloud), [], todayUtcKey()),
     };
+  }
+
+  function editPanelHtml(): string {
+    if (!editing) return '';
+    return `
+      <section class="panel coach-card tpl-editor kind-bike" aria-label="Editar entrenamiento" id="week-edit-panel">
+        <div class="coach-card-head">
+          <h2 class="perfil-h2" style="margin:0">Editar entrenamiento</h2>
+          <button type="button" id="week-edit-cancel">Cancelar</button>
+        </div>
+        <label>Nombre<input type="text" id="week-edit-name" maxlength="80" value="${escapeHtml(editing.name)}"></label>
+        <label>Descripción para el atleta<textarea id="week-edit-desc" rows="4" maxlength="1500">${escapeHtml(editing.description)}</textarea></label>
+        <div class="block-preview">${blockPreviewHtml(editing.intervals, ftp())}</div>
+        ${intervalRowsHtml(editing.intervals)}
+        ${editErrors.length ? `<div class="error-box"><ul>${editErrors.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul></div>` : ''}
+        <div class="row-actions" style="margin:0"><button type="button" class="btn-light" id="week-edit-save">Guardar cambios</button></div>
+        <span class="hint">Solo cambia este entrenamiento de esta semana; tu plantilla de la biblioteca no se toca.</span>
+      </section>`;
   }
 
   function addPanelHtml(): string {
@@ -366,6 +415,7 @@ export function renderCoachWeek(container: HTMLElement): void {
       </section>
       <div class="week-grid-wrap"><div class="week-grid">${dayCols}</div></div>
       <p class="hint" id="week-status">${escapeHtml(status || (draft ? 'Tus cambios se guardan solos en el borrador. Publica cuando esté lista para que el atleta la vea en su Plan.' : 'Cualquier cambio crea un borrador; el atleta no lo ve hasta que publiques.'))}</p>
+      ${editPanelHtml()}
       ${addPanelHtml()}
       ${aiPanelHtml()}`
       }
@@ -393,6 +443,64 @@ export function renderCoachWeek(container: HTMLElement): void {
         next[i] = movedItem(next[i], sel.value);
         change(next);
       });
+    });
+    container.querySelectorAll<HTMLButtonElement>('[data-edit]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.edit);
+        const w = items[i]?.workout;
+        if (!w) return;
+        editing = { index: i, name: w.name, description: w.description ?? '', intervals: structuredClone(w.intervals) };
+        editErrors = [];
+        addDay = null;
+        render();
+        container.querySelector('#week-edit-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+    const readEdit = (): void => {
+      if (!editing) return;
+      editing.name = container.querySelector<HTMLInputElement>('#week-edit-name')?.value ?? editing.name;
+      editing.description = container.querySelector<HTMLTextAreaElement>('#week-edit-desc')?.value ?? editing.description;
+      readIntervalInputs(container.querySelector('#week-edit-panel') ?? container, editing.intervals);
+    };
+    const editPanel = container.querySelector('#week-edit-panel');
+    if (editPanel) {
+      wireIntervalEditor(
+        editPanel,
+        (fn) => {
+          readEdit();
+          if (editing) fn(editing.intervals);
+          render();
+        },
+        () => {
+          readEdit();
+          const preview = editPanel.querySelector('.block-preview');
+          if (preview && editing) preview.innerHTML = blockPreviewHtml(editing.intervals, ftp());
+        },
+      );
+    }
+    container.querySelector('#week-edit-cancel')?.addEventListener('click', () => {
+      editing = null;
+      render();
+    });
+    container.querySelector('#week-edit-save')?.addEventListener('click', () => {
+      readEdit();
+      if (!editing) return;
+      const current = items[editing.index]?.workout;
+      if (!current) return;
+      const description = editing.description.trim();
+      const workout: Workout = { ...current, name: editing.name.trim() || current.name, intervals: editing.intervals };
+      if (description) workout.description = description;
+      else delete workout.description;
+      const check = validateWorkout(workout);
+      if (!check.valid) {
+        editErrors = check.errors;
+        render();
+        return;
+      }
+      const next = [...items];
+      next[editing.index] = editedItem(next[editing.index], workout);
+      editing = null;
+      change(next);
     });
     container.querySelectorAll<HTMLButtonElement>('[data-intensity]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -465,11 +573,13 @@ export function renderCoachWeek(container: HTMLElement): void {
       if (aiBusy) return;
       aiBusy = true;
       aiNote = '';
+      editing = null;
       error = '';
       render();
       try {
         const proposal = await requestCoachWeek(await buildAiContext());
         const proposed: Workout[] = [];
+        const fromLibrary = new Map<string, LibrarySource>();
         let dropped = 0;
         for (const w of proposal.workouts) {
           const date = dateOfDayCode(w.dayOfWeek, monday);
@@ -484,10 +594,13 @@ export function renderCoachWeek(container: HTMLElement): void {
           };
           // red de seguridad: nada en días pasados ni inválido
           if (!date || date < todayKey || !validateWorkout(workout).valid) dropped++;
-          else proposed.push(workout);
+          else {
+            proposed.push(workout);
+            if (w.fromLibrary) fromLibrary.set(workout.id, w.fromLibrary);
+          }
         }
-        change(applyAiProposal(items, proposed, todayKey), proposal.rationale.join('\n'));
-        aiNote = `La IA propuso ${proposed.length} ${proposed.length === 1 ? 'entrenamiento' : 'entrenamientos'}${dropped ? ` (descarté ${dropped} que no ${dropped === 1 ? 'era válido' : 'eran válidos'})` : ''}. Revísalos y publica cuando esté lista.`;
+        change(applyAiProposal(items, proposed, todayKey, fromLibrary), proposal.rationale.join('\n'));
+        aiNote = `La IA propuso ${proposed.length} ${proposed.length === 1 ? 'entrenamiento' : 'entrenamientos'}${dropped ? ` (descarté ${dropped} que no ${dropped === 1 ? 'era válido' : 'eran válidos'})` : ''}. ${fromLibrary.size ? `${fromLibrary.size} ${fromLibrary.size === 1 ? 'sale' : 'salen'} de tu biblioteca. ` : ''}Revísalos (puedes editarlos) y publica cuando esté lista.`;
       } catch (err) {
         aiNote = '';
         error = `La IA no pudo proponer la semana: ${errorMessage(err)}`;

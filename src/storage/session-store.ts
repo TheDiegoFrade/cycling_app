@@ -11,7 +11,9 @@ export interface SessionRecord {
   finishedAt: string;
   ftp: number;
   samples: Sample[];
-  alerts: { t: number; level: RuleLevel; message: string }[];
+  // ruleId: id de la regla que disparó (ausente en sesiones guardadas antes
+  // de registrarlo). Ver core/rule-triggers.ts.
+  alerts: { t: number; level: RuleLevel; message: string; ruleId?: string }[];
   intensityChanges: { t: number; pct: number }[];
   /** Feedback subjetivo capturado después de terminar, en Resumen — no se
    * pide al cortar el entrenamiento para no interrumpir ese flujo. */
@@ -34,6 +36,11 @@ export interface SessionRecord {
   /** Rutina agendada por el coach (planned_routines.id) que registra esta
    * sesión — ver screens/log-session.ts. */
   plannedItemId?: string;
+  /** Intervalos RR de la banda (ms), con el segundo de la sesión en que
+   * llegó cada uno — base para HRV/DFA-α1. Solo si la banda los manda (o el
+   * .fit de Garmin traía mensajes `hrv`). Arreglos paralelos para que pesen
+   * poco: una hora son ~5000 latidos. */
+  rr?: { t: number[]; ms: number[] };
 }
 
 export function listSessions(): Promise<SessionRecord[]> {

@@ -1,0 +1,450 @@
+{
+  "prices": {
+    "claude-sonnet-5-5": {
+      "input": 2,
+      "output": 10,
+      "cacheRead": 0.2,
+      "cacheWrite": 2.5
+    },
+    "claude-haiku-5-5": {
+      "input": 0.1,
+      "output": 0.5,
+      "cacheRead": 0.01,
+      "cacheWrite": 0.125
+    },
+    "claude-haiku-4-5": {
+      "input": 1,
+      "output": 5,
+      "cacheRead": 0.1,
+      "cacheWrite": 1.25
+    }
+  },
+  "rows": [
+    {
+      "id": "09-semana-coach-cansado",
+      "mode": "coach_week",
+      "config": "claude-haiku-4-5-20251001-none",
+      "ok": true,
+      "seconds": 10.7,
+      "cost": 0.022056,
+      "coldCost": 0.022056,
+      "usage": {
+        "input_tokens": 3347,
+        "output_tokens": 894,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 11391
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "09-semana-coach-cansado",
+      "mode": "coach_week",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 6.1,
+      "cost": 0.002557,
+      "coldCost": 0.002557,
+      "usage": {
+        "input_tokens": 4229,
+        "output_tokens": 635,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 14529
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "09-semana-coach-cansado",
+      "mode": "coach_week",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 15.6,
+      "cost": 0.003575,
+      "coldCost": 0.003575,
+      "usage": {
+        "input_tokens": 4229,
+        "output_tokens": 2672,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 14529
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "10-semana-coach-normal",
+      "mode": "coach_week",
+      "config": "claude-haiku-4-5-20251001-none",
+      "ok": true,
+      "seconds": 10.8,
+      "cost": 0.00894,
+      "coldCost": 0.02204,
+      "usage": {
+        "input_tokens": 3406,
+        "output_tokens": 879,
+        "cache_read_input_tokens": 11391,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "10-semana-coach-normal",
+      "mode": "coach_week",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 17.2,
+      "cost": 0.002273,
+      "coldCost": 0.003944,
+      "usage": {
+        "input_tokens": 4295,
+        "output_tokens": 3397,
+        "cache_read_input_tokens": 14529,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "10-semana-coach-normal",
+      "mode": "coach_week",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 21.1,
+      "cost": 0.00279,
+      "coldCost": 0.004461,
+      "usage": {
+        "input_tokens": 4295,
+        "output_tokens": 4431,
+        "cache_read_input_tokens": 14529,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "11-coach-week-fatiga-alta-tsb",
+      "mode": "coach_week",
+      "config": "claude-haiku-4-5-20251001-none",
+      "ok": true,
+      "seconds": 10.5,
+      "cost": 0.009112,
+      "coldCost": 0.022212,
+      "usage": {
+        "input_tokens": 3513,
+        "output_tokens": 892,
+        "cache_read_input_tokens": 11391,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "11-coach-week-fatiga-alta-tsb",
+      "mode": "coach_week",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 9.3,
+      "cost": 0.00148,
+      "coldCost": 0.003151,
+      "usage": {
+        "input_tokens": 4408,
+        "output_tokens": 1788,
+        "cache_read_input_tokens": 14529,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "11-coach-week-fatiga-alta-tsb",
+      "mode": "coach_week",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 11.8,
+      "cost": 0.001741,
+      "coldCost": 0.003411,
+      "usage": {
+        "input_tokens": 4408,
+        "output_tokens": 2309,
+        "cache_read_input_tokens": 14529,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "12-coach-week-cansancio-solo-en-instruccion",
+      "mode": "coach_week",
+      "config": "claude-haiku-4-5-20251001-none",
+      "ok": true,
+      "seconds": 15.3,
+      "cost": 0.009583,
+      "coldCost": 0.022683,
+      "usage": {
+        "input_tokens": 3534,
+        "output_tokens": 982,
+        "cache_read_input_tokens": 11391,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "12-coach-week-cansancio-solo-en-instruccion",
+      "mode": "coach_week",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 4.7,
+      "cost": 0.000988,
+      "coldCost": 0.002658,
+      "usage": {
+        "input_tokens": 4428,
+        "output_tokens": 799,
+        "cache_read_input_tokens": 14529,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "12-coach-week-cansancio-solo-en-instruccion",
+      "mode": "coach_week",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 12.9,
+      "cost": 0.001837,
+      "coldCost": 0.003507,
+      "usage": {
+        "input_tokens": 4428,
+        "output_tokens": 2497,
+        "cache_read_input_tokens": 14529,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "13-coach-week-fuerza-rodilla-sin-ftp-confirmado",
+      "mode": "coach_week",
+      "config": "claude-haiku-4-5-20251001-none",
+      "ok": false,
+      "seconds": 26.7,
+      "cost": 0.019339,
+      "coldCost": 0.032439,
+      "usage": {
+        "input_tokens": 3650,
+        "output_tokens": 2910,
+        "cache_read_input_tokens": 11391,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [
+        "mon «Sweet Spot 3×10»: sesión dura el día antes, el día o el día después de fuerza de pierna"
+      ],
+      "fails": [
+        "mon «Sweet Spot 3×10»: sesión dura el día antes, el día o el día después de fuerza de pierna"
+      ],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "13-coach-week-fuerza-rodilla-sin-ftp-confirmado",
+      "mode": "coach_week",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 24.4,
+      "cost": 0.003265,
+      "coldCost": 0.004936,
+      "usage": {
+        "input_tokens": 4576,
+        "output_tokens": 5325,
+        "cache_read_input_tokens": 14529,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": [
+        "rationale con 6 razones (se piden 2-5)"
+      ]
+    },
+    {
+      "id": "13-coach-week-fuerza-rodilla-sin-ftp-confirmado",
+      "mode": "coach_week",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 32.2,
+      "cost": 0.004238,
+      "coldCost": 0.005909,
+      "usage": {
+        "input_tokens": 4576,
+        "output_tokens": 7270,
+        "cache_read_input_tokens": 14529,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "28-monthly-review-fatiga-alta-y-mejor-20min-bajo",
+      "mode": "monthly_review",
+      "config": "claude-haiku-4-5-20251001-none",
+      "ok": true,
+      "seconds": 23.1,
+      "cost": 0.023599,
+      "coldCost": 0.023599,
+      "usage": {
+        "input_tokens": 1803,
+        "output_tokens": 1566,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 11173
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "28-monthly-review-fatiga-alta-y-mejor-20min-bajo",
+      "mode": "monthly_review",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 10,
+      "cost": 0.002501,
+      "coldCost": 0.002501,
+      "usage": {
+        "input_tokens": 2146,
+        "output_tokens": 1003,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 14276
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "28-monthly-review-fatiga-alta-y-mejor-20min-bajo",
+      "mode": "monthly_review",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 24.5,
+      "cost": 0.004228,
+      "coldCost": 0.004228,
+      "usage": {
+        "input_tokens": 2146,
+        "output_tokens": 4457,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 14276
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "38-monthly-review-mes-bueno-con-hueco-de-fuerza",
+      "mode": "monthly_review",
+      "config": "claude-haiku-4-5-20251001-none",
+      "ok": true,
+      "seconds": 21,
+      "cost": 0.009762,
+      "coldCost": 0.022611,
+      "usage": {
+        "input_tokens": 1810,
+        "output_tokens": 1367,
+        "cache_read_input_tokens": 11173,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "38-monthly-review-mes-bueno-con-hueco-de-fuerza",
+      "mode": "monthly_review",
+      "config": "claude-haiku-5-5-low",
+      "ok": true,
+      "seconds": 6.4,
+      "cost": 0.000884,
+      "coldCost": 0.002526,
+      "usage": {
+        "input_tokens": 2161,
+        "output_tokens": 1051,
+        "cache_read_input_tokens": 14276,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    },
+    {
+      "id": "38-monthly-review-mes-bueno-con-hueco-de-fuerza",
+      "mode": "monthly_review",
+      "config": "claude-haiku-5-5-medium",
+      "ok": true,
+      "seconds": 14.1,
+      "cost": 0.001724,
+      "coldCost": 0.003366,
+      "usage": {
+        "input_tokens": 2161,
+        "output_tokens": 2731,
+        "cache_read_input_tokens": 14276,
+        "cache_creation_input_tokens": 0
+      },
+      "retried": false,
+      "firstFails": [],
+      "fails": [],
+      "fixes": [],
+      "warns": []
+    }
+  ]
+}

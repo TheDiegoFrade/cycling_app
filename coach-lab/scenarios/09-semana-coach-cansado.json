@@ -1,0 +1,91 @@
+{
+  "id": "09-semana-coach-cansado",
+  "mode": "coach_week",
+  "title": "Coach pide la semana para una atleta muy cansada, con fuerza de pierna bloqueada el martes",
+  "expect": [
+    "Nada de VO2 ni umbral: el VO2 5×4 de la biblioteca NO se usa (o se cambia a algo suave explicándolo).",
+    "Usar Recuperación 40 / Endurance 75 de la biblioteca.",
+    "Nada duro el miércoles (48 h después de fuerza de pierna).",
+    "Rationale en tercera persona dirigido al coach."
+  ],
+  "context": {
+    "athleteId": "00000000-0000-4000-8000-000000000001",
+    "weekStart": "2026-10-12",
+    "athlete": {
+      "name": "Laura",
+      "ftp": 230,
+      "ftpConfirmed": true,
+      "discipline": "road",
+      "injuries": null,
+      "goal": "Gran fondo en enero"
+    },
+    "maxSessionMinutes": 90,
+    "library": [
+      {
+        "id": "tpl-ss",
+        "name": "Sweet spot 3×12",
+        "minutes": 64,
+        "tss": 72,
+        "structure": "Calentamiento 10 min · 3×12 min @90% (rec 5 min @55%) · Vuelta a la calma 8 min"
+      },
+      {
+        "id": "tpl-vo2",
+        "name": "VO2 5×4",
+        "minutes": 60,
+        "tss": 78,
+        "structure": "Calentamiento 15 min · 5×4 min @118% (rec 4 min @50%) · Vuelta a la calma 10 min"
+      },
+      {
+        "id": "tpl-z2",
+        "name": "Endurance 75",
+        "minutes": 75,
+        "tss": 55,
+        "structure": "75 min @65-70% con cadencia libre"
+      },
+      {
+        "id": "tpl-rec",
+        "name": "Recuperación 40",
+        "minutes": 40,
+        "tss": 22,
+        "structure": "40 min @50-55%, piernas sueltas"
+      }
+    ],
+    "instruction": "Viene muy cansada de la semana pasada, quiero que absorba. Usa mis plantillas.",
+    "openDays": [
+      "mon",
+      "tue",
+      "wed",
+      "thu",
+      "fri",
+      "sat",
+      "sun"
+    ],
+    "lockedItems": [
+      {
+        "dayOfWeek": "tue",
+        "name": "Fuerza pierna A",
+        "kind": "strength",
+        "minutes": 45,
+        "tss": null,
+        "reason": "routine"
+      }
+    ],
+    "pmc": {
+      "ctl": 60,
+      "atl": 88,
+      "tsb": -28
+    },
+    "recentWeeks": [
+      {
+        "weekStart": "2026-09-28",
+        "bikeTss": 420,
+        "nonBikeSessions": 2
+      },
+      {
+        "weekStart": "2026-10-05",
+        "bikeTss": 510,
+        "nonBikeSessions": 2
+      }
+    ]
+  }
+}
