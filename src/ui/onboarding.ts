@@ -5,25 +5,21 @@
 // appState.profile existente (mutación de campos + persistProfile()), igual
 // que ya hace Perfil — nunca se reemplaza el objeto completo.
 import type { Profile } from '../core/types';
-import { ftpSourceOf, isMeasuredFtp, withFtp } from '../core/coach-profile';
+import { coachProfileError, ftpSourceOf, isMeasuredFtp, withFtp } from '../core/coach-profile';
 import { appState } from './state';
+import { wireDatePicker } from './date-picker';
 import { buildCompletedSessionFromFit } from '../core/completed-session-import';
 import { saveSession } from '../storage/session-store';
 import { pushSessionToCloud } from '../sync/cloud-sync';
 
-/** Lo mínimo para que create_plan tenga con qué trabajar — el resto de los
- * campos del cuestionario son enriquecimiento opcional, no bloquean nada.
- * El sexo es obligatorio: el coach lo usa para el género gramatical y para
- * leer el FTP y el pulso. */
+/** Todo el cuestionario es obligatorio para crear un plan (menos los .fit):
+ * ver coachProfileError. */
 export function isCoachProfileComplete(profile: Profile): boolean {
-  return (
-    profile.sex !== undefined &&
-    profile.experienceLevel !== undefined &&
-    profile.generalFitnessLevel !== undefined &&
-    profile.discipline !== undefined &&
-    profile.ridesOutside !== undefined
-  );
+  return coachProfileError(profile) === null;
 }
+
+/** Lo que el atleta escribe cuando marca que no tiene lesiones. */
+const NO_INJURIES = 'Ninguna';
 
 function esc(v: string | number | undefined | null): string {
   return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -66,9 +62,11 @@ function sectionHtml(n: number, title: string, body: string): string {
 function modalHtml(p: Profile): string {
   const ftpMeasured = isMeasuredFtp(ftpSourceOf(p));
   const editing = isCoachProfileComplete(p);
-  const experience = p.experienceLevel ?? 'experienced';
-  const fitness = p.generalFitnessLevel ?? 'active_other_sport';
-  const discipline = p.discipline ?? 'mountain';
+  // Sin selección previa: cada respuesta la elige el atleta.
+  const experience = p.experienceLevel;
+  const fitness = p.generalFitnessLevel;
+  const discipline = p.discipline;
+  const noInjuries = p.injuries === NO_INJURIES;
   return `
     <div class="modal-backdrop" id="onboarding-backdrop">
       <div class="panel ob-modal" id="onboarding-modal" role="dialog" aria-modal="true" aria-labelledby="ob-title">
@@ -83,7 +81,7 @@ function modalHtml(p: Profile): string {
         <div class="ob-body">
           ${sectionHtml(
             1,
-            'Tu experiencia',
+            'Sobre ti',
             `<p class="ob-q">Sexo</p>
             <div class="ob-chips" id="ob-sex">
               ${(
@@ -96,7 +94,23 @@ function modalHtml(p: Profile): string {
                 .map(([v, label]) => `<button type="button" class="ob-chip${p.sex === v ? ' on' : ''}" data-sex="${v}" aria-pressed="${p.sex === v}">${label}</button>`)
                 .join('')}
             </div>
-            <p class="ob-q">¿Qué tanto has entrenado con estructura?</p>
+            <div class="ob-grid">
+              <label class="ob-field">Fecha de nacimiento
+                <input type="date" id="ob-birth-date" value="${esc(p.birth_date)}">
+              </label>
+              <label class="ob-field">Peso
+                <span class="ob-input-unit"><input type="number" id="ob-weight" value="${esc(p.weight_kg)}" min="30" max="200" step="0.1" inputmode="decimal"><span>kg</span></span>
+              </label>
+              <label class="ob-field">Altura
+                <span class="ob-input-unit"><input type="number" id="ob-height" value="${esc(p.height_cm)}" min="100" max="230" step="1" inputmode="numeric"><span>cm</span></span>
+              </label>
+            </div>`,
+          )}
+
+          ${sectionHtml(
+            2,
+            'Tu experiencia',
+            `<p class="ob-q">¿Qué tanto has entrenado con estructura?</p>
             <div class="ob-options" id="ob-experience">
               ${optionHtml('data-level', 'new_to_cycling', experience === 'new_to_cycling', 'Nunca con estructura', 'Empiezo desde cero con zonas y planes.')}
               ${optionHtml('data-level', 'returning_or_new_to_app', experience === 'returning_or_new_to_app', 'Ya entreno, pero no en Torq', 'Tengo experiencia; es mi primera vez aquí.')}
@@ -110,16 +124,16 @@ function modalHtml(p: Profile): string {
             </div>
             <div class="ob-grid">
               <label class="ob-field">Años andando en bici
-                <span class="ob-input-unit"><input type="number" id="ob-years" value="${esc(p.yearsRiding ?? 0)}" min="0" max="60" inputmode="numeric"><span>años</span></span>
+                <span class="ob-input-unit"><input type="number" id="ob-years" value="${esc(p.yearsRiding)}" placeholder="0 si empiezas" min="0" max="60" inputmode="numeric"><span>años</span></span>
               </label>
               <label class="ob-field">Años entrenando con potencia o estructura
-                <span class="ob-input-unit"><input type="number" id="ob-structured-years" value="${esc(p.structuredTrainingYears ?? 0)}" min="0" max="60" inputmode="numeric"><span>años</span></span>
+                <span class="ob-input-unit"><input type="number" id="ob-structured-years" value="${esc(p.structuredTrainingYears)}" placeholder="0 si nunca" min="0" max="60" inputmode="numeric"><span>años</span></span>
               </label>
             </div>`,
           )}
 
           ${sectionHtml(
-            2,
+            3,
             'Tu bici',
             `<p class="ob-q">Disciplina principal</p>
             <div class="ob-chips" id="ob-discipline">
@@ -141,25 +155,25 @@ function modalHtml(p: Profile): string {
           )}
 
           ${sectionHtml(
-            3,
+            4,
             'Tus números',
             `<div class="ob-grid">
               <div class="ob-field">
-                <label for="ob-ftp" id="ob-ftp-label">${ftpMeasured ? 'FTP actual' : 'FTP provisional (opcional)'}</label>
+                <label for="ob-ftp" id="ob-ftp-label">${ftpMeasured ? 'FTP actual' : 'FTP provisional (si tienes uno)'}</label>
                 <span class="ob-input-unit"><input type="number" id="ob-ftp" value="${ftpMeasured || ftpSourceOf(p) === 'provisional' ? esc(p.ftp) : ''}" placeholder="${ftpMeasured ? 'Ej. 200' : 'Si no, el coach te propone uno'}" inputmode="numeric"><span>W</span></span>
-                ${toggleHtml('ob-no-ftp', !ftpMeasured, 'No sé mi FTP todavía', 'Puedes escribir uno provisional: el coach lo toma como punto de partida, no como medición.')}
+                ${toggleHtml('ob-no-ftp', !!p.ftpSource && !ftpMeasured, 'No sé mi FTP todavía', 'Puedes escribir uno provisional: el coach lo toma como punto de partida, no como medición.')}
               </div>
               <div class="ob-field">
                 <label for="ob-hrmax">Pulso máximo</label>
-                <span class="ob-input-unit"><input type="number" id="ob-hrmax" value="${p.hrMaxConfirmed ? esc(p.hr_max) : ''}" placeholder="Ej. 185" inputmode="numeric" ${p.hrMaxConfirmed ? '' : 'disabled'}><span>lpm</span></span>
-                ${toggleHtml('ob-no-hrmax', !p.hrMaxConfirmed, 'No sé mi pulso máximo')}
+                <span class="ob-input-unit"><input type="number" id="ob-hrmax" value="${p.hrMaxConfirmed ? esc(p.hr_max) : ''}" placeholder="Ej. 185" inputmode="numeric" ${p.hrMaxConfirmed === false ? 'disabled' : ''}><span>lpm</span></span>
+                ${toggleHtml('ob-no-hrmax', p.hrMaxConfirmed === false, 'No sé mi pulso máximo')}
               </div>
             </div>
             <p class="ob-note">No pasa nada si no los sabes: el plan arranca con un protocolo para calibrarlos con seguridad.</p>`,
           )}
 
           ${sectionHtml(
-            4,
+            5,
             'Metas y salud',
             `<div class="ob-toggles">
               ${toggleHtml('ob-competes', !!p.competes, 'Compito o quiero competir')}
@@ -167,16 +181,19 @@ function modalHtml(p: Profile): string {
             <label class="ob-field" id="ob-category-label" style="display:${p.competes ? 'flex' : 'none'}">Categoría
               <input type="text" id="ob-category" value="${esc(p.category)}" placeholder="Ej. Experto 30-39, Élite, Cat 2">
             </label>
-            <label class="ob-field"><span>Mejor resultado o logro reciente <span class="ob-optional">opcional</span></span>
-              <input type="text" id="ob-best-result" value="${esc(p.recentBestResult)}" placeholder="Ej. terminé mi primer XC local">
+            <label class="ob-field"><span>Mejor resultado o logro reciente</span>
+              <input type="text" id="ob-best-result" value="${esc(p.recentBestResult)}" placeholder="Ej. terminé mi primer XC local, o «ninguno todavía»">
             </label>
-            <label class="ob-field"><span>Lesiones o limitaciones actuales <span class="ob-optional">opcional</span></span>
-              <textarea id="ob-injuries" rows="3" placeholder="Ej. molestia en rodilla izquierda, evitar sentadilla profunda">${esc(p.injuries)}</textarea>
-            </label>`,
+            <label class="ob-field"><span>Lesiones o limitaciones actuales</span>
+              <textarea id="ob-injuries" rows="3" placeholder="Ej. molestia en rodilla izquierda, evitar sentadilla profunda" ${noInjuries ? 'disabled' : ''}>${noInjuries ? '' : esc(p.injuries)}</textarea>
+            </label>
+            <div class="ob-toggles">
+              ${toggleHtml('ob-no-injuries', noInjuries, 'No tengo lesiones ni limitaciones')}
+            </div>`,
           )}
 
           ${sectionHtml(
-            5,
+            6,
             'Entrenamientos recientes fuera de Torq',
             `<p class="ob-note" style="margin-top:0">¿Entrenaste con otra app o dispositivo las últimas 1 o 2 semanas? Sube esos archivos .fit para que el plan arranque con contexto real. Lo que ya grabaste en Torq no hace falta. <span class="ob-optional">opcional</span></p>
             <label class="ob-upload">
@@ -204,12 +221,13 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
   const p = appState.profile;
   document.body.insertAdjacentHTML('beforeend', modalHtml(p));
   const backdrop = document.getElementById('onboarding-backdrop')!;
-  let experienceLevel: Profile['experienceLevel'] = p.experienceLevel ?? 'experienced';
-  let generalFitnessLevel: Profile['generalFitnessLevel'] = p.generalFitnessLevel ?? 'active_other_sport';
-  let discipline: Profile['discipline'] = p.discipline ?? 'mountain';
+  let experienceLevel: Profile['experienceLevel'] = p.experienceLevel;
+  let generalFitnessLevel: Profile['generalFitnessLevel'] = p.generalFitnessLevel;
+  let discipline: Profile['discipline'] = p.discipline;
   let sex: Profile['sex'] = p.sex;
 
   if (!allowSkip) backdrop.querySelector('#onboarding-skip')?.remove();
+  wireDatePicker(backdrop.querySelector<HTMLInputElement>('#ob-birth-date')!, { showToday: false });
 
   backdrop.querySelectorAll<HTMLButtonElement>('#ob-experience .ob-option').forEach((chip) => {
     chip.addEventListener('click', () => {
@@ -256,17 +274,23 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     outdoorPowerLabel.style.display = ridesOutsideCheckbox.checked ? 'flex' : 'none';
   });
 
-  const ftpInput = backdrop.querySelector<HTMLInputElement>('#ob-ftp')!;
   const noFtpCheckbox = backdrop.querySelector<HTMLInputElement>('#ob-no-ftp')!;
   const ftpLabel = backdrop.querySelector<HTMLElement>('#ob-ftp-label')!;
   noFtpCheckbox.addEventListener('change', () => {
-    ftpLabel.textContent = noFtpCheckbox.checked ? 'FTP provisional (opcional)' : 'FTP actual';
+    ftpLabel.textContent = noFtpCheckbox.checked ? 'FTP provisional (si tienes uno)' : 'FTP actual';
   });
   const hrMaxInput = backdrop.querySelector<HTMLInputElement>('#ob-hrmax')!;
   const noHrMaxCheckbox = backdrop.querySelector<HTMLInputElement>('#ob-no-hrmax')!;
   noHrMaxCheckbox.addEventListener('change', () => {
     hrMaxInput.disabled = noHrMaxCheckbox.checked;
     if (noHrMaxCheckbox.checked) hrMaxInput.value = '';
+  });
+
+  const injuriesInput = backdrop.querySelector<HTMLTextAreaElement>('#ob-injuries')!;
+  const noInjuriesCheckbox = backdrop.querySelector<HTMLInputElement>('#ob-no-injuries')!;
+  noInjuriesCheckbox.addEventListener('change', () => {
+    injuriesInput.disabled = noInjuriesCheckbox.checked;
+    if (noInjuriesCheckbox.checked) injuriesInput.value = '';
   });
 
   const fitStatus = backdrop.querySelector<HTMLElement>('#ob-fit-status')!;
@@ -303,41 +327,62 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
 
   backdrop.querySelector('#onboarding-submit')?.addEventListener('click', async () => {
     const status = backdrop.querySelector<HTMLElement>('#onboarding-status')!;
-    if (!sex) {
-      status.textContent = 'Elige tu sexo para continuar.';
-      backdrop.querySelector('#ob-sex')?.scrollIntoView({ block: 'center' });
-      return;
-    }
-    const yearsRiding = Number(backdrop.querySelector<HTMLInputElement>('#ob-years')!.value) || 0;
-    const structuredTrainingYears = Number(backdrop.querySelector<HTMLInputElement>('#ob-structured-years')!.value) || 0;
+    const numOrUndef = (id: string) => {
+      const raw = backdrop.querySelector<HTMLInputElement>(id)!.value;
+      return raw.trim() !== '' && Number.isFinite(Number(raw)) ? Number(raw) : undefined;
+    };
     const competes = competesCheckbox.checked;
-    const category = competes ? backdrop.querySelector<HTMLInputElement>('#ob-category')!.value.trim() || undefined : undefined;
     const ridesOutside = ridesOutsideCheckbox.checked;
-    const hasOutdoorPowerMeter = ridesOutside ? backdrop.querySelector<HTMLInputElement>('#ob-outdoor-power')!.checked : undefined;
-    const injuries = backdrop.querySelector<HTMLTextAreaElement>('#ob-injuries')!.value.trim() || undefined;
-    const recentBestResult = backdrop.querySelector<HTMLInputElement>('#ob-best-result')!.value.trim() || undefined;
     const hrMaxConfirmed = !noHrMaxCheckbox.checked;
+    const typedFtp = numOrUndef('#ob-ftp');
+    const typedHrMax = numOrUndef('#ob-hrmax');
+    const ftpOrHrError = (): string | null => {
+      // Sin «No sé», el número es obligatorio: antes se quedaba el 200 W / 185
+      // lpm por defecto marcado como si fuera suyo.
+      if (!noFtpCheckbox.checked && !(typedFtp !== undefined && typedFtp >= 50 && typedFtp <= 600)) {
+        return 'Escribe tu FTP (de 50 a 600 W) o marca «No sé mi FTP todavía».';
+      }
+      if (hrMaxConfirmed && typedHrMax === undefined) {
+        return 'Escribe tu pulso máximo o marca «No sé mi pulso máximo».';
+      }
+      return null;
+    };
 
     // Fusión explícita sobre el perfil existente — nunca reemplazar el
     // objeto completo (ver memoria: podría borrar FTP/pulso ya guardados).
-    appState.profile = {
-      ...appState.profile,
-      sex,
-      experienceLevel,
-      generalFitnessLevel,
-      discipline,
-      yearsRiding,
-      structuredTrainingYears,
-      competes,
-      category,
-      ridesOutside,
-      hasOutdoorPowerMeter,
-      injuries,
-      recentBestResult,
-      hrMaxConfirmed,
-      hr_max: hrMaxConfirmed ? Number(hrMaxInput.value) || appState.profile.hr_max : appState.profile.hr_max,
-    };
-    appState.profile = ftpFromForm(appState.profile, Number(ftpInput.value), noFtpCheckbox.checked);
+    const candidate = ftpFromForm(
+      {
+        ...appState.profile,
+        sex,
+        birth_date: backdrop.querySelector<HTMLInputElement>('#ob-birth-date')!.value || undefined,
+        weight_kg: numOrUndef('#ob-weight'),
+        height_cm: numOrUndef('#ob-height'),
+        experienceLevel,
+        generalFitnessLevel,
+        discipline,
+        yearsRiding: numOrUndef('#ob-years'),
+        structuredTrainingYears: numOrUndef('#ob-structured-years'),
+        competes,
+        category: competes ? backdrop.querySelector<HTMLInputElement>('#ob-category')!.value.trim() || undefined : undefined,
+        ridesOutside,
+        hasOutdoorPowerMeter: ridesOutside ? backdrop.querySelector<HTMLInputElement>('#ob-outdoor-power')!.checked : undefined,
+        injuries: noInjuriesCheckbox.checked ? NO_INJURIES : injuriesInput.value.trim() || undefined,
+        recentBestResult: backdrop.querySelector<HTMLInputElement>('#ob-best-result')!.value.trim() || undefined,
+        hrMaxConfirmed,
+        hr_max: hrMaxConfirmed ? (typedHrMax as number) : appState.profile.hr_max,
+      },
+      typedFtp ?? NaN,
+      noFtpCheckbox.checked,
+    );
+    // Mismo orden que el formulario: primero lo que va antes de «Tus
+    // números», luego el FTP y el pulso escritos, luego el resto.
+    const before = coachProfileError({ ...candidate, ftpSource: 'default', hrMaxConfirmed: false, competes: false, recentBestResult: '-', injuries: '-' });
+    const missing = before ?? ftpOrHrError() ?? coachProfileError(candidate);
+    if (missing) {
+      status.textContent = missing;
+      return;
+    }
+    appState.profile = candidate;
     status.textContent = 'Guardando…';
     await appState.persistProfile();
     close();

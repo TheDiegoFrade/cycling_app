@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ageFromBirthDate, coachFtpFields, coachProfileExtras, ftpSourceOf, sourceForAcceptedSuggestion, withFtp } from './coach-profile';
+import { ageFromBirthDate, coachFtpFields, coachProfileError, coachProfileExtras, ftpSourceOf, sourceForAcceptedSuggestion, withFtp } from './coach-profile';
 import type { Profile } from './types';
 
 // Mismos números que DEFAULT_PROFILE (storage/profile-store.ts), sin
@@ -53,5 +53,39 @@ describe('edad y extras', () => {
     const p: Profile = { ...base, injuries: '  rodilla izq  ', weight_kg: 72, birth_date: '1990-01-01' };
     expect(coachProfileExtras(p, new Date(2026, 9, 8))).toEqual({ injuries: 'rodilla izq', weightKg: 72, ageYears: 36 });
     expect(coachProfileExtras({ ...base, injuries: '  ' })).toEqual({ injuries: null, weightKg: null, ageYears: null });
+  });
+});
+
+describe('coachProfileError', () => {
+  const today = new Date(2026, 9, 9);
+  const complete: Profile = {
+    ftp: 200, hr_max: 185, cadence_floor: 0, hr_ceiling: 0, hr_min: 0, cadence_max: 0,
+    sex: 'F', birth_date: '1990-05-10', weight_kg: 62, height_cm: 165,
+    experienceLevel: 'experienced', generalFitnessLevel: 'active_cyclist', yearsRiding: 5, structuredTrainingYears: 2,
+    discipline: 'road', ridesOutside: false, ftpSource: 'default', hrMaxConfirmed: false,
+    competes: false, recentBestResult: 'ninguno todavía', injuries: 'Ninguna',
+  } as Profile;
+
+  it('completo no pide nada', () => {
+    expect(coachProfileError(complete, today)).toBeNull();
+  });
+
+  it('pide cada respuesta que falta, en el orden del cuestionario', () => {
+    expect(coachProfileError({ ...complete, sex: undefined }, today)).toMatch(/sexo/);
+    expect(coachProfileError({ ...complete, birth_date: undefined }, today)).toMatch(/nacimiento/);
+    expect(coachProfileError({ ...complete, birth_date: '2024-01-01' }, today)).toMatch(/nacimiento/);
+    expect(coachProfileError({ ...complete, weight_kg: 300 }, today)).toMatch(/peso/);
+    expect(coachProfileError({ ...complete, height_cm: undefined }, today)).toMatch(/altura/);
+    expect(coachProfileError({ ...complete, yearsRiding: undefined }, today)).toMatch(/años/);
+    expect(coachProfileError({ ...complete, ridesOutside: true }, today)).toMatch(/medidor/);
+    expect(coachProfileError({ ...complete, ftpSource: undefined }, today)).toMatch(/FTP/);
+    expect(coachProfileError({ ...complete, hrMaxConfirmed: true, hr_max: 300 }, today)).toMatch(/pulso/);
+    expect(coachProfileError({ ...complete, competes: true }, today)).toMatch(/categoría/);
+    expect(coachProfileError({ ...complete, recentBestResult: '  ' }, today)).toMatch(/resultado/);
+    expect(coachProfileError({ ...complete, injuries: undefined }, today)).toMatch(/lesiones/);
+  });
+
+  it('0 años de bici vale (empieza)', () => {
+    expect(coachProfileError({ ...complete, yearsRiding: 0, structuredTrainingYears: 0 }, today)).toBeNull();
   });
 });

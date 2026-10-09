@@ -194,6 +194,10 @@ export const CreatePlanInputContextSchema = z.object({
     // a nadie por nombre (ver "Disciplina de salida").
     name: z.string().nullable(),
     ...ProfileExtrasSchema,
+    // Obligatorios para crear un plan: la edad decide las reglas de menores
+    // y másters.
+    weightKg: z.number({ error: 'escribe tu peso en tu perfil para crear el plan' }).min(30).max(200),
+    ageYears: z.number({ error: 'escribe tu fecha de nacimiento en tu perfil para crear el plan' }).int().min(8).max(100),
   }),
   recentHistory: z
     .object({
