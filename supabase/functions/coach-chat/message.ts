@@ -32,6 +32,8 @@ export const SELF_MONTHLY_REVIEW_HEADER = [
   ...MONTHLY_REVIEW_RULES,
   '- El `message` cierra diciendo que el plan de las próximas semanas ya toma en cuenta lo que vieron este mes y que nos vemos en las evaluaciones semanales.',
   '- `coachDraft` viene vacío: no hay coach humano.',
+  '- Si viene `startedOn`, empezó a entrenar con Torq ese día, a mitad de este mes: es su mes de arranque. Evalúa solo desde esa fecha: las semanas anteriores no son faltas, no bajan el veredicto (nunca off_track por eso) y no aparecen como hallazgo. El mensaje lo recibe como un buen comienzo y dice qué sigue.',
+  '- Nombra las semanas por su fecha, como vienen en `label` ("la semana del 29 sep"), nunca por número.',
 ].join('\n');
 
 export function buildUserMessage(mode: Mode, context: Record<string, unknown>): string {

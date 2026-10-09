@@ -188,6 +188,9 @@ var MONTHS_ES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
 function monthName(monthKey) {
   return MONTHS_ES[Number(monthKey.slice(5, 7)) - 1];
 }
+function weekOfLabel(mondayKey) {
+  return `semana del ${Number(mondayKey.slice(8, 10))} ${MONTHS_ES[Number(mondayKey.slice(5, 7)) - 1].slice(0, 3)}`;
+}
 function dateOf(s) {
   return s.startedAt.slice(0, 10);
 }
@@ -417,11 +420,11 @@ function reviewAiContext(r, athleteId, athlete, coachDraft) {
       ftpPrev: k.ftpPrev,
       tsbEnd: round1(k.tsbEnd)
     },
-    weeks: r.weeks.map((w) => ({ label: w.label, plannedTss: w.plannedTss, doneTss: w.doneTss })),
+    weeks: r.weeks.map((w) => ({ label: weekOfLabel(w.mondayKey), plannedTss: w.plannedTss, doneTss: w.doneTss })),
     bests: r.bests.map((b) => ({ label: b.label, month: b.month, prev: b.prev, best90: b.best90 })),
     intensityHours: Object.fromEntries(r.intensity.map((i) => [INTENSITY_LABELS[i.bucket], round1(i.hours)])),
     hoursWithoutPower: round1(r.hoursWithoutPower),
-    aerobic: r.aerobic.map((a) => ({ label: a.label, decouplingPct: r1OrNull(a.decouplingPct), ef: a.ef === null ? null : Math.round(a.ef * 100) / 100 })),
+    aerobic: r.aerobic.map((a) => ({ label: weekOfLabel(a.mondayKey), decouplingPct: r1OrNull(a.decouplingPct), ef: a.ef === null ? null : Math.round(a.ef * 100) / 100 })),
     routines: r.routines.map((x) => ({ kind: x.kind, planned: x.planned, done: x.done })),
     srpeTotal: r.srpeTotal,
     keySessions: r.keySessions.map((s) => ({

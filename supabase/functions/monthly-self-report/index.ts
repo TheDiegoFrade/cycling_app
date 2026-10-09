@@ -92,12 +92,13 @@ type Outcome = { userId: string; status: 'sent' | 'published' | 'skipped' | 'err
 async function reportFor(admin: Admin, client: Anthropic, userId: string, monthKey: string, todayKey: string, dryRun: boolean): Promise<Outcome> {
   const out = (status: Outcome['status'], detail: string): Outcome => ({ userId, status, detail });
 
-  const [{ data: coach }, { data: existing }, { data: profile }, { data: plan }, { data: notes }] = await Promise.all([
+  const [{ data: coach }, { data: existing }, { data: profile }, { data: plan }, { data: notes }, { data: firstSession }] = await Promise.all([
     admin.from('coach_athletes').select('id').eq('athlete_id', userId).eq('status', 'active').maybeSingle(),
     admin.from('monthly_reviews').select('id').eq('athlete_id', userId).is('coach_id', null).eq('month', `${monthKey}-01`).maybeSingle(),
     admin.from('profiles').select('name, ftp, weight_kg, discipline, injuries').eq('user_id', userId).maybeSingle(),
     admin.from('training_plans').select('goal, data').eq('user_id', userId).eq('status', 'active').maybeSingle(),
     admin.from('athlete_notes').select('body').eq('athlete_id', userId).maybeSingle(),
+    admin.from('sessions').select('started_at').eq('user_id', userId).neq('source', 'strava').order('started_at', { ascending: true }).limit(1).maybeSingle(),
   ]);
   if (coach) return out('skipped', 'tiene coach: su coach hace la revisión');
   if (existing) return out('skipped', 'ya tiene su reporte de este mes');
@@ -109,7 +110,12 @@ async function reportFor(admin: Admin, client: Anthropic, userId: string, monthK
   if (!report.hasData) return out('skipped', 'sin datos ese mes');
   if (dryRun) return out('skipped', `dry run: ${report.kpis.doneCount} sesiones, ${Math.round(report.kpis.tss)} TSS`);
 
-  const planRow = plan as { goal?: string; data?: { form?: { goal?: string } } } | null;
+  const planRow = plan as { goal?: string; data?: { startDate?: string; form?: { goal?: string } } } | null;
+  // Cuándo empezó a entrenar con Torq: su primera sesión o el inicio de su
+  // plan, lo que sea antes. Si cae a mitad de este mes, es su mes de arranque
+  // y las semanas anteriores no cuentan como faltas.
+  const starts = [(firstSession as { started_at?: string } | null)?.started_at?.slice(0, 10), planRow?.data?.startDate].filter((d): d is string => !!d).sort();
+  const startedOn = starts[0] && starts[0] > monthStart(monthKey) ? starts[0] : null;
   const ctx = reviewAiContext(
     report,
     userId,
@@ -126,7 +132,7 @@ async function reportFor(admin: Admin, client: Anthropic, userId: string, monthK
   const valid = MonthlyReviewInputContextSchema.safeParse(ctx);
   if (!valid.success) return out('error', `contexto inválido: ${valid.error.issues.map((i) => i.path.join('.')).join(', ')}`);
   const notesBody = (notes as { body?: string } | null)?.body;
-  const data = { ...valid.data, ...(notesBody ? { athleteNotes: notesBody } : {}) };
+  const data = { ...valid.data, ...(notesBody ? { athleteNotes: notesBody } : {}), ...(startedOn ? { startedOn } : {}) };
 
   // Claude: mismo system prompt (con caché) y reglas que la revisión del coach.
   const choice = plannerFor('monthly_review', data);
