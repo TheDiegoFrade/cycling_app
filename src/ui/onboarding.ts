@@ -59,6 +59,16 @@ function toggleHtml(id: string, checked: boolean, title: string, desc = '', extr
   </label>`;
 }
 
+const OTHER_NAME_PLACEHOLDER: Record<NonBikeKind, string> = {
+  strength: 'Ej. pierna y core, tren superior',
+  running: 'Ej. rodaje suave, series',
+  crossfit: 'Ej. WOD, halterofilia',
+  swimming: 'Ej. técnica, fondo',
+  mobility: 'Ej. yoga, estiramientos',
+  flexibility: 'Ej. yoga, estiramientos',
+  other: 'Ej. fútbol, yoga, box',
+};
+
 /** Una fila de «Otras actividades»: tipo, nombre, veces, minutos y días. */
 function otherActivityRowHtml(a: OtherActivity, i: number): string {
   const kinds = NON_BIKE_KINDS.map((k) => `<option value="${k}" ${a.kind === k ? 'selected' : ''}>${NON_BIKE_KIND_LABELS[k]}</option>`).join('');
@@ -68,7 +78,7 @@ function otherActivityRowHtml(a: OtherActivity, i: number): string {
   return `<div class="ob-other-row" data-i="${i}">
     <div class="ob-grid">
       <label class="ob-field">Actividad<select data-f="kind">${kinds}</select></label>
-      <label class="ob-field">${a.kind === 'other' ? 'Cuál' : 'Nombre <span class="ob-optional">opcional</span>'}<input type="text" data-f="name" maxlength="60" value="${esc(a.name)}" placeholder="${a.kind === 'other' ? 'Ej. fútbol, yoga, box' : 'Ej. pierna y core'}"></label>
+      <label class="ob-field"><span>${a.kind === 'other' ? 'Cuál' : 'Detalle <span class="ob-optional">opcional</span>'}</span><input type="text" data-f="name" maxlength="60" value="${esc(a.name)}" placeholder="${OTHER_NAME_PLACEHOLDER[a.kind]}"></label>
       <label class="ob-field">Veces por semana<input type="number" data-f="perWeek" min="1" max="7" inputmode="numeric" value="${esc(a.perWeek || '')}"></label>
       <label class="ob-field">Minutos por sesión<span class="ob-input-unit"><input type="number" data-f="minutes" min="10" max="300" inputmode="numeric" value="${esc(a.minutes || '')}"><span>min</span></span></label>
     </div>
