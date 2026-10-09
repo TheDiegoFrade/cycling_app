@@ -7,7 +7,7 @@ import type { Sample, Workout } from '../../core/types';
 import { powerZone, powerPctToHeightPct } from '../../core/zones';
 import { NON_BIKE_KIND_LABELS, isNonBikeKind, wasTrained } from '../../core/session-kind';
 import type { NonBikeKind, SessionKind } from '../../core/session-kind';
-import { saveWorkout } from '../../storage/workout-store';
+import { deleteWorkout, saveWorkout } from '../../storage/workout-store';
 import { listSessions, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
 import { computeSessionAnalytics } from '../../engine/analytics';
@@ -22,7 +22,9 @@ import { wireDatePicker } from '../date-picker';
 import { renderCoachSection } from '../coach';
 import { isSupabaseConfigured } from '../../supabase/client';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
-import { notifyPlanChange } from '../coach-notice';
+import { notifyPlanChange, planChangeNotice } from '../coach-notice';
+import { REMOVAL_REASONS, removeFromPlan } from '../../sync/plan-removals';
+import type { RemovalReason } from '../../sync/plan-removals';
 import { openSessionDetail } from '../open-session';
 import { fmtClock, tipRow, tipTitle } from '../chart-hover';
 import { pendingScheduled } from '../../core/plan-done';
@@ -231,6 +233,9 @@ export function renderCalendar(container: HTMLElement): () => void {
   /** Id del workout cuyo detalle (nombre + descripción + stats) se muestra
    * en el panel flotante, null si está cerrado — ver workoutDetailHtml. */
   let detailWorkoutId: string | null = null;
+  // "Quitar del plan" dentro del detalle: motivo obligatorio, nota opcional.
+  let removal: { open: boolean; reason: RemovalReason | null; note: string; busy: boolean; error: string } = { open: false, reason: null, note: '', busy: false, error: '' };
+  const resetRemoval = () => (removal = { open: false, reason: null, note: '', busy: false, error: '' });
 
   function intervalBlockHtml(iv: Workout['intervals'][number]): string {
     // Bloques cortos (ej. activaciones de 8s) redondeaban a "0 min", que no
@@ -266,7 +271,30 @@ export function renderCalendar(container: HTMLElement): () => void {
           </div>
           <div class="perfil-h2" style="margin-top:14px;font-size:15px">Sobre este entrenamiento</div>
           ${w.description ? `<p class="hint" style="margin-top:4px">${escapeHtml(w.description)}</p>` : '<p class="hint" style="margin-top:4px">Sin notas adicionales para este entrenamiento.</p>'}
+          ${removalHtml()}
         </div>
+      </div>`;
+  }
+
+  function removalHtml(): string {
+    if (!appState.user) return '';
+    if (!removal.open) {
+      return `<div class="row-actions" style="margin-top:16px"><button type="button" class="perfil-danger-link" id="workout-remove-open" style="margin:0">Quitar del plan</button></div>`;
+    }
+    const coachNote = planChangeNotice();
+    return `
+      <div style="margin-top:16px">
+        <div class="perfil-h2" style="font-size:15px">¿Por qué la quitas?</div>
+        <span class="hint">Tu coach lo toma en cuenta al armar la siguiente semana: no cuenta como falta.${coachNote ? ` ${escapeHtml(coachNote)}` : ''}</span>
+        <div class="plan-chip-row" style="margin-top:8px">${REMOVAL_REASONS.map(
+          (r) => `<button type="button" class="plan-chip${removal.reason === r.value ? ' on' : ''}" data-removal-reason="${r.value}">${r.label}</button>`,
+        ).join('')}</div>
+        <textarea id="workout-remove-note" rows="2" maxlength="200" placeholder="Opcional: cuéntale qué pasó" style="width:100%;margin-top:8px;resize:vertical;font-family:inherit">${escapeHtml(removal.note)}</textarea>
+        <div class="row-actions" style="margin-top:8px">
+          <button type="button" class="btn-light" id="workout-remove-confirm"${removal.reason && !removal.busy ? '' : ' disabled'}>${removal.busy ? 'Quitando…' : 'Quitar del plan'}</button>
+          <button type="button" id="workout-remove-cancel"${removal.busy ? ' disabled' : ''}>Cancelar</button>
+        </div>
+        ${removal.error ? `<p class="hint" style="color:var(--danger, #c8372d)">${escapeHtml(removal.error)}</p>` : ''}
       </div>`;
   }
 
@@ -578,6 +606,7 @@ export function renderCalendar(container: HTMLElement): () => void {
     container.querySelectorAll<HTMLButtonElement>('[data-workout-id].plan-day-cover, [data-workout-id].plan-month-cover').forEach((btn) => {
       btn.addEventListener('click', () => {
         detailWorkoutId = btn.dataset.workoutId!;
+        resetRemoval();
         paint();
       });
     });
@@ -585,14 +614,56 @@ export function renderCalendar(container: HTMLElement): () => void {
     const detailBackdrop = container.querySelector<HTMLElement>('#workout-detail-backdrop');
     detailBackdrop?.querySelector('#workout-detail-close')?.addEventListener('click', () => {
       detailWorkoutId = null;
+      resetRemoval();
       paint();
     });
     detailBackdrop?.addEventListener('click', (e) => {
-      if (e.target === detailBackdrop) {
+      if (e.target === detailBackdrop && !removal.busy) {
         detailWorkoutId = null;
+        resetRemoval();
         paint();
       }
     });
+    detailBackdrop?.querySelector('#workout-remove-open')?.addEventListener('click', () => {
+      removal.open = true;
+      paint();
+    });
+    detailBackdrop?.querySelector('#workout-remove-cancel')?.addEventListener('click', () => {
+      resetRemoval();
+      paint();
+    });
+    detailBackdrop?.querySelectorAll<HTMLButtonElement>('[data-removal-reason]').forEach((chip) =>
+      chip.addEventListener('click', () => {
+        removal.reason = chip.dataset.removalReason as RemovalReason;
+        paint();
+      }),
+    );
+    const noteEl = detailBackdrop?.querySelector<HTMLTextAreaElement>('#workout-remove-note');
+    noteEl?.addEventListener('input', () => (removal.note = noteEl.value));
+    detailBackdrop?.querySelector('#workout-remove-confirm')?.addEventListener('click', () => void removeDetailWorkout());
+  }
+
+  /** Quita la sesión del detalle: el servidor la borra, la anota en el plan
+   * con su motivo y la saca del borrador del coach (plan-remove-workout). */
+  async function removeDetailWorkout(): Promise<void> {
+    const w = appState.workouts.find((x) => x.id === detailWorkoutId);
+    if (!w || !removal.reason || removal.busy) return;
+    removal.busy = true;
+    removal.error = '';
+    paint();
+    try {
+      const tss = estimateWorkout(w.intervals, appState.profile.ftp).tss ?? null;
+      await removeFromPlan(w.id, removal.reason, removal.note.trim() || null, tss);
+      await deleteWorkout(w.id);
+      appState.workouts = appState.workouts.filter((x) => x.id !== w.id);
+      detailWorkoutId = null;
+      resetRemoval();
+      notifyPlanChange();
+    } catch (err) {
+      removal.busy = false;
+      removal.error = `No se pudo quitar: ${err instanceof Error ? err.message : String(err)}`;
+    }
+    paint();
   }
 
   function wireCreatePanel(): void {
