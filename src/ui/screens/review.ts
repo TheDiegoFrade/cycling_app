@@ -5,7 +5,7 @@
 import { isMonthKey, monthLabel, VERDICT_LABELS } from '../../core/monthly-report';
 import { listPublishedReviews, loadMonthlyReport } from '../../sync/monthly-reviews';
 import type { MonthlyReview } from '../../sync/monthly-reviews';
-import { todayUtcKey, errorMessage } from '../coach-ui';
+import { todayLocalKey, errorMessage } from '../coach-ui';
 import { renderReportSheet } from '../monthly-report-view';
 import { getRouteParam } from '../router';
 import { appState } from '../state';
@@ -48,7 +48,7 @@ export function renderReview(container: HTMLElement): () => void {
         shell('<p class="hint">Este reporte no existe o tu coach todavía no lo publica.</p>', '#/review', 'Reportes');
         return;
       }
-      const report = await loadMonthlyReport(userId, monthKey, appState.profile.ftp, todayUtcKey());
+      const report = await loadMonthlyReport(userId, monthKey, appState.profile.ftp, todayLocalKey());
       if (disposed) return;
       const sheet = renderReportSheet({
         report,

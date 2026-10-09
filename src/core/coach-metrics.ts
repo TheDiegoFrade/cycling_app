@@ -8,6 +8,7 @@ import { isBikeSession, wasTrained } from './session-kind';
 import type { NonBikeKind, SessionCompletion, SessionKind } from './session-kind';
 import { isNonBikeKind } from './session-kind';
 import type { SessionSource } from './session-source';
+import { dayKeyOf } from './day-key';
 
 /** Una fila de `sessions` tal como la lee el coach. */
 export interface CoachSessionRow {
@@ -57,7 +58,7 @@ export interface AthleteSummary {
 /** Misma fecha que usa Forma (UTC, `YYYY-MM-DD`) para que coach y atleta
  * vean exactamente los mismos números de CTL/ATL/TSB. */
 export function sessionDateKey(row: { startedAt: string }): string {
-  return row.startedAt.slice(0, 10);
+  return dayKeyOf(row.startedAt);
 }
 
 function daysBetween(fromKey: string, toKey: string): number {

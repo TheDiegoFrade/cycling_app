@@ -17,7 +17,7 @@ import {
   fmtSigned,
   sinceIso,
   sourceLabel,
-  todayUtcKey,
+  todayLocalKey,
   tsbColor,
   errorMessage,
 } from '../coach-ui';
@@ -45,7 +45,7 @@ export function renderCoachAthletes(container: HTMLElement): void {
     return;
   }
 
-  const todayKey = todayUtcKey();
+  const todayKey = todayLocalKey();
   let rows: Row[] | null = null;
   let error = '';
   let search = '';

@@ -18,7 +18,7 @@ import { computeAthleteState } from '../../engine/athlete-state';
 import { stateSessionFromCloud } from '../athlete-state-data';
 import { requestCoachWeek } from '../../sync/coach-ai';
 import type { CoachWeekContext } from '../../sync/coach-ai';
-import { COACH_OVERVIEW_DAYS, sinceIso, todayUtcKey, errorMessage } from '../coach-ui';
+import { COACH_OVERVIEW_DAYS, sinceIso, todayLocalKey, errorMessage } from '../coach-ui';
 import type { LibrarySource, PlanWeekItem } from '../../core/plan-week';
 import { summarizeIntervals } from '../../core/interval-summary';
 import { blockPreviewHtml, intervalRowsHtml, readIntervalInputs, wireIntervalEditor } from '../interval-editor';
@@ -272,9 +272,9 @@ export function renderCoachWeek(container: HTMLElement): void {
       // La ficha mira 6 meses; sin el plan agendado del atleta, va sin cumplimiento.
       listAthleteStateSessions(athleteId!, sinceIso(180)),
     ]);
-    const utcToday = todayUtcKey();
-    const summary = summarizeAthlete(rows, utcToday, athlete?.ftpConfirmed ?? null);
-    const loads = weeklyLoads(rows, utcToday, 6);
+    const localToday = todayLocalKey();
+    const summary = summarizeAthlete(rows, localToday, athlete?.ftpConfirmed ?? null);
+    const loads = weeklyLoads(rows, localToday, 6);
     return {
       athleteId: athleteId!,
       weekStart: monday,
@@ -310,7 +310,7 @@ export function renderCoachWeek(container: HTMLElement): void {
         const est = estimateWorkout(t.payload.intervals, ftp());
         return [{ id: t.id, name: t.name, minutes: Math.round(est.durationS / 60), tss: est.tss ?? null, structure: summarizeIntervals(t.payload.intervals) }];
       }).slice(0, 40),
-      athleteState: computeAthleteState(stateRows.map(stateSessionFromCloud), [], todayUtcKey()),
+      athleteState: computeAthleteState(stateRows.map(stateSessionFromCloud), [], todayLocalKey()),
     };
   }
 

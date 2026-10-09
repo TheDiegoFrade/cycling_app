@@ -27,7 +27,7 @@ import {
   fmtSigned,
   sinceIso,
   sourceLabel,
-  todayUtcKey,
+  todayLocalKey,
   tsbColor,
   errorMessage,
 } from '../coach-ui';
@@ -143,7 +143,7 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
   }
 
   shell('<p class="hint">Cargando…</p>');
-  const todayKey = todayUtcKey();
+  const todayKey = todayLocalKey();
 
   void (async () => {
     try {

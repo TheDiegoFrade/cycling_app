@@ -12,7 +12,7 @@ import type { CoachAthlete } from '../../sync/coach-athletes';
 import { fetchCoachReview, loadMonthlyReport, saveReview, sendReviewEmail, setReviewStatus } from '../../sync/monthly-reviews';
 import { EMAIL_MAX_SENDS, emailButtonHtml, emailPanelHtml, newEmailApproval, wireEmailApproval, type EmailApproval } from '../email-approval';
 import type { MonthlyReview, ReviewContent } from '../../sync/monthly-reviews';
-import { athleteName, disciplineLabel, todayUtcKey, errorMessage } from '../coach-ui';
+import { athleteName, disciplineLabel, todayLocalKey, errorMessage } from '../coach-ui';
 import { emailKpis, renderReportSheet } from '../monthly-report-view';
 import { getRouteParam, navigate } from '../router';
 import { appState } from '../state';
@@ -22,7 +22,7 @@ const SAVE_DELAY_MS = 800;
 
 export function renderCoachReview(container: HTMLElement): () => void {
   const [athleteId, rawMonth] = (getRouteParam() ?? '').split('/');
-  const todayKey = todayUtcKey();
+  const todayKey = todayLocalKey();
   const currentMonth = todayKey.slice(0, 7);
   const monthKey = isMonthKey(rawMonth) && rawMonth <= currentMonth ? rawMonth : defaultReviewMonth(todayKey);
   const coachId = appState.user?.id ?? null;

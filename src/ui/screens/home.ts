@@ -19,6 +19,7 @@ import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
 import { fmtMinutes, tipRow, tipTitle } from '../chart-hover';
 import { ZONE_NAMES } from '../../core/zones';
 import type { PowerZone } from '../../core/zones';
+import { dayKeyOf } from '../../core/day-key';
 
 const DAY_LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S']; // índice = Date#getDay()
 const MONTH_NAMES_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -281,7 +282,7 @@ export function renderHome(container: HTMLElement): void {
     // "Esta semana" es de bici (horas, TSS, zonas) — fuerza/movilidad van
     // con sRPE aparte, nunca se suman aquí (ver core/session-kind.ts).
     const weekSessions = sessions.filter(isBikeSession).filter((s) => {
-      const key = s.startedAt.slice(0, 10);
+      const key = dayKeyOf(s.startedAt);
       return key >= weekStartKey && key < toDateKey(weekEndExclusive);
     });
 
@@ -295,7 +296,7 @@ export function renderHome(container: HTMLElement): void {
       totalSeconds += s.samples.length;
       totalTss += analytics.trainingStressScore ?? 0;
       analytics.powerZoneSeconds.forEach((z, i) => (zoneSeconds[i] += z.seconds));
-      const key = s.startedAt.slice(0, 10);
+      const key = dayKeyOf(s.startedAt);
       minutesByDay.set(key, (minutesByDay.get(key) ?? 0) + s.samples.length / 60);
       tssByDay.set(key, (tssByDay.get(key) ?? 0) + (analytics.trainingStressScore ?? 0));
     });
@@ -305,14 +306,14 @@ export function renderHome(container: HTMLElement): void {
     // sin esto "Esta semana" se queda corto tras entrenar desde el celular.
     const localIds = new Set(sessions.map((s) => s.id));
     const cloudOnlyThisWeek = appState.cloudSessions.filter((s) => !localIds.has(s.id) && isBikeSession(s)).filter((s) => {
-      const key = s.startedAt.slice(0, 10);
+      const key = dayKeyOf(s.startedAt);
       return key >= weekStartKey && key < toDateKey(weekEndExclusive);
     });
     cloudOnlyThisWeek.forEach((s) => {
       const durationS = Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000);
       totalSeconds += durationS;
       totalTss += s.trainingStressScore ?? 0;
-      const key = s.startedAt.slice(0, 10);
+      const key = dayKeyOf(s.startedAt);
       minutesByDay.set(key, (minutesByDay.get(key) ?? 0) + durationS / 60);
       tssByDay.set(key, (tssByDay.get(key) ?? 0) + (s.trainingStressScore ?? 0));
     });

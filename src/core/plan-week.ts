@@ -3,6 +3,7 @@
 import type { PlannedRoutine } from './coach-templates';
 import type { Interval, Workout } from './types';
 import type { WorkoutTemplate } from './workout-templates';
+import { localDateKey } from './day-key';
 
 /** De dónde salió un elemento: lo que el atleta ya tenía agendado, algo
  * que agregó el coach, o una propuesta de la IA (la del coach o la del
@@ -93,10 +94,8 @@ function pad(n: number): string {
   return String(n).padStart(2, '0');
 }
 
-/** `YYYY-MM-DD` de una fecha local (la misma que usa Plan para agendar). */
-export function localDateKey(d: Date): string {
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
+/** `YYYY-MM-DD` de una fecha local (la misma que usa Plan para agendar). Ver core/day-key.ts. */
+export { localDateKey };
 
 function parseKey(key: string): Date {
   const [y, m, d] = key.split('-').map(Number);

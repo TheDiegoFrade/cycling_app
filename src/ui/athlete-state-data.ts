@@ -9,11 +9,12 @@ import type { Profile, Workout } from '../core/types';
 import type { SessionRecord } from '../storage/session-store';
 import type { CloudSessionSummary } from '../sync/cloud-sync';
 import { isTestWorkoutDoc } from '../core/workout-zone';
+import { dayKeyOf } from '../core/day-key';
 
 export function stateSessionFromLocal(s: SessionRecord, profile: Profile, workout: Workout | undefined): StateSession {
   const a = computeSessionAnalytics(s.samples, { ...profile, ftp: s.ftp });
   return {
-    dateKey: s.startedAt.slice(0, 10),
+    dateKey: dayKeyOf(s.startedAt),
     durationS: s.samples.length,
     tss: a.trainingStressScore,
     hrDriftPct: a.hrDriftPct,
@@ -28,7 +29,7 @@ export function stateSessionFromLocal(s: SessionRecord, profile: Profile, workou
 
 export function stateSessionFromCloud(s: Pick<CloudSessionSummary, 'startedAt' | 'finishedAt' | 'trainingStressScore' | 'hrDriftPct' | 'efficiencyFactor' | 'workoutId' | 'metrics'>): StateSession {
   return {
-    dateKey: s.startedAt.slice(0, 10),
+    dateKey: dayKeyOf(s.startedAt),
     durationS: Math.max(0, (Date.parse(s.finishedAt) - Date.parse(s.startedAt)) / 1000),
     tss: s.trainingStressScore,
     hrDriftPct: s.hrDriftPct,

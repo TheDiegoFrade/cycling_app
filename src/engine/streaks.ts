@@ -1,3 +1,5 @@
+import { dayKeyOf } from '../core/day-key';
+
 /** Lunes de la semana (UTC) que contiene `dateKey` — mismo criterio
  * lunes-domingo que ya usan calendar.ts/home.ts, pero en UTC para no
  * depender de la zona horaria de quien ejecute esto (tests, etc.). */
@@ -78,7 +80,7 @@ export function computeWeeklyVolumeTrend(
   const hoursIn = (fromKey: string, toKeyExclusive: string): number =>
     rows
       .filter((r) => {
-        const d = r.startedAt.slice(0, 10);
+        const d = dayKeyOf(r.startedAt);
         return d >= fromKey && d < toKeyExclusive;
       })
       .reduce((sum, r) => sum + r.durationS, 0) / 3600;

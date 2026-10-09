@@ -5,6 +5,7 @@ import { sessionDateKey } from '../core/coach-metrics';
 import type { SessionSource } from '../core/session-source';
 import type { CoachAthlete } from '../sync/coach-athletes';
 import { escapeHtml } from './workout-cover';
+import { todayKey } from '../core/day-key';
 
 /** Historia que se pide para que CTL (constante de 42 días) ya esté
  * estabilizado en lo que se muestra. */
@@ -81,8 +82,9 @@ export function avatarHtml(a: CoachAthlete): string {
 }
 
 /** Hoy en UTC (`YYYY-MM-DD`) — mismo criterio de fecha que Forma. */
-export function todayUtcKey(): string {
-  return new Date().toISOString().slice(0, 10);
+/** Hoy en la zona del coach (ver core/day-key.ts). */
+export function todayLocalKey(): string {
+  return todayKey();
 }
 
 export function sinceIso(days: number): string {

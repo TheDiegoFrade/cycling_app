@@ -27,6 +27,7 @@ import { stateSessionFromCloud, stateSessionFromLocal } from './athlete-state-da
 import type { WorkoutZone } from '../core/workout-zone';
 import type { CoachPlanContext, PlannedTest, StoredPlanData } from '../core/plan-context';
 import type { RemovedWorkout } from '../sync/plan-removals';
+import { dayKeyOf, daysAgoKey, todayKey as localTodayKey } from '../core/day-key';
 
 const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'M', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
 const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
@@ -243,6 +244,9 @@ function evalZoneHtml(plan: ActivePlanRow, weeklyEvalsUsed: number): string {
   // rebotar). Sin esto, evaluar el día 1 de un plan nuevo trataba semanas
   // futuras sin entrenar como adherencia perdida — encontrado probando esto.
   const lastWeekEnd = weekEndDate(plan.data.startDate, plan.data.weeks.length - 1);
+  // En UTC a propósito: es el mismo gate que el servidor (checkModeAllowed
+  // corre en UTC); con la fecha local, en la noche se mostraría un botón que
+  // el servidor todavía rechaza.
   const todayUtc = new Date(new Date().toISOString().slice(0, 10) + 'T00:00:00Z');
   if (todayUtc <= lastWeekEnd) {
     const lastWeekEndLabel = lastWeekEnd.toISOString().slice(0, 10);
@@ -539,10 +543,10 @@ const LAST_TEST_MAX_AGE_DAYS = 180;
 async function computeLastTest(): Promise<LastTest | null> {
   const { localSessions } = await aiEligibleSessions(true);
   const workouts = new Map(appState.workouts.map((w) => [w.id, w]));
-  const sinceKey = new Date(Date.now() - LAST_TEST_MAX_AGE_DAYS * 86400000).toISOString().slice(0, 10);
+  const sinceKey = daysAgoKey(LAST_TEST_MAX_AGE_DAYS);
   const tests = localSessions
     .map((s) => ({ s, w: workouts.get(s.workoutId) }))
-    .filter(({ s, w }) => w && s.startedAt.slice(0, 10) >= sinceKey && isTestWorkoutDoc(w))
+    .filter(({ s, w }) => w && dayKeyOf(s.startedAt) >= sinceKey && isTestWorkoutDoc(w))
     .sort((a, b) => b.s.startedAt.localeCompare(a.s.startedAt));
   for (const { s, w } of tests) {
     const reading = readTest(s, w!.intervals, appState.profile.hr_max);
@@ -558,12 +562,12 @@ const ATHLETE_STATE_DAYS = 180;
  * las de la nube con sus métricas guardadas. Sin Strava. */
 async function computeSelfAthleteState(): Promise<AthleteState> {
   const { localSessions, cloudOnly } = await aiEligibleSessions(true);
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const sinceKey = new Date(Date.now() - ATHLETE_STATE_DAYS * 86400000).toISOString().slice(0, 10);
+  const todayKey = localTodayKey();
+  const sinceKey = daysAgoKey(ATHLETE_STATE_DAYS);
   const workouts = new Map(appState.workouts.map((w) => [w.id, w]));
   const sessions = [
-    ...localSessions.filter((s) => s.startedAt.slice(0, 10) >= sinceKey).map((s) => stateSessionFromLocal(s, appState.profile, workouts.get(s.workoutId))),
-    ...cloudOnly.filter((s) => s.startedAt.slice(0, 10) >= sinceKey).map(stateSessionFromCloud),
+    ...localSessions.filter((s) => dayKeyOf(s.startedAt) >= sinceKey).map((s) => stateSessionFromLocal(s, appState.profile, workouts.get(s.workoutId))),
+    ...cloudOnly.filter((s) => dayKeyOf(s.startedAt) >= sinceKey).map(stateSessionFromCloud),
   ];
   const planned = appState.workouts
     .filter((w) => w.scheduledDate && w.scheduledDate >= sinceKey && w.scheduledDate <= todayKey)
@@ -584,13 +588,13 @@ interface RecentHistory {
 async function computeRecentHistory(): Promise<RecentHistory | null> {
   const { localSessions, cloudOnly } = await aiEligibleSessions(true);
   const localEntries = localSessions.map((s) => ({
-    dateKey: s.startedAt.slice(0, 10),
+    dateKey: dayKeyOf(s.startedAt),
     tss: computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp }).trainingStressScore ?? 0,
     durationS: s.samples.length,
   }));
   const cloudEntries = cloudOnly
     .map((s) => ({
-      dateKey: s.startedAt.slice(0, 10),
+      dateKey: dayKeyOf(s.startedAt),
       tss: s.trainingStressScore ?? 0,
       durationS: Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000),
     }));
@@ -604,7 +608,7 @@ async function computeRecentHistory(): Promise<RecentHistory | null> {
     1,
     Math.round((new Date().getTime() - new Date(`${earliestKey}T00:00:00Z`).getTime()) / (7 * 86400000)),
   );
-  const fourWeeksAgoKey = new Date(Date.now() - 28 * 86400000).toISOString().slice(0, 10);
+  const fourWeeksAgoKey = daysAgoKey(28);
   const last4WeeksHours = entries.filter((e) => e.dateKey >= fourWeeksAgoKey).reduce((sum, e) => sum + e.durationS, 0) / 3600;
 
   return {
@@ -632,9 +636,9 @@ async function computeOccupiedDates(startDate: string, weeksAhead: number): Prom
   // occupiedDates también le llega al modelo (ver prompt.ts), así que las
   // fechas de sesiones de Strava tampoco van.
   const { localSessions, cloudOnly } = await aiEligibleSessions(false);
-  const localDates = localSessions.map((s) => s.startedAt.slice(0, 10)).filter(inRange);
+  const localDates = localSessions.map((s) => dayKeyOf(s.startedAt)).filter(inRange);
   const cloudDates = cloudOnly
-    .map((s) => s.startedAt.slice(0, 10))
+    .map((s) => dayKeyOf(s.startedAt))
     .filter(inRange);
 
   return Array.from(new Set([...scheduled, ...localDates, ...cloudDates]));
@@ -696,7 +700,7 @@ async function computeWeekEvalContext(
 
   const { localSessions, cloudOnly } = await aiEligibleSessions(true);
   const localEntries = localSessions.map((s) => ({
-    dateKey: s.startedAt.slice(0, 10),
+    dateKey: dayKeyOf(s.startedAt),
     tss: computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp }).trainingStressScore ?? 0,
     workoutId: s.workoutId as string | null,
   }));
@@ -706,7 +710,7 @@ async function computeWeekEvalContext(
   // un workout de Torq entrenado en otro dispositivo sin volver a sincronizar
   // localmente no se cuenta como "completado" en ese conteo preciso.
   const cloudEntries = cloudOnly.map((s) => ({
-    dateKey: s.startedAt.slice(0, 10),
+    dateKey: dayKeyOf(s.startedAt),
     tss: s.trainingStressScore ?? 0,
     workoutId: null as string | null,
   }));
@@ -799,7 +803,7 @@ async function computeWeekEvalContext(
 
   const pmc = computePmc(allEntries.map((e) => ({ dateKey: e.dateKey, tss: e.tss })));
   const latest = pmc[pmc.length - 1];
-  const fourWeeksAgoKey = new Date(Date.now() - 28 * 86400000).toISOString().slice(0, 10);
+  const fourWeeksAgoKey = daysAgoKey(28);
   const ctlFourWeeksAgo = [...pmc].reverse().find((p) => p.dateKey <= fourWeeksAgoKey) ?? pmc[0];
 
   // Huecos reales (3+ días completos sin ninguna sesión) entre sesiones
@@ -820,7 +824,7 @@ async function computeWeekEvalContext(
     }
   }
 
-  const occupiedDates = await computeOccupiedDates(new Date().toISOString().slice(0, 10), 1);
+  const occupiedDates = await computeOccupiedDates(localTodayKey(), 1);
 
   // La semana que va a generar el servidor: la siguiente, o la misma si es
   // el "refresh" de esta semana ISO (mismo criterio que applyModeEffects).
@@ -839,7 +843,7 @@ async function computeWeekEvalContext(
       missedWorkouts: lastWeek.missedWorkouts,
       // Solo de las sesiones de este dispositivo: las alertas no se suben a
       // la nube. Sesiones guardadas antes de registrar ruleId no cuentan.
-      ruleTriggers: ruleTriggersOf(localSessions.filter((s) => inLastWeek(s.startedAt.slice(0, 10))).flatMap((s) => s.alerts)),
+      ruleTriggers: ruleTriggersOf(localSessions.filter((s) => inLastWeek(dayKeyOf(s.startedAt))).flatMap((s) => s.alerts)),
       athleteNote,
       workouts: weekWorkoutRows(weeks[weeks.length - 1]),
       ...(removedThisWeek.length ? { removedWorkouts: removedThisWeek } : {}),
@@ -921,7 +925,7 @@ function openCreateModal(onChange: () => void): void {
     // Todo lo de abajo ya vive en el Perfil (llenado por el cuestionario
     // inicial, ver onboarding.ts) — nunca se vuelve a preguntar aquí.
     const p = appState.profile;
-    const startDate = new Date().toISOString().slice(0, 10);
+    const startDate = localTodayKey();
     const maxMinutesInput = (backdrop.querySelector<HTMLInputElement>('#coach-max-minutes')!).value.trim();
     const maxSessionMinutes = maxMinutesInput ? Number(maxMinutesInput) : null;
     const [recentHistory, occupiedDates, lastTest, athleteState] = await Promise.all([
