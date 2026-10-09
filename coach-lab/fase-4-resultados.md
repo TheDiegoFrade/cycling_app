@@ -1,6 +1,6 @@
 # Fase 4 — Resultados de la prueba de costo y calidad
 
-Fecha: 2026-10-08/09. 61 llamadas reales a la API, **$1.06 en total**.
+Fecha: 2026-10-08/09 (el escenario 37, de VFC por intervals.icu, se quitó junto con esa integración). 61 llamadas reales a la API, **$1.06 en total**.
 Respuestas completas en `coach-lab/results/api-2026-10-0*/`; se pueden volver a
 revisar con `coach-lab/check.ts` y la guardia (`guard.ts`).
 
@@ -32,7 +32,7 @@ El redactor (Haiku, descripciones) suma ~$0.002 por plan en todos los casos.
 ## Calidad
 
 **Evaluaciones semanales con Haiku low.** Resolvió bien 15 de 17:
-- fatiga (absorción a tiempo, también con VFC baja y mal sueño);
+- fatiga (absorción a tiempo);
 - semana floja aislada contra patrón de semanas flojas;
 - dolor de rodilla;
 - calibración del FTP provisional;

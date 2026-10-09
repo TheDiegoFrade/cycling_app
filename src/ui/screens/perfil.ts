@@ -14,7 +14,6 @@ import { endMyCoachLink } from '../../sync/coach-link';
 import { wireDatePicker } from '../date-picker';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
 import { deleteMyNotes, fetchAthleteNotes } from '../../sync/athlete-notes';
-import { syncWellnessFromIcu } from '../../sync/wellness-sync';
 
 const SOUNDS = [
   { id: 'tick', label: 'Cuenta regresiva' },
@@ -252,7 +251,7 @@ export function renderPerfil(container: HTMLElement): void {
                   : '<p class="hint">Strava no está configurado en este despliegue.</p>'
               }
               <div class="perfil-account-row" style="margin-top:14px">
-                <div><div>intervals.icu</div><div class="perfil-alert-hint">Sube tus sesiones y trae tu VFC de reposo, pulso en reposo y sueño para tu coach</div></div>
+                <div><div>intervals.icu</div><div class="perfil-alert-hint">Sube tus sesiones automáticamente</div></div>
               </div>
               <div class="grid-form" style="margin-top:8px">
                 <label>Athlete ID<input type="text" id="icu-athlete-id" autocomplete="off" data-lpignore="true" value="${appState.settings.intervalsIcu?.athleteId ?? ''}"></label>
@@ -431,7 +430,6 @@ export function renderPerfil(container: HTMLElement): void {
       const apiKey = container.querySelector<HTMLInputElement>('#icu-api-key')!.value.trim();
       appState.settings = { ...appState.settings, intervalsIcu: athleteId && apiKey ? { athleteId, apiKey } : undefined };
       appState.persistSettings();
-      if (appState.user) void syncWellnessFromIcu(appState.user.id, appState.settings.intervalsIcu, { force: true });
       const saved = container.querySelector<HTMLElement>('#icu-saved')!;
       saved.textContent = 'Guardado.';
       setTimeout(() => (saved.textContent = ''), 1800);

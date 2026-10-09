@@ -7,7 +7,6 @@ import { ANALYSIS_WINDOWS, analysisWindow, minutesAt } from '../engine/analysis-
 import type { AnalysisWindow, CurvePoint } from '../engine/analysis-window';
 import type { StatePlanned, StateSession } from '../engine/athlete-state';
 import type { PeakQuality } from '../engine/session-metrics';
-import type { HrvStatus, WellnessSummary } from '../engine/wellness';
 import { ZONE_NAMES } from '../core/zones';
 import { bindChartHover, nearestSorted, tipRow, tipTitle } from './chart-hover';
 
@@ -18,16 +17,7 @@ export interface AnalysisData {
   ftp: number;
   /** Clave para recordar la ventana elegida en este navegador. */
   storageKey: string;
-  /** VFC/pulso en reposo/sueño (intervals.icu). No depende de la ventana:
-   * siempre es la última semana contra los últimos 60 días. */
-  wellness?: WellnessSummary | null;
 }
-
-const HRV_STATUS_LABELS: Record<HrvStatus, string> = {
-  low: '↓ por debajo de su normal',
-  normal: 'dentro de su normal',
-  high: '↑ por encima de su normal',
-};
 
 const PEAK_LABELS: Record<string, string> = { s5: '5 s', s30: '30 s', m1: '1 min', m5: '5 min', m8: '8 min', m20: '20 min', m60: '60 min' };
 const QUALITY_LABELS: Record<PeakQuality, string> = { max_effort: 'máximo', erg_fixed: 'con ERG fijo', incidental: 'casual' };
@@ -67,29 +57,6 @@ function peakTile(p: CurvePoint): string {
   const delta = p.prevWatts ? Math.round(((p.watts - p.prevWatts) / p.prevWatts) * 100) : null;
   const deltaTxt = delta !== null && delta !== 0 ? ` · ${delta > 0 ? '+' : ''}${delta} % vs. antes` : '';
   return tile(PEAK_LABELS[p.key], `${p.watts} W`, `${fmtDay(p.dateKey!)} · ${QUALITY_LABELS[p.quality!]}${deltaTxt}`);
-}
-
-function wellnessHtml(w: WellnessSummary): string {
-  const tiles = [
-    w.hrv7d !== null
-      ? tile(
-          'VFC en reposo',
-          `${w.hrv7d} ms`,
-          [w.hrvBaseline60d !== null ? `normal ${w.hrvBaseline60d} ms` : 'juntando línea base', w.hrvStatus ? HRV_STATUS_LABELS[w.hrvStatus] : '']
-            .filter(Boolean)
-            .join(' · '),
-        )
-      : '',
-    w.restingHr7d !== null
-      ? tile('Pulso en reposo', `${w.restingHr7d} lpm`, w.restingHrBaseline60d !== null ? `normal ${w.restingHrBaseline60d} lpm` : 'juntando línea base')
-      : '',
-    w.sleepH7d !== null ? tile('Sueño', `${w.sleepH7d} h`, 'promedio por noche') : '',
-  ].join('');
-  if (!tiles) return '';
-  return `
-    <h3 class="perfil-h2" style="margin-top:4px;font-size:18px">Recuperación</h3>
-    <div class="panel forma-records-grid">${tiles}</div>
-    <p class="hint" style="margin:6px 0 16px">Última semana contra los últimos 60 días, de intervals.icu. Cuenta la tendencia, no una noche.</p>`;
 }
 
 function bodyHtml(a: AnalysisWindow, ftp: number): string {
@@ -348,15 +315,11 @@ function drawDecoupling(canvas: HTMLCanvasElement, points: { dateKey: string; pc
 }
 
 /** Pinta la sección completa dentro de `root` (con su selector de ventana). */
-/** Dibuja el panel. `setWellness` lo repinta cuando llega el bienestar
- * (viene de la nube y no vale la pena frenar el resto por él). */
-export function renderAnalysisPanel(root: HTMLElement, data: AnalysisData): { setWellness(w: WellnessSummary | null): void } {
+export function renderAnalysisPanel(root: HTMLElement, data: AnalysisData): void {
   let days = readWindow(data.storageKey);
-  let wellness = data.wellness ?? null;
   const paint = (): void => {
     const a = analysisWindow(data.sessions, data.planned, data.todayKey, days);
     root.innerHTML = `
-      ${wellness ? wellnessHtml(wellness) : ''}
       <div class="plan-chip-row analysis-chips" role="tablist" aria-label="Ventana de análisis">
         ${ANALYSIS_WINDOWS.map((wd) => `<button type="button" role="tab" class="plan-chip${wd.days === days ? ' on' : ''}" aria-selected="${wd.days === days}" data-days="${wd.days}">${wd.label}</button>`).join('')}
       </div>
@@ -375,10 +338,4 @@ export function renderAnalysisPanel(root: HTMLElement, data: AnalysisData): { se
     if (decCanvas) drawDecoupling(decCanvas, a.decoupling);
   };
   paint();
-  return {
-    setWellness(w) {
-      wellness = w;
-      paint();
-    },
-  };
 }

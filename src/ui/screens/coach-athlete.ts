@@ -10,9 +10,6 @@ import { COMPLETION_LABELS, NON_BIKE_KIND_LABELS, isNonBikeKind } from '../../co
 import { defaultReviewMonth, monthLabel } from '../../core/monthly-report';
 import { listAthleteSessions, listAthleteStateSessions, listCoachAthletes } from '../../sync/coach-athletes';
 import { renderAnalysisPanel } from '../analysis-panel';
-import { addDays } from '../../engine/athlete-state';
-import { wellnessSummary } from '../../engine/wellness';
-import { fetchWellnessDays, WELLNESS_DAYS } from '../../sync/wellness-sync';
 import { NOTES_MAX_CHARS, fetchAthleteNotes, saveNotesAsCoach } from '../../sync/athlete-notes';
 import type { AthleteNotes } from '../../sync/athlete-notes';
 import { stateSessionFromCloud } from '../athlete-state-data';
@@ -269,16 +266,12 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
 
       const analysisRoot = container.querySelector<HTMLElement>('#coach-analysis');
       if (analysisRoot) {
-        const panel = renderAnalysisPanel(analysisRoot, {
+        renderAnalysisPanel(analysisRoot, {
           sessions: stateRows.map(stateSessionFromCloud),
           planned: [], // el plan agendado del atleta no se lee aquí: va sin cumplimiento
           todayKey,
           ftp: athlete.ftp ?? 0,
           storageKey: 'torq.coachAnalysisDays',
-        });
-        void fetchWellnessDays(athleteId, addDays(todayKey, -(WELLNESS_DAYS - 1))).then((d) => {
-          const w = wellnessSummary(d, todayKey);
-          if (w) panel.setWellness(w);
         });
       }
 

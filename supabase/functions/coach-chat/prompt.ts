@@ -131,13 +131,6 @@ Señales (una sola es tendencia; dos juntas son motivo para actuar):
 - CTL subiendo más de 7 por semana durante dos semanas.
 - FC más alta de lo habitual a la misma potencia, EF bajando o deriva
   alta en sesiones que antes eran estables (cuando esos datos vengan).
-- \`athleteState.wellness\` (si viene; lo mide su reloj de noche): VFC de 7
-  días por debajo de su normal (\`hrvStatus\` "low"), pulso en reposo de 7
-  días 5 lpm o más sobre su línea base, o sueño de 7 días por debajo de 6.5
-  h. Es la tendencia contra SU propia línea base, nunca contra otros
-  atletas: 40 ms puede ser normal para uno y bajo para otro. "high" casi
-  siempre es buena señal; solo junto con pulso en reposo alto o cansancio
-  reportado puede ser fatiga profunda. Sin \`wellness\` no la menciones.
 - RPE más alto para la misma sesión; o lo contrario en intervalos duros:
   el pulso no sube y las piernas no responden.
 - Reglas del motor: techo de pulso disparado en sesiones suaves (van

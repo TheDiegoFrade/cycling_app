@@ -7,7 +7,6 @@
 // Formato compacto a propósito (~460 tokens, ver
 // coach-lab/fase-3-propuesta.md). Lógica pura.
 import type { CurveKey, PeakQuality, SessionMetrics } from './session-metrics';
-import type { WellnessSummary } from './wellness';
 
 export interface StateSession {
   dateKey: string; // YYYY-MM-DD
@@ -54,9 +53,6 @@ export interface AthleteState {
   /** El hueco más reciente de 7 días o más sin entrenar, en los últimos 180. */
   lastGap: { days: number; endedOn: string } | null;
   windows: { d7: WindowState; d28: WindowState; d90: WindowState; d180: WindowState };
-  /** VFC de reposo, pulso en reposo y sueño (engine/wellness.ts). Lo agrega
-   * quien arma el contexto si el atleta conectó intervals.icu. */
-  wellness?: WellnessSummary | null;
 }
 
 export const PEAK_KEYS = ['s30', 'm1', 'm5', 'm8', 'm20', 'm60'] as const;
