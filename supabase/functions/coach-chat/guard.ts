@@ -116,6 +116,8 @@ interface WeekOpts {
   hoursPerWeek?: number;
   /** Hoy (YYYY-MM-DD): lo anterior ya pasó y no se agenda. */
   today?: string;
+  minor?: boolean;
+  minorMaxWeekMin?: number;
 }
 
 function weekOpts(mode: Mode, ctx: Any): WeekOpts {
@@ -127,6 +129,8 @@ function weekOpts(mode: Mode, ctx: Any): WeekOpts {
       occupied: new Set(ctx.occupiedDates ?? []),
       hoursPerWeek: ctx.availability?.hoursPerWeek,
       today: ctx.today,
+      minor: isMinor(ctx),
+      minorMaxWeekMin: minorMaxWeekMin(ctx),
     };
   }
   return {
@@ -135,6 +139,8 @@ function weekOpts(mode: Mode, ctx: Any): WeekOpts {
     days: ctx.plan?.days?.length ? ctx.plan.days : undefined,
     occupied: new Set(ctx.occupiedDates ?? []),
     today: ctx.today,
+    minor: isMinor(ctx),
+    minorMaxWeekMin: minorMaxWeekMin(ctx),
   };
 }
 
@@ -152,6 +158,22 @@ function dayUsable(day: string, wi: number, o: WeekOpts): boolean {
 }
 
 const ftpUnknown = (ctx: Any) => ctx.profile && ctx.profile.ftp === null;
+const isMinor = (ctx: Any) => typeof ctx.profile?.ageYears === 'number' && ctx.profile.ageYears < 18;
+/** Menores: rodillo entre semana de 75 min como máximo, 10 h por semana
+ * (7 h el primer año) y nada de tests máximos (prompt.ts, "Por edad"). */
+const MINOR_WEEKDAY_CAP_MIN = 75;
+const minorMaxWeekMin = (ctx: Any) => ((ctx.yearsRiding ?? ctx.plan?.yearsRiding ?? 1) < 1 ? 420 : 600);
+/** Al crear el plan la cadencia todavía no se conoce: nada de pedir 85+ rpm
+ * a quien no entrena con estructura (prompt.ts, "Cadencia"). */
+const START_MAX_CADENCE_MIN = 70;
+const TIRED_RE = /cansad|agotad|reventad|muy pesad|se me hizo pesad|duermo mal|dormí mal|sin piernas|piernas cargad|fatiga/i;
+/** Jerga interna que no debe llegar al atleta (el reasoning va al correo). */
+const INTERNAL_RE = /weekIndex|\bnotesDue\b|en el contexto|no viene en el contexto|reglas del motor/i;
+/** Siglas que el atleta no tiene por qué conocer (el reasoning va al correo). */
+const ACRONYM_RE = /\b(TSS|TSB|CTL|ATL)\b/;
+/** Objetivo sin meta de rendimiento: nada de tests (prompt.ts, "Fitness, salud o desestrés"). */
+const NO_PERFORMANCE_RE = /sin meta de rendimiento|sin rendimiento|no busco rendimiento|desestr|solo por salud|por salud y ya/i;
+const noPerformance = (ctx: Any) => NO_PERFORMANCE_RE.test(`${ctx.goal ?? ''} ${ctx.plan?.goal ?? ''}`);
 
 function checkAbsorption(f: Finding[], workouts: Any[], why: string) {
   for (const w of workouts) {
@@ -191,10 +213,29 @@ export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes:
     const kept: Any[] = [];
     for (const raw of week.workouts) {
       let w: Any = raw;
-      // Tope de minutos por sesión.
-      const capped = fitToCap(w as PlannedWorkout, o.cap);
-      if (capped.trimmedS > 0) fixes.push(`S${wi + 1} «${w.name}»: recortado ${Math.round(capped.trimmedS / 60)} min para caber en ${o.cap}`);
+      // Tope de minutos por sesión (menores: 60 entre semana).
+      const cap = isMinor(ctx) && DAY_OFFSET[w.dayOfWeek] < 5 ? Math.min(o.cap, MINOR_WEEKDAY_CAP_MIN) : o.cap;
+      const capped = fitToCap(w as PlannedWorkout, cap);
+      if (capped.trimmedS > 0) fixes.push(`S${wi + 1} «${w.name}»: recortado ${Math.round(capped.trimmedS / 60)} min para caber en ${cap}`);
       w = capped.workout;
+      // Al crear el plan, la cadencia de quien no entrena con estructura no se conoce todavía.
+      if (mode === 'create_plan' && ctx.experienceLevel !== 'experienced' && !isTest(w)) {
+        const tooHigh = w.segments.some((seg: Segment & { steps: Any[] }) => seg.steps.some((st: Any) => (st.cadence_min ?? 0) > START_MAX_CADENCE_MIN));
+        if (tooHigh) {
+          w = {
+            ...w,
+            segments: w.segments.map((seg: Segment & { steps: Any[] }) => ({
+              ...seg,
+              steps: seg.steps.map((st: Any) => {
+                if ((st.cadence_min ?? 0) <= START_MAX_CADENCE_MIN) return st;
+                const { cadence_max: _max, ...rest } = st;
+                return { ...rest, cadence_min: START_MAX_CADENCE_MIN };
+              }),
+            })),
+          };
+          fixes.push(`S${wi + 1} «${w.name}»: cadencia mínima bajada a ${START_MAX_CADENCE_MIN} rpm (todavía no se conoce su cadencia)`);
+        }
+      }
       // Sin FTP medido, nada que no sea test llega a umbral.
       if (ftpUnknown(ctx) && !isTest(w) && maxPct(flat(w.segments)) >= 95) {
         const top = maxPct(flat(w.segments));
@@ -274,6 +315,12 @@ function checkPlannedWeeks(f: Finding[], weeks: { workouts: Any[] }[], o: WeekOp
         if (misleadingName(w.name, steps)) f.push({ level: 'fail', msg: `${tag}: se llama como sesión suave pero trae trabajo duro (hasta ${maxPct(steps)} % FTP)` });
       }
     }
+    if (o.minor && o.minorMaxWeekMin && weekMin > o.minorMaxWeekMin) {
+      f.push({ level: 'fail', msg: `S${wi + 1}: ${(weekMin / 60).toFixed(1)} h; para este menor de 18 el máximo son ${o.minorMaxWeekMin / 60} h por semana` });
+    }
+    if (o.minor && week.workouts.some((w) => isTest(w))) {
+      f.push({ level: 'fail', msg: `S${wi + 1}: un menor de 18 no hace tests máximos (ni rampa ni 20 min): entrena por RPE` });
+    }
     if (o.hoursPerWeek && weekMin > o.hoursPerWeek * 60 * 1.1) {
       f.push({ level: 'warn', msg: `S${wi + 1}: ${(weekMin / 60).toFixed(1)} h, más que las ${o.hoursPerWeek} h disponibles` });
     }
@@ -293,7 +340,8 @@ function checkNoFtp(f: Finding[], ctx: Any, out: Any, weeks: { workouts: Any[] }
       if (top >= 95) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % FTP sin FTP medido` });
     }
   }
-  if (!out.nextTest) f.push({ level: 'fail', msg: 'sin FTP medido y nextTest es null: tienes que decir cuándo se mide' });
+  if (out.nextTest && isMinor(ctx)) f.push({ level: 'fail', msg: 'un menor de 18 no hace tests máximos: nextTest va null' });
+  if (!out.nextTest && !noPerformance(ctx) && !isMinor(ctx)) f.push({ level: 'fail', msg: 'sin FTP medido y nextTest es null: tienes que decir cuándo se mide' });
 }
 
 /** Sin FTP medido, nada que no sea test llega a 88 % antes del primer test
@@ -307,6 +355,12 @@ function checkNothingHardBeforeTest(f: Finding[], weeks: { workouts: Any[] }[]) 
       if (top >= 88) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % antes del test, sin FTP medido (todo por sensación hasta medirlo)` });
     }
   }
+}
+
+function checkNoPerformance(f: Finding[], ctx: Any, out: Any, weeks: { workouts: Any[] }[]) {
+  if (!noPerformance(ctx)) return;
+  if (out.nextTest) f.push({ level: 'fail', msg: 'el atleta dijo que no busca rendimiento: nextTest va null (sin tests salvo que los pida)' });
+  for (const [wi, week] of weeks.entries()) for (const w of week.workouts) if (isTest(w)) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: es un test y el atleta no busca rendimiento` });
 }
 
 function checkCreatePlan(ctx: Any, out: Any): Finding[] {
@@ -326,6 +380,7 @@ function checkCreatePlan(ctx: Any, out: Any): Finding[] {
       }
   }
   checkNoFtp(f, ctx, out, weeks);
+  checkNoPerformance(f, ctx, out, weeks);
   if (ftpUnknown(ctx)) {
     if (out.suggestedFtp != null) f.push({ level: 'warn', msg: `sin FTP medido y suggestedFtp = ${out.suggestedFtp}: el número sale del test, no se estima` });
     if (!weeks.flatMap((w) => w.workouts).some(isTest) && !novice) f.push({ level: 'warn', msg: 'sin FTP y no aparece ningún test en las semanas concretadas' });
@@ -350,6 +405,20 @@ function checkWeeklyEval(ctx: Any, out: Any): Finding[] {
   const wk = ctx.weekJustFinished;
   const tired = tsb <= -30 || (wk.missedWorkouts >= 2 && /cansad|reventad|agotad|dorm|enferm/i.test(wk.athleteNote ?? ''));
   if (tired && out.decision === 'progress') f.push({ level: 'fail', msg: `decision=progress con TSB ${tsb} o fatiga reportada` });
+  // Lo que el atleta dice manda sobre un TSB positivo: si dice que está
+  // cansado, la semana nueva no sube (prompt.ts, "Si el atleta dice que está cansado").
+  const saysTired = TIRED_RE.test(wk.athleteNote ?? '');
+  const newTss = out.nextWeekWorkouts.reduce((s: number, x: Any) => s + x.targetTSS, 0);
+  if (saysTired && out.decision === 'progress') f.push({ level: 'fail', msg: 'el atleta dice que está cansado y la decisión es progress' });
+  if ((saysTired || out.decision !== 'progress') && wk.plannedTSS >= 100 && newTss > wk.plannedTSS * 1.1) {
+    f.push({ level: 'fail', msg: `decision=${out.decision}${saysTired ? ' y el atleta reporta cansancio' : ''}, pero la semana nueva sube el TSS de ${wk.plannedTSS} a ${newTss}: no subas carga` });
+  }
+  for (const [field, text] of [['reasoning', out.reasoning], ['recurringPatternFlag', out.recurringPatternFlag], ['contradictionFlag', out.contradictionFlag]] as const) {
+    if (typeof text === 'string' && INTERNAL_RE.test(text)) f.push({ level: 'fail', msg: `${field} le habla al atleta con jerga interna («${text.match(INTERNAL_RE)![0]}»): escríbelo para el atleta` });
+  }
+  if (typeof out.recurringPatternFlag === 'string' && !ctx.recentWeeksSummary && !ctx.removedBefore && !ctx.recentGapPattern) {
+    f.push({ level: 'fail', msg: 'recurringPatternFlag afirma un patrón, pero el contexto no trae semanas anteriores (recentWeeksSummary, removedBefore ni recentGapPattern): con una sola semana no hay patrón' });
+  }
   if (tired && out.decision === 'maintain') f.push({ level: 'warn', msg: `decision=maintain con TSB ${tsb} o fatiga reportada` });
   const adherence = wk.plannedTSS ? wk.actualTSS / wk.plannedTSS : 1;
   if (!tired && tsb > -15 && adherence >= 0.9 && ['reduce', 'insert_recovery'].includes(out.decision)) {
@@ -362,11 +431,13 @@ function checkWeeklyEval(ctx: Any, out: Any): Finding[] {
   }
   checkPlannedWeeks(f, [{ workouts: out.nextWeekWorkouts }], weekOpts('weekly_eval', ctx));
   checkNoFtp(f, ctx, out, [{ workouts: out.nextWeekWorkouts }]);
+  checkNoPerformance(f, ctx, out, [{ workouts: out.nextWeekWorkouts }]);
+  if (ACRONYM_RE.test(out.reasoning)) f.push({ level: 'fail', msg: `reasoning usa «${out.reasoning.match(ACRONYM_RE)![0]}»: le llega al atleta por correo; dilo con palabras (carga de la semana, frescura) sin siglas` });
   const prev = ctx.plan?.nextTest;
   if (prev && out.nextTest && prev.weekIndex !== out.nextTest.weekIndex && !/test|rampa/i.test(out.reasoning)) {
     f.push({ level: 'warn', msg: `movió el test de S${prev.weekIndex + 1} a S${out.nextTest.weekIndex + 1} sin explicarlo en reasoning` });
   }
-  const tss = out.nextWeekWorkouts.reduce((s: number, x: Any) => s + x.targetTSS, 0);
+  const tss = newTss;
   if (!ctx.notesDue && out.notesUpdate) f.push({ level: 'warn', msg: 'propuso notesUpdate sin notesDue: el servidor lo ignora' });
   if (out.notesUpdate && ctx.athleteNotesBy === 'coach' && ctx.athleteNotes && !out.notesUpdate.includes(ctx.athleteNotes.trim())) {
     f.push({ level: 'warn', msg: 'notesUpdate borró o cambió lo que escribió el coach (el servidor lo rechaza)' });
