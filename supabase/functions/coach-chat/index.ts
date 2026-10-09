@@ -30,6 +30,7 @@ import { acceptAiNotes, notesDueOnWeeklyEval, type StoredNotes } from './notes.t
 import { callRow, logCalls, type CallRow, type CallStep, type UsageLike } from './usage-log.ts';
 import { correctionMessage, guardOutput } from './guard.ts';
 import { SONNET, plannerFor, type ModelChoice } from './routing.ts';
+import { sendCoachEmail } from './coach-email.ts';
 
 type AdminClient = ReturnType<typeof createClient>;
 
@@ -281,6 +282,18 @@ Deno.serve(async (req) => {
     if (body.mode === 'create_plan') await logPlanAction(admin, userId, 'create');
     if (body.mode === 'weekly_eval') await logPlanAction(admin, userId, 'weekly_eval');
 
+    // Correo al atleta (coach-email.ts), solo sin coach humano: con coach, lo
+    // que acaba de salir es un borrador que el atleta todavía no ve. Va en
+    // segundo plano: la respuesta no espera a Resend ni al PDF.
+    if ((body.mode === 'create_plan' || body.mode === 'weekly_eval') && !(result as { sentToCoach?: boolean }).sentToCoach) {
+      const job = emailAthlete(admin, userId, body.mode, context, parseResult.data, result as Record<string, unknown>).catch((err) =>
+        console.log(`[coach-chat] correo de ${body.mode} falló: ${err instanceof Error ? err.message : String(err)}`),
+      );
+      const runtime = (globalThis as { EdgeRuntime?: { waitUntil(p: Promise<unknown>): void } }).EdgeRuntime;
+      if (runtime) runtime.waitUntil(job);
+      else await job;
+    }
+
     return json({ result });
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : String(err) }, 400);
@@ -459,6 +472,37 @@ async function materializeWeek(
 }
 
 /** Coach humano con vínculo activo de este atleta, o null. */
+/** Arma y manda el correo de create_plan / weekly_eval (ver coach-email.ts). */
+async function emailAthlete(
+  admin: AdminClient,
+  userId: string,
+  mode: 'create_plan' | 'weekly_eval',
+  context: Record<string, unknown>,
+  planned: Record<string, unknown>,
+  result: Record<string, unknown>,
+): Promise<void> {
+  const [{ data: user }, { data: plan }] = await Promise.all([
+    admin.auth.admin.getUserById(userId),
+    admin.from('training_plans').select('data').eq('user_id', userId).eq('status', 'active').maybeSingle(),
+  ]);
+  const athleteEmail = user?.user?.email;
+  const startDate = (plan as { data?: { startDate?: string } } | null)?.data?.startDate;
+  if (!athleteEmail || !startDate) {
+    console.log(`[coach-chat] correo de ${mode} omitido: ${athleteEmail ? 'sin plan activo' : 'el atleta no tiene correo'}`);
+    return;
+  }
+  await sendCoachEmail({
+    mode,
+    athleteEmail,
+    athleteName: ((context.profile as { name?: string | null } | undefined)?.name ?? null) || null,
+    context,
+    planned,
+    result,
+    startDate,
+    dateOf: (weekIndex, day) => dateForWeek(startDate, weekIndex, day),
+  });
+}
+
 async function activeCoachOf(admin: AdminClient, athleteId: string): Promise<string | null> {
   const { data } = await admin.from('coach_athletes').select('coach_id').eq('athlete_id', athleteId).eq('status', 'active').maybeSingle();
   return (data?.coach_id as string | undefined) ?? null;

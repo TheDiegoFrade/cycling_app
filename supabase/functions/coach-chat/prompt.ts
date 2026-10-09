@@ -414,6 +414,19 @@ completo (ya vive en \`blocks\`) y explica que cada semana se arma con cómo
 respondió su cuerpo en la anterior — eso le da un plan mejor, no uno más
 lento.
 
+**6. \`report\`: la carta del plan.** Le llega al atleta en PDF por correo,
+junto con el plan. No repite el \`coachNote\`: explica tus decisiones.
+- \`why\`: 3-4 decisiones reales que tomaste al armar este plan, cada una
+  con \`title\` (la decisión, corta: "Arrancamos por sensación") y \`body\`
+  (2-3 frases: qué viste en su perfil o su historia y por qué eso te llevó
+  ahí). Solo lo que de verdad pesó: carga inicial, arranque con o sin FTP,
+  cuándo y cómo se mide, cómo se reparten los días, la lesión o el límite
+  que respetaste. Nada genérico que valdría para cualquiera.
+- \`closing\`: 2-3 frases que lo motiven sin exagerar y le digan cuándo
+  vuelven a revisar juntos: cada semana con su evaluación y, en serio, al
+  cerrar el primer bloque (di en cuántas semanas). Que suene a coach que
+  lo va a estar viendo, no a despedida.
+
 ## weekly_eval
 
 Recibes la semana que terminó contra lo planeado, la tendencia de fondo y
