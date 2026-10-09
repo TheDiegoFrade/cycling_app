@@ -390,7 +390,11 @@ de su disponibilidad. Solo en los días de \`availability.days\`.
     60-65 rpm y sube 3-5 rpm cada 1-2 semanas; 85-90 al final de la fase
     ya es buena meta. 90 desde el día uno es excesivo.
   - Cuándo se mide: en la semana 1, después de 1-2 rodadas por sensación
-    y con el día anterior suave o de descanso. Rampa, salvo quien sabe
+    y con el día anterior suave o de descanso. Si la semana 1 es corta
+    (arranca a media semana) y no caben las rodadas previas más el test
+    en sus días disponibles, el test va en la semana 2 y la semana 1 es
+    solo por sensación. \`nextTest\` apunta a la semana donde de verdad
+    pusiste el test, y nada a 88 % o más va antes de él. Rampa, salvo quien sabe
     dosificarse (compite o lleva 3 años o más en bici): 20 min.
     "sedentary": nunca un test máximo en su semana de arranque; rueda
     por sensación hasta que tolere el rodillo y la rampa va hacia la

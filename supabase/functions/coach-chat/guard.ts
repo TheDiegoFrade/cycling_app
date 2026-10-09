@@ -248,6 +248,19 @@ function checkNoFtp(f: Finding[], ctx: Any, out: Any, weeks: { workouts: Any[] }
   if (!out.nextTest) f.push({ level: 'fail', msg: 'sin FTP medido y nextTest es null: tienes que decir cuándo se mide' });
 }
 
+/** Sin FTP medido, nada que no sea test llega a 88 % antes del primer test
+ * (si no hay test en las semanas armadas, en ninguna). */
+function checkNothingHardBeforeTest(f: Finding[], weeks: { workouts: Any[] }[]) {
+  for (const [wi, week] of weeks.entries()) {
+    const ordered = [...week.workouts].sort((a, b) => DAY_OFFSET[a.dayOfWeek] - DAY_OFFSET[b.dayOfWeek]);
+    for (const w of ordered) {
+      if (isTest(w)) return;
+      const top = maxPct(flat(w.segments));
+      if (top >= 88) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % antes del test, sin FTP medido (todo por sensación hasta medirlo)` });
+    }
+  }
+}
+
 function checkCreatePlan(ctx: Any, out: Any): Finding[] {
   const f: Finding[] = [];
   const weeks = out.firstBlockWeeks as { workouts: Any[] }[];
@@ -269,9 +282,12 @@ function checkCreatePlan(ctx: Any, out: Any): Finding[] {
     if (out.suggestedFtp != null) f.push({ level: 'warn', msg: `sin FTP medido y suggestedFtp = ${out.suggestedFtp}: el número sale del test, no se estima` });
     if (!weeks.flatMap((w) => w.workouts).some(isTest) && !novice) f.push({ level: 'warn', msg: 'sin FTP y no aparece ningún test en las semanas concretadas' });
   }
+  // Falla, no aviso: si la semana del test ya está armada y no lo trae (no
+  // cupo, o repairOutput lo quitó por falta de día), el plan queda sin test.
   if (out.nextTest && out.nextTest.weekIndex < weeks.length && !weeks[out.nextTest.weekIndex].workouts.some(isTest)) {
-    f.push({ level: 'warn', msg: `nextTest cae en S${out.nextTest.weekIndex + 1}, pero esa semana no trae ningún workout de test` });
+    f.push({ level: 'fail', msg: `nextTest cae en S${out.nextTest.weekIndex + 1}, pero esa semana no trae ningún workout de test: mételo en un día disponible o mueve nextTest a la semana siguiente` });
   }
+  if (ftpUnknown(ctx)) checkNothingHardBeforeTest(f, weeks);
   const tss = weeks.map((w) => w.workouts.reduce((s: number, x: Any) => s + x.targetTSS, 0));
   for (let i = 1; i < tss.length; i++) {
     if (tss[i] > tss[i - 1] * 1.2) f.push({ level: 'warn', msg: `TSS sube ${Math.round((tss[i] / tss[i - 1] - 1) * 100)} % de S${i} a S${i + 1} (${tss[i - 1]} → ${tss[i]})` });

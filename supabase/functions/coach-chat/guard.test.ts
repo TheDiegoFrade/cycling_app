@@ -89,6 +89,29 @@ describe('reviewOutput / guardOutput', () => {
   });
 });
 
+describe('create_plan sin FTP: el test', () => {
+  const ctx = { startDate: '2026-10-12', availability: { days: ['mon', 'wed', 'sat'], maxSessionMinutes: 90 }, occupiedDates: [], profile: { ftp: null } };
+  const ramp = { ...easy('sat'), name: 'Test de rampa', kind: 'test', segments: [{ repeat: 1, steps: [{ ...step(25, 50), ramp_to_pct: 200 }] }] };
+  const sweet = (day: string) => ({ ...easy(day), name: `Sweet spot ${day}`, segments: [{ repeat: 3, steps: [step(8, 89), step(4, 50)] }] });
+  const plan = (weeks: unknown[][]) => ({
+    blocks: [{ weeks: weeks.length }],
+    firstBlockWeeks: weeks.map((workouts, weekIndex) => ({ weekIndex, workouts })),
+    coachNote: 'Hasta el test vas por sensación y el test te da tu FTP para el perfil; desde ahí las zonas van en watts.',
+    suggestedFtp: null,
+    nextTest: { weekIndex: 0, type: 'ramp', reason: 'x' },
+  });
+  const fails = (out: unknown) => reviewOutput('create_plan', ctx, out).filter((x) => x.level === 'fail').map((x) => x.msg);
+
+  it('nextTest en una semana armada que no trae el test es falla', () => {
+    expect(fails(plan([[easy('mon'), easy('wed')], [easy('mon')]])).some((m) => m.includes('nextTest cae en S1'))).toBe(true);
+  });
+
+  it('sweet spot antes del test es falla; después, no', () => {
+    expect(fails(plan([[easy('mon'), easy('wed')], [sweet('mon')]])).some((m) => m.includes('antes del test'))).toBe(true);
+    expect(fails(plan([[easy('mon'), ramp], [sweet('mon')]]))).toEqual([]);
+  });
+});
+
 describe('TSS y suggestedFtp', () => {
   it('reemplaza el TSS del modelo por el de la estructura', () => {
     const w = { ...easy('tue', 90), targetTSS: 200 }; // 90 min al 65 %
