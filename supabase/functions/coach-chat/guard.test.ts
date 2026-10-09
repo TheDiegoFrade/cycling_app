@@ -202,10 +202,12 @@ describe('reglas v3', () => {
     expect(g.fails.some((f) => f.includes('jerga interna'))).toBe(true);
   });
 
-  it('un menor no pasa de 60 min entre semana ni de 10 h', () => {
+  it('un menor no pasa de 75 min entre semana ni hace tests', () => {
     const ctx = weeklyCtx({ profile: { ftp: 200, ageYears: 15 } });
     const { out, fixes } = repairOutput('weekly_eval', ctx, weeklyOut([easy('tue', 90), easy('sat', 90)]));
-    expect(out.nextWeekWorkouts[0].segments[0].steps[0].duration_s).toBeLessThanOrEqual(60 * 60);
+    expect(out.nextWeekWorkouts[0].segments[0].steps[0].duration_s).toBeLessThanOrEqual(75 * 60);
+    const test = { ...easy('thu', 40), name: 'Test de rampa', kind: 'test' };
+    expect(guardOutput('weekly_eval', ctx, weeklyOut([easy('tue', 60), test])).fails.some((f) => f.includes('no hace tests'))).toBe(true);
     expect(out.nextWeekWorkouts[1].segments[0].steps[0].duration_s).toBe(90 * 60); // sábado no
     expect(fixes.some((f: string) => f.includes('recortado'))).toBe(true);
   });

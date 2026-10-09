@@ -117,6 +117,7 @@ interface WeekOpts {
   /** Hoy (YYYY-MM-DD): lo anterior ya pasó y no se agenda. */
   today?: string;
   minor?: boolean;
+  minorMaxWeekMin?: number;
 }
 
 function weekOpts(mode: Mode, ctx: Any): WeekOpts {
@@ -129,6 +130,7 @@ function weekOpts(mode: Mode, ctx: Any): WeekOpts {
       hoursPerWeek: ctx.availability?.hoursPerWeek,
       today: ctx.today,
       minor: isMinor(ctx),
+      minorMaxWeekMin: minorMaxWeekMin(ctx),
     };
   }
   return {
@@ -138,6 +140,7 @@ function weekOpts(mode: Mode, ctx: Any): WeekOpts {
     occupied: new Set(ctx.occupiedDates ?? []),
     today: ctx.today,
     minor: isMinor(ctx),
+    minorMaxWeekMin: minorMaxWeekMin(ctx),
   };
 }
 
@@ -156,9 +159,10 @@ function dayUsable(day: string, wi: number, o: WeekOpts): boolean {
 
 const ftpUnknown = (ctx: Any) => ctx.profile && ctx.profile.ftp === null;
 const isMinor = (ctx: Any) => typeof ctx.profile?.ageYears === 'number' && ctx.profile.ageYears < 18;
-/** Menores: rodillo entre semana de 60 min como máximo, 10 h por semana (prompt.ts, "Por edad"). */
-const MINOR_WEEKDAY_CAP_MIN = 60;
-const MINOR_MAX_WEEK_MIN = 600;
+/** Menores: rodillo entre semana de 75 min como máximo, 10 h por semana
+ * (7 h el primer año) y nada de tests máximos (prompt.ts, "Por edad"). */
+const MINOR_WEEKDAY_CAP_MIN = 75;
+const minorMaxWeekMin = (ctx: Any) => ((ctx.yearsRiding ?? ctx.plan?.yearsRiding ?? 1) < 1 ? 420 : 600);
 /** Al crear el plan la cadencia todavía no se conoce: nada de pedir 85+ rpm
  * a quien no entrena con estructura (prompt.ts, "Cadencia"). */
 const START_MAX_CADENCE_MIN = 70;
@@ -311,11 +315,11 @@ function checkPlannedWeeks(f: Finding[], weeks: { workouts: Any[] }[], o: WeekOp
         if (misleadingName(w.name, steps)) f.push({ level: 'fail', msg: `${tag}: se llama como sesión suave pero trae trabajo duro (hasta ${maxPct(steps)} % FTP)` });
       }
     }
-    if (o.minor && weekMin > MINOR_MAX_WEEK_MIN) {
-      f.push({ level: 'fail', msg: `S${wi + 1}: ${(weekMin / 60).toFixed(1)} h; para un menor de 18 el máximo son ${MINOR_MAX_WEEK_MIN / 60} h por semana` });
+    if (o.minor && o.minorMaxWeekMin && weekMin > o.minorMaxWeekMin) {
+      f.push({ level: 'fail', msg: `S${wi + 1}: ${(weekMin / 60).toFixed(1)} h; para este menor de 18 el máximo son ${o.minorMaxWeekMin / 60} h por semana` });
     }
-    if (o.minor && week.workouts.some((w) => isTest(w) && /20/.test(w.name))) {
-      f.push({ level: 'fail', msg: `S${wi + 1}: un menor de 18 hace la rampa, no el test de 20 min` });
+    if (o.minor && week.workouts.some((w) => isTest(w))) {
+      f.push({ level: 'fail', msg: `S${wi + 1}: un menor de 18 no hace tests máximos (ni rampa ni 20 min): entrena por RPE` });
     }
     if (o.hoursPerWeek && weekMin > o.hoursPerWeek * 60 * 1.1) {
       f.push({ level: 'warn', msg: `S${wi + 1}: ${(weekMin / 60).toFixed(1)} h, más que las ${o.hoursPerWeek} h disponibles` });
@@ -336,7 +340,8 @@ function checkNoFtp(f: Finding[], ctx: Any, out: Any, weeks: { workouts: Any[] }
       if (top >= 95) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % FTP sin FTP medido` });
     }
   }
-  if (!out.nextTest && !noPerformance(ctx)) f.push({ level: 'fail', msg: 'sin FTP medido y nextTest es null: tienes que decir cuándo se mide' });
+  if (out.nextTest && isMinor(ctx)) f.push({ level: 'fail', msg: 'un menor de 18 no hace tests máximos: nextTest va null' });
+  if (!out.nextTest && !noPerformance(ctx) && !isMinor(ctx)) f.push({ level: 'fail', msg: 'sin FTP medido y nextTest es null: tienes que decir cuándo se mide' });
 }
 
 /** Sin FTP medido, nada que no sea test llega a 88 % antes del primer test
