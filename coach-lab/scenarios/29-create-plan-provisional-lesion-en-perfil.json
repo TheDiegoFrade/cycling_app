@@ -1,10 +1,10 @@
 {
   "id": "29-create-plan-provisional-lesion-en-perfil",
   "mode": "create_plan",
-  "title": "FTP provisional ya puesto, lesión de espalda en el perfil, peso y edad",
+  "title": "provisionalFtp viejo en el perfil, lesión de espalda, peso y edad",
   "expect": [
-    "Parte del provisionalFtp de 130 W (no propone otro desde cero); suggestedFtp = null o un ajuste explicado en coachNote.",
-    "Ningún step que no sea test llega a 95 % (no hay FTP medido).",
+    "No prescribe sobre el provisionalFtp de 130 W ni propone otro: hasta el test va por sensación (erg \"off\" recomendado, steps normales) y suggestedFtp = null.",
+    "Test (rampa o 20 min, lleva 6 años) en la semana 1 después de 1-2 rodadas suaves, adaptado a la espalda; ningún step que no sea test llega a 88 %.",
     "Adapta por la espalda baja del perfil: sesiones de 60 min o menos o bloques partidos con pausas, y lo dice en coachNote.",
     "Con 54 años y peso 82 kg no lo trata como novato en bici (lleva 6 años), pero sí arranca conservador.",
     "Solo martes, jueves y sábado; ninguna sesión > 75 min."

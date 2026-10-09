@@ -1,11 +1,11 @@
 {
   "id": "30-weekly-eval-provisional-con-campos-de-ftp",
   "mode": "weekly_eval",
-  "title": "Igual que el 24, pero con el perfil de FTP y el contexto del plan",
+  "title": "Igual que el 24, pero con un provisionalFtp viejo en el perfil",
   "expect": [
-    "ftpAction = \"change\" y suggestedFtp ≈ 100-105 W (sube 10-15 % el provisionalFtp de 90).",
-    "reasoning da el mismo número que suggestedFtp y explica que el provisional iba bajo a propósito.",
-    "Nada a 88 % o más ni test máximo (sigue sin FTP medido, es sedentaria en su semana 2).",
+    "No ajusta el provisionalFtp de 90 ni propone otro número: suggestedFtp = null y ftpAction = null.",
+    "reasoning explica que el número sale del test y cuándo va (hacia la semana 3-4 si cumple y llega fresca).",
+    "Nada a 88 % o más ni test máximo (sigue sin FTP medido, es sedentaria en su semana 2); todo por sensación (erg \"off\" recomendado, ERG como opción).",
     "Ninguna sesión > 60 min. Usa \"Lucía\" y femenino.",
     "Solo lunes, miércoles y sábado (plan.days); nextTest sigue sin ir null y, si lo mueve, lo explica."
   ],

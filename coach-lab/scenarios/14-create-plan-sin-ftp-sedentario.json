@@ -1,12 +1,12 @@
 {
   "id": "14-create-plan-sin-ftp-sedentario",
   "mode": "create_plan",
-  "title": "Sedentaria sin FTP: FTP provisional bajo y escalera de ajuste",
+  "title": "Sedentaria sin FTP: por sensación, sin número inventado, test hasta la semana 3-4",
   "expect": [
-    "coachNote le da un FTP provisional en watts (alrededor de 90 W; nunca los 200 W por defecto) y le pide ponerlo en su perfil antes de la primera sesión, aclarando que no es una medición.",
-    "La primera sesión es la escalera de ajuste (escalones de 4 min del 50 al 90 %, ERG on) y el intent le pide anotar hasta qué escalón llegó hablando cómodo.",
-    "En las 3 semanas ningún step llega a 88 % salvo el último escalón de la escalera; nada de over/unders ni tests máximos.",
-    "Fondo con ERG on al 55-70 % y una rodada de deriva por semana; los intent usan poder hablar como control.",
+    "coachNote no le da ningún FTP en watts: le dice que hasta el test entrena por sensación y que el test le dará su FTP para el perfil. suggestedFtp = null.",
+    "Recomienda erg \"off\" (por sensación) con steps normales y power_pct bajo, dejando ERG como opción; los intent anclan en RPE 3-4 y poder hablar en frases completas.",
+    "En las 3 semanas ningún step llega a 88 %; nada de intervalos, over/unders ni tests máximos (es sedentaria: el test no va en la semana de arranque).",
+    "nextTest = rampa hacia la semana 3-4 (weekIndex 2 o 3), con reason sobre tolerar el rodillo.",
     "Semana 1: 3 sesiones y 2-3 h en total, aunque haya 5 h disponibles.",
     "cadence_min arranca en 60-65 rpm y sube poco a poco; nunca 90 en la semana 1.",
     "Ninguna sesión pasa de 60 min.",

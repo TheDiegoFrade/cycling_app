@@ -1,10 +1,10 @@
 {
   "id": "15-create-plan-sin-ftp-con-oficio",
   "mode": "create_plan",
-  "title": "Ciclista de XCO con 7 años y sin FTP: test en la semana 1",
+  "title": "Ciclista de XCO con 7 años y sin FTP: por sensación y test en la semana 1",
   "expect": [
-    "coachNote da un FTP provisional (alrededor de 200 W) para poner en el perfil. Test en la semana 1, después de 1-2 sesiones suaves, con erg \"off\" (20 min) o \"on\" (rampa).",
-    "Ningún step ≥ 88 % antes del día del test; el día anterior al test es suave o descanso.",
+    "coachNote no da un FTP provisional: hasta el test va por sensación y el test da el punto de partida. suggestedFtp = null. Test en la semana 1, después de 1-2 rodadas por sensación, con erg \"off\" (20 min, sabe dosificarse) o \"on\" (rampa).",
+    "Antes del test, sesiones por sensación (erg \"off\" recomendado, steps normales: ERG queda como opción), ancladas en RPE; ningún step ≥ 88 % y el día anterior al test es suave o descanso.",
     "El intent del test menciona llegar descansado, cómo dosificar y la cuenta para su FTP nuevo (95 % del promedio de 20 min, o 75 % del mejor minuto en rampa), y le pide actualizar su perfil.",
     "Semana siguiente al test: umbral conservador (sweet spot o ≤ 100 %), nada de VO2 todavía.",
     "No lo trata como principiante; coachNote dice una vez que el rodillo no entrena la técnica.",

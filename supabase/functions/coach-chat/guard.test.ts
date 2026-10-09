@@ -97,12 +97,11 @@ describe('TSS y suggestedFtp', () => {
     expect(fixes[0]).toContain('TSS 200 → 63');
   });
 
-  it('sin FTP, toma el provisional del coachNote si suggestedFtp vino vacío', () => {
+  it('sin FTP, no saca un FTP del coachNote', () => {
     const ctx = { startDate: '2026-10-12', availability: { days: ['tue'], maxSessionMinutes: 90 }, occupiedDates: [], profile: { ftp: null } };
     const base = { blocks: [{ weeks: 1 }], firstBlockWeeks: [{ weekIndex: 0, workouts: [easy('tue')] }], suggestedFtp: null, nextTest: { weekIndex: 0, type: 'ramp', reason: 'x' } };
     const note = 'Tu pico de 5 min fue 300 W. Pon 200 W en tu perfil antes de empezar.';
-    expect(repairOutput('create_plan', ctx, { ...base, coachNote: note }).out.suggestedFtp).toBe(200);
-    expect(repairOutput('create_plan', ctx, { ...base, coachNote: 'Tu pico fue 300 W.' }).out.suggestedFtp).toBeNull();
+    expect(repairOutput('create_plan', ctx, { ...base, coachNote: note }).out.suggestedFtp).toBeNull();
   });
 });
 

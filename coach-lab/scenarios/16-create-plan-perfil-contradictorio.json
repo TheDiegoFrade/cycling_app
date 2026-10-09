@@ -4,9 +4,9 @@
   "title": "Perfil contradictorio: \"experienced\" con 0 años en bici y activo en otro deporte",
   "expect": [
     "coachNote señala la contradicción en una frase, sin tono de reclamo, y dice qué lectura tomó.",
-    "Arranca como nuevo en bici con buen motor: FTP provisional de alrededor de 120 W (sex es null: el valor bajo), escalera de ajuste como primera sesión y sin test máximo en la semana 1.",
-    "El primer test es una rampa (no 20 min), al final de la semana 2 o en la 3.",
-    "Nada a 95 % o más antes de la rampa.",
+    "Arranca como nuevo en bici con buen motor: sin FTP provisional ni número en watts (suggestedFtp = null), 1-2 rodadas por sensación (erg \"off\" recomendado, ERG como opción) y luego el test.",
+    "El primer test es una rampa (no 20 min) en la semana 1, con el día anterior suave o de descanso.",
+    "Nada a 88 % o más antes de la rampa.",
     "Sin adjetivos con género en coachNote ni en intent (sex es null).",
     "Semana 1 de 3-4.5 h, no las 6 h disponibles."
   ],

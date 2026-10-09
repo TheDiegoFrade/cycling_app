@@ -1,11 +1,11 @@
 {
   "id": "24-weekly-eval-calibracion-provisional-bajo",
   "mode": "weekly_eval",
-  "title": "El FTP provisional quedó bajo: subirlo",
+  "title": "Sedentaria sin FTP en su semana 2: sigue por sensación, sin ajustar números",
   "expect": [
-    "reasoning le pide subir su FTP en el perfil 10-15 % (a unos 100-105 W) y explica que el provisional iba bajo a propósito.",
-    "No programa todavía un test máximo (es sedentaria en su semana 2) ni mete trabajo a 88 % o más.",
-    "Repite la escalera de ajuste o una rodada de deriva para confirmar el nuevo número.",
+    "No le pide cambiar su FTP ni propone un número: sin test no hay FTP nuevo. suggestedFtp = null y ftpAction = null.",
+    "No programa todavía un test máximo (es sedentaria en su semana 2) ni mete trabajo a 88 % o más; dice cuándo se mediría (semana 3-4 si cumple y llega fresca).",
+    "La semana sigue por sensación: erg \"off\" recomendado con steps normales (ERG como opción), RPE 3-4 como control, con una rodada de deriva.",
     "decision = progress o maintain; el TSB −9 con CTL 3 no se trata como fatiga (es el arranque).",
     "Ninguna sesión > 60 min. Usa \"Lucía\" y femenino."
   ],

@@ -197,21 +197,6 @@ export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes:
   });
   setWeeks(mode, fixed, weeks);
 
-  // Sin FTP medido el coachNote dice "pon 200 W en tu perfil", pero si
-  // suggestedFtp quedó en null la app no muestra el botón para ponerlo.
-  if (mode === 'create_plan' && ftpUnknown(ctx) && fixed.suggestedFtp == null) {
-    // Solo de la frase que habla del perfil o del provisional: el texto puede
-    // citar otros watts (un pico, una zona) antes.
-    const sentence = String(fixed.coachNote ?? '')
-      .split(/(?<=[.!?])\s+/)
-      .find((x) => /perfil|provisional/i.test(x) && /\d{2,3}\s*(?:W|watts?|vatios)\b/i.test(x));
-    const m = sentence ? /(\d{2,3})\s*(?:W|watts?|vatios)\b/i.exec(sentence) : null;
-    const watts = m ? Number(m[1]) : NaN;
-    if (watts >= 50 && watts <= 500) {
-      fixed.suggestedFtp = watts;
-      fixes.push(`suggestedFtp vacío: se toma ${watts} W del coachNote`);
-    }
-  }
   return { out: fixed, fixes };
 }
 
@@ -281,7 +266,7 @@ function checkCreatePlan(ctx: Any, out: Any): Finding[] {
   }
   checkNoFtp(f, ctx, out, weeks);
   if (ftpUnknown(ctx)) {
-    if (!/\d+\s*(W|watts?|vatios)\b/i.test(out.coachNote)) f.push({ level: 'warn', msg: 'sin FTP y coachNote no trae un número en watts (FTP provisional)' });
+    if (out.suggestedFtp != null) f.push({ level: 'warn', msg: `sin FTP medido y suggestedFtp = ${out.suggestedFtp}: el número sale del test, no se estima` });
     if (!weeks.flatMap((w) => w.workouts).some(isTest) && !novice) f.push({ level: 'warn', msg: 'sin FTP y no aparece ningún test en las semanas concretadas' });
   }
   if (out.nextTest && out.nextTest.weekIndex < weeks.length && !weeks[out.nextTest.weekIndex].workouts.some(isTest)) {
