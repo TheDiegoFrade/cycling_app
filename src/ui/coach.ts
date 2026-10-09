@@ -26,6 +26,7 @@ import type { AthleteState } from '../engine/athlete-state';
 import { stateSessionFromCloud, stateSessionFromLocal } from './athlete-state-data';
 import type { WorkoutZone } from '../core/workout-zone';
 import type { CoachPlanContext, PlannedTest, StoredPlanData } from '../core/plan-context';
+import type { RemovedWorkout } from '../sync/plan-removals';
 
 const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'M', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
 const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
@@ -105,6 +106,8 @@ interface ActivePlanRow {
     // Lo último que dijo el coach en una weekly_eval — sin esto se perdía
     // apenas se recargaba la página (ver applyModeEffects en coach-chat).
     lastEvalNote?: string;
+    // Sesiones que el atleta quitó del plan, con su motivo (plan-remove-workout).
+    removedWorkouts?: RemovedWorkout[];
     // El tope que el atleta puso al crear el plan (ej. "máximo 60 min") —
     // se guarda acá para que weekly_eval lo siga respetando después.
     maxSessionMinutes?: number | null;
@@ -781,6 +784,16 @@ async function computeWeekEvalContext(
 
   const weekSummaries = weeks.map(summarizeWeek);
   const lastWeek = weekSummaries[weekSummaries.length - 1];
+  // Lo que el atleta quitó del plan: esa semana con detalle, las anteriores solo el motivo.
+  const removed = plan.data.removedWorkouts ?? [];
+  const removedThisWeek = removed
+    .filter((r) => r.weekIndex === lastWeek.weekIndex)
+    .slice(-14)
+    .map((r) => ({ name: r.name, date: r.date, plannedTSS: r.plannedTss, reason: r.reason, note: r.note }));
+  const removedBefore = removed
+    .filter((r) => r.weekIndex < lastWeek.weekIndex && lastWeek.weekIndex - r.weekIndex <= 4)
+    .slice(-40)
+    .map((r) => ({ weeksAgo: lastWeek.weekIndex - r.weekIndex, reason: r.reason }));
   const [lastStartKey, lastEndKey] = weekDateRange(lastWeek.weekIndex);
   const inLastWeek = (dateKey: string) => dateKey >= lastStartKey && dateKey <= lastEndKey;
 
@@ -829,7 +842,9 @@ async function computeWeekEvalContext(
       ruleTriggers: ruleTriggersOf(localSessions.filter((s) => inLastWeek(s.startedAt.slice(0, 10))).flatMap((s) => s.alerts)),
       athleteNote,
       workouts: weekWorkoutRows(weeks[weeks.length - 1]),
+      ...(removedThisWeek.length ? { removedWorkouts: removedThisWeek } : {}),
     },
+    ...(removedBefore.length ? { removedBefore } : {}),
     pmcTrend: {
       ctl: Math.round(latest.ctl * 10) / 10,
       atl: Math.round(latest.atl * 10) / 10,

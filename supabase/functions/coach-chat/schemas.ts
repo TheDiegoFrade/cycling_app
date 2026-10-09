@@ -234,6 +234,16 @@ export const CreatePlanOutputSchema = z.object({
   }),
 });
 
+// Sesión que el atleta quitó del plan (supabase/functions/plan-remove-workout).
+const RemovedReasonSchema = z.enum(['time', 'fatigue', 'pain', 'other']);
+const RemovedWorkoutSchema = z.object({
+  name: z.string().max(120),
+  date: z.string().nullable(),
+  plannedTSS: z.number().nonnegative().nullable(),
+  reason: RemovedReasonSchema,
+  note: z.string().max(200).nullable(),
+});
+
 // Forma esperada de `context` para weekly_eval. `pmcTrend` y
 // `recentGapPattern` vienen del historial COMPLETO del atleta, no solo de
 // las semanas que lleva este plan — una evaluación semanal que solo ve lo
@@ -259,6 +269,9 @@ export const WeeklyEvalInputContextSchema = z.object({
   lastTest: LastTestSchema,
   athleteState: AthleteStateSchema,
   weekJustFinished: z.object({
+    // Sesiones que el atleta quitó del plan esa semana, con su motivo
+    // (plan-remove-workout): ya no cuentan en plannedTSS ni como faltas.
+    removedWorkouts: z.array(RemovedWorkoutSchema).max(14).optional(),
     plannedTSS: z.number().nonnegative(),
     actualTSS: z.number().nonnegative(),
     completedWorkouts: z.number().int().nonnegative(),
@@ -297,6 +310,8 @@ export const WeeklyEvalInputContextSchema = z.object({
   // comprimida, esto da la trayectoria real planeado-vs-logrado semana a
   // semana, para que la decisión no se base solo en un número agregado.
   // null si esta es la primera semana evaluada (nada antes que resumir).
+  // Quitadas en las semanas anteriores del plan (solo motivo), para ver si se repite.
+  removedBefore: z.array(z.object({ weeksAgo: z.number().int().positive(), reason: RemovedReasonSchema })).max(40).optional(),
   recentWeeksSummary: z
     .array(
       z.object({

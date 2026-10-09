@@ -15,6 +15,7 @@ import type { AthleteNotes } from '../../sync/athlete-notes';
 import { stateSessionFromCloud } from '../athlete-state-data';
 import { fetchCoachReview } from '../../sync/monthly-reviews';
 import { fetchCoachEmails, sendCoachEmail, type CoachEmailItem } from '../../sync/coach-emails';
+import { listAthleteRemovals, removalReasonLabel } from '../../sync/plan-removals';
 import { EMAIL_MAX_SENDS, emailButtonHtml, emailPanelHtml, newEmailApproval, wireEmailApproval } from '../email-approval';
 import type { CoachAthlete } from '../../sync/coach-athletes';
 import {
@@ -210,6 +211,7 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
         </section>
 
         <div id="coach-emails"></div>
+        <div id="coach-removals"></div>
 
         <section class="panel coach-card" aria-label="Fitness y fatiga">
           <div class="coach-card-head">
@@ -253,6 +255,7 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
         </section>`);
 
       void mountCoachEmails(container.querySelector<HTMLElement>('#coach-emails')!, athleteId);
+      void mountRemovals(container.querySelector<HTMLElement>('#coach-removals')!, athleteId);
 
       container.querySelector('#coach-notes-save')?.addEventListener('click', async (e) => {
         const btn = e.currentTarget as HTMLButtonElement;
@@ -355,4 +358,27 @@ async function mountCoachEmails(host: HTMLElement, athleteId: string): Promise<v
     }
   };
   render();
+}
+
+/** Sesiones que el atleta quitó de su plan, con su motivo. Solo aparece si hay. */
+async function mountRemovals(host: HTMLElement, athleteId: string): Promise<void> {
+  let removed;
+  try {
+    removed = await listAthleteRemovals(athleteId);
+  } catch {
+    return; // sin la función desplegada o sin plan: la tarjeta no aparece
+  }
+  if (!removed.length) return;
+  host.innerHTML = `<section class="panel coach-card" aria-label="Sesiones que quitó">
+    <div class="coach-card-head"><h2 class="perfil-h2" style="margin:0">Sesiones que quitó de su plan</h2></div>
+    <span class="hint">No cuentan como faltas: la IA las toma en cuenta con su motivo al armar la siguiente semana.</span>
+    <ul style="margin:8px 0 0;padding-left:18px">${removed
+      .map(
+        (r) =>
+          `<li style="margin-bottom:6px"><strong>${escapeHtml(r.name)}</strong>${r.date ? ` · ${new Date(`${r.date}T00:00:00`).toLocaleDateString('es-MX', SHORT_DATE)}` : ''} · ${escapeHtml(removalReasonLabel(r.reason))}${
+            r.note ? `<br><span class="hint">“${escapeHtml(r.note)}”</span>` : ''
+          }</li>`,
+      )
+      .join('')}</ul>
+  </section>`;
 }
