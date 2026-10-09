@@ -25,6 +25,20 @@ const SegmentSchema = z.object({
   steps: z.array(IntervalSchema).min(1).max(8),
 });
 
+// Otras actividades además de la bici (correr, gym, crossfit…): mismas
+// claves que src/core/session-kind.ts (NonBikeKind) y que sessions.kind.
+const NonBikeKindSchema = z.enum(['strength', 'mobility', 'flexibility', 'running', 'crossfit', 'swimming', 'other']);
+const DayCodeSchema = z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
+
+/** Lo que el atleta declaró en el cuestionario (src/core/other-activities.ts). */
+const OtherActivitySchema = z.object({
+  kind: NonBikeKindSchema,
+  name: z.string().max(60).nullable().optional(),
+  perWeek: z.number().int().min(1).max(7),
+  minutes: z.number().min(10).max(300),
+  days: z.array(DayCodeSchema).max(7),
+});
+
 const PlannedWorkoutSchema = z.object({
   name: z.string(),
   dayOfWeek: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
@@ -71,6 +85,8 @@ const ProfileExtrasSchema = {
   // ("no lo sé") en vez de como verdad; el Perfil ya no deja guardarlo.
   weightKg: z.number().nullable().optional().transform((v) => (v == null ? v : v >= 30 && v <= 200 ? v : null)),
   ageYears: z.number().int().nullable().optional().transform((v) => (v == null ? v : v >= 8 && v <= 100 ? v : null)),
+  // Lo que hace además de la bici; [] = nada. Ausente en apps viejas.
+  otherActivities: z.array(OtherActivitySchema).max(8).nullable().optional(),
 };
 
 // Próximo test que el coach decide (no hay fecha fija: él juzga cuándo el
@@ -284,6 +300,26 @@ export const WeeklyEvalInputContextSchema = z.object({
     missedWorkouts: z.number().int().nonnegative(),
     ruleTriggers: z.array(z.object({ ruleId: z.string(), count: z.number().int().nonnegative() })),
     athleteNote: z.string().nullable(),
+    // Respuesta a «¿Qué otras cosas hiciste esta semana?» (texto libre).
+    otherActivitiesNote: z.string().max(1000).nullable().optional(),
+    // Lo que no es bici que registró esa semana en Registrar (o lo agendado
+    // por un coach humano y no registrado: completion "not_logged").
+    // minutes × rpe = carga sRPE, escala distinta al TSS.
+    otherActivities: z
+      .array(
+        z.object({
+          date: z.string(),
+          dayOfWeek: z.string(),
+          kind: NonBikeKindSchema,
+          name: z.string(),
+          minutes: z.number().nonnegative().nullable(),
+          rpe: z.number().nullable(),
+          completion: z.enum(['complete', 'partial', 'skipped', 'not_logged']),
+          planned: z.boolean(),
+        }),
+      )
+      .max(30)
+      .optional(),
     // Cada sesión planeada de esa semana y qué pasó en ella (ver
     // src/core/workout-zone.ts). Desbloquea sRPE, deriva y EF por sesión.
     workouts: z
@@ -299,6 +335,8 @@ export const WeeklyEvalInputContextSchema = z.object({
           hrDriftPct: z.number().nullable(),
           efficiencyFactor: z.number().nullable(),
           ruleTriggers: z.array(z.object({ ruleId: z.string(), count: z.number().int().nonnegative() })),
+          // Nota del atleta al terminar la sesión (puede contar lo que hizo además de la bici).
+          note: z.string().max(300).nullable().optional(),
         }),
       )
       .max(14)
@@ -326,6 +364,8 @@ export const WeeklyEvalInputContextSchema = z.object({
         actualTSS: z.number().nonnegative(),
         completedWorkouts: z.number().int().nonnegative(),
         missedWorkouts: z.number().int().nonnegative(),
+        // minutos × RPE de lo que no es bici esa semana (escala distinta al TSS)
+        otherSrpeLoad: z.number().nonnegative().optional(),
       }),
     )
     .nullable(),

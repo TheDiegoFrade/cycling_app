@@ -1243,3 +1243,22 @@ select
 from coach_calls
 group by 1, 2, 3, 4
 order by 1 desc, cost_usd desc nulls last;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Otras actividades (correr, gym, crossfit, natación…). El atleta las
+-- declara en el cuestionario (profiles.other_activities: [{kind, name?,
+-- perWeek, minutes, days[]}], [] = no hace otra) y, si quiere, las registra
+-- en Registrar como cualquier sesión que no es de bici (sRPE). Torq no las
+-- agenda: el coach IA solo las toma en cuenta para la carga y la fatiga.
+-- Ver src/core/other-activities.ts.
+-- ─────────────────────────────────────────────────────────────────────────
+alter table profiles add column if not exists other_activities jsonb
+  check (other_activities is null or jsonb_typeof(other_activities) = 'array');
+
+alter table sessions drop constraint if exists sessions_kind_check;
+alter table sessions add constraint sessions_kind_check
+  check (kind in ('bike_indoor', 'bike_outdoor', 'strength', 'mobility', 'flexibility', 'running', 'crossfit', 'swimming', 'other'));
+
+alter table sessions drop constraint if exists sessions_srpe_load_check;
+alter table sessions add constraint sessions_srpe_load_check
+  check (srpe_load is null or (srpe_load >= 0 and kind in ('strength', 'mobility', 'flexibility', 'running', 'crossfit', 'swimming', 'other')));

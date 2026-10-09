@@ -3,6 +3,8 @@
 // coach necesita saber además de dónde salió ese número para no tomar un
 // default o un provisional por una medición (ver prompt.ts, "El FTP del
 // perfil"). Lógica pura: la usan el Perfil, el cuestionario y coach.ts.
+import { otherActivityError } from './other-activities';
+import type { OtherActivity } from './other-activities';
 import type { FtpSource, Profile } from './types';
 
 /** Fuente del FTP, con la migración implícita de perfiles anteriores a
@@ -79,6 +81,11 @@ export function coachProfileError(p: Profile, today: Date = new Date()): string 
   if (!p.ftpSource) return 'Escribe tu FTP o marca «No sé mi FTP todavía».';
   if (p.hrMaxConfirmed === undefined) return 'Escribe tu pulso máximo o marca «No sé mi pulso máximo».';
   if (p.hrMaxConfirmed && !inRange(p.hr_max, [120, 230])) return 'Escribe tu pulso máximo (de 120 a 230 lpm).';
+  if (p.otherActivities === undefined) return 'Dinos si haces otra actividad además de la bici, o marca «No hago otra actividad».';
+  for (const a of p.otherActivities) {
+    const err = otherActivityError(a);
+    if (err) return err;
+  }
   if (p.competes === undefined) return 'Dinos si compites.';
   if (p.competes && !filled(p.category)) return 'Escribe tu categoría.';
   if (!filled(p.recentBestResult)) return 'Escribe tu mejor resultado o logro reciente («ninguno todavía» también vale).';
@@ -108,10 +115,16 @@ export function coachFtpFields(p: Profile): CoachProfileFtp {
 
 /** Lesiones, peso y edad para el coach. La fecha de nacimiento no sale del
  * dispositivo: solo la edad. */
-export function coachProfileExtras(p: Profile, today: Date = new Date()): { injuries: string | null; weightKg: number | null; ageYears: number | null } {
+export function coachProfileExtras(
+  p: Profile,
+  today: Date = new Date(),
+): { injuries: string | null; weightKg: number | null; ageYears: number | null; otherActivities: OtherActivity[] | null } {
   return {
     injuries: p.injuries?.trim() || null,
     weightKg: p.weight_kg && p.weight_kg > 0 ? p.weight_kg : null,
     ageYears: ageFromBirthDate(p.birth_date, today),
+    // Lo que hace además de la bici: el coach lo cuenta en la carga y la
+    // fatiga, aunque Torq no lo agende. null = todavía no contesta.
+    otherActivities: p.otherActivities ?? null,
   };
 }

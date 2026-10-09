@@ -6,6 +6,10 @@
 // que ya hace Perfil — nunca se reemplaza el objeto completo.
 import type { Profile } from '../core/types';
 import { coachProfileError, ftpSourceOf, isMeasuredFtp, withFtp } from '../core/coach-profile';
+import { DAY_CODES, DAY_SHORT_LABELS } from '../core/other-activities';
+import type { OtherActivity } from '../core/other-activities';
+import { NON_BIKE_KINDS, NON_BIKE_KIND_LABELS } from '../core/session-kind';
+import type { NonBikeKind } from '../core/session-kind';
 import { appState } from './state';
 import { wireDatePicker } from './date-picker';
 import { buildCompletedSessionFromFit } from '../core/completed-session-import';
@@ -53,6 +57,25 @@ function toggleHtml(id: string, checked: boolean, title: string, desc = '', extr
     <input type="checkbox" id="${id}" class="ob-switch-input" ${checked ? 'checked' : ''}>
     <span class="ob-switch" aria-hidden="true"></span>
   </label>`;
+}
+
+/** Una fila de «Otras actividades»: tipo, nombre, veces, minutos y días. */
+function otherActivityRowHtml(a: OtherActivity, i: number): string {
+  const kinds = NON_BIKE_KINDS.map((k) => `<option value="${k}" ${a.kind === k ? 'selected' : ''}>${NON_BIKE_KIND_LABELS[k]}</option>`).join('');
+  const days = DAY_CODES.map(
+    (d) => `<button type="button" class="ob-chip ob-chip-sm${a.days.includes(d) ? ' on' : ''}" data-day="${d}" aria-pressed="${a.days.includes(d)}">${DAY_SHORT_LABELS[d]}</button>`,
+  ).join('');
+  return `<div class="ob-other-row" data-i="${i}">
+    <div class="ob-grid">
+      <label class="ob-field">Actividad<select data-f="kind">${kinds}</select></label>
+      <label class="ob-field">${a.kind === 'other' ? 'Cuál' : 'Nombre <span class="ob-optional">opcional</span>'}<input type="text" data-f="name" maxlength="60" value="${esc(a.name)}" placeholder="${a.kind === 'other' ? 'Ej. fútbol, yoga, box' : 'Ej. pierna y core'}"></label>
+      <label class="ob-field">Veces por semana<input type="number" data-f="perWeek" min="1" max="7" inputmode="numeric" value="${esc(a.perWeek || '')}"></label>
+      <label class="ob-field">Minutos por sesión<span class="ob-input-unit"><input type="number" data-f="minutes" min="10" max="300" inputmode="numeric" value="${esc(a.minutes || '')}"><span>min</span></span></label>
+    </div>
+    <p class="ob-q" style="margin-top:8px">Qué días <span class="ob-optional">si son fijos</span></p>
+    <div class="ob-chips">${days}</div>
+    <button type="button" class="ob-skip ob-other-remove">Quitar</button>
+  </div>`;
 }
 
 function sectionHtml(n: number, title: string, body: string): string {
@@ -174,6 +197,17 @@ function modalHtml(p: Profile): string {
 
           ${sectionHtml(
             5,
+            'Otras actividades',
+            `<p class="ob-q">¿Haces algo más además de la bici? Correr, gym, crossfit… también cansa, y tu coach lo acomoda junto a tus rodadas.</p>
+            <div id="ob-other-list" class="ob-other-list"></div>
+            <button type="button" class="ob-chip" id="ob-other-add">+ Agregar actividad</button>
+            <div class="ob-toggles">
+              ${toggleHtml('ob-no-other', p.otherActivities?.length === 0, 'No hago otra actividad además de la bici')}
+            </div>`,
+          )}
+
+          ${sectionHtml(
+            6,
             'Metas y salud',
             `<div class="ob-toggles">
               ${toggleHtml('ob-competes', !!p.competes, 'Compito o quiero competir')}
@@ -193,7 +227,7 @@ function modalHtml(p: Profile): string {
           )}
 
           ${sectionHtml(
-            6,
+            7,
             'Entrenamientos recientes fuera de Torq',
             `<p class="ob-note" style="margin-top:0">¿Entrenaste con otra app o dispositivo las últimas 1 o 2 semanas? Sube esos archivos .fit para que el plan arranque con contexto real. Lo que ya grabaste en Torq no hace falta. <span class="ob-optional">opcional</span></p>
             <label class="ob-upload">
@@ -293,6 +327,59 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     if (noInjuriesCheckbox.checked) injuriesInput.value = '';
   });
 
+  // Otras actividades: estado en memoria, se pinta de nuevo al agregar,
+  // quitar o cambiar el tipo; los campos de texto solo actualizan el estado.
+  const activities: OtherActivity[] = (p.otherActivities ?? []).map((a) => ({ ...a, days: [...a.days] }));
+  const otherList = backdrop.querySelector<HTMLElement>('#ob-other-list')!;
+  const noOtherCheckbox = backdrop.querySelector<HTMLInputElement>('#ob-no-other')!;
+  const addOtherBtn = backdrop.querySelector<HTMLButtonElement>('#ob-other-add')!;
+  const paintActivities = () => {
+    otherList.innerHTML = activities.map(otherActivityRowHtml).join('');
+    addOtherBtn.style.display = noOtherCheckbox.checked ? 'none' : '';
+  };
+  addOtherBtn.addEventListener('click', () => {
+    activities.push({ kind: 'strength', perWeek: 0, minutes: 0, days: [] });
+    paintActivities();
+  });
+  noOtherCheckbox.addEventListener('change', () => {
+    if (noOtherCheckbox.checked) activities.length = 0;
+    paintActivities();
+  });
+  otherList.addEventListener('input', (e) => {
+    const el = e.target as HTMLInputElement | HTMLSelectElement;
+    const i = Number(el.closest<HTMLElement>('.ob-other-row')?.dataset.i);
+    const a = activities[i];
+    if (!a) return;
+    if (el.dataset.f === 'name') a.name = el.value;
+    if (el.dataset.f === 'perWeek') a.perWeek = Number(el.value) || 0;
+    if (el.dataset.f === 'minutes') a.minutes = Number(el.value) || 0;
+  });
+  otherList.addEventListener('change', (e) => {
+    const el = e.target as HTMLSelectElement;
+    if (el.dataset.f !== 'kind') return;
+    const a = activities[Number(el.closest<HTMLElement>('.ob-other-row')?.dataset.i)];
+    if (!a) return;
+    a.kind = el.value as NonBikeKind;
+    paintActivities();
+  });
+  otherList.addEventListener('click', (e) => {
+    const el = e.target as HTMLElement;
+    const row = el.closest<HTMLElement>('.ob-other-row');
+    if (!row) return;
+    const i = Number(row.dataset.i);
+    if (el.classList.contains('ob-other-remove')) {
+      activities.splice(i, 1);
+      paintActivities();
+      return;
+    }
+    const day = el.closest<HTMLElement>('[data-day]')?.dataset.day as OtherActivity['days'][number] | undefined;
+    if (!day) return;
+    const a = activities[i];
+    a.days = a.days.includes(day) ? a.days.filter((d) => d !== day) : DAY_CODES.filter((d) => d === day || a.days.includes(d));
+    paintActivities();
+  });
+  paintActivities();
+
   const fitStatus = backdrop.querySelector<HTMLElement>('#ob-fit-status')!;
   backdrop.querySelector<HTMLInputElement>('#ob-fit-files')?.addEventListener('change', async (e) => {
     const input = e.currentTarget as HTMLInputElement;
@@ -368,6 +455,12 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
         hasOutdoorPowerMeter: ridesOutside ? backdrop.querySelector<HTMLInputElement>('#ob-outdoor-power')!.checked : undefined,
         injuries: noInjuriesCheckbox.checked ? NO_INJURIES : injuriesInput.value.trim() || undefined,
         recentBestResult: backdrop.querySelector<HTMLInputElement>('#ob-best-result')!.value.trim() || undefined,
+        // Ni actividades ni «No hago»: sin contestar (coachProfileError lo pide).
+        otherActivities: noOtherCheckbox.checked
+          ? []
+          : activities.length
+            ? activities.map((a) => ({ ...a, name: a.name?.trim() || undefined }))
+            : undefined,
         hrMaxConfirmed,
         hr_max: hrMaxConfirmed ? (typedHrMax as number) : appState.profile.hr_max,
       },
@@ -376,7 +469,7 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     );
     // Mismo orden que el formulario: primero lo que va antes de «Tus
     // números», luego el FTP y el pulso escritos, luego el resto.
-    const before = coachProfileError({ ...candidate, ftpSource: 'default', hrMaxConfirmed: false, competes: false, recentBestResult: '-', injuries: '-' });
+    const before = coachProfileError({ ...candidate, ftpSource: 'default', hrMaxConfirmed: false, competes: false, recentBestResult: '-', injuries: '-', otherActivities: [] });
     const missing = before ?? ftpOrHrError() ?? coachProfileError(candidate);
     if (missing) {
       status.textContent = missing;

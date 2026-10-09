@@ -10,7 +10,7 @@ export async function fetchCloudProfile(userId: string): Promise<Profile | null 
   const { data, error } = await supabase
     .from('profiles')
     .select(
-      'ftp, hr_max, cadence_floor, hr_ceiling, hr_min, cadence_max, name, birth_date, height_cm, weight_kg, sex, experience_level, general_fitness_level, years_riding, structured_training_years, competes, category, discipline, injuries, rides_outside, has_outdoor_power_meter, recent_best_result, ftp_confirmed, hr_max_confirmed, ftp_source, ftp_updated_at',
+      'ftp, hr_max, cadence_floor, hr_ceiling, hr_min, cadence_max, name, birth_date, height_cm, weight_kg, sex, experience_level, general_fitness_level, years_riding, structured_training_years, competes, category, discipline, injuries, rides_outside, has_outdoor_power_meter, recent_best_result, ftp_confirmed, hr_max_confirmed, ftp_source, ftp_updated_at, other_activities',
     )
     .eq('user_id', userId)
     .maybeSingle();
@@ -42,6 +42,7 @@ export async function fetchCloudProfile(userId: string): Promise<Profile | null 
     ridesOutside: data.rides_outside ?? undefined,
     hasOutdoorPowerMeter: data.has_outdoor_power_meter ?? undefined,
     recentBestResult: data.recent_best_result ?? undefined,
+    otherActivities: data.other_activities ?? undefined,
     ftpConfirmed: data.ftp_confirmed ?? undefined,
     hrMaxConfirmed: data.hr_max_confirmed ?? undefined,
     ftpSource: data.ftp_source ?? undefined,
@@ -80,6 +81,7 @@ export async function pushProfileToCloud(profile: Profile, userId: string): Prom
       rides_outside: profile.ridesOutside ?? null,
       has_outdoor_power_meter: profile.hasOutdoorPowerMeter ?? null,
       recent_best_result: profile.recentBestResult ?? null,
+      other_activities: profile.otherActivities ?? null,
       ftp_confirmed: profile.ftpConfirmed ?? null,
       hr_max_confirmed: profile.hrMaxConfirmed ?? null,
       ftp_source: profile.ftpSource ?? null,

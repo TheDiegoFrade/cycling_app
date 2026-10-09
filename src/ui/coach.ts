@@ -8,8 +8,8 @@ import { computePmc } from '../engine/pmc';
 import { listSessions } from '../storage/session-store';
 import type { SessionRecord } from '../storage/session-store';
 import { isAiEligibleSession } from '../core/session-source';
-import { isBikeSession, wasTrained } from '../core/session-kind';
-import type { SessionCompletion, SessionKind } from '../core/session-kind';
+import { isBikeSession, isNonBikeKind, srpeLoad, wasTrained } from '../core/session-kind';
+import type { NonBikeKind, SessionCompletion, SessionKind } from '../core/session-kind';
 import { computeSessionAnalytics } from '../engine/analytics';
 import { estimateWorkout } from '../core/workout-estimate';
 import { deleteWorkout } from '../storage/workout-store';
@@ -265,6 +265,10 @@ function evalZoneHtml(plan: ActivePlanRow, weeklyEvalsUsed: number): string {
       <label class="live-col-label">¿Cómo te fue esta semana y algo que debamos saber para la que viene? (opcional)
         <textarea id="coach-eval-note" rows="3" placeholder="Ej. me sentí muy cansado toda la semana · el miércoles no voy a poder entrenar · el sábado tengo una rodada larga con un grupo · estoy de vacaciones…" style="width:100%;resize:vertical;font-family:inherit"></textarea>
       </label>
+      <label class="live-col-label" style="display:block;margin-top:8px">¿Hiciste algo más además de la bici? (opcional)
+        <textarea id="coach-eval-other" rows="2" maxlength="1000" placeholder="Ej. crossfit el lunes y el jueves, 50 min cada uno · corrí 5 km el sábado · nada más" style="width:100%;resize:vertical;font-family:inherit"></textarea>
+      </label>
+      <p class="hint" style="margin-top:4px">También cuenta en tu cansancio: así el coach entiende tu semana completa.</p>
       <button class="btn-light" id="coach-eval-submit" style="margin-top:8px">${isRefresh ? 'Refrescar semana' : 'Evaluar semana'}</button>
       <p class="hint" id="coach-eval-status" style="margin-top:8px"></p>
     </div>`;
@@ -364,7 +368,8 @@ function wireWeeklyEvalButton(slot: HTMLElement, plan: ActivePlanRow, onChange: 
     }, 4000);
 
     const athleteNote = noteInput.value.trim() || null;
-    const context = await computeWeekEvalContext(plan, athleteNote);
+    const otherNote = slot.querySelector<HTMLTextAreaElement>('#coach-eval-other')?.value.trim() || null;
+    const context = await computeWeekEvalContext(plan, athleteNote, otherNote);
     if (!context) {
       window.clearInterval(thinkingTimer);
       status.textContent = 'Todavía no hay ninguna sesión real registrada para evaluar — entrena esta semana primero.';
@@ -656,6 +661,8 @@ interface WeekWorkoutRow {
   hrDriftPct: number | null;
   efficiencyFactor: number | null;
   ruleTriggers: { ruleId: string; count: number }[];
+  /** Lo que escribió al terminar la sesión ("hoy además fui al gym"). */
+  note: string | null;
 }
 
 interface WeekSummary {
@@ -664,6 +671,35 @@ interface WeekSummary {
   actualTSS: number;
   completedWorkouts: number;
   missedWorkouts: number;
+  /** minutos × RPE de lo que no es bici (escala distinta al TSS). */
+  otherSrpeLoad?: number;
+}
+
+/** Una sesión que no es de bici, como la recibe el coach (weekJustFinished.otherActivities). */
+interface OtherActivityRow {
+  date: string;
+  dayOfWeek: string;
+  kind: NonBikeKind;
+  name: string;
+  minutes: number | null;
+  rpe: number | null;
+  completion: SessionCompletion;
+  planned: boolean;
+}
+
+function nonBikeRow(startedAt: string, finishedAt: string, kind: NonBikeKind, name: string, rpe: number | null, completion: SessionCompletion): OtherActivityRow {
+  const date = dayKeyOf(startedAt);
+  const minutes = Math.round((new Date(finishedAt).getTime() - new Date(startedAt).getTime()) / 60000);
+  return {
+    date,
+    dayOfWeek: DAY_ORDER[(new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7],
+    kind,
+    name,
+    minutes: minutes > 0 ? minutes : null,
+    rpe,
+    completion,
+    planned: false,
+  };
 }
 
 /** Contexto real para weekly_eval — nunca inventado, null si no hay ni una
@@ -674,6 +710,7 @@ interface WeekSummary {
 async function computeWeekEvalContext(
   plan: ActivePlanRow,
   athleteNote: string | null,
+  otherActivitiesNote: string | null = null,
 ): Promise<{
   weekJustFinished: {
     plannedTSS: number;
@@ -682,6 +719,8 @@ async function computeWeekEvalContext(
     missedWorkouts: number;
     ruleTriggers: { ruleId: string; count: number }[];
     athleteNote: string | null;
+    otherActivitiesNote: string | null;
+    otherActivities: OtherActivityRow[];
     workouts: WeekWorkoutRow[];
   };
   pmcTrend: { ctl: number; atl: number; tsb: number; ctlRampLast4Weeks: number };
@@ -717,6 +756,14 @@ async function computeWeekEvalContext(
   const allEntries = [...localEntries, ...cloudEntries];
   if (allEntries.length === 0) return null;
 
+  // Lo que no es bici (correr, gym, crossfit…) que registró en Registrar:
+  // no suma al TSS, pero el coach lo necesita para leer la fatiga.
+  const all = await aiEligibleSessions(false);
+  const nonBike: OtherActivityRow[] = [
+    ...all.localSessions.filter((s) => isNonBikeKind(s.kind)).map((s) => nonBikeRow(s.startedAt, s.finishedAt, s.kind as NonBikeKind, s.workoutName, s.rpe ?? null, s.completion ?? 'complete')),
+    ...all.cloudOnly.filter((s) => isNonBikeKind(s.kind)).map((s) => nonBikeRow(s.startedAt, s.finishedAt, s.kind as NonBikeKind, s.workoutName, s.rpe, s.completion ?? 'complete')),
+  ].sort((a, b) => a.date.localeCompare(b.date));
+
   function weekDateRange(weekIndex: number): [string, string] {
     // Alineado a semanas calendario reales (lunes-domingo) — la semana 0
     // empieza en startDate mismo (puede ser una semana corta si el plan no
@@ -739,7 +786,10 @@ async function computeWeekEvalContext(
     const matchedWorkoutIds = new Set(weekEntries.map((e) => e.workoutId).filter((id): id is string => id !== null));
     const completedWorkouts = plannedWorkouts.filter((w) => matchedWorkoutIds.has(w.id)).length;
     const missedWorkouts = Math.max(0, plannedWorkouts.length - completedWorkouts);
-    return { weekIndex: week.weekIndex, plannedTSS, actualTSS, completedWorkouts, missedWorkouts };
+    const otherSrpeLoad = nonBike
+      .filter((r) => r.date >= startKey && r.date <= endKey)
+      .reduce((sum, r) => sum + (srpeLoad(r.kind, r.completion, r.rpe, r.minutes ?? 0) ?? 0), 0);
+    return { weekIndex: week.weekIndex, plannedTSS, actualTSS, completedWorkouts, missedWorkouts, ...(otherSrpeLoad > 0 ? { otherSrpeLoad } : {}) };
   }
 
   /** Cada workout planeado de la semana con su sesión, si la hubo: la de
@@ -768,6 +818,7 @@ async function computeWeekEvalContext(
             hrDriftPct: round(a.hrDriftPct),
             efficiencyFactor: round(a.efficiencyFactor, 2),
             ruleTriggers: ruleTriggersOf(local.alerts),
+            note: local.note?.trim().slice(0, 300) || null,
           };
         }
         const cloud = cloudOnly.find((s) => s.workoutId === w.id);
@@ -780,9 +831,10 @@ async function computeWeekEvalContext(
             hrDriftPct: round(cloud.hrDriftPct),
             efficiencyFactor: round(cloud.efficiencyFactor, 2),
             ruleTriggers: [],
+            note: cloud.note?.trim().slice(0, 300) || null,
           };
         }
-        return { ...base, actualTSS: null, completed: false, rpe: null, hrDriftPct: null, efficiencyFactor: null, ruleTriggers: [] };
+        return { ...base, actualTSS: null, completed: false, rpe: null, hrDriftPct: null, efficiencyFactor: null, ruleTriggers: [], note: null };
       });
   }
 
@@ -850,6 +902,8 @@ async function computeWeekEvalContext(
       // la nube. Sesiones guardadas antes de registrar ruleId no cuentan.
       ruleTriggers: ruleTriggersOf(localSessions.filter((s) => inLastWeek(dayKeyOf(s.startedAt))).flatMap((s) => s.alerts)),
       athleteNote,
+      otherActivitiesNote,
+      otherActivities: nonBike.filter((r) => inLastWeek(r.date)).slice(0, 30),
       workouts: weekWorkoutRows(evaluatedWeek),
       ...(removedThisWeek.length ? { removedWorkouts: removedThisWeek } : {}),
     },

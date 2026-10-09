@@ -51,8 +51,8 @@ describe('edad y extras', () => {
 
   it('manda edad, no la fecha, y limpia vacíos', () => {
     const p: Profile = { ...base, injuries: '  rodilla izq  ', weight_kg: 72, birth_date: '1990-01-01' };
-    expect(coachProfileExtras(p, new Date(2026, 9, 8))).toEqual({ injuries: 'rodilla izq', weightKg: 72, ageYears: 36 });
-    expect(coachProfileExtras({ ...base, injuries: '  ' })).toEqual({ injuries: null, weightKg: null, ageYears: null });
+    expect(coachProfileExtras(p, new Date(2026, 9, 8))).toEqual({ injuries: 'rodilla izq', weightKg: 72, ageYears: 36, otherActivities: null });
+    expect(coachProfileExtras({ ...base, injuries: '  ' })).toEqual({ injuries: null, weightKg: null, ageYears: null, otherActivities: null });
   });
 });
 
@@ -63,7 +63,7 @@ describe('coachProfileError', () => {
     sex: 'F', birth_date: '1990-05-10', weight_kg: 62, height_cm: 165,
     experienceLevel: 'experienced', generalFitnessLevel: 'active_cyclist', yearsRiding: 5, structuredTrainingYears: 2,
     discipline: 'road', ridesOutside: false, ftpSource: 'default', hrMaxConfirmed: false,
-    competes: false, recentBestResult: 'ninguno todavía', injuries: 'Ninguna',
+    competes: false, recentBestResult: 'ninguno todavía', injuries: 'Ninguna', otherActivities: [],
   } as Profile;
 
   it('completo no pide nada', () => {
@@ -83,9 +83,32 @@ describe('coachProfileError', () => {
     expect(coachProfileError({ ...complete, competes: true }, today)).toMatch(/categoría/);
     expect(coachProfileError({ ...complete, recentBestResult: '  ' }, today)).toMatch(/resultado/);
     expect(coachProfileError({ ...complete, injuries: undefined }, today)).toMatch(/lesiones/);
+    expect(coachProfileError({ ...complete, otherActivities: undefined }, today)).toMatch(/otra actividad/);
   });
 
   it('0 años de bici vale (empieza)', () => {
     expect(coachProfileError({ ...complete, yearsRiding: 0, structuredTrainingYears: 0 }, today)).toBeNull();
+  });
+});
+
+describe('otras actividades en el cuestionario', () => {
+  const today = new Date(2026, 9, 9);
+  const base = {
+    ftp: 200, hr_max: 185, cadence_floor: 0, hr_ceiling: 0, hr_min: 0, cadence_max: 0,
+    sex: 'M', birth_date: '1990-05-10', weight_kg: 70, height_cm: 175,
+    experienceLevel: 'experienced', generalFitnessLevel: 'active_cyclist', yearsRiding: 5, structuredTrainingYears: 2,
+    discipline: 'road', ridesOutside: false, ftpSource: 'default', hrMaxConfirmed: false,
+    competes: false, recentBestResult: 'x', injuries: 'Ninguna',
+  } as Profile;
+
+  it('acepta actividades completas', () => {
+    expect(coachProfileError({ ...base, otherActivities: [{ kind: 'crossfit', perWeek: 2, minutes: 50, days: ['mon', 'thu'] }] }, today)).toBeNull();
+  });
+
+  it('pide lo que falta de cada actividad', () => {
+    expect(coachProfileError({ ...base, otherActivities: [{ kind: 'running', perWeek: 0, minutes: 30, days: [] }] }, today)).toMatch(/veces por semana/);
+    expect(coachProfileError({ ...base, otherActivities: [{ kind: 'running', perWeek: 2, minutes: 0, days: [] }] }, today)).toMatch(/minutos/);
+    expect(coachProfileError({ ...base, otherActivities: [{ kind: 'other', perWeek: 1, minutes: 60, days: [] }] }, today)).toMatch(/Otra/);
+    expect(coachProfileError({ ...base, otherActivities: [{ kind: 'strength', perWeek: 1, minutes: 60, days: ['mon', 'wed'] }] }, today)).toMatch(/más días/);
   });
 });
