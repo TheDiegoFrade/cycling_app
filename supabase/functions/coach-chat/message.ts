@@ -81,7 +81,7 @@ export function buildUserMessage(mode: Mode, context: Record<string, unknown>): 
       '- Duración: la suma de `duration_s` de cada sesión ≤ `maxSessionMinutes` × 60. Si `maxSessionMinutes` es null, el tope es 90 min (5400 s). Suma antes de entregar.',
       '- Nunca dos sesiones duras en días seguidos. Una sesión de bici bloqueada con TSS de 70 o más cuenta como dura.',
       '- Fuerza (`kind` "strength"; trátala como fuerza de pierna salvo que el nombre diga claramente tren superior o core): ni el día anterior, ni ese día, ni el día siguiente pongas sesión dura (fuerza el martes = nada duro lunes, martes ni miércoles).',
-      '- Lesiones (`athlete.injuries`): rodilla → `cadence_min` de 85 o más en los esfuerzos, sin trabajo a cadencia baja y sin sprints. Espalda, cuello o manos → sesiones de 60 min o menos. Cualquier lesión: di en `rationale` qué ajustaste por ella.',
+      '- Lesiones (`athlete.injuries`): rodilla → cadencia moderada-alta que le resulte cómoda (sin forzar 85+ si no la tiene), sin trabajo a cadencia baja y sin sprints. Espalda, cuello o manos → sesiones de 60 min o menos. Cualquier lesión: di en `rationale` qué ajustaste por ella.',
       '- FTP: si `athlete.ftp` es null, ninguna sesión dura: solo fondo a 75 % o menos, y sugiere un test en `rationale`. Si `ftpConfirmed` es false, nada por encima de 95 % y sugiere un test en `rationale`.',
       '',
       'Biblioteca del coach (`library`): son SUS entrenamientos y tienen prioridad. Para cada día, si alguno cumple los límites del Paso 2, úsalo antes de diseñar uno nuevo: pon su id en `fromLibraryId` (copiado exacto de `library`, nunca inventado).',

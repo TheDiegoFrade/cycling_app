@@ -179,3 +179,35 @@ describe('absorción y textos', () => {
     expect(guardOutput('weekly_eval', weeklyCtx(), weeklyOut([easy('tue')], { reasoning: '' })).fails[0]).toContain('reasoning vacío');
   });
 });
+
+describe('reglas v3', () => {
+  it('al crear el plan, quien no entrena con estructura no recibe 85+ rpm', () => {
+    const ctx = { startDate: '2026-10-12', experienceLevel: 'new_to_cycling', availability: { days: ['tue', 'thu'], maxSessionMinutes: null, hoursPerWeek: 3 }, occupiedDates: [], profile: { ftp: null } };
+    const fast = { ...easy('tue'), segments: [{ repeat: 1, steps: [{ ...step(40, 62), cadence_min: 85, cadence_max: 95 }] }] };
+    const { out, fixes } = repairOutput('create_plan', ctx, { blocks: [{ name: 'Base', weeks: 4, focus: 'x' }], firstBlockWeeks: [{ weekIndex: 0, workouts: [fast] }] });
+    const st = out.firstBlockWeeks[0].workouts[0].segments[0].steps[0];
+    expect(st.cadence_min).toBe(70);
+    expect(st.cadence_max).toBeUndefined();
+    expect(fixes.some((f: string) => f.includes('cadencia'))).toBe(true);
+  });
+
+  it('si el atleta dice que está cansado, la semana nueva no sube carga', () => {
+    const ctx = weeklyCtx({ weekJustFinished: { plannedTSS: 150, actualTSS: 148, completedWorkouts: 4, missedWorkouts: 0, athleteNote: 'Completé todo, pero estoy muy cansado.' } });
+    const g = guardOutput('weekly_eval', ctx, weeklyOut([easy('tue', 90), easy('thu', 90), easy('sat', 90), easy('sun', 90)], { decision: 'maintain' }));
+    expect(g.fails.some((f) => f.includes('no subas carga'))).toBe(true);
+  });
+
+  it('jerga interna en reasoning es falla', () => {
+    const g = guardOutput('weekly_eval', weeklyCtx(), weeklyOut([easy('tue')], { reasoning: 'El retest va en la semana 7 (weekIndex 6), al abrir el bloque de construcción con la base hecha.' }));
+    expect(g.fails.some((f) => f.includes('jerga interna'))).toBe(true);
+  });
+
+  it('un menor no pasa de 60 min entre semana ni de 10 h', () => {
+    const ctx = weeklyCtx({ profile: { ftp: 200, ageYears: 15 } });
+    const { out, fixes } = repairOutput('weekly_eval', ctx, weeklyOut([easy('tue', 90), easy('sat', 90)]));
+    expect(out.nextWeekWorkouts[0].segments[0].steps[0].duration_s).toBeLessThanOrEqual(60 * 60);
+    expect(out.nextWeekWorkouts[1].segments[0].steps[0].duration_s).toBe(90 * 60); // sábado no
+    expect(fixes.some((f: string) => f.includes('recortado'))).toBe(true);
+  });
+});
+
