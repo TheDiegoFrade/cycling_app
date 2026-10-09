@@ -6,9 +6,8 @@
 // que ya hace Perfil — nunca se reemplaza el objeto completo.
 import type { Profile } from '../core/types';
 import { coachProfileError, ftpSourceOf, isMeasuredFtp, withFtp } from '../core/coach-profile';
-import { DAY_CODES, DAY_SHORT_LABELS } from '../core/other-activities';
+import { DAY_CODES, DAY_SHORT_LABELS, QUESTIONNAIRE_KINDS, QUESTIONNAIRE_KIND_LABELS } from '../core/other-activities';
 import type { OtherActivity } from '../core/other-activities';
-import { NON_BIKE_KINDS, NON_BIKE_KIND_LABELS } from '../core/session-kind';
 import type { NonBikeKind } from '../core/session-kind';
 import { appState } from './state';
 import { wireDatePicker } from './date-picker';
@@ -59,26 +58,15 @@ function toggleHtml(id: string, checked: boolean, title: string, desc = '', extr
   </label>`;
 }
 
-const OTHER_NAME_PLACEHOLDER: Record<NonBikeKind, string> = {
-  strength: 'Ej. pierna y core, tren superior',
-  running: 'Ej. rodaje suave, series',
-  crossfit: 'Ej. WOD, halterofilia',
-  swimming: 'Ej. técnica, fondo',
-  mobility: 'Ej. yoga, estiramientos',
-  flexibility: 'Ej. yoga, estiramientos',
-  other: 'Ej. fútbol, yoga, box',
-};
-
-/** Una fila de «Otras actividades»: tipo, nombre, veces, minutos y días. */
+/** Una fila de «Otras actividades»: tipo, veces, minutos y días. */
 function otherActivityRowHtml(a: OtherActivity, i: number): string {
-  const kinds = NON_BIKE_KINDS.map((k) => `<option value="${k}" ${a.kind === k ? 'selected' : ''}>${NON_BIKE_KIND_LABELS[k]}</option>`).join('');
+  const kinds = QUESTIONNAIRE_KINDS.map((k) => `<option value="${k}" ${a.kind === k ? 'selected' : ''}>${QUESTIONNAIRE_KIND_LABELS[k]}</option>`).join('');
   const days = DAY_CODES.map(
     (d) => `<button type="button" class="ob-chip ob-chip-sm${a.days.includes(d) ? ' on' : ''}" data-day="${d}" aria-pressed="${a.days.includes(d)}">${DAY_SHORT_LABELS[d]}</button>`,
   ).join('');
   return `<div class="ob-other-row" data-i="${i}">
     <div class="ob-grid">
       <label class="ob-field">Actividad<select data-f="kind">${kinds}</select></label>
-      <label class="ob-field"><span>${a.kind === 'other' ? 'Cuál' : 'Detalle <span class="ob-optional">opcional</span>'}</span><input type="text" data-f="name" maxlength="60" value="${esc(a.name)}" placeholder="${OTHER_NAME_PLACEHOLDER[a.kind]}"></label>
       <label class="ob-field">Veces por semana<input type="number" data-f="perWeek" min="1" max="7" inputmode="numeric" value="${esc(a.perWeek || '')}"></label>
       <label class="ob-field">Minutos por sesión<span class="ob-input-unit"><input type="number" data-f="minutes" min="10" max="300" inputmode="numeric" value="${esc(a.minutes || '')}"><span>min</span></span></label>
     </div>
@@ -360,7 +348,6 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     const i = Number(el.closest<HTMLElement>('.ob-other-row')?.dataset.i);
     const a = activities[i];
     if (!a) return;
-    if (el.dataset.f === 'name') a.name = el.value;
     if (el.dataset.f === 'perWeek') a.perWeek = Number(el.value) || 0;
     if (el.dataset.f === 'minutes') a.minutes = Number(el.value) || 0;
   });
@@ -469,7 +456,7 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
         otherActivities: noOtherCheckbox.checked
           ? []
           : activities.length
-            ? activities.map((a) => ({ ...a, name: a.name?.trim() || undefined }))
+            ? activities.map(({ name: _name, ...a }) => a)
             : undefined,
         hrMaxConfirmed,
         hr_max: hrMaxConfirmed ? (typedHrMax as number) : appState.profile.hr_max,

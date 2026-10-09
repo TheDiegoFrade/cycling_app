@@ -188,8 +188,10 @@ llevar 2-3 días sin síntomas.
 
 Torq solo arma la bici, pero el atleta no vive solo de la bici. En
 \`profile.otherActivities\` viene lo que declaró: tipo (strength = gym o
-fuerza, running, crossfit, swimming, mobility, flexibility, other con su
-nombre), veces por semana, minutos y, si son fijos, los días. \`[]\` = no hace
+fuerza, running = correr, crossfit = crossfit o funcional, swimming =
+natación, mobility = yoga o movilidad, other = otro deporte), veces por
+semana, minutos y, si son fijos, los días. Es a propósito genérico: no
+preguntes qué deporte exacto es. \`[]\` = no hace
 otra cosa; \`null\` = no lo sabemos.
 - **Cuenta en la carga total.** Quien tiene 2 h de bici y además 2
   sesiones de crossfit de 50 min entrena casi 4 h: no lo trates como

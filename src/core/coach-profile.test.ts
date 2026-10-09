@@ -108,7 +108,7 @@ describe('otras actividades en el cuestionario', () => {
   it('pide lo que falta de cada actividad', () => {
     expect(coachProfileError({ ...base, otherActivities: [{ kind: 'running', perWeek: 0, minutes: 30, days: [] }] }, today)).toMatch(/veces por semana/);
     expect(coachProfileError({ ...base, otherActivities: [{ kind: 'running', perWeek: 2, minutes: 0, days: [] }] }, today)).toMatch(/minutos/);
-    expect(coachProfileError({ ...base, otherActivities: [{ kind: 'other', perWeek: 1, minutes: 60, days: [] }] }, today)).toMatch(/Otra/);
+    expect(coachProfileError({ ...base, otherActivities: [{ kind: 'other', perWeek: 1, minutes: 60, days: [] }] }, today)).toBeNull();
     expect(coachProfileError({ ...base, otherActivities: [{ kind: 'strength', perWeek: 1, minutes: 60, days: ['mon', 'wed'] }] }, today)).toMatch(/más días/);
   });
 });

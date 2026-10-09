@@ -11,7 +11,8 @@ export const DAY_SHORT_LABELS: Record<DayCode, string> = { mon: 'Lun', tue: 'Mar
 
 export interface OtherActivity {
   kind: NonBikeKind;
-  /** Nombre libre cuando kind = 'other' ("fútbol", "yoga"…), opcional en los demás. */
+  /** Solo en perfiles viejos; el cuestionario ya no lo pide (el coach solo
+   * necesita el tipo, no el deporte exacto). */
   name?: string;
   perWeek: number;
   minutes: number;
@@ -21,10 +22,21 @@ export interface OtherActivity {
 
 export const OTHER_ACTIVITY_LIMITS = { perWeek: [1, 7], minutes: [10, 300] } as const;
 
+/** Los tipos que ofrece el cuestionario: genéricos a propósito, al coach le
+ * basta saber qué tipo de carga es. */
+export const QUESTIONNAIRE_KINDS: readonly NonBikeKind[] = ['strength', 'running', 'crossfit', 'swimming', 'mobility', 'other'];
+export const QUESTIONNAIRE_KIND_LABELS: Partial<Record<NonBikeKind, string>> = {
+  strength: 'Gym / fuerza',
+  running: 'Correr',
+  crossfit: 'Crossfit / funcional',
+  swimming: 'Natación',
+  mobility: 'Yoga / movilidad',
+  other: 'Otro deporte',
+};
+
 /** Qué le falta a una actividad declarada; null si está completa. */
 export function otherActivityError(a: OtherActivity): string | null {
   const label = activityLabel(a);
-  if (a.kind === 'other' && !a.name?.trim()) return 'Escribe qué actividad es la que marcaste como «Otra».';
   if (!Number.isInteger(a.perWeek) || a.perWeek < OTHER_ACTIVITY_LIMITS.perWeek[0] || a.perWeek > OTHER_ACTIVITY_LIMITS.perWeek[1]) {
     return `Escribe cuántas veces por semana haces ${label.toLowerCase()} (de 1 a 7).`;
   }
@@ -35,8 +47,8 @@ export function otherActivityError(a: OtherActivity): string | null {
   return null;
 }
 
-export function activityLabel(a: Pick<OtherActivity, 'kind' | 'name'>): string {
-  return a.name?.trim() || NON_BIKE_KIND_LABELS[a.kind];
+export function activityLabel(a: Pick<OtherActivity, 'kind'>): string {
+  return QUESTIONNAIRE_KIND_LABELS[a.kind] ?? NON_BIKE_KIND_LABELS[a.kind];
 }
 
 /** "Crossfit 2×/semana de 50 min (lun, jue)" — para mostrarle al atleta. */
