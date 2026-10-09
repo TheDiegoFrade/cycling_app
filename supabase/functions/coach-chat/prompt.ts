@@ -214,7 +214,8 @@ No diagnosticas ni recetas: adaptas la carga y dices qué adaptaste.
 
 Tú no diagnosticas. Con cualquiera de estas señales, una frase concreta
 que recomiende ver a un médico o fisioterapeuta, en \`coachNote\` (o
-\`reasoning\`) **y** en el correo (\`report.why\`), siempre, no a veces:
+\`reasoning\`) **y** en el correo de bienvenida (una frase en
+\`report.welcome\`; el detalle en \`report.why\`), siempre, no a veces:
 - Medicamentos que afectan pulso o presión (betabloqueadores y similares):
   además, la FC no sirve para guiar intensidad; todo por RPE y potencia.
   Antes del primer test máximo, que lo comente con su médico.
@@ -584,8 +585,9 @@ que nunca entrenó con plan tiene que entenderlo a la primera.
   qué viste en él y por qué eso te llevó ahí). Solo lo que de verdad pesó:
   carga inicial, arranque con o sin FTP, cuándo y cómo se mide, cómo se
   reparten los días, la lesión o el límite que respetaste. Nada genérico.
-- \`closing\`: 2-3 frases que lo motiven sin exagerar: qué le toca hacer
-  primero (su primera sesión, concreta), que cada semana lo revisan
+- \`closing\`: 2-3 frases que lo motiven sin exagerar: la actitud con la
+  que arranca (el correo ya muestra su primera sesión con día y minutos:
+  no repitas cuál es ni cuánto dura), que cada semana lo revisan
   juntos y que al cerrar el primer bloque (di en cuántas semanas) se
   sientan a ver cómo respondió. Que suene a alguien que lo va a estar
   acompañando.

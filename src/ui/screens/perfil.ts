@@ -131,11 +131,11 @@ export function renderPerfil(container: HTMLElement): void {
               <div class="grid-form">
                 <label>Nombre<input type="text" id="profile-name" autocomplete="name" value="${appState.profile.name ?? ''}"></label>
                 <label>Fecha de nacimiento<input type="date" id="profile-birth-date" value="${appState.profile.birth_date ?? ''}"></label>
-                <label>Altura<span class="perfil-numfield-row"><input type="number" id="profile-height" min="0" step="1" value="${appState.profile.height_cm ?? ''}"><span class="live-col-label">cm</span></span></label>
+                <label>Altura<span class="perfil-numfield-row"><input type="number" id="profile-height" min="100" max="230" step="1" value="${appState.profile.height_cm ?? ''}"><span class="live-col-label">cm</span></span></label>
                 <label>Peso${appState.coach.myCoach ? ' <span class="perfil-alert-hint">· tu coach lo ve para calcular tus W/kg</span>' : ''}<span class="perfil-numfield-row"><input type="number" id="profile-weight" min="30" max="200" step="0.1" value="${appState.profile.weight_kg ?? ''}"><span class="live-col-label">kg</span></span></label>
                 <label>Sexo
                   <select id="profile-sex">
-                    <option value="" ${!appState.profile.sex ? 'selected' : ''}>Prefiero no decir</option>
+                    ${!appState.profile.sex ? '<option value="" selected disabled>Elige…</option>' : ''}
                     <option value="M" ${appState.profile.sex === 'M' ? 'selected' : ''}>Hombre</option>
                     <option value="F" ${appState.profile.sex === 'F' ? 'selected' : ''}>Mujer</option>
                     <option value="other" ${appState.profile.sex === 'other' ? 'selected' : ''}>Otro</option>
@@ -337,7 +337,13 @@ export function renderPerfil(container: HTMLElement): void {
     container.querySelector<HTMLInputElement>('#profile-height')?.addEventListener('change', (e) => {
       const raw = (e.target as HTMLInputElement).value;
       const value = Number(raw);
-      appState.profile = { ...appState.profile, height_cm: raw && Number.isFinite(value) ? value : undefined };
+      const valid = raw && Number.isFinite(value) && value >= 100 && value <= 230;
+      if (raw && !valid) {
+        (e.target as HTMLInputElement).value = appState.profile.height_cm != null ? String(appState.profile.height_cm) : '';
+        window.alert('La altura va de 100 a 230 cm.');
+        return;
+      }
+      appState.profile = { ...appState.profile, height_cm: valid ? value : undefined };
       appState.persistProfile();
     });
 

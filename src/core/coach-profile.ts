@@ -40,6 +40,52 @@ export function ageFromBirthDate(birthDate: string | undefined, today: Date = ne
   return age >= 0 && age < 120 ? age : null;
 }
 
+/** Rangos válidos de los datos corporales: fuera de ellos es un error de
+ * captura que el coach leería como dato real. */
+export const BODY_LIMITS = { ageYears: [8, 100], weightKg: [30, 200], heightCm: [100, 230] } as const;
+
+const inRange = (v: number | null | undefined, [lo, hi]: readonly [number, number]) => v != null && Number.isFinite(v) && v >= lo && v <= hi;
+
+/** Qué le falta (o está mal) en fecha de nacimiento, peso y altura, en el
+ * orden del cuestionario. null = todo bien. Son obligatorios para crear un
+ * plan: la edad decide las reglas de menores y másters. */
+export function bodyDataError(
+  p: { birth_date?: string; weight_kg?: number; height_cm?: number },
+  today: Date = new Date(),
+): string | null {
+  if (!inRange(ageFromBirthDate(p.birth_date, today), BODY_LIMITS.ageYears)) return 'Escribe tu fecha de nacimiento (de 8 a 100 años).';
+  if (!inRange(p.weight_kg, BODY_LIMITS.weightKg)) return 'Escribe tu peso (de 30 a 200 kg).';
+  if (!inRange(p.height_cm, BODY_LIMITS.heightCm)) return 'Escribe tu altura (de 100 a 230 cm).';
+  return null;
+}
+
+const filled = (s: string | undefined) => !!s && s.trim().length > 0;
+
+/** Qué le falta al cuestionario inicial, en el orden en que aparece. null =
+ * completo. Todo es obligatorio para crear un plan (los archivos .fit no:
+ * puede no tenerlos). Sirve igual para validar el formulario y para saber
+ * si a un perfil guardado le falta algo. */
+export function coachProfileError(p: Profile, today: Date = new Date()): string | null {
+  if (!p.sex) return 'Elige tu sexo.';
+  const body = bodyDataError(p, today);
+  if (body) return body;
+  if (!p.experienceLevel) return 'Elige qué tanto has entrenado con estructura.';
+  if (!p.generalFitnessLevel) return 'Elige qué tan activo has estado.';
+  if (!inRange(p.yearsRiding, [0, 80])) return 'Escribe cuántos años llevas andando en bici (0 si empiezas).';
+  if (!inRange(p.structuredTrainingYears, [0, 80])) return 'Escribe cuántos años llevas entrenando con estructura (0 si nunca).';
+  if (!p.discipline) return 'Elige tu disciplina principal.';
+  if (p.ridesOutside === undefined) return 'Dinos si sales a rodar afuera.';
+  if (p.ridesOutside && p.hasOutdoorPowerMeter === undefined) return 'Dinos si tienes medidor de potencia afuera.';
+  if (!p.ftpSource) return 'Escribe tu FTP o marca «No sé mi FTP todavía».';
+  if (p.hrMaxConfirmed === undefined) return 'Escribe tu pulso máximo o marca «No sé mi pulso máximo».';
+  if (p.hrMaxConfirmed && !inRange(p.hr_max, [120, 230])) return 'Escribe tu pulso máximo (de 120 a 230 lpm).';
+  if (p.competes === undefined) return 'Dinos si compites.';
+  if (p.competes && !filled(p.category)) return 'Escribe tu categoría.';
+  if (!filled(p.recentBestResult)) return 'Escribe tu mejor resultado o logro reciente («ninguno todavía» también vale).';
+  if (!filled(p.injuries)) return 'Escribe tus lesiones o limitaciones, o marca «No tengo».';
+  return null;
+}
+
 export interface CoachProfileFtp {
   /** Solo si es un número medido: el coach no debe tratar el default o un
    * provisional como medición (null = "sin FTP medido"). */
