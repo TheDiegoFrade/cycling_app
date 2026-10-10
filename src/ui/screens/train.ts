@@ -221,7 +221,8 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const isSelfPaced = (): boolean => workout.intervals[currentIndex0]?.type === 'free';
   let ergReleasedForFree = false;
   let currentTimeLeft = workout.intervals[0]?.duration_s ?? 0;
-  let ergEnabled = true;
+  // Las sesiones por sensación del coach arrancan sin ERG (ver Workout.erg).
+  let ergEnabled = workout.erg !== 'off';
   let lastTargetWatts = 0;
 
   const history: Sample[] = [];
@@ -920,6 +921,15 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   }
   $('menuErg').addEventListener('click', toggleErg);
   $('erg-quick').addEventListener('click', toggleErg);
+
+  if (!ergEnabled) {
+    $('menuErg').textContent = 'ERG: desactivado';
+    $('erg-quick').textContent = '⚡ ERG off';
+    $('erg-quick').classList.add('off');
+    applyFreeMode();
+    paintResistance();
+    showBanner('info', 'Sesión por sensación: sin ERG', freeModeLabel(), 4000);
+  }
 
   $('menuFtp').addEventListener('click', () => {
     closeMenu();

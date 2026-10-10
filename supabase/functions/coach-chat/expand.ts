@@ -37,6 +37,8 @@ export interface GeneratedWorkout {
   targetTSS: number;
   dayOfWeek: PlannedWorkout['dayOfWeek'];
   kind: 'test' | null;
+  /** 'off' = sesión por sensación: la app arranca sin ERG (modo calle). */
+  erg: 'off' | null;
 }
 
 /** Lista plana de intervalos. En una serie repetida, cada paso lleva su
@@ -89,7 +91,7 @@ export function fallbackDescription(w: Pick<PlannedWorkout, 'intent' | 'erg'>): 
     w.erg === 'on'
       ? 'Activa el modo ERG: el rodillo marca la potencia.'
       : w.erg === 'off'
-        ? 'Apaga el modo ERG y ve por sensación.'
+        ? 'Arranca sin ERG, en modo calle: ve por sensación con tus cambios.'
         : 'Usa ERG en los bloques a potencia fija y apágalo donde tengas que regular tú.';
   return `${w.intent.trim()} ${erg}`.trim();
 }
@@ -183,5 +185,6 @@ export function toGeneratedWorkout(w: PlannedWorkout, description: string | null
     targetTSS: w.targetTSS,
     dayOfWeek: w.dayOfWeek,
     kind: w.kind ?? null,
+    erg: w.erg === 'off' ? 'off' : null,
   };
 }

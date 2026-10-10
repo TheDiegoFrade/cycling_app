@@ -45,11 +45,13 @@ describe('resumen y respaldo', () => {
   });
 
   it('sin descripción del redactor usa intención + ERG', () => {
-    expect(fallbackDescription({ intent: 'Rodada suave. ', erg: 'off' })).toBe('Rodada suave. Apaga el modo ERG y ve por sensación.');
+    expect(fallbackDescription({ intent: 'Rodada suave. ', erg: 'off' })).toBe('Rodada suave. Arranca sin ERG, en modo calle: ve por sensación con tus cambios.');
     const w = toGeneratedWorkout(threshold, null);
     expect(w.description).toContain('Activa el modo ERG');
     expect(w.intervals).toHaveLength(10);
     expect(toGeneratedWorkout(threshold, '  Hoy toca umbral.  ').description).toBe('Hoy toca umbral.');
+    expect(w.erg).toBeNull();
+    expect(toGeneratedWorkout({ ...threshold, erg: 'off' }, null).erg).toBe('off');
   });
 });
 

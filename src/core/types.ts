@@ -91,6 +91,9 @@ export interface Workout {
   /** 'test' = workout de test que agendó el coach (rampa o 20 min); con
    * esto la app sabe qué sesión leer como test (ver core/test-reading.ts). */
   kind?: 'test';
+  /** 'off' = el coach la marcó por sensación: Entrenar arranca sin ERG, en
+   * modo calle (el atleta puede prenderlo). Ausente = arranca con ERG. */
+  erg?: 'off';
 }
 
 /** Archivo de solo reglas (modo A del prompt de importación): mismas reglas,
