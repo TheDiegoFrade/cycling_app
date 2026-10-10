@@ -221,7 +221,8 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const isSelfPaced = (): boolean => workout.intervals[currentIndex0]?.type === 'free';
   let ergReleasedForFree = false;
   let currentTimeLeft = workout.intervals[0]?.duration_s ?? 0;
-  let ergEnabled = true;
+  // Las sesiones por sensación del coach arrancan sin ERG (ver Workout.erg).
+  let ergEnabled = workout.erg !== 'off';
   let lastTargetWatts = 0;
 
   const history: Sample[] = [];
@@ -636,7 +637,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
           trainer.setTarget(lastTargetWatts); // también re-engancha el ERG al salir de un bloque libre
           ergReleasedForFree = false;
         } else if (ergEnabled && !ergReleasedForFree) {
-          trainer.setResistance(resistancePercent);
+          applyFreeMode();
           ergReleasedForFree = true;
         }
         draw();
@@ -714,8 +715,14 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         // el loop de 1 Hz sigue corriendo: tick() es quien detecta que
         // volviste a pedalear y reanuda solo, aunque la pausa haya sido manual.
         $('btnMain').textContent = 'Continuar';
-        showBanner('pause', 'Pausa', `ERG en reposo (${event.targetWatts} W) · espacio para continuar`, null);
-        trainer.setTarget(event.targetWatts);
+        // Con ERG apagado no se le manda un objetivo en watts: se quedaba en
+        // ERG al reanudar y sin ERG se sentía atorado.
+        if (ergEnabled) {
+          showBanner('pause', 'Pausa', `ERG en reposo (${event.targetWatts} W) · espacio para continuar`, null);
+          trainer.setTarget(event.targetWatts);
+        } else {
+          showBanner('pause', 'Pausa', 'espacio para continuar', null);
+        }
         return;
       }
       case 'resumed': {
@@ -809,13 +816,36 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     if (engine.currentState === 'running') showBanner('info', `Intensidad ${pct}%`, 'se guarda en el registro', 1600);
   }
 
-  let resistancePercent = 30;
+  // Modo libre (sin ERG): calle simulada en plano si el rodillo la
+  // soporta (como Rouvy o MyWhoosh); si no, resistencia fija.
+  let resistancePercent = 20;
+  let gradePct = 0;
+  const GRADE_STEP = 0.5;
+  const GRADE_RANGE: [number, number] = [-5, 15];
+
+  function applyFreeMode(): void {
+    if (trainer.freeMode === 'sim') trainer.setSimulation(gradePct);
+    else trainer.setResistance(resistancePercent);
+  }
+
+  function freeModeLabel(): string {
+    if (trainer.freeMode === 'resistance') return `resistencia fija ${resistancePercent}% · ajusta con +/-`;
+    return `${gradePct === 0 ? 'calle plana' : `pendiente ${gradePct > 0 ? '+' : ''}${gradePct.toFixed(1)} %`} · el esfuerzo lo pones con tus cambios, +/- cambia la pendiente`;
+  }
 
   function paintResistance(): void {
     const b = $('bias');
-    b.textContent = `R ${Math.round(resistancePercent)}%`;
+    b.textContent = trainer.freeMode === 'sim' ? (gradePct === 0 ? 'Plano' : `${gradePct > 0 ? '+' : ''}${gradePct.toFixed(1)}%`) : `R ${Math.round(resistancePercent)}%`;
     b.className = 'live-intensity-value num';
   }
+
+  // Si el rodillo rechaza la calle simulada, el adaptador ya cayó a
+  // resistencia fija: solo se avisa y se repinta.
+  const unsubFreeMode = trainer.onFreeModeChange((mode) => {
+    if (ergEnabled && !ergReleasedForFree) return;
+    paintResistance();
+    if (mode === 'resistance') showBanner('info', 'Tu rodillo no tiene modo calle', `quedó en ${freeModeLabel()}`, 3200);
+  });
 
   /** Con ERG activo, +/- ajustan la intensidad del objetivo en watts. Con
    * ERG apagado, ajustan directamente el nivel de resistencia fija —
@@ -827,8 +857,12 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       paintBias(engine.adjustIntensityPct(deltaPct));
       return;
     }
-    resistancePercent = Math.min(100, Math.max(0, resistancePercent + deltaPct));
-    trainer.setResistance(resistancePercent);
+    if (trainer.freeMode === 'sim') {
+      gradePct = Math.min(GRADE_RANGE[1], Math.max(GRADE_RANGE[0], gradePct + Math.sign(deltaPct) * GRADE_STEP));
+    } else {
+      resistancePercent = Math.min(100, Math.max(0, resistancePercent + deltaPct));
+    }
+    applyFreeMode();
     paintResistance();
     beeper.play('tick');
   }
@@ -865,7 +899,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       // vez de esperar al próximo tick para que el rodillo enganche ya —
       // salvo en un bloque libre, que sigue suelto hasta que termine
       if (isSelfPaced()) {
-        trainer.setResistance(resistancePercent);
+        applyFreeMode();
         ergReleasedForFree = true;
       } else {
         trainer.setTarget(lastTargetWatts);
@@ -880,18 +914,22 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     } else {
       // sin esto el rodillo se queda pegado al último objetivo en watts
       // para siempre — no basta con dejar de mandarle setTarget.
-      trainer.setResistance(resistancePercent);
+      applyFreeMode();
       paintResistance();
     }
-    showBanner(
-      'info',
-      `ERG ${ergEnabled ? 'activado' : 'desactivado'}`,
-      ergEnabled ? '' : `resistencia fija ${resistancePercent}% · ajusta con +/- (no verificado en hardware real)`,
-      2200,
-    );
+    showBanner('info', `ERG ${ergEnabled ? 'activado' : 'desactivado'}`, ergEnabled ? '' : freeModeLabel(), 2600);
   }
   $('menuErg').addEventListener('click', toggleErg);
   $('erg-quick').addEventListener('click', toggleErg);
+
+  if (!ergEnabled) {
+    $('menuErg').textContent = 'ERG: desactivado';
+    $('erg-quick').textContent = '⚡ ERG off';
+    $('erg-quick').classList.add('off');
+    applyFreeMode();
+    paintResistance();
+    showBanner('info', 'Sesión por sensación: sin ERG', freeModeLabel(), 4000);
+  }
 
   $('menuFtp').addEventListener('click', () => {
     closeMenu();
@@ -1049,6 +1087,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     window.removeEventListener('blur', cancelDiscardHold);
     cancelDiscardHold();
     unsubTrainerState();
+    unsubFreeMode();
     unsubHrState?.();
     unsubTrainerReading();
     unsubHrReading?.();

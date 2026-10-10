@@ -1,13 +1,19 @@
 import {
   buildRequestControl,
+  buildSetIndoorBikeSimulation,
   buildSetResistanceLevel,
   buildSetTargetPower,
   buildStart,
+  CONTROL_POINT_OPCODE,
   CONTROL_POINT_RESULT,
   parseControlPointResponse,
+  parseFitnessMachineFeature,
   parseIndoorBikeData,
 } from './ftms-protocol';
-import type { ConnectionState, TrainerAdapter, TrainerReading } from './types';
+import type { ConnectionState, FreeMode, TrainerAdapter, TrainerReading } from './types';
+
+/** Resistencia fija cuando el rodillo no soporta la simulación de calle. */
+const FALLBACK_RESISTANCE_PCT = 20;
 
 const RECONNECT_DELAYS_MS = [1000, 2000, 4000, 8000, 16000];
 
@@ -32,6 +38,18 @@ export class BleTrainerAdapter implements TrainerAdapter {
   private lastSentResistance: number | null = null;
   private pendingResistanceWrite = false;
   private recoveringErg = false;
+  /** Lo último que se le pidió: el modo en el que DEBE estar el rodillo. Al
+   * reconectar o al recuperar el control se repite esto, no siempre ERG
+   * (antes, con ERG apagado, un rechazo o una reconexión lo regresaban a
+   * ERG sin avisar y se sentía atorado). */
+  private controlMode: 'erg' | 'sim' | 'resistance' = 'erg';
+  private currentGrade = 0;
+  private currentResistance = FALLBACK_RESISTANCE_PCT;
+  private lastSentGrade: number | null = null;
+  private pendingSimWrite = false;
+  /** Optimista hasta leer las capacidades del rodillo (o hasta que rechace). */
+  freeMode: FreeMode = 'sim';
+  private freeModeCbs = new Set<(m: FreeMode) => void>();
 
   async connect(): Promise<void> {
     this.manuallyDisconnected = false;
@@ -58,6 +76,7 @@ export class BleTrainerAdapter implements TrainerAdapter {
    * de ir entregando una fila de objetivos viejos con retraso. */
   setTarget(watts: number): void {
     this.currentTarget = watts;
+    this.controlMode = 'erg';
     if (this.state !== 'connected' || !this.controlCharacteristic) return;
     if (this.pendingWrite || this.lastSentTarget === watts) return;
     this.pendingWrite = true;
@@ -66,6 +85,7 @@ export class BleTrainerAdapter implements TrainerAdapter {
       .then(() => {
         this.lastSentTarget = watts;
         this.lastSentResistance = null; // ya no estamos en modo resistencia
+        this.lastSentGrade = null;
       })
       .catch(() => {
         /* si falla, el próximo tick lo vuelve a intentar */
@@ -80,6 +100,8 @@ export class BleTrainerAdapter implements TrainerAdapter {
    * aire" que `setTarget`. Sin verificar en hardware real: el mapeo de
    * "nivel 0-100" a sensación física depende del fabricante. */
   setResistance(percent: number): void {
+    this.controlMode = 'resistance';
+    this.currentResistance = percent;
     if (this.state !== 'connected' || !this.controlCharacteristic) return;
     if (this.pendingResistanceWrite || this.lastSentResistance === percent) return;
     this.pendingResistanceWrite = true;
@@ -88,6 +110,7 @@ export class BleTrainerAdapter implements TrainerAdapter {
       .then(() => {
         this.lastSentResistance = percent;
         this.lastSentTarget = null; // ya no estamos en modo ERG
+        this.lastSentGrade = null;
       })
       .catch(() => {
         /* si falla, la próxima llamada lo reintenta */
@@ -95,6 +118,57 @@ export class BleTrainerAdapter implements TrainerAdapter {
       .finally(() => {
         this.pendingResistanceWrite = false;
       });
+  }
+
+  /** Calle simulada (ver buildSetIndoorBikeSimulation). Si este rodillo no
+   * la soporta, cae a resistencia fija. */
+  setSimulation(gradePct: number): void {
+    this.currentGrade = gradePct;
+    if (this.freeMode !== 'sim') {
+      this.setResistance(this.currentResistance);
+      return;
+    }
+    this.controlMode = 'sim';
+    if (this.state !== 'connected' || !this.controlCharacteristic) return;
+    if (this.pendingSimWrite || this.lastSentGrade === gradePct) return;
+    this.pendingSimWrite = true;
+    this.controlCharacteristic
+      .writeValueWithResponse(buildSetIndoorBikeSimulation(gradePct))
+      .then(() => {
+        this.lastSentGrade = gradePct;
+        this.lastSentTarget = null;
+        this.lastSentResistance = null;
+      })
+      .catch(() => {
+        /* si falla, la próxima llamada lo reintenta */
+      })
+      .finally(() => {
+        this.pendingSimWrite = false;
+      });
+  }
+
+  onFreeModeChange(cb: (m: FreeMode) => void): () => void {
+    this.freeModeCbs.add(cb);
+    return () => this.freeModeCbs.delete(cb);
+  }
+
+  private setFreeMode(mode: FreeMode): void {
+    if (this.freeMode === mode) return;
+    this.freeMode = mode;
+    this.freeModeCbs.forEach((cb) => cb(mode));
+  }
+
+  /** El comando del modo en el que debe estar el rodillo ahora. */
+  private currentModeCommand(): Uint8Array {
+    if (this.controlMode === 'sim') return buildSetIndoorBikeSimulation(this.currentGrade);
+    if (this.controlMode === 'resistance') return buildSetResistanceLevel(this.currentResistance);
+    return buildSetTargetPower(this.currentTarget);
+  }
+
+  private markSent(): void {
+    this.lastSentTarget = this.controlMode === 'erg' ? this.currentTarget : null;
+    this.lastSentGrade = this.controlMode === 'sim' ? this.currentGrade : null;
+    this.lastSentResistance = this.controlMode === 'resistance' ? this.currentResistance : null;
   }
 
   onReading(cb: (r: TrainerReading) => void): () => void {
@@ -134,12 +208,24 @@ export class BleTrainerAdapter implements TrainerAdapter {
       this.statusCharacteristic = null;
     }
 
+    // Qué modos acepta: si no anuncia la simulación de calle, el modo
+    // libre usa resistencia fija. Sin esta característica (opcional en
+    // algunos rodillos) se intenta la simulación y se cae si la rechaza.
+    try {
+      const feature = await service.getCharacteristic('fitness_machine_feature');
+      const parsed = parseFitnessMachineFeature(await feature.readValue());
+      if (parsed) this.setFreeMode(parsed.simulation ? 'sim' : 'resistance');
+    } catch {
+      /* sin la característica: se queda optimista */
+    }
+    if (this.controlMode === 'sim' && this.freeMode !== 'sim') this.controlMode = 'resistance';
+
     // al conectar (o reconectar) hay que repetir la secuencia completa,
-    // incluyendo el objetivo actual, para que el rodillo vuelva a modo ERG.
+    // incluyendo el modo actual (ERG, calle o resistencia), no siempre ERG.
     await this.controlCharacteristic.writeValueWithResponse(buildRequestControl());
     await this.controlCharacteristic.writeValueWithResponse(buildStart());
-    await this.controlCharacteristic.writeValueWithResponse(buildSetTargetPower(this.currentTarget));
-    this.lastSentTarget = this.currentTarget;
+    await this.controlCharacteristic.writeValueWithResponse(this.currentModeCommand());
+    this.markSent();
 
     this.reconnectAttempt = 0;
     this.setState('connected');
@@ -170,25 +256,36 @@ export class BleTrainerAdapter implements TrainerAdapter {
     try {
       if (!this.controlCharacteristic?.value) return;
       const response = parseControlPointResponse(this.controlCharacteristic.value);
-      if (response && response.resultCode !== CONTROL_POINT_RESULT.success) {
-        this.recoverErgControl();
+      if (!response || response.resultCode === CONTROL_POINT_RESULT.success) return;
+      // No soporta la calle simulada: modo libre con resistencia fija.
+      if (response.requestOpCode === CONTROL_POINT_OPCODE.setIndoorBikeSimulation && response.resultCode !== CONTROL_POINT_RESULT.controlNotPermitted) {
+        this.setFreeMode('resistance');
+        this.lastSentGrade = null;
+        this.setResistance(this.currentResistance);
+        return;
       }
+      // Tampoco acepta resistencia fija: no hay forma de soltarlo; no se
+      // regresa a ERG a escondidas (se queda en lo último que aceptó).
+      if (response.requestOpCode === CONTROL_POINT_OPCODE.setResistanceLevel && response.resultCode !== CONTROL_POINT_RESULT.controlNotPermitted) {
+        console.warn('[ftms] el rodillo no acepta resistencia fija');
+        return;
+      }
+      this.recoverControl();
     } catch (err) {
       console.error('[ftms] no se pudo leer la respuesta del control point', err);
     }
   };
 
-  private recoverErgControl(): void {
+  /** Repite el enganche completo y el modo actual (ERG, calle o resistencia). */
+  private recoverControl(): void {
     if (this.recoveringErg || !this.controlCharacteristic) return;
     this.recoveringErg = true;
     const characteristic = this.controlCharacteristic;
     characteristic
       .writeValueWithResponse(buildRequestControl())
       .then(() => characteristic.writeValueWithResponse(buildStart()))
-      .then(() => characteristic.writeValueWithResponse(buildSetTargetPower(this.currentTarget)))
-      .then(() => {
-        this.lastSentTarget = this.currentTarget;
-      })
+      .then(() => characteristic.writeValueWithResponse(this.currentModeCommand()))
+      .then(() => this.markSent())
       .catch(() => {
         /* si esto también falla, la próxima respuesta con error lo reintenta */
       })

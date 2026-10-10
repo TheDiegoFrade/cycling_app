@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildRequestControl,
+  buildSetIndoorBikeSimulation,
   buildSetResistanceLevel,
   buildSetTargetPower,
   buildStart,
   CONTROL_POINT_RESULT,
   parseControlPointResponse,
+  parseFitnessMachineFeature,
   parseIndoorBikeData,
 } from './ftms-protocol';
 
@@ -119,5 +121,25 @@ describe('parseControlPointResponse', () => {
 
   it('devuelve null si el mensaje es más corto de 3 bytes', () => {
     expect(parseControlPointResponse(dv([0x80, 0x05]))).toBeNull();
+  });
+});
+
+describe('calle simulada (modo libre sin ERG)', () => {
+  it('arma Set Indoor Bike Simulation: opcode 0x11, viento, pendiente, Crr y Cw en little endian', () => {
+    const msg = buildSetIndoorBikeSimulation(2.5);
+    expect(Array.from(msg)).toEqual([0x11, 0, 0, 250, 0, 40, 51]);
+  });
+
+  it('pendiente negativa en complemento a dos', () => {
+    const v = new DataView(buildSetIndoorBikeSimulation(-1).buffer);
+    expect(v.getInt16(3, true)).toBe(-100);
+  });
+
+  it('lee qué modos acepta el rodillo (fitness_machine_feature)', () => {
+    const target = (1 << 2) | (1 << 3) | (1 << 13);
+    const bytes = [0, 0, 0, 0, target & 0xff, (target >> 8) & 0xff, (target >> 16) & 0xff, 0];
+    expect(parseFitnessMachineFeature(dv(bytes))).toEqual({ resistance: true, power: true, simulation: true });
+    expect(parseFitnessMachineFeature(dv([0, 0, 0, 0, 1 << 3, 0, 0, 0]))).toEqual({ resistance: false, power: true, simulation: false });
+    expect(parseFitnessMachineFeature(dv([0, 0, 0]))).toBeNull();
   });
 });

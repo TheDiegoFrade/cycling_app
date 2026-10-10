@@ -810,7 +810,10 @@ En 3-5 oraciones:
 
 1. **Qué vas a hacer y cómo.** El objetivo de este workout y cómo
    abordarlo, incluido el ERG (el atleta lo prende y apaga; tú se lo
-   recomiendas, nunca asumas que ya sabe cuál conviene):
+   recomiendas, nunca asumas que ya sabe cuál conviene). Las sesiones con
+   \`erg\` "off" ya arrancan sin ERG, en modo calle plana: no le pidas que
+   lo apague; dile que va por sensación con sus cambios y que, si prefiere
+   ERG, lo prende con el botón ⚡:
    - La potencia fija ES el punto (sweet spot, umbral, over/unders, la
      rampa de test) → ERG prendido: el rodillo manda, tú sostienes la
      cadencia.

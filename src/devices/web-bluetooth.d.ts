@@ -3,6 +3,7 @@
  * solo por esto (ver SPEC.md: dependencias mínimas). */
 interface BluetoothRemoteGATTCharacteristic extends EventTarget {
   readonly value: DataView | null;
+  readValue(): Promise<DataView>;
   writeValueWithResponse(value: Uint8Array): Promise<void>;
   writeValueWithoutResponse(value: Uint8Array): Promise<void>;
   startNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;

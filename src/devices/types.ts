@@ -1,3 +1,6 @@
+/** Cómo va el rodillo sin ERG (ver TrainerAdapter.setSimulation). */
+export type FreeMode = 'sim' | 'resistance';
+
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'error';
 
 export interface TrainerReading {
@@ -20,6 +23,14 @@ export interface TrainerAdapter {
    * al último objetivo para siempre hasta que se le pida explícitamente
    * otro modo de control. */
   setResistance(percent: number): void;
+  /** Modo libre como una calle (sin ERG): pendiente en %, 0 = plano. Si el
+   * rodillo no lo soporta o lo rechaza, el adaptador cae a resistencia fija
+   * y `freeMode` pasa a 'resistance'. */
+  setSimulation(gradePct: number): void;
+  /** Qué usa el modo libre en este rodillo: simulación de calle (lo
+   * cómodo) o resistencia fija (respaldo). */
+  readonly freeMode: FreeMode;
+  onFreeModeChange(cb: (mode: FreeMode) => void): () => void;
   onReading(cb: (reading: TrainerReading) => void): () => void;
   onStateChange(cb: (state: ConnectionState) => void): () => void;
 }
