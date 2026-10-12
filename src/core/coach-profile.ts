@@ -3,6 +3,8 @@
 // coach necesita saber además de dónde salió ese número para no tomar un
 // default o un provisional por una medición (ver prompt.ts, "El FTP del
 // perfil"). Lógica pura: la usan el Perfil, el cuestionario y coach.ts.
+import { intakeError } from './intake';
+import type { HealthIntake } from './intake';
 import { otherActivityError } from './other-activities';
 import type { OtherActivity } from './other-activities';
 import type { FtpSource, Profile } from './types';
@@ -71,6 +73,9 @@ export function coachProfileError(p: Profile, today: Date = new Date()): string 
   if (!p.sex) return 'Elige tu sexo.';
   const body = bodyDataError(p, today);
   if (body) return body;
+  // Salud y hábitos van justo después: es lo primero que manda (método de Joe).
+  const health = intakeError(p.intake);
+  if (health) return health;
   if (!p.experienceLevel) return 'Elige qué tanto has entrenado con estructura.';
   if (!p.generalFitnessLevel) return 'Elige qué tan activo has estado.';
   if (!inRange(p.yearsRiding, [0, 80])) return 'Escribe cuántos años llevas andando en bici (0 si empiezas).';
@@ -118,7 +123,16 @@ export function coachFtpFields(p: Profile): CoachProfileFtp {
 export function coachProfileExtras(
   p: Profile,
   today: Date = new Date(),
-): { injuries: string | null; weightKg: number | null; ageYears: number | null; otherActivities: OtherActivity[] | null } {
+): {
+  injuries: string | null;
+  weightKg: number | null;
+  ageYears: number | null;
+  otherActivities: OtherActivity[] | null;
+  intake: HealthIntake | null;
+  experienceLevel: Profile['experienceLevel'] | null;
+  generalFitnessLevel: Profile['generalFitnessLevel'] | null;
+  structuredTrainingYears: number | null;
+} {
   return {
     injuries: p.injuries?.trim() || null,
     weightKg: p.weight_kg && p.weight_kg > 0 ? p.weight_kg : null,
@@ -126,5 +140,10 @@ export function coachProfileExtras(
     // Lo que hace además de la bici: el coach lo cuenta en la carga y la
     // fatiga, aunque Torq no lo agende. null = todavía no contesta.
     otherActivities: p.otherActivities ?? null,
+    // Salud y hábitos: el servidor saca de aquí el perfil de arranque (core/intake.ts).
+    intake: p.intake ?? null,
+    experienceLevel: p.experienceLevel ?? null,
+    generalFitnessLevel: p.generalFitnessLevel ?? null,
+    structuredTrainingYears: p.structuredTrainingYears ?? null,
   };
 }

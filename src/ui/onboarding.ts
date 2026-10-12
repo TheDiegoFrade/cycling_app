@@ -6,6 +6,8 @@
 // que ya hace Perfil — nunca se reemplaza el objeto completo.
 import type { Profile } from '../core/types';
 import { coachProfileError, ftpSourceOf, isMeasuredFtp, withFtp } from '../core/coach-profile';
+import { CHRONIC_CONDITIONS, CHRONIC_CONDITION_LABELS } from '../core/intake';
+import type { HealthIntake } from '../core/intake';
 import { DAY_CODES, DAY_SHORT_LABELS, QUESTIONNAIRE_KINDS, QUESTIONNAIRE_KIND_LABELS } from '../core/other-activities';
 import type { OtherActivity } from '../core/other-activities';
 import type { NonBikeKind } from '../core/session-kind';
@@ -76,6 +78,16 @@ function otherActivityRowHtml(a: OtherActivity, i: number): string {
   </div>`;
 }
 
+/** Grupo de opciones de una sola respuesta (chips). `selected` undefined =
+ * sin contestar: nada marcado, el atleta tiene que elegir. */
+function chipGroupHtml(id: string, options: readonly (readonly [string, string])[], selected: string | undefined): string {
+  return `<div class="ob-chips" id="${id}" data-single>${options
+    .map(([v, label]) => `<button type="button" class="ob-chip${selected === v ? ' on' : ''}" data-value="${v}" aria-pressed="${selected === v}">${label}</button>`)
+    .join('')}</div>`;
+}
+
+const yesNo = (v: boolean | undefined): string | undefined => (v === undefined ? undefined : v ? 'yes' : 'no');
+
 function sectionHtml(n: number, title: string, body: string): string {
   return `<section class="ob-section"><h3 class="ob-section-title"><span class="ob-section-num">${n}</span>${title}</h3>${body}</section>`;
 }
@@ -88,6 +100,7 @@ function modalHtml(p: Profile): string {
   const fitness = p.generalFitnessLevel;
   const discipline = p.discipline;
   const noInjuries = p.injuries === NO_INJURIES;
+  const intake = p.intake;
   return `
     <div class="modal-backdrop" id="onboarding-backdrop">
       <div class="panel ob-modal" id="onboarding-modal" role="dialog" aria-modal="true" aria-labelledby="ob-title">
@@ -130,6 +143,52 @@ function modalHtml(p: Profile): string {
 
           ${sectionHtml(
             2,
+            'Salud',
+            `<p class="ob-note" style="margin-top:0">Va primero porque manda sobre todo lo demás: con esto tu coach cuida qué tan fuerte y qué tan rápido subir.</p>
+            <p class="ob-q">¿Tienes alguna enfermedad crónica o condición de salud?</p>
+            <div class="ob-chips" id="ob-conditions">
+              <button type="button" class="ob-chip${intake && intake.conditions.length === 0 ? ' on' : ''}" data-value="none" aria-pressed="${!!intake && intake.conditions.length === 0}">Ninguna</button>
+              ${CHRONIC_CONDITIONS.map((c) => `<button type="button" class="ob-chip${intake?.conditions.includes(c) ? ' on' : ''}" data-value="${c}" aria-pressed="${!!intake?.conditions.includes(c)}">${CHRONIC_CONDITION_LABELS[c]}</button>`).join('')}
+            </div>
+            <label class="ob-field" id="ob-conditions-other-label" style="display:${intake?.conditions.includes('other') ? 'flex' : 'none'}">¿Cuál?
+              <input type="text" id="ob-conditions-other" maxlength="120" value="${esc(intake?.conditionsOther)}">
+            </label>
+            <p class="ob-q">¿Tomas algún medicamento de forma regular?</p>
+            ${chipGroupHtml('ob-medication', [['no', 'No'], ['yes', 'Sí']], yesNo(intake?.takesMedication))}
+            <label class="ob-field" id="ob-medication-note-label" style="display:${intake?.takesMedication ? 'flex' : 'none'}"><span>¿Cuál? <span class="ob-optional">opcional</span></span>
+              <input type="text" id="ob-medication-note" maxlength="200" value="${esc(intake?.medicationNote)}" placeholder="Ej. para la presión">
+            </label>
+            <p class="ob-q">¿Tuviste alguna lesión o cirugía importante en los últimos 2 años?</p>
+            ${chipGroupHtml('ob-recent-injury', [['no', 'No'], ['yes', 'Sí']], yesNo(intake?.recentInjury))}
+            <label class="ob-field"><span>Lesiones o limitaciones actuales</span>
+              <textarea id="ob-injuries" rows="3" placeholder="Ej. molestia en rodilla izquierda, evitar sentadilla profunda" ${noInjuries ? 'disabled' : ''}>${noInjuries ? '' : esc(p.injuries)}</textarea>
+            </label>
+            <div class="ob-toggles">
+              ${toggleHtml('ob-no-injuries', noInjuries, 'No tengo lesiones ni limitaciones')}
+            </div>`,
+          )}
+
+          ${sectionHtml(
+            3,
+            'Hábitos',
+            `<p class="ob-note" style="margin-top:0">No es para juzgarte: nos dice cómo arrancar para que el plan te funcione.</p>
+            <p class="ob-q">¿Fumas?</p>
+            ${chipGroupHtml('ob-smoking', [['no', 'No'], ['occasional', 'De vez en cuando'], ['daily', 'Diario']], intake?.smoking)}
+            <p class="ob-q">¿Tomas alcohol?</p>
+            ${chipGroupHtml('ob-alcohol', [['rarely', 'Nunca o rara vez'], ['weekly', '1-2 veces por semana'], ['frequent', '3 o más por semana']], intake?.alcohol)}
+            <p class="ob-q">¿Cómo es tu estrés en un día normal?</p>
+            ${chipGroupHtml('ob-stress', [['low', 'Bajo'], ['medium', 'Medio'], ['high', 'Alto']], intake?.stress)}
+            <div class="ob-grid">
+              <label class="ob-field">Horas que duermes en promedio
+                <span class="ob-input-unit"><input type="number" id="ob-sleep-hours" value="${esc(intake?.sleepHours)}" min="3" max="12" step="0.5" inputmode="decimal"><span>h</span></span>
+              </label>
+            </div>
+            <p class="ob-q">¿Cómo duermes?</p>
+            ${chipGroupHtml('ob-sleep-quality', [['good', 'Bien'], ['fair', 'Regular'], ['poor', 'Mal']], intake?.sleepQuality)}`,
+          )}
+
+          ${sectionHtml(
+            4,
             'Tu experiencia',
             `<p class="ob-q">¿Qué tanto has entrenado con estructura?</p>
             <div class="ob-options" id="ob-experience">
@@ -150,11 +209,16 @@ function modalHtml(p: Profile): string {
               <label class="ob-field">Años entrenando con potencia o estructura
                 <span class="ob-input-unit"><input type="number" id="ob-structured-years" value="${esc(p.structuredTrainingYears)}" placeholder="0 si nunca" min="0" max="60" inputmode="numeric"><span>años</span></span>
               </label>
-            </div>`,
+            </div>
+            <p class="ob-q">¿Sabes medir qué tan duro vas del 1 al 10 (RPE)?</p>
+            <p class="ob-note" style="margin-top:0">3-4: puedes platicar · 6-7: solo frases cortas · 8-9: pocas palabras · 10: no puedes más.</p>
+            ${chipGroupHtml('ob-rpe', [['yes', 'Sí'], ['somewhat', 'Más o menos'], ['no', 'No']], intake?.rpeLiteracy)}
+            <p class="ob-q">¿Has hecho esfuerzos al máximo? (carreras, tests, series a tope)</p>
+            ${chipGroupHtml('ob-max-effort', [['yes', 'Sí'], ['no', 'No']], yesNo(intake?.maxEffortExperience))}`,
           )}
 
           ${sectionHtml(
-            3,
+            5,
             'Tu bici',
             `<p class="ob-q">Disciplina principal</p>
             <div class="ob-chips" id="ob-discipline">
@@ -176,7 +240,7 @@ function modalHtml(p: Profile): string {
           )}
 
           ${sectionHtml(
-            4,
+            6,
             'Tus números',
             `<div class="ob-grid">
               <div class="ob-field">
@@ -189,12 +253,17 @@ function modalHtml(p: Profile): string {
                 <span class="ob-input-unit"><input type="number" id="ob-hrmax" value="${p.hrMaxConfirmed ? esc(p.hr_max) : ''}" placeholder="Ej. 185" inputmode="numeric" ${p.hrMaxConfirmed === false ? 'disabled' : ''}><span>lpm</span></span>
                 ${toggleHtml('ob-no-hrmax', p.hrMaxConfirmed === false, 'No sé mi pulso máximo')}
               </div>
+              <div class="ob-field">
+                <label for="ob-resting-hr">Pulso en reposo</label>
+                <span class="ob-input-unit"><input type="number" id="ob-resting-hr" value="${esc(intake?.restingHr)}" placeholder="Ej. 58" inputmode="numeric" ${intake && intake.restingHr === null ? 'disabled' : ''}><span>lpm</span></span>
+                ${toggleHtml('ob-no-resting-hr', !!intake && intake.restingHr === null, 'No sé mi pulso en reposo')}
+              </div>
             </div>
             <p class="ob-note">No pasa nada si no los sabes: el plan arranca con un protocolo para calibrarlos con seguridad.</p>`,
           )}
 
           ${sectionHtml(
-            5,
+            7,
             'Otras actividades',
             `<p class="ob-q">¿Haces algo más además de la bici? Correr, gym, crossfit… también cansa, y tu coach lo acomoda junto a tus rodadas.</p>
             <div id="ob-other-list" class="ob-other-list"></div>
@@ -205,8 +274,8 @@ function modalHtml(p: Profile): string {
           )}
 
           ${sectionHtml(
-            6,
-            'Metas y salud',
+            8,
+            'Metas',
             `<div class="ob-toggles">
               ${toggleHtml('ob-competes', !!p.competes, 'Compito o quiero competir')}
             </div>
@@ -216,16 +285,11 @@ function modalHtml(p: Profile): string {
             <label class="ob-field"><span>Mejor resultado o logro reciente</span>
               <input type="text" id="ob-best-result" value="${esc(p.recentBestResult)}" placeholder="Ej. terminé mi primer XC local, o «ninguno todavía»">
             </label>
-            <label class="ob-field"><span>Lesiones o limitaciones actuales</span>
-              <textarea id="ob-injuries" rows="3" placeholder="Ej. molestia en rodilla izquierda, evitar sentadilla profunda" ${noInjuries ? 'disabled' : ''}>${noInjuries ? '' : esc(p.injuries)}</textarea>
-            </label>
-            <div class="ob-toggles">
-              ${toggleHtml('ob-no-injuries', noInjuries, 'No tengo lesiones ni limitaciones')}
-            </div>`,
+`,
           )}
 
           ${sectionHtml(
-            7,
+            9,
             'Entrenamientos recientes fuera de Torq',
             `<p class="ob-note" style="margin-top:0">¿Entrenaste con otra app o dispositivo las últimas 1 o 2 semanas? Sube esos archivos .fit para que el plan arranque con contexto real. Lo que ya grabaste en Torq no hace falta. <span class="ob-optional">opcional</span></p>
             <label class="ob-upload">
@@ -317,6 +381,83 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     hrMaxInput.disabled = noHrMaxCheckbox.checked;
     if (noHrMaxCheckbox.checked) hrMaxInput.value = '';
   });
+
+  // Opciones de una sola respuesta: marcar una desmarca las otras del grupo.
+  backdrop.querySelectorAll<HTMLElement>('[data-single]').forEach((group) => {
+    group.addEventListener('click', (e) => {
+      const chip = (e.target as HTMLElement).closest<HTMLButtonElement>('.ob-chip');
+      if (!chip) return;
+      group.querySelectorAll('.ob-chip').forEach((c) => { c.classList.remove('on'); c.setAttribute('aria-pressed', 'false'); });
+      chip.classList.add('on');
+      chip.setAttribute('aria-pressed', 'true');
+      if (group.id === 'ob-medication') backdrop.querySelector<HTMLElement>('#ob-medication-note-label')!.style.display = chip.dataset.value === 'yes' ? 'flex' : 'none';
+    });
+  });
+  const picked = (id: string): string | undefined => backdrop.querySelector<HTMLElement>(`#${id} .ob-chip.on`)?.dataset.value;
+  // Condiciones: varias a la vez; «Ninguna» es excluyente.
+  const conditionsGroup = backdrop.querySelector<HTMLElement>('#ob-conditions')!;
+  conditionsGroup.addEventListener('click', (e) => {
+    const chip = (e.target as HTMLElement).closest<HTMLButtonElement>('.ob-chip');
+    if (!chip) return;
+    const setOn = (c: Element, on: boolean) => { c.classList.toggle('on', on); c.setAttribute('aria-pressed', String(on)); };
+    if (chip.dataset.value === 'none') conditionsGroup.querySelectorAll('.ob-chip').forEach((c) => setOn(c, c === chip));
+    else {
+      setOn(chip, !chip.classList.contains('on'));
+      setOn(conditionsGroup.querySelector('[data-value="none"]')!, false);
+    }
+    backdrop.querySelector<HTMLElement>('#ob-conditions-other-label')!.style.display = conditionsGroup.querySelector('[data-value="other"].on') ? 'flex' : 'none';
+  });
+  const restingHrInput = backdrop.querySelector<HTMLInputElement>('#ob-resting-hr')!;
+  const noRestingHr = backdrop.querySelector<HTMLInputElement>('#ob-no-resting-hr')!;
+  noRestingHr.addEventListener('change', () => {
+    restingHrInput.disabled = noRestingHr.checked;
+    if (noRestingHr.checked) restingHrInput.value = '';
+  });
+
+  /** Lee Salud y Hábitos (y RPE / esfuerzos máximos); dice qué falta, en orden. */
+  function readIntake(): { intake?: HealthIntake; missing?: string } {
+    const conditions = [...conditionsGroup.querySelectorAll<HTMLElement>('.ob-chip.on')].map((c) => c.dataset.value!);
+    if (!conditions.length) return { missing: 'Dinos si tienes alguna condición de salud, o marca «Ninguna».' };
+    const medication = picked('ob-medication');
+    if (!medication) return { missing: 'Dinos si tomas algún medicamento de forma regular.' };
+    const recentInjury = picked('ob-recent-injury');
+    if (!recentInjury) return { missing: 'Dinos si tuviste una lesión o cirugía importante en los últimos 2 años.' };
+    const smoking = picked('ob-smoking');
+    if (!smoking) return { missing: 'Dinos si fumas.' };
+    const alcohol = picked('ob-alcohol');
+    if (!alcohol) return { missing: 'Dinos qué tan seguido tomas alcohol.' };
+    const stress = picked('ob-stress');
+    if (!stress) return { missing: 'Dinos cómo es tu estrés en un día normal.' };
+    const sleepRaw = backdrop.querySelector<HTMLInputElement>('#ob-sleep-hours')!.value;
+    const sleepQuality = picked('ob-sleep-quality');
+    if (!sleepQuality) return { missing: 'Dinos cómo duermes.' };
+    const rpe = picked('ob-rpe');
+    if (!rpe) return { missing: 'Dinos si sabes medir tu esfuerzo del 1 al 10.' };
+    const maxEffort = picked('ob-max-effort');
+    if (!maxEffort) return { missing: 'Dinos si has hecho esfuerzos al máximo.' };
+    const restingRaw = restingHrInput.value.trim();
+    if (!noRestingHr.checked && !restingRaw) return { missing: 'Escribe tu pulso en reposo o marca «No sé mi pulso en reposo».' };
+    const real = conditions.filter((c) => c !== 'none') as HealthIntake['conditions'];
+    return {
+      intake: {
+        conditions: real,
+        ...(real.includes('other') ? { conditionsOther: backdrop.querySelector<HTMLInputElement>('#ob-conditions-other')!.value.trim() } : {}),
+        takesMedication: medication === 'yes',
+        ...(medication === 'yes' && backdrop.querySelector<HTMLInputElement>('#ob-medication-note')!.value.trim()
+          ? { medicationNote: backdrop.querySelector<HTMLInputElement>('#ob-medication-note')!.value.trim() }
+          : {}),
+        recentInjury: recentInjury === 'yes',
+        smoking: smoking as HealthIntake['smoking'],
+        alcohol: alcohol as HealthIntake['alcohol'],
+        stress: stress as HealthIntake['stress'],
+        sleepHours: Number(sleepRaw) || 0,
+        sleepQuality: sleepQuality as HealthIntake['sleepQuality'],
+        restingHr: noRestingHr.checked ? null : Number(restingRaw),
+        rpeLiteracy: rpe as HealthIntake['rpeLiteracy'],
+        maxEffortExperience: maxEffort === 'yes',
+      },
+    };
+  }
 
   const injuriesInput = backdrop.querySelector<HTMLTextAreaElement>('#ob-injuries')!;
   const noInjuriesCheckbox = backdrop.querySelector<HTMLInputElement>('#ob-no-injuries')!;
@@ -420,6 +561,7 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     const hrMaxConfirmed = !noHrMaxCheckbox.checked;
     const typedFtp = numOrUndef('#ob-ftp');
     const typedHrMax = numOrUndef('#ob-hrmax');
+    const intakeRead = readIntake();
     const ftpOrHrError = (): string | null => {
       // Sin «No sé», el número es obligatorio: antes se quedaba el 200 W / 185
       // lpm por defecto marcado como si fuera suyo.
@@ -451,6 +593,7 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
         ridesOutside,
         hasOutdoorPowerMeter: ridesOutside ? backdrop.querySelector<HTMLInputElement>('#ob-outdoor-power')!.checked : undefined,
         injuries: noInjuriesCheckbox.checked ? NO_INJURIES : injuriesInput.value.trim() || undefined,
+        intake: intakeRead.intake,
         recentBestResult: backdrop.querySelector<HTMLInputElement>('#ob-best-result')!.value.trim() || undefined,
         // Ni actividades ni «No hago»: sin contestar (coachProfileError lo pide).
         otherActivities: noOtherCheckbox.checked
@@ -466,8 +609,12 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     );
     // Mismo orden que el formulario: primero lo que va antes de «Tus
     // números», luego el FTP y el pulso escritos, luego el resto.
-    const before = coachProfileError({ ...candidate, ftpSource: 'default', hrMaxConfirmed: false, competes: false, recentBestResult: '-', injuries: '-', otherActivities: [] });
-    const missing = before ?? ftpOrHrError() ?? coachProfileError(candidate);
+    // Mismo orden que el formulario: «Sobre ti», luego Salud y Hábitos, luego
+    // lo que va antes de «Tus números», el FTP y el pulso, y el resto.
+    const firstGap = coachProfileError({ ...candidate, intake: undefined });
+    const aboutYou = firstGap && /sexo|nacimiento|peso|altura/.test(firstGap) ? firstGap : null;
+    const before = coachProfileError({ ...candidate, ftpSource: 'default', hrMaxConfirmed: false, competes: false, recentBestResult: '-', otherActivities: [] });
+    const missing = aboutYou ?? intakeRead.missing ?? before ?? ftpOrHrError() ?? coachProfileError(candidate);
     if (missing) {
       status.textContent = missing;
       return;

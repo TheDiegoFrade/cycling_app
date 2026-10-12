@@ -1262,3 +1262,13 @@ alter table sessions add constraint sessions_kind_check
 alter table sessions drop constraint if exists sessions_srpe_load_check;
 alter table sessions add constraint sessions_srpe_load_check
   check (srpe_load is null or (srpe_load >= 0 and kind in ('strength', 'mobility', 'flexibility', 'running', 'crossfit', 'swimming', 'other')));
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Evaluación de salud y hábitos (método de Joe Hernández, UR Training):
+-- condiciones crónicas, medicamento, lesión reciente, tabaco, alcohol,
+-- estrés, sueño, pulso en reposo, RPE y experiencia con esfuerzos máximos.
+-- De aquí sale el perfil de arranque (src/core/intake.ts) que el coach IA
+-- recibe decidido. Forma: HealthIntake en src/core/intake.ts.
+-- ─────────────────────────────────────────────────────────────────────────
+alter table profiles add column if not exists health_intake jsonb
+  check (health_intake is null or jsonb_typeof(health_intake) = 'object');

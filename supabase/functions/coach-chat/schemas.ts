@@ -39,6 +39,23 @@ const OtherActivitySchema = z.object({
   days: z.array(DayCodeSchema).max(7),
 });
 
+/** Evaluación de salud y hábitos (src/core/intake.ts, método de Joe). */
+const HealthIntakeSchema = z.object({
+  conditions: z.array(z.enum(['hypertension', 'diabetes', 'asthma', 'heart', 'other'])).max(5),
+  conditionsOther: z.string().max(120).nullable().optional(),
+  takesMedication: z.boolean(),
+  medicationNote: z.string().max(200).nullable().optional(),
+  recentInjury: z.boolean(),
+  smoking: z.enum(['no', 'occasional', 'daily']),
+  alcohol: z.enum(['rarely', 'weekly', 'frequent']),
+  stress: z.enum(['low', 'medium', 'high']),
+  sleepHours: z.number().min(3).max(12),
+  sleepQuality: z.enum(['good', 'fair', 'poor']),
+  restingHr: z.number().min(30).max(120).nullable(),
+  rpeLiteracy: z.enum(['yes', 'somewhat', 'no']),
+  maxEffortExperience: z.boolean(),
+});
+
 const PlannedWorkoutSchema = z.object({
   name: z.string(),
   dayOfWeek: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
@@ -87,6 +104,11 @@ const ProfileExtrasSchema = {
   ageYears: z.number().int().nullable().optional().transform((v) => (v == null ? v : v >= 8 && v <= 100 ? v : null)),
   // Lo que hace además de la bici; [] = nada. Ausente en apps viejas.
   otherActivities: z.array(OtherActivitySchema).max(8).nullable().optional(),
+  // Salud y hábitos; el servidor saca de aquí context.starting (perfil de arranque).
+  intake: HealthIntakeSchema.nullable().optional(),
+  experienceLevel: z.enum(['new_to_cycling', 'returning_or_new_to_app', 'experienced']).nullable().optional(),
+  generalFitnessLevel: z.enum(['sedentary', 'active_other_sport', 'active_cyclist']).nullable().optional(),
+  structuredTrainingYears: z.number().nonnegative().nullable().optional(),
 };
 
 // Próximo test que el coach decide (no hay fecha fija: él juzga cuándo el

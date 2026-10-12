@@ -1,4 +1,5 @@
 import type { MetricId } from './metrics';
+import type { HealthIntake } from './intake';
 import type { OtherActivity } from './other-activities';
 import type { PowerZone } from './zones';
 
@@ -144,6 +145,8 @@ export interface Profile {
   /** Lo que hace además de la bici (ver core/other-activities.ts). [] =
    * contestó que nada; undefined = todavía no contesta. */
   otherActivities?: OtherActivity[];
+  /** Evaluación de salud y hábitos (core/intake.ts). */
+  intake?: HealthIntake;
   // `ftp`/`hr_max` arriba SIEMPRE tienen un número (el motor lo necesita para
   // zonas/ERG en vivo) — pero puede ser el default sin confirmar
   // (DEFAULT_PROFILE: ftp 200, hr_max 185) de alguien que nunca lo tocó.
