@@ -532,6 +532,41 @@ function evalWeekTarget(startDate, todayKey) {
 function planTotalWeeks(blocks) {
   return blocks.reduce((s, b) => s + b.weeks, 0);
 }
+
+// src/core/intake.ts
+var SHORT_SLEEP_H = 6;
+var bump = (l) => l === "low" ? "medium" : "high";
+function startingProfile(p) {
+  const i = p.intake;
+  const healthFirst = !!i && (i.conditions.length > 0 || i.takesMedication);
+  const reasons = [];
+  if (i?.conditions.length) reasons.push("tiene una condici\xF3n de salud: primero que lo vea su m\xE9dico");
+  else if (i?.takesMedication) reasons.push("toma medicamento de forma regular: primero que lo vea su m\xE9dico");
+  if (i?.recentInjury) reasons.push("lesi\xF3n o cirug\xEDa en los \xFAltimos 2 a\xF1os");
+  if (typeof p.ageYears === "number" && p.ageYears < 18) reasons.push("es menor de edad");
+  if (p.generalFitnessLevel === "sedentary") reasons.push("viene de estar sedentario");
+  if (i?.rpeLiteracy === "no") reasons.push("todav\xEDa no sabe medir su esfuerzo (RPE)");
+  const maxEffortReady = reasons.length === 0;
+  const knowsHowToDose = !!i?.maxEffortExperience && i.rpeLiteracy === "yes" && (p.experienceLevel === "experienced" || (p.structuredTrainingYears ?? 0) >= 1);
+  const testPlan = !maxEffortReady ? "none" : knowsHowToDose ? "test20" : "ramp";
+  const baseFirst = !!i && (i.smoking !== "no" || i.alcohol !== "rarely");
+  let stress = i?.stress ?? "medium";
+  if (i && i.alcohol !== "rarely") stress = bump(stress);
+  if (i && (i.sleepHours < SHORT_SLEEP_H || i.sleepQuality === "poor")) stress = bump(stress);
+  if (i && i.alcohol === "frequent") stress = "high";
+  const poorSleep = !!i && (i.sleepHours < SHORT_SLEEP_H || i.sleepQuality === "poor");
+  const start = poorSleep || stress === "high" ? "conservative" : "normal";
+  return {
+    healthFirst,
+    maxEffortReady,
+    notReadyReasons: reasons,
+    testPlan,
+    baseFirst,
+    start,
+    stressAdjusted: stress,
+    teachRpe: !!i && i.rpeLiteracy !== "yes"
+  };
+}
 export {
   addDays,
   buildMonthlyReport,
@@ -546,5 +581,6 @@ export {
   planWeekOf,
   reviewAiContext,
   shiftMonth,
-  startPhase
+  startPhase,
+  startingProfile
 };

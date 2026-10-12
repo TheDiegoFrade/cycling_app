@@ -228,3 +228,45 @@ describe('reglas v3 (2)', () => {
   });
 });
 
+
+describe('perfil de arranque (método de Joe)', () => {
+  const base = { startDate: '2026-10-12', availability: { days: ['mon', 'wed', 'sat'], maxSessionMinutes: 90 }, occupiedDates: [], profile: { ftp: null } };
+  const ramp = { ...easy('sat'), name: 'Test de rampa', kind: 'test', segments: [{ repeat: 1, steps: [{ ...step(25, 50), ramp_to_pct: 200 }] }] };
+  const t20 = { ...easy('sat'), name: 'Test de 20 min', kind: 'test', segments: [{ repeat: 1, steps: [step(20, 100)] }] };
+  const tempo = (day: string) => ({ ...easy(day), name: `Sweet spot ${day}`, segments: [{ repeat: 3, steps: [step(8, 89), step(4, 50)] }] });
+  const plan = (workouts: unknown[], nextTest: unknown) => ({
+    blocks: [{ weeks: 1 }],
+    firstBlockWeeks: [{ weekIndex: 0, workouts }],
+    coachNote: 'Arrancamos por sensación y con calma; tu cuerpo nos va diciendo cuándo subir.',
+    suggestedFtp: null,
+    nextTest,
+  });
+  const starting = (over: Record<string, unknown>) => ({ healthFirst: false, maxEffortReady: true, notReadyReasons: [], testPlan: 'ramp', baseFirst: false, start: 'normal', stressAdjusted: 'low', teachRpe: false, ...over });
+  const fails = (ctx: unknown, out: unknown, mode: 'create_plan' | 'weekly_eval' = 'create_plan') =>
+    reviewOutput(mode, ctx, out).filter((x) => x.level === 'fail').map((x) => x.msg);
+
+  it('no listo para un máximo: sin test ni nextTest, y sin exigir cuándo se mide', () => {
+    const ctx = { ...base, starting: starting({ maxEffortReady: false, testPlan: 'none', healthFirst: true, notReadyReasons: ['tiene una condición de salud: primero que lo vea su médico'] }) };
+    expect(fails(ctx, plan([easy('mon'), ramp], { weekIndex: 0, type: 'ramp', reason: 'x' })).some((m) => m.includes('no está listo'))).toBe(true);
+    expect(fails(ctx, plan([easy('mon'), easy('sat')], null))).toEqual([]);
+  });
+
+  it('rampa: el de 20 min no va para quien no tiene experiencia con máximos', () => {
+    const ctx = { ...base, starting: starting({ testPlan: 'ramp' }) };
+    expect(fails(ctx, plan([easy('mon'), t20], { weekIndex: 0, type: 'test20', reason: 'x' })).some((m) => m.includes('rampa'))).toBe(true);
+    expect(fails(ctx, plan([easy('mon'), ramp], { weekIndex: 0, type: 'ramp', reason: 'x' })).filter((m) => m.includes('rampa'))).toEqual([]);
+  });
+
+  it('base primero: nada a 88 % o más al arrancar', () => {
+    const ctx = { ...base, profile: { ftp: 250 }, starting: starting({ baseFirst: true }) };
+    expect(fails(ctx, plan([tempo('mon'), easy('sat')], null)).some((m) => m.includes('base primero'))).toBe(true);
+  });
+
+  it('weekly_eval sin estar listo (no por salud): el primer test no antes de la semana 5', () => {
+    const notReady = starting({ maxEffortReady: false, testPlan: 'none', notReadyReasons: ['viene de estar sedentario'] });
+    const early = weeklyCtx({ profile: { ftp: null }, starting: notReady, nextWeekIndex: 2 });
+    expect(fails(early, weeklyOut([easy('tue')], { nextTest: { weekIndex: 3, type: 'ramp', reason: 'x' } }), 'weekly_eval').some((m) => m.includes('no antes'))).toBe(true);
+    const later = weeklyCtx({ profile: { ftp: null }, starting: notReady, nextWeekIndex: 5 });
+    expect(fails(later, weeklyOut([easy('tue')], { nextTest: { weekIndex: 6, type: 'ramp', reason: 'x' } }), 'weekly_eval').filter((m) => m.includes('listo'))).toEqual([]);
+  });
+});

@@ -7,3 +7,4 @@ export { mondayOfWeek } from '../engine/streaks';
 export { localDateKey } from './day-key';
 export { startPhase } from './self-report-start';
 export { evalWeekTarget, planTotalWeeks, planWeekOf } from './eval-week';
+export { startingProfile } from './intake';

@@ -341,7 +341,7 @@ function checkNoFtp(f: Finding[], ctx: Any, out: Any, weeks: { workouts: Any[] }
     }
   }
   if (out.nextTest && isMinor(ctx)) f.push({ level: 'fail', msg: 'un menor de 18 no hace tests máximos: nextTest va null' });
-  if (!out.nextTest && !noPerformance(ctx) && !isMinor(ctx)) f.push({ level: 'fail', msg: 'sin FTP medido y nextTest es null: tienes que decir cuándo se mide' });
+  if (!out.nextTest && !noPerformance(ctx) && !isMinor(ctx) && ctx.starting?.testPlan !== 'none') f.push({ level: 'fail', msg: 'sin FTP medido y nextTest es null: tienes que decir cuándo se mide' });
 }
 
 /** Sin FTP medido, nada que no sea test llega a 88 % antes del primer test
@@ -353,6 +353,42 @@ function checkNothingHardBeforeTest(f: Finding[], weeks: { workouts: Any[] }[]) 
       if (isTest(w)) return;
       const top = maxPct(flat(w.segments));
       if (top >= 88) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % antes del test, sin FTP medido (todo por sensación hasta medirlo)` });
+    }
+  }
+}
+
+// ─── Perfil de arranque (src/core/intake.ts, método de Joe) ─────────────────
+
+/** (provisional) Sin estar listo para un máximo, va por sensación «un
+ * rato»: el primer test, si no es por salud, no antes de esta semana. */
+const NOT_READY_FIRST_TEST_WEEK = 4;
+const isTwentyMinTest = (w: Any) => /\b20\s*(min|')/i.test(w.name ?? '');
+
+function checkStartingProfile(f: Finding[], mode: Mode, ctx: Any, out: Any, weeks: { workouts: Any[] }[]) {
+  const s = ctx.starting;
+  if (!s) return;
+  const tests = weeks.flatMap((week, wi) => week.workouts.filter(isTest).map((w: Any) => ({ w, wi })));
+  if (s.testPlan === 'none') {
+    // Salud primero (o menor): nada de máximos mientras no lo vea un médico.
+    const blocked = s.healthFirst || isMinor(ctx) || mode === 'create_plan';
+    const firstWeek = mode === 'weekly_eval' ? (ctx.nextWeekIndex ?? 0) : 0;
+    const tooSoon = !blocked && out.nextTest && out.nextTest.weekIndex < NOT_READY_FIRST_TEST_WEEK;
+    if (blocked && out.nextTest) f.push({ level: 'fail', msg: `no está listo para un esfuerzo máximo (${s.notReadyReasons.join('; ')}): nextTest va null; va por sensación, subiendo de a poco` });
+    if (tooSoon) f.push({ level: 'fail', msg: `no está listo para un máximo (${s.notReadyReasons.join('; ')}): el primer test no antes de la semana ${NOT_READY_FIRST_TEST_WEEK + 1}` });
+    if (blocked || firstWeek < NOT_READY_FIRST_TEST_WEEK) for (const { w, wi } of tests) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: es un test máximo y el atleta no está listo (${s.notReadyReasons.join('; ')})` });
+  }
+  if (s.testPlan === 'ramp') {
+    if (out.nextTest?.type === 'test20') f.push({ level: 'fail', msg: 'el atleta no tiene experiencia con esfuerzos máximos: su test es la rampa (nextTest.type "ramp"), no el de 20 min' });
+    for (const { w, wi } of tests) if (isTwentyMinTest(w)) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: test de 20 min para alguien sin experiencia con máximos: usa la rampa` });
+  }
+  // Base primero (fuma o toma con frecuencia): nada a 88 % o más al crear el plan.
+  if (s.baseFirst && mode === 'create_plan') {
+    for (const [wi, week] of weeks.entries()) {
+      for (const w of week.workouts) {
+        if (isTest(w)) continue;
+        const top = maxPct(flat(w.segments));
+        if (top >= 88) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % y el atleta va base primero (hábitos): solo fondo y tempo suave al arrancar` });
+      }
     }
   }
 }
@@ -381,6 +417,7 @@ function checkCreatePlan(ctx: Any, out: Any): Finding[] {
   }
   checkNoFtp(f, ctx, out, weeks);
   checkNoPerformance(f, ctx, out, weeks);
+  checkStartingProfile(f, 'create_plan', ctx, out, weeks);
   if (ftpUnknown(ctx)) {
     if (out.suggestedFtp != null) f.push({ level: 'warn', msg: `sin FTP medido y suggestedFtp = ${out.suggestedFtp}: el número sale del test, no se estima` });
     if (!weeks.flatMap((w) => w.workouts).some(isTest) && !novice) f.push({ level: 'warn', msg: 'sin FTP y no aparece ningún test en las semanas concretadas' });
@@ -432,6 +469,7 @@ function checkWeeklyEval(ctx: Any, out: Any): Finding[] {
   checkPlannedWeeks(f, [{ workouts: out.nextWeekWorkouts }], weekOpts('weekly_eval', ctx));
   checkNoFtp(f, ctx, out, [{ workouts: out.nextWeekWorkouts }]);
   checkNoPerformance(f, ctx, out, [{ workouts: out.nextWeekWorkouts }]);
+  checkStartingProfile(f, 'weekly_eval', ctx, out, [{ workouts: out.nextWeekWorkouts }]);
   if (ACRONYM_RE.test(out.reasoning)) f.push({ level: 'fail', msg: `reasoning usa «${out.reasoning.match(ACRONYM_RE)![0]}»: le llega al atleta por correo; dilo con palabras (carga de la semana, frescura) sin siglas` });
   const prev = ctx.plan?.nextTest;
   if (prev && out.nextTest && prev.weekIndex !== out.nextTest.weekIndex && !/test|rampa/i.test(out.reasoning)) {

@@ -51,8 +51,8 @@ describe('edad y extras', () => {
 
   it('manda edad, no la fecha, y limpia vacíos', () => {
     const p: Profile = { ...base, injuries: '  rodilla izq  ', weight_kg: 72, birth_date: '1990-01-01' };
-    expect(coachProfileExtras(p, new Date(2026, 9, 8))).toEqual({ injuries: 'rodilla izq', weightKg: 72, ageYears: 36, otherActivities: null });
-    expect(coachProfileExtras({ ...base, injuries: '  ' })).toEqual({ injuries: null, weightKg: null, ageYears: null, otherActivities: null });
+    expect(coachProfileExtras(p, new Date(2026, 9, 8))).toEqual({ injuries: 'rodilla izq', weightKg: 72, ageYears: 36, otherActivities: null, intake: null, experienceLevel: null, generalFitnessLevel: null, structuredTrainingYears: null });
+    expect(coachProfileExtras({ ...base, injuries: '  ' })).toEqual({ injuries: null, weightKg: null, ageYears: null, otherActivities: null, intake: null, experienceLevel: null, generalFitnessLevel: null, structuredTrainingYears: null });
   });
 });
 
@@ -61,6 +61,7 @@ describe('coachProfileError', () => {
   const complete: Profile = {
     ftp: 200, hr_max: 185, cadence_floor: 0, hr_ceiling: 0, hr_min: 0, cadence_max: 0,
     sex: 'F', birth_date: '1990-05-10', weight_kg: 62, height_cm: 165,
+    intake: { conditions: [], takesMedication: false, recentInjury: false, smoking: 'no', alcohol: 'rarely', stress: 'low', sleepHours: 7, sleepQuality: 'good', restingHr: null, rpeLiteracy: 'yes', maxEffortExperience: true },
     experienceLevel: 'experienced', generalFitnessLevel: 'active_cyclist', yearsRiding: 5, structuredTrainingYears: 2,
     discipline: 'road', ridesOutside: false, ftpSource: 'default', hrMaxConfirmed: false,
     competes: false, recentBestResult: 'ninguno todavía', injuries: 'Ninguna', otherActivities: [],
@@ -76,6 +77,7 @@ describe('coachProfileError', () => {
     expect(coachProfileError({ ...complete, birth_date: '2024-01-01' }, today)).toMatch(/nacimiento/);
     expect(coachProfileError({ ...complete, weight_kg: 300 }, today)).toMatch(/peso/);
     expect(coachProfileError({ ...complete, height_cm: undefined }, today)).toMatch(/altura/);
+    expect(coachProfileError({ ...complete, intake: undefined }, today)).toMatch(/salud/);
     expect(coachProfileError({ ...complete, yearsRiding: undefined }, today)).toMatch(/años/);
     expect(coachProfileError({ ...complete, ridesOutside: true }, today)).toMatch(/medidor/);
     expect(coachProfileError({ ...complete, ftpSource: undefined }, today)).toMatch(/FTP/);
@@ -96,6 +98,7 @@ describe('otras actividades en el cuestionario', () => {
   const base = {
     ftp: 200, hr_max: 185, cadence_floor: 0, hr_ceiling: 0, hr_min: 0, cadence_max: 0,
     sex: 'M', birth_date: '1990-05-10', weight_kg: 70, height_cm: 175,
+    intake: { conditions: [], takesMedication: false, recentInjury: false, smoking: 'no', alcohol: 'rarely', stress: 'low', sleepHours: 7, sleepQuality: 'good', restingHr: null, rpeLiteracy: 'yes', maxEffortExperience: true },
     experienceLevel: 'experienced', generalFitnessLevel: 'active_cyclist', yearsRiding: 5, structuredTrainingYears: 2,
     discipline: 'road', ridesOutside: false, ftpSource: 'default', hrMaxConfirmed: false,
     competes: false, recentBestResult: 'x', injuries: 'Ninguna',

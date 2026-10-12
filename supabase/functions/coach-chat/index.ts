@@ -21,7 +21,7 @@ import { zodOutputFormat } from 'npm:@anthropic-ai/sdk@0/helpers/zod';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
 import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
-import { evalWeekTarget, localDateKey, planTotalWeeks } from '../_shared/core.gen.js';
+import { evalWeekTarget, localDateKey, planTotalWeeks, startingProfile } from '../_shared/core.gen.js';
 import { COACH_SYSTEM_PROMPT, WRITER_SYSTEM_PROMPT } from './prompt.ts';
 import { buildUserMessage } from './message.ts';
 import { PLANNING_MODES, WorkoutDescriptionsSchema, schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
@@ -173,7 +173,20 @@ Deno.serve(async (req) => {
     // el lunes siguiente: con la semana 0 vacía la guardia lo rechazaba (502)
     // y el atleta no podía crear plan hasta cambiar de semana.
     // "Hoy" del atleta: el coach no agenda en días que ya pasaron (guard.ts).
-    if (PLANNING_MODES.has(body.mode)) context.today = athleteToday();
+    if (PLANNING_MODES.has(body.mode)) {
+      context.today = athleteToday();
+      // Perfil de arranque (método de Joe, src/core/intake.ts): salud,
+      // hábitos y si puede dar un máximo. Lo decide el código; el coach lo
+      // aplica y la guardia lo hace cumplir.
+      const prof = (context.profile ?? {}) as Record<string, unknown>;
+      context.starting = startingProfile({
+        intake: (prof.intake ?? undefined) as never,
+        ageYears: prof.ageYears as number | null | undefined,
+        experienceLevel: (context.experienceLevel ?? prof.experienceLevel ?? (context.plan as Record<string, unknown> | undefined)?.experienceLevel ?? undefined) as never,
+        generalFitnessLevel: (context.generalFitnessLevel ?? prof.generalFitnessLevel ?? (context.plan as Record<string, unknown> | undefined)?.generalFitnessLevel ?? undefined) as never,
+        structuredTrainingYears: (prof.structuredTrainingYears ?? undefined) as number | undefined,
+      });
+    }
     if (body.mode === 'weekly_eval') await prepareWeeklyEvalContext(admin, userId, context);
     if (body.mode === 'create_plan') {
       const availability = context.availability as { days?: string[] } | undefined;
@@ -343,6 +356,7 @@ async function prepareWeeklyEvalContext(admin: AdminClient, userId: string, cont
   const monday = new Date(`${planData.startDate}T00:00:00Z`);
   monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7) + t.target * 7);
   context.nextWeekStart = monday.toISOString().slice(0, 10);
+  context.nextWeekIndex = t.target; // semana del plan que se genera (0 = la de arranque)
   const replaced = planData.weeks[t.target]?.workoutIds ?? [];
   if (!replaced.length) return;
   const [{ data: rows }, { data: trained }] = await Promise.all([
