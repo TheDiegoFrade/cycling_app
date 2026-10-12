@@ -496,7 +496,7 @@ async function materializeWeek(
   userId: string,
   startDate: string,
   weekIndex: number,
-  workouts: { name: string; description?: string; intervals: unknown[]; dayOfWeek: string; kind?: 'test' | null; erg?: 'off' | null }[],
+  workouts: { name: string; description?: string; intervals: unknown[]; dayOfWeek: string; kind?: 'test' | null; erg?: 'off' | null; protocol?: 'rpe_ramp' | null }[],
   // Red de seguridad — aunque el prompt ya le pide al modelo evitar estas
   // fechas, esto nunca deja que se inserte un workout en un día que el
   // atleta ya tiene ocupado, pase lo que pase con lo que decidió el
@@ -527,6 +527,8 @@ async function materializeWeek(
       ...(w.kind ? { kind: w.kind } : {}),
       // Sesión por sensación: la app arranca en modo calle, sin ERG.
       ...(w.erg === 'off' ? { erg: 'off' } : {}),
+      // Rampa por RPE: la app pregunta el RPE por escalón y se detiene en 8+.
+      ...(w.protocol ? { protocol: w.protocol } : {}),
     };
     if (coachId) {
       forCoach.push(workoutDoc);

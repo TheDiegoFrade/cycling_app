@@ -51,8 +51,8 @@ describe('edad y extras', () => {
 
   it('manda edad, no la fecha, y limpia vacíos', () => {
     const p: Profile = { ...base, injuries: '  rodilla izq  ', weight_kg: 72, birth_date: '1990-01-01' };
-    expect(coachProfileExtras(p, new Date(2026, 9, 8))).toEqual({ injuries: 'rodilla izq', weightKg: 72, ageYears: 36, otherActivities: null, intake: null, experienceLevel: null, generalFitnessLevel: null, structuredTrainingYears: null });
-    expect(coachProfileExtras({ ...base, injuries: '  ' })).toEqual({ injuries: null, weightKg: null, ageYears: null, otherActivities: null, intake: null, experienceLevel: null, generalFitnessLevel: null, structuredTrainingYears: null });
+    expect(coachProfileExtras(p, new Date(2026, 9, 8))).toEqual({ injuries: 'rodilla izq', weightKg: 72, ageYears: 36, otherActivities: null, intake: null, experienceLevel: null, generalFitnessLevel: null, structuredTrainingYears: null, rpeZones: null });
+    expect(coachProfileExtras({ ...base, injuries: '  ' })).toEqual({ injuries: null, weightKg: null, ageYears: null, otherActivities: null, intake: null, experienceLevel: null, generalFitnessLevel: null, structuredTrainingYears: null, rpeZones: null });
   });
 });
 

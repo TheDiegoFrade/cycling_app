@@ -41,6 +41,7 @@ function intervalIndexAt(plan, t) {
 function targetWattsAt(plan, t, ftp, bias) {
   const i = intervalIndexAt(plan, t);
   const interval = plan.intervals[i];
+  if (interval.watts !== void 0) return Math.round(interval.watts * bias);
   const into = t - plan.segStart[i];
   const fromPct = interval.power_pct;
   const toPct = interval.ramp_to_pct ?? interval.power_pct;
@@ -567,6 +568,25 @@ function startingProfile(p) {
     teachRpe: !!i && i.rpeLiteracy !== "yes"
   };
 }
+
+// src/core/rpe-ramp.ts
+var RPE_RAMP = { startW: 50, stepW: 25, lightStepW: 20, lightKg: 53, stepS: 120, maxSteps: 24, stopRpe: 8, hrStopPct: 0.8 };
+function rampStepW(weightKg) {
+  return typeof weightKg === "number" && weightKg > 0 && weightKg < RPE_RAMP.lightKg ? RPE_RAMP.lightStepW : RPE_RAMP.stepW;
+}
+function rpeRampIntervals(refFtp = 200, weightKg) {
+  const step = rampStepW(weightKg);
+  return Array.from({ length: RPE_RAMP.maxSteps }, (_, i) => {
+    const watts = RPE_RAMP.startW + i * step;
+    return {
+      name: `Escal\xF3n ${i + 1} \xB7 ${watts} W`,
+      type: "steady",
+      duration_s: RPE_RAMP.stepS,
+      watts,
+      power_pct: Math.max(1, Math.round(watts / refFtp * 100))
+    };
+  });
+}
 export {
   addDays,
   buildMonthlyReport,
@@ -580,6 +600,7 @@ export {
   planTotalWeeks,
   planWeekOf,
   reviewAiContext,
+  rpeRampIntervals,
   shiftMonth,
   startPhase,
   startingProfile

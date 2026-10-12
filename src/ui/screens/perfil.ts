@@ -83,6 +83,8 @@ function ftpHint(p: Profile): string {
       return 'De tu test de rampa';
     case 'test_20min':
       return 'De tu test de 20 min';
+    case 'test_rpe_ramp':
+      return 'Referencia de tu rampa por RPE (tus zonas van en watts)';
     default:
       return 'Actualízalo después de cada test';
   }

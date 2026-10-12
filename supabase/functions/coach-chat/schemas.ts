@@ -91,7 +91,7 @@ const PlanBlockOutlineSchema = z.object({
 // FTP, lesiones, peso y edad del perfil (ver src/core/coach-profile.ts).
 // Opcionales: la app los manda siempre, pero un context sin ellos (versión
 // vieja de la app, escenarios de coach-lab) sigue siendo válido.
-const FtpSourceSchema = z.enum(['default', 'provisional', 'manual', 'test_ramp', 'test_20min']);
+const FtpSourceSchema = z.enum(['default', 'provisional', 'manual', 'test_ramp', 'test_20min', 'test_rpe_ramp']);
 const ProfileExtrasSchema = {
   // número sobre el que corre el rodillo cuando es un provisional; null si no
   provisionalFtp: z.number().positive().nullable().optional(),
@@ -109,6 +109,20 @@ const ProfileExtrasSchema = {
   experienceLevel: z.enum(['new_to_cycling', 'returning_or_new_to_app', 'experienced']).nullable().optional(),
   generalFitnessLevel: z.enum(['sedentary', 'active_other_sport', 'active_cyclist']).nullable().optional(),
   structuredTrainingYears: z.number().nonnegative().nullable().optional(),
+  // Zonas en watts de su rampa por RPE (src/core/rpe-ramp.ts): fondo RPE 1-4,
+  // umbral 5-7, VO2 8-9. null = no ha hecho esa rampa.
+  rpeZones: z
+    .object({
+      endurance: z.tuple([z.number(), z.number()]).nullable(),
+      threshold: z.tuple([z.number(), z.number()]).nullable(),
+      vo2: z.tuple([z.number(), z.number()]).nullable(),
+      date: z.string(),
+      method: z.enum(['rpe', 'hr']),
+      stoppedBy: z.enum(['rpe', 'hr', 'manual']),
+      flagLowCapacity: z.boolean(),
+    })
+    .nullable()
+    .optional(),
 };
 
 // Próximo test que el coach decide (no hay fecha fija: él juzga cuándo el

@@ -7,6 +7,7 @@ import { intakeError } from './intake';
 import type { HealthIntake } from './intake';
 import { otherActivityError } from './other-activities';
 import type { OtherActivity } from './other-activities';
+import type { RpeZones } from './rpe-ramp';
 import type { FtpSource, Profile } from './types';
 
 /** Fuente del FTP, con la migración implícita de perfiles anteriores a
@@ -18,7 +19,7 @@ export function ftpSourceOf(p: Pick<Profile, 'ftpSource' | 'ftpConfirmed'>): Ftp
 /** Un número que el atleta midió o escribió como suyo (no default ni
  * provisional). Es lo que significa `ftpConfirmed`. */
 export function isMeasuredFtp(source: FtpSource): boolean {
-  return source === 'manual' || source === 'test_ramp' || source === 'test_20min';
+  return source === 'manual' || source === 'test_ramp' || source === 'test_20min' || source === 'test_rpe_ramp';
 }
 
 /** El perfil con un FTP nuevo y su fuente; `ftpConfirmed` queda coherente. */
@@ -132,6 +133,7 @@ export function coachProfileExtras(
   experienceLevel: Profile['experienceLevel'] | null;
   generalFitnessLevel: Profile['generalFitnessLevel'] | null;
   structuredTrainingYears: number | null;
+  rpeZones: Omit<RpeZones, 'steps'> | null;
 } {
   return {
     injuries: p.injuries?.trim() || null,
@@ -145,5 +147,7 @@ export function coachProfileExtras(
     experienceLevel: p.experienceLevel ?? null,
     generalFitnessLevel: p.generalFitnessLevel ?? null,
     structuredTrainingYears: p.structuredTrainingYears ?? null,
+    // Zonas en watts de su rampa por RPE (sin el detalle de escalones).
+    rpeZones: p.rpeZones ? (({ steps: _steps, ...z }) => z)(p.rpeZones) : null,
   };
 }

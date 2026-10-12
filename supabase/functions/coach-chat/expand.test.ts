@@ -151,3 +151,22 @@ describe('estimateTss', () => {
     expect(tss).toBeGreaterThan(Math.round((2400 / 3600) * 0.825 ** 2 * 100));
   });
 });
+
+describe('rampa de test = protocolo por RPE', () => {
+  it('cualquier rampa que dibuje el coach se vuelve 50 W + 25 W cada 2 min, con protocol rpe_ramp', () => {
+    const ramp: PlannedWorkout = {
+      name: 'Test de rampa',
+      dayOfWeek: 'sat',
+      targetTSS: 40,
+      erg: 'on',
+      intent: 'rampa',
+      kind: 'test',
+      segments: [{ repeat: 1, steps: [{ name: 'Rampa', type: 'interval', duration_s: 1500, power_pct: 50, ramp_to_pct: 200 }] }],
+    };
+    const g = toGeneratedWorkout(ramp, null);
+    expect(g.protocol).toBe('rpe_ramp');
+    expect((g.intervals[0] as { watts?: number }).watts).toBe(50);
+    expect((g.intervals[1] as { watts?: number }).watts).toBe(75);
+    expect(toGeneratedWorkout({ ...ramp, name: 'Test de 20 min' }, null).protocol).toBeNull();
+  });
+});

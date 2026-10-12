@@ -546,7 +546,8 @@ async function computeLastTest(): Promise<LastTest | null> {
   const sinceKey = daysAgoKey(LAST_TEST_MAX_AGE_DAYS);
   const tests = localSessions
     .map((s) => ({ s, w: workouts.get(s.workoutId) }))
-    .filter(({ s, w }) => w && dayKeyOf(s.startedAt) >= sinceKey && isTestWorkoutDoc(w))
+    // La rampa por RPE no se lee como test de FTP: su resultado son las zonas (profile.rpeZones).
+    .filter(({ s, w }) => w && w.protocol !== 'rpe_ramp' && dayKeyOf(s.startedAt) >= sinceKey && isTestWorkoutDoc(w))
     .sort((a, b) => b.s.startedAt.localeCompare(a.s.startedAt));
   for (const { s, w } of tests) {
     const reading = readTest(s, w!.intervals, appState.profile.hr_max);

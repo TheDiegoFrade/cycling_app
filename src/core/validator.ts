@@ -61,6 +61,9 @@ function validateInterval(raw: unknown, index: number): string[] {
   ) {
     errors.push(`${label} tiene \`cadence_min\` (${raw.cadence_min}) mayor que \`cadence_max\` (${raw.cadence_max})`);
   }
+  if (raw.watts !== undefined && (!isFiniteNumber(raw.watts) || raw.watts <= 0)) {
+    errors.push(`${label} tiene \`watts\` inválido; debe ser un número mayor que 0`);
+  }
   if (raw.hr_min !== undefined && (!isFiniteNumber(raw.hr_min) || raw.hr_min <= 0)) {
     errors.push(`${label} tiene \`hr_min\` inválido; debe ser un número mayor que 0`);
   }
