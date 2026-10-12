@@ -270,3 +270,11 @@ describe('perfil de arranque (método de Joe)', () => {
     expect(fails(later, weeklyOut([easy('tue')], { nextTest: { weekIndex: 6, type: 'ramp', reason: 'x' } }), 'weekly_eval').filter((m) => m.includes('listo'))).toEqual([]);
   });
 });
+
+describe('zonas de la rampa por RPE: no se habla de FTP', () => {
+  it('weekly_eval no le pide cambiar el FTP', () => {
+    const ctx = weeklyCtx({ profile: { ftp: 175, ftpSource: 'test_rpe_ramp' } });
+    const fails = reviewOutput('weekly_eval', ctx, weeklyOut([easy('tue')], { ftpAction: 'change', suggestedFtp: 190 })).filter((x) => x.level === 'fail').map((x) => x.msg);
+    expect(fails.some((m) => m.includes('rampa por RPE'))).toBe(true);
+  });
+});
