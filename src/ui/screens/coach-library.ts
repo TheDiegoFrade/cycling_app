@@ -167,7 +167,7 @@ export function renderCoachLibrary(container: HTMLElement): void {
             editing
               ? ''
               : `<div class="coach-head-actions">
-            <label class="coach-btn" style="cursor:pointer">Importar archivo de bici<input type="file" id="tpl-import" accept=".zwo,.mrc,.erg,.json" style="display:none"></label>
+            <label class="coach-btn" style="cursor:pointer">Importar archivo de bici<input type="file" id="tpl-import" accept=".zwo,.mrc,.erg,.fit,.json" style="display:none"></label>
             <button type="button" class="coach-btn" data-new="bike">Nueva de bici</button>
             <button type="button" class="coach-btn coach-btn-primary" data-new="strength">Nueva de fuerza/movilidad</button>
           </div>`
@@ -300,7 +300,7 @@ export function renderCoachLibrary(container: HTMLElement): void {
       const file = input.files?.[0];
       input.value = '';
       if (!file) return;
-      const { workout, errors: errs } = await importWorkoutFile(file, appState.profile.ftp);
+      const { workout, errors: errs } = await importWorkoutFile(file, appState.profile.ftp, appState.profile.hr_max);
       if (!workout) {
         errors = errs.length ? errs : ['No se pudo leer ese archivo.'];
         render();

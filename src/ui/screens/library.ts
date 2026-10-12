@@ -463,7 +463,7 @@ export function renderLibrary(container: HTMLElement): () => void {
       const file = input.files?.[0];
       input.value = '';
       if (!file) return;
-      const { workout, errors: errs } = await importWorkoutFile(file, appState.profile.ftp);
+      const { workout, errors: errs } = await importWorkoutFile(file, appState.profile.ftp, appState.profile.hr_max);
       errors.innerHTML = errorsHtml(errs);
       if (workout) {
         await saveWorkout(workout);
@@ -531,7 +531,7 @@ export function renderLibrary(container: HTMLElement): () => void {
       <div class="screen library-screen">
         <div class="plan-head">
           <h1>Historial</h1>
-          ${activeTab === 'library' ? `<label class="plan-import-link">Importar archivo<input type="file" id="import-workout" accept=".zwo,.mrc,.erg,.json" style="display:none"></label>` : ''}
+          ${activeTab === 'library' ? `<label class="plan-import-link">Importar archivo<input type="file" id="import-workout" accept=".zwo,.mrc,.erg,.fit,.json" style="display:none"></label>` : ''}
         </div>
         <div class="plan-view-toggle" style="margin:16px 0">
           <button class="plan-view-btn${activeTab === 'library' ? ' on' : ''}" id="tab-library">Biblioteca</button>
