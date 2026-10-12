@@ -418,6 +418,7 @@ function checkCreatePlan(ctx: Any, out: Any): Finding[] {
   checkNoFtp(f, ctx, out, weeks);
   checkNoPerformance(f, ctx, out, weeks);
   checkStartingProfile(f, 'create_plan', ctx, out, weeks);
+  if (ctx.profile?.ftpSource === 'test_rpe_ramp' && out.suggestedFtp) f.push({ level: 'fail', msg: 'el atleta entrena con las zonas de su rampa por RPE: suggestedFtp va null' });
   if (ftpUnknown(ctx)) {
     if (out.suggestedFtp != null) f.push({ level: 'warn', msg: `sin FTP medido y suggestedFtp = ${out.suggestedFtp}: el número sale del test, no se estima` });
     if (!weeks.flatMap((w) => w.workouts).some(isTest) && !novice) f.push({ level: 'warn', msg: 'sin FTP y no aparece ningún test en las semanas concretadas' });
@@ -470,6 +471,10 @@ function checkWeeklyEval(ctx: Any, out: Any): Finding[] {
   checkNoFtp(f, ctx, out, [{ workouts: out.nextWeekWorkouts }]);
   checkNoPerformance(f, ctx, out, [{ workouts: out.nextWeekWorkouts }]);
   checkStartingProfile(f, 'weekly_eval', ctx, out, [{ workouts: out.nextWeekWorkouts }]);
+  // Con zonas de la rampa por RPE no se le pide cambiar el FTP (salvo tras un test de 20 min).
+  if (ctx.profile?.ftpSource === 'test_rpe_ramp' && out.ftpAction === 'change' && ctx.lastTest?.type !== 'test20') {
+    f.push({ level: 'fail', msg: 'el atleta entrena con las zonas de su rampa por RPE: ftpAction va null (no se le habla de FTP); su referencia la pone la rampa' });
+  }
   if (ACRONYM_RE.test(out.reasoning)) f.push({ level: 'fail', msg: `reasoning usa «${out.reasoning.match(ACRONYM_RE)![0]}»: le llega al atleta por correo; dilo con palabras (carga de la semana, frescura) sin siglas` });
   const prev = ctx.plan?.nextTest;
   if (prev && out.nextTest && prev.weekIndex !== out.nextTest.weekIndex && !/test|rampa/i.test(out.reasoning)) {

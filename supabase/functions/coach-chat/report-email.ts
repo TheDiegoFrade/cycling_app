@@ -81,6 +81,12 @@ export const DECISIONS: Record<WeeklyDecision, { label: string; color: string }>
 
 export const TEST_LABELS = { ramp: 'Test de rampa', test20: 'Test de 20 minutos' } as const;
 
+/** Qué le da cada test (la rampa por RPE no saca FTP: arma sus zonas sola). */
+export const TEST_OUTCOMES = {
+  ramp: 'Torq te pregunta qué tan duro va cada escalón y con eso arma tus zonas de entrenamiento; no tienes que hacer nada más.',
+  test20: 'con ese resultado pones tu FTP en tu perfil y tus sesiones se ajustan a tu nivel real.',
+} as const;
+
 export function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
@@ -222,10 +228,10 @@ const GLOSSARY: { term: string; match: RegExp; meaning: string }[] = [
   { term: 'RPE', match: /\bRPE\b/, meaning: 'Qué tan duro se siente, del 1 al 10. Un RPE 3-4 es un esfuerzo en el que puedes platicar.' },
   { term: 'ERG', match: /\bERG\b/, meaning: 'Modo del rodillo que fija la potencia por ti: tú solo mantienes el pedaleo.' },
   { term: 'FTP', match: /\bFTP\b/, meaning: 'La potencia que puedes sostener cerca de una hora. De ahí salen todas tus zonas.' },
-  { term: 'Rampa', match: /\brampa\b/i, meaning: 'Test corto en el que la potencia sube poco a poco hasta que ya no puedes sostenerla. Te da tu FTP.' },
+  { term: 'Rampa', match: /\brampa\b/i, meaning: 'Test en el rodillo: la potencia sube 25 W cada 2 min y al final de cada escalón dices qué tan duro va (RPE). Se detiene en 8 y te da tus zonas.' },
   { term: 'Cadencia', match: /\bcadencia\b|\brpm\b/i, meaning: 'Las vueltas que dan tus pedales por minuto (rpm).' },
   { term: 'Sweet spot', match: /sweet spot/i, meaning: 'Un esfuerzo firme pero sostenible, un poco por debajo de tu FTP.' },
-  { term: 'Umbral', match: /\bumbral\b/i, meaning: 'Un esfuerzo duro y sostenido, cerca de tu FTP.' },
+  { term: 'Umbral', match: /\bumbral\b/i, meaning: 'Un esfuerzo duro y sostenido (RPE 5-7): solo te salen frases cortas.' },
   { term: 'Deriva', match: /\bderiva\b/i, meaning: 'Cuánto sube tu pulso con el mismo esfuerzo al pasar el tiempo. Poca deriva es buena señal de fondo.' },
 ];
 
@@ -259,7 +265,7 @@ export function buildPlanEmail(d: PlanReportData): { subject: string; html: stri
   const testDate = d.nextTest ? testDateOf(d.weeks, d.nextTest) : null;
   const steps = [
     week1 ? `Esta semana: ${week1.workouts.length} ${week1.workouts.length === 1 ? 'sesión' : 'sesiones'}, ${hoursLabel(weekMinutes(week1))} en total.` : '',
-    d.nextTest ? `${TEST_LABELS[d.nextTest.type]}${testDate ? ` el ${shortDate(testDate)}` : ` en tu semana ${d.nextTest.weekNumber}`}: con ese resultado pones tu FTP en tu perfil y tus sesiones se ajustan a tu nivel real.` : '',
+    d.nextTest ? `${TEST_LABELS[d.nextTest.type]}${testDate ? ` el ${shortDate(testDate)}` : ` en tu semana ${d.nextTest.weekNumber}`}: ${TEST_OUTCOMES[d.nextTest.type]}` : '',
     'Cada semana me cuentas cómo te fue y armo la siguiente con eso.',
   ].filter(Boolean);
   const p = `margin:0 0 12px;font-size:16px;line-height:1.55;color:#3c424d;${FONT}`;

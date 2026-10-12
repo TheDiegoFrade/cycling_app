@@ -235,7 +235,12 @@ export async function buildPlanPdf(d: PlanReportData): Promise<Uint8Array> {
     const date = testDateOf(d.weeks, d.nextTest);
     w.text(`${TEST_LABELS[d.nextTest.type]} · semana ${d.nextTest.weekNumber}${date ? ` (${shortDate(date)})` : ''}`, { size: 11, font: bold, color: INK, leading: 16 });
     w.text(d.nextTest.reason, { after: 2 });
-    w.text('El resultado es tu FTP. Cuando lo tengas, lo guardas en tu perfil y desde ese día tus sesiones se ajustan a tu nivel real.', { size: 9.5, color: MUTED });
+    w.text(
+      d.nextTest.type === 'ramp'
+        ? 'En cada escalón te preguntamos qué tan duro va (del 1 al 10) y paramos en 8. Con eso Torq arma tus zonas de entrenamiento: no tienes que hacer nada más.'
+        : 'El resultado es tu FTP. Cuando lo tengas, lo guardas en tu perfil y desde ese día tus sesiones se ajustan a tu nivel real.',
+      { size: 9.5, color: MUTED },
+    );
   }
 
   // ── Glosario: solo lo que aparece en su plan ─────────────────────────────
