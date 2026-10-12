@@ -10,6 +10,10 @@ import { clearDraft, getDraft, saveDraft } from '../../storage/session-draft';
 import { saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
 import { pushSessionToCloud } from '../../sync/cloud-sync';
+import { ageFromBirthDate, withFtp } from '../../core/coach-profile';
+import { localDateKey } from '../../core/day-key';
+import { RPE_RAMP, rampHrStop, rampReferenceWatts, rpeRampIntervals, rpeZonesFromRamp } from '../../core/rpe-ramp';
+import type { RampStep, RpeZones } from '../../core/rpe-ramp';
 import { beeper } from '../audio';
 import { navigate } from '../router';
 import { appState } from '../state';
@@ -49,7 +53,10 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     navigate('prepare');
     return;
   }
-  const workout: Workout = maybeWorkout;
+  // La rampa por RPE se arma con el peso del atleta (20 W por escalón si
+  // pesa menos de 53 kg; si no, 25 W): los watts no dependen del FTP.
+  const workout: Workout =
+    maybeWorkout.protocol === 'rpe_ramp' ? { ...maybeWorkout, intervals: rpeRampIntervals(appState.profile.ftp, appState.profile.weight_kg) } : maybeWorkout;
   const isDemo = appState.demoSession;
 
   container.innerHTML = `
@@ -194,6 +201,17 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     latestHr = v;
     lastHrReadingAt = performance.now();
   });
+  // ── Rampa por RPE (método de Joe, core/rpe-ramp.ts) ──────────────────
+  // Al final de cada escalón pregunta el RPE y se detiene en 8+. Quien no
+  // sabe usar el RPE la hace por pulso: se detiene al 80 % de (220 − edad).
+  const rampMode = workout.protocol === 'rpe_ramp';
+  const rampAge = ageFromBirthDate(appState.profile.birth_date);
+  const rampByHr = rampMode && appState.profile.intake?.rpeLiteracy === 'no' && rampAge !== null;
+  const rampHrLimit = rampByHr ? rampHrStop(rampAge!) : null;
+  const rampSteps: RampStep[] = [];
+  let rampDone: RpeZones | null = null;
+  let rampAskingFor: number | null = null; // índice del escalón cuyo RPE se está preguntando
+
   // RR de la banda (si los manda), solo mientras corre la sesión: en pausa
   // el reloj de la sesión no avanza y quedarían todos en el mismo segundo.
   const rr: NonNullable<SessionRecord['rr']> = { t: [], ms: [] };
@@ -583,6 +601,80 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     $('banner').classList.remove('on', 'compact');
   }
 
+  // ── Rampa por RPE: panel, registro de escalones y paro ──────────────
+  if (rampMode) {
+    container.querySelector('.live')?.insertAdjacentHTML(
+      'beforeend',
+      `<div class="ramp-rpe" id="rampRpe">
+        <div class="ramp-rpe-q" id="rampRpeQ" hidden>
+          <div class="ramp-rpe-title" id="rampRpeTitle"></div>
+          <div class="ramp-rpe-scale">${Array.from({ length: 10 }, (_, i) => `<button type="button" class="ramp-rpe-btn" data-rpe="${i + 1}">${i + 1}</button>`).join('')}</div>
+          <div class="ramp-rpe-hint">3-4 platicas · 6-7 frases cortas · 8-9 pocas palabras · 10 no puedes más</div>
+        </div>
+        <div class="ramp-rpe-foot">
+          <span id="rampRpeInfo">${rampByHr ? `Rampa por pulso: se detiene en ${rampHrLimit} lpm` : 'Rampa: al final de cada escalón te pregunto qué tan duro fue'}</span>
+          ${rampByHr ? '' : '<button type="button" class="ramp-rpe-stop" id="rampStop">Llegué a 8+ · terminar</button>'}
+        </div>
+      </div>`,
+    );
+    $('rampRpe').addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-rpe]');
+      if (btn && rampAskingFor !== null) {
+        const rpe = Number(btn.dataset.rpe);
+        recordRampStep(rampAskingFor).rpe = rpe;
+        rampAskingFor = null;
+        $('rampRpeQ').hidden = true;
+        beeper.play('tick');
+        if (rpe >= RPE_RAMP.stopRpe) stopRamp('rpe');
+        return;
+      }
+      if ((e.target as HTMLElement).closest('#rampStop')) {
+        // Lo dice a mitad del escalón: ese escalón ya es 8+.
+        recordRampStep(currentIndex0).rpe = Math.max(RPE_RAMP.stopRpe, recordRampStep(currentIndex0).rpe ?? 0);
+        stopRamp('rpe');
+      }
+    });
+  }
+
+  /** Pulso promedio de los últimos 30 s de un escalón. */
+  function rampStepHr(idx: number): number | null {
+    const hrs = history.filter((s) => s.interval_index === idx && s.hr > 0).slice(-30).map((s) => s.hr);
+    return hrs.length ? Math.round(hrs.reduce((a, b) => a + b, 0) / hrs.length) : null;
+  }
+
+  function recordRampStep(idx: number): RampStep {
+    if (!rampSteps[idx]) rampSteps[idx] = { watts: workout.intervals[idx]?.watts ?? 0, rpe: null, hr: rampStepHr(idx) };
+    return rampSteps[idx];
+  }
+
+  function askRampRpe(idx: number): void {
+    rampAskingFor = idx;
+    $('rampRpeTitle').textContent = `¿Qué tan duro fue el escalón de ${workout.intervals[idx]?.watts ?? ''} W?`;
+    $('rampRpeQ').hidden = false;
+    beeper.play('chime');
+  }
+
+  /** Cierra la rampa: zonas al perfil (y la referencia interna) y termina. */
+  function stopRamp(stoppedBy: RpeZones['stoppedBy']): void {
+    if (rampDone) return;
+    for (let i = 0; i <= currentIndex0; i++) recordRampStep(i);
+    const zones = rpeZonesFromRamp(rampSteps.filter(Boolean), stoppedBy, localDateKey(new Date()));
+    rampDone = zones;
+    let profile: Profile = { ...appState.profile, rpeZones: zones };
+    const ref = rampReferenceWatts(zones);
+    if (ref) profile = withFtp(profile, ref, 'test_rpe_ramp');
+    appState.profile = profile;
+    void appState.persistProfile();
+    if (!sessionFinished && stoppedBy !== 'manual') void finish();
+  }
+
+  function rampSummary(z: RpeZones): string {
+    const r = (x: [number, number] | null) => (x ? (x[0] === x[1] ? `${x[0]} W` : `${x[0]}-${x[1]} W`) : '—');
+    if (z.flagLowCapacity) return 'Rampa: no pasó del primer escalón (50 W). Algo no anda bien: platícalo con tu médico antes de seguir.';
+    if (z.method === 'hr') return `Rampa por pulso: llegaste a ${z.steps.at(-1)?.watts ?? '—'} W al ${Math.round(RPE_RAMP.hrStopPct * 100)} % de tu pulso máximo estimado.`;
+    return `Rampa por RPE · Fondo ${r(z.endurance)} · Umbral ${r(z.threshold)} · VO2 ${r(z.vo2)}`;
+  }
+
   function handleEvent(event: EngineEvent): void {
     switch (event.type) {
       case 'tick': {
@@ -640,6 +732,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
           applyFreeMode();
           ergReleasedForFree = true;
         }
+        if (rampByHr && !rampDone && rampHrLimit !== null && latestHr >= rampHrLimit) stopRamp('hr');
         draw();
         maybeMotivate();
         ticksSinceDraftSave++;
@@ -660,6 +753,10 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         paintBlockHeader();
         paintTimeline();
         paintLimitsPanel();
+        if (rampMode && !rampDone && event.index1 > 1) {
+          recordRampStep(event.index1 - 2);
+          if (!rampByHr) askRampRpe(event.index1 - 2);
+        }
         if (event.interval.type === 'free') {
           showBanner('info', event.interval.name, 'Bloque libre: tú regulas la potencia, el ERG se suelta', 4000);
         } else {
@@ -753,6 +850,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       return;
     }
 
+    if (rampMode && !rampDone && history.length > 0) stopRamp('manual');
     showBanner('info', 'Terminado', 'Guardando sesión…', null);
     const record: SessionRecord = {
       id: sessionId,
@@ -767,6 +865,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       ...(rr.ms.length ? { rr } : {}),
       source: 'torq',
       kind: 'bike_indoor',
+      ...(rampDone ? { note: rampSummary(rampDone) } : {}),
     };
     await saveSession(record);
     void clearDraft(sessionId);

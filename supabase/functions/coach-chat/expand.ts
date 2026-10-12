@@ -5,6 +5,8 @@
 // (era lo que hacía que create_plan se pasara del tiempo límite).
 // Sin imports a propósito: lo prueba vitest desde el repo (expand.test.ts).
 
+import { rpeRampIntervals } from '../_shared/core.gen.js';
+
 export interface Step {
   name: string;
   type: 'warmup' | 'steady' | 'interval' | 'recovery' | 'cooldown' | 'free';
@@ -39,6 +41,8 @@ export interface GeneratedWorkout {
   kind: 'test' | null;
   /** 'off' = sesión por sensación: la app arranca sin ERG (modo calle). */
   erg: 'off' | null;
+  /** 'rpe_ramp' = la rampa por RPE de Joe: la app pregunta el RPE por escalón. */
+  protocol: 'rpe_ramp' | null;
 }
 
 /** Lista plana de intervalos. En una serie repetida, cada paso lleva su
@@ -177,14 +181,20 @@ export function estimateTss(segments: Segment[]): number {
   return Math.round((pct.length / 3600) * ifactor * ifactor * 100);
 }
 
+/** La rampa de test siempre es el protocolo por RPE (50 W + 25 W cada 2 min,
+ * src/core/rpe-ramp.ts), no la que dibuje el modelo. */
+export const isRampTest = (w: Pick<PlannedWorkout, 'name' | 'kind'>) => w.kind === 'test' && /ramp/i.test(w.name) && !/20\s*min/i.test(w.name);
+
 export function toGeneratedWorkout(w: PlannedWorkout, description: string | null): GeneratedWorkout {
+  const ramp = isRampTest(w);
   return {
     name: w.name,
     description: description?.trim() || fallbackDescription(w),
-    intervals: selfPacedTestSteps(w, expandSegments(w.segments)),
+    intervals: ramp ? (rpeRampIntervals() as unknown as Step[]) : selfPacedTestSteps(w, expandSegments(w.segments)),
     targetTSS: w.targetTSS,
     dayOfWeek: w.dayOfWeek,
     kind: w.kind ?? null,
     erg: w.erg === 'off' ? 'off' : null,
+    protocol: ramp ? 'rpe_ramp' : null,
   };
 }

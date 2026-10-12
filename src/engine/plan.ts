@@ -29,6 +29,8 @@ export function intervalIndexAt(plan: WorkoutPlan, t: number): number {
 export function targetWattsAt(plan: WorkoutPlan, t: number, ftp: number, bias: number): number {
   const i = intervalIndexAt(plan, t);
   const interval = plan.intervals[i];
+  // Watts fijos (rampa por RPE): no dependen del FTP.
+  if (interval.watts !== undefined) return Math.round(interval.watts * bias);
   const into = t - plan.segStart[i];
   const fromPct = interval.power_pct;
   const toPct = interval.ramp_to_pct ?? interval.power_pct;

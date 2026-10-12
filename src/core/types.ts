@@ -1,5 +1,6 @@
 import type { MetricId } from './metrics';
 import type { HealthIntake } from './intake';
+import type { RpeZones } from './rpe-ramp';
 import type { OtherActivity } from './other-activities';
 import type { PowerZone } from './zones';
 
@@ -31,6 +32,9 @@ export interface Interval {
   type: IntervalType;
   duration_s: number;
   power_pct: number; // % de FTP
+  /** Objetivo en watts fijos (rampa por RPE): manda sobre power_pct, que
+   * queda solo como referencia para pintar y estimar la carga. */
+  watts?: number;
   ramp_to_pct?: number; // rampa lineal hasta este %
   cadence_min?: number;
   cadence_max?: number;
@@ -95,6 +99,9 @@ export interface Workout {
   /** 'off' = el coach la marcó por sensación: Entrenar arranca sin ERG, en
    * modo calle (el atleta puede prenderlo). Ausente = arranca con ERG. */
   erg?: 'off';
+  /** 'rpe_ramp' = la rampa por RPE de Joe (core/rpe-ramp.ts): Entrenar
+   * pregunta el RPE al final de cada escalón y se detiene en 8+. */
+  protocol?: 'rpe_ramp';
 }
 
 /** Archivo de solo reglas (modo A del prompt de importación): mismas reglas,
@@ -147,6 +154,8 @@ export interface Profile {
   otherActivities?: OtherActivity[];
   /** Evaluación de salud y hábitos (core/intake.ts). */
   intake?: HealthIntake;
+  /** Zonas en watts de la última rampa por RPE (core/rpe-ramp.ts). */
+  rpeZones?: RpeZones;
   // `ftp`/`hr_max` arriba SIEMPRE tienen un número (el motor lo necesita para
   // zonas/ERG en vivo) — pero puede ser el default sin confirmar
   // (DEFAULT_PROFILE: ftp 200, hr_max 185) de alguien que nunca lo tocó.
@@ -163,7 +172,7 @@ export interface Profile {
 /** 'default' = los 200 W de fábrica · 'provisional' = un punto de partida
  * que el atleta puso sin medir · 'manual' = un número suyo · 'test_*' = salió
  * de un test en Torq. */
-export type FtpSource = 'default' | 'provisional' | 'manual' | 'test_ramp' | 'test_20min';
+export type FtpSource = 'default' | 'provisional' | 'manual' | 'test_ramp' | 'test_20min' | 'test_rpe_ramp';
 
 export interface Sample {
   t: number; // segundo desde el inicio

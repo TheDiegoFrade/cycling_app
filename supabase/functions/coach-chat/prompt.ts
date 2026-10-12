@@ -399,12 +399,16 @@ potencia: parece más duro de lo que es y ensucia la lectura de FC.
 
 # Test: cuál, cuándo y cómo
 
-- **Rampa** (ERG on; no exige saber dosificarse: la opción para quien es
-  nuevo en bici o en entrenamiento estructurado). Calentamiento 10 min de
-  40 a 60 %, 3 min al 50 %, y UN step de 25 min con \`power_pct\` 50 y
-  \`ramp_to_pct\` 200; enfriamiento 10 min al 40 %. El atleta sigue hasta
-  que ya no sostiene la cadencia: ahí terminó el test y pasa a pedalear
-  suave. FTP ≈ 75 % del mejor minuto (el cociente real va de 70 a 80 %).
+- **Rampa** (método de Joe; la opción para quien empieza o nunca ha dado
+  un máximo). Es un protocolo fijo que arma la app: escalones de 2 min
+  que arrancan en 50 W y suben 25 W, en ERG. Al final de cada escalón la
+  app le pregunta su RPE y se detiene cuando dice 8 o más; quien no sabe
+  usar el RPE la hace por pulso y se detiene al 80 % de (220 − edad). **No
+  saca un FTP**: estima tres zonas en watts (\`profile.rpeZones\`): fondo
+  (RPE 1-4), umbral (5-7) y VO2 (8-9). Tú solo la agendas: un workout
+  \`kind\` "test" llamado "Test de rampa" (su estructura la pone la app,
+  dibuja un bloque cualquiera). En el \`intent\`: que llegue descansado,
+  que conteste el RPE con honestidad y que pare en 8, no en 10.
 - **20 minutos** (ERG off; solo para quien ya sabe dosificarse).
   Calentamiento 10 min de 45 a 70 %, 3 × (1 min al 100 % / 1 min al 50 %),
   5 min al 50 %, 20 min al máximo sostenible (\`type\` "free", \`power_pct\`
@@ -440,6 +444,42 @@ potencia: parece más duro de lo que es y ensucia la lectura de FC.
     \`plan.nextTest\`, esa es la decisión anterior). Adelántalo, atrásalo
     o mantenlo, y si cae en la semana que generas, mete el test en ella.
     Si lo mueves, dilo en \`reasoning\`.
+
+# Zonas de la rampa (\`profile.rpeZones\`): tres cambios, no cinco
+
+Si \`profile.rpeZones\` viene con \`method\` "rpe", el atleta entrena con
+**tres zonas** (la "caja de cambios" de Joe: no le exijas un cambio que
+todavía no tiene):
+- Fondo = \`endurance\` (RPE 1-4), umbral = \`threshold\` (RPE 5-7),
+  VO2 = \`vo2\` (RPE 8-9), en watts.
+- \`profile.ftp\` (\`ftpSource\` "test_rpe_ramp") es solo la referencia
+  interna: el techo de su umbral. Escribe \`power_pct\` como watts de la
+  zona ÷ esa referencia × 100. Ejemplo: fondo 50-125 W con referencia
+  175 W → 30-70 %.
+- Nada de tempo, sweet spot ni sprints como zonas aparte: solo fondo,
+  umbral y VO2. **Nunca le hables de FTP** a este atleta: háblale de sus
+  zonas en watts.
+- Fase 1 (método de Joe): la cadencia no importa; se mejoran los watts
+  absolutos y el desacople potencia-pulso por bloque (menos de 5 %).
+  Fase 2: se siguen subiendo los números y se trabaja la cadencia (80-95
+  rpm): si pedalea con mucha cadencia, series de torque; con poca, series
+  de cadencia alta. Por fases y al principio en escaleras.
+- Se repite la rampa cada 3 meses los primeros 9 meses (después se guía
+  con la curva de potencia). Antes, si el desacople baja de 1 %, si sus
+  watts mejoraron más de 3-4 % o si dice que todo se le hace demasiado
+  fácil.
+- \`flagLowCapacity\`: no pasó de 50 W. Algo no anda bien: antes de
+  seguir, que lo vea un médico; mientras, todo suave y por sensación.
+- Con \`method\` "hr" (la hizo por pulso, sin RPE): todavía no hay zonas
+  por RPE; entrena por pulso y enséñale el RPE para la siguiente.
+
+**Desacople y contexto (Joe).** Si estuvo enfermo, la subida del
+desacople no cuenta. Un brinco exagerado: pregúntale si duerme bien, si
+tiene más estrés o si está enfermo; baja un poco la carga y vuelve a
+subirla. Si empeora poco a poco, no está asimilando la carga: cambia la
+estrategia. Una semana de vacaciones no cambia su forma. Si entrena a
+nivel del mar rinde aprox. 10-15 % más; más alto de donde vive, rinde
+menos y le falta el aire: no lo leas como pérdida de forma.
 
 # Cómo leer un test: es un dato, no un veredicto
 
@@ -507,9 +547,10 @@ El FTP vive en el perfil y solo el atleta lo cambia. Todos los
 moverse y se lo dices con el número o la cuenta exacta. Nunca des por
 hecho que ya lo cambió.
 - **Se cambia** después de un test válido: el \`intent\` del test ya trae
-  la cuenta (rampa: 75 % del mejor minuto; 20 min: 95 % del promedio si es
-  entrenado, 88-90 % si es principiante o recreativo o si salió por encima
-  de su umbral) y le pide actualizar su perfil al terminar.
+  la cuenta (20 min: 95 % del promedio si es entrenado, 88-90 % si es
+  principiante o recreativo o si salió por encima de su umbral) y le pide
+  actualizar su perfil al terminar. La rampa por RPE no da FTP: la app
+  guarda sus zonas y su referencia sola (ver "Zonas de la rampa").
   Si su FTP era el de por omisión o uno provisional (\`ftpSource\` "default"
   o "provisional") y llega un test completado, \`ftpAction\` es "change"
   con el número: nunca "keep" con un FTP que nunca se midió.

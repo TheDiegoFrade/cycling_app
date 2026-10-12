@@ -1272,3 +1272,16 @@ alter table sessions add constraint sessions_srpe_load_check
 -- ─────────────────────────────────────────────────────────────────────────
 alter table profiles add column if not exists health_intake jsonb
   check (health_intake is null or jsonb_typeof(health_intake) = 'object');
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Rampa por RPE (método de Joe, src/core/rpe-ramp.ts): 50 W + 25 W cada
+-- 2 min, se detiene en RPE 8+ (o al 80 % de 220 − edad por pulso). No saca
+-- FTP: guarda tres zonas en watts (fondo RPE 1-4, umbral 5-7, VO2 8-9) y,
+-- como referencia interna para los % de los entrenamientos, el techo del
+-- umbral en profiles.ftp con ftp_source 'test_rpe_ramp'.
+-- ─────────────────────────────────────────────────────────────────────────
+alter table profiles add column if not exists rpe_zones jsonb
+  check (rpe_zones is null or jsonb_typeof(rpe_zones) = 'object');
+alter table profiles drop constraint if exists profiles_ftp_source_check;
+alter table profiles add constraint profiles_ftp_source_check
+  check (ftp_source in ('default', 'provisional', 'manual', 'test_ramp', 'test_20min', 'test_rpe_ramp'));

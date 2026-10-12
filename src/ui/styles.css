@@ -5662,3 +5662,66 @@ button.plan-month-done-label {
 .ob-other-remove {
   margin-top: 8px;
 }
+
+/* Rampa por RPE: panel abajo con la escala 1-10 */
+.ramp-rpe {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  width: min(720px, calc(100% - 32px));
+  background: var(--panel, #15171c);
+  border: 1px solid var(--border-control);
+  border-radius: 16px;
+  padding: 14px 16px;
+  z-index: 40;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+.ramp-rpe-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.ramp-rpe-scale {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
+}
+.ramp-rpe-btn {
+  padding: 12px 0;
+  border-radius: 10px;
+  border: 1px solid var(--border-control);
+  background: transparent;
+  color: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ramp-rpe-btn:nth-child(n + 8) {
+  border-color: var(--accent);
+}
+.ramp-rpe-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.ramp-rpe-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+.ramp-rpe-q[hidden] + .ramp-rpe-foot {
+  margin-top: 0;
+}
+.ramp-rpe-stop {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent-light);
+  cursor: pointer;
+  white-space: nowrap;
+}
