@@ -1,12 +1,36 @@
 import { parseErg, parseMrc } from './course-format-parser';
+import { parseFitWorkout } from './fit-workout-parser';
 import type { Workout } from './types';
 import { validateWorkout } from './validator';
 import { parseZwo } from './zwo-parser';
 
 /** Import compartido entre Inicio y Calendario — ambos dejan elegir un
- * archivo (.zwo/.mrc/.erg/.workout.json) y arman un Workout listo para
- * guardar. `ftp` solo hace falta para `.erg` (viene en watts absolutos). */
-export async function importWorkoutFile(file: File, ftp: number): Promise<{ workout?: Workout; errors: string[] }> {
+ * archivo (.zwo/.mrc/.erg/.fit/.workout.json) y arman un Workout listo para
+ * guardar. `ftp` hace falta para `.erg` y `.fit` (watts absolutos) y
+ * `hrMax` para `.fit` con pulso en % del máximo. */
+export async function importWorkoutFile(file: File, ftp: number, hrMax = 185): Promise<{ workout?: Workout; errors: string[] }> {
+  if (file.name.toLowerCase().endsWith('.fit')) {
+    const parsed = parseFitWorkout(await file.arrayBuffer(), { ftp, hrMax });
+    if (parsed.errors.length > 0) return { errors: parsed.errors };
+    const workout: Workout = {
+      format_version: 1,
+      id: crypto.randomUUID(),
+      name: parsed.name,
+      description: [
+        parsed.allFree ? 'Por pulso: va sin ERG y el esfuerzo lo pones tú; Torq te avisa si te sales del rango.' : '',
+        parsed.warnings.length ? `Al importar: ${parsed.warnings.join('; ')}.` : '',
+      ]
+        .filter(Boolean)
+        .join(' ') || undefined,
+      intervals: parsed.intervals,
+      comments: parsed.comments.length ? parsed.comments : undefined,
+      created_at: new Date().toISOString(),
+      // Todo por pulso (o libre): arranca sin ERG, en modo calle.
+      ...(parsed.allFree ? { erg: 'off' as const } : {}),
+    };
+    const result = validateWorkout(workout);
+    return result.valid ? { workout, errors: [] } : { errors: result.errors };
+  }
   const text = await file.text();
   if (file.name.endsWith('.zwo') || file.name.endsWith('.mrc') || file.name.endsWith('.erg')) {
     const parsed = file.name.endsWith('.zwo') ? parseZwo(text) : file.name.endsWith('.mrc') ? parseMrc(text) : parseErg(text, ftp);

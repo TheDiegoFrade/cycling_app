@@ -315,7 +315,7 @@ export function renderCalendar(container: HTMLElement): () => void {
         <button class="btn-light" id="create-submit">Crear</button>
         <div id="create-errors"></div>
         <div class="plan-create-divider"><span>o</span></div>
-        <label class="plan-import-link">Importar archivo (.zwo, .mrc, .erg)<input type="file" id="create-import" accept=".zwo,.mrc,.erg,.json" style="display:none"></label>
+        <label class="plan-import-link">Importar archivo (.zwo, .mrc, .erg, .fit)<input type="file" id="create-import" accept=".zwo,.mrc,.erg,.fit,.json" style="display:none"></label>
       </div>`;
   }
 
@@ -733,7 +733,7 @@ export function renderCalendar(container: HTMLElement): () => void {
         createErrors.innerHTML = errorsHtml([`Ese día ya tiene ${MAX_PER_DAY} entrenamientos — elige otra fecha.`]);
         return;
       }
-      const { workout: imported, errors } = await importWorkoutFile(file, appState.profile.ftp);
+      const { workout: imported, errors } = await importWorkoutFile(file, appState.profile.ftp, appState.profile.hr_max);
       createErrors.innerHTML = errorsHtml(errors);
       if (!imported) return;
       const workout: Workout = { ...imported, scheduledDate: date };
