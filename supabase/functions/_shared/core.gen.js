@@ -587,12 +587,22 @@ function rpeRampIntervals(refFtp = 200, weightKg) {
     };
   });
 }
+
+// src/core/coach-testers.ts
+var UNLIMITED_COACH_USER_IDS = /* @__PURE__ */ new Set([
+  "85983750-01e5-449f-adb6-0a87c7047682"
+  // joemtb03@gmail.com — Joe Hernández, entrenador (UR Training)
+]);
+function hasUnlimitedCoach(userId) {
+  return !!userId && UNLIMITED_COACH_USER_IDS.has(userId);
+}
 export {
   addDays,
   buildMonthlyReport,
   defaultReviewMonth,
   emailKpis,
   evalWeekTarget,
+  hasUnlimitedCoach,
   localDateKey,
   mondayOfWeek,
   monthEnd,

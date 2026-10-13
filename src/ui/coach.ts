@@ -8,6 +8,7 @@ import { computePmc } from '../engine/pmc';
 import { listSessions } from '../storage/session-store';
 import type { SessionRecord } from '../storage/session-store';
 import { isAiEligibleSession } from '../core/session-source';
+import { hasUnlimitedCoach } from '../core/coach-testers';
 import { isBikeSession, isNonBikeKind, srpeLoad, wasTrained } from '../core/session-kind';
 import type { NonBikeKind, SessionCompletion, SessionKind } from '../core/session-kind';
 import { computeSessionAnalytics } from '../engine/analytics';
@@ -236,6 +237,10 @@ function currentIsoWeek(): string {
 // Solo aparece un mensaje si de verdad se topa, caso anómalo.
 const MONTHLY_WEEKLY_EVAL_LIMIT = 10; // mismo número que coach-chat/index.ts
 
+/** Cuenta de pruebas del coach (src/core/coach-testers.ts): sin topes de conteo. */
+const isUnlimited = (): boolean => hasUnlimitedCoach(appState.user?.id);
+const UNLIMITED_HINT = 'Cuenta de pruebas: sin límite de planes ni de evaluaciones.';
+
 function evalZoneHtml(plan: ActivePlanRow, weeklyEvalsUsed: number): string {
   // Mismo cálculo que el servidor (src/core/eval-week.ts): se evalúa la
   // semana que acaba de terminar (el domingo ya cuenta) y se genera o rehace
@@ -247,6 +252,9 @@ function evalZoneHtml(plan: ActivePlanRow, weeklyEvalsUsed: number): string {
   if (t.target >= planTotalWeeks(plan.data.blocks)) {
     return `<p class="hint" style="margin-top:10px">Terminaste tu plan. Dalo de baja y crea uno nuevo para seguir.</p>`;
   }
+  if (isUnlimited()) {
+    return evalFormHtml(plan.last_eval_iso_week === currentIsoWeek() && plan.eval_count_this_iso_week > 0, UNLIMITED_HINT);
+  }
   if (weeklyEvalsUsed >= MONTHLY_WEEKLY_EVAL_LIMIT) {
     return `<p class="hint" style="margin-top:10px">Alcanzaste el límite de seguridad de evaluaciones de este mes — vuelve el próximo mes.</p>`;
   }
@@ -256,10 +264,17 @@ function evalZoneHtml(plan: ActivePlanRow, weeklyEvalsUsed: number): string {
   if (remainingThisWeek <= 0) {
     return `<p class="hint" style="margin-top:10px">Ya usaste tus ${MAX_EVALS_PER_ISO_WEEK} evaluaciones de esta semana — vuelve la próxima para seguir ajustando.</p>`;
   }
+  return evalFormHtml(
+    isRefresh,
+    `Te quedan ${remainingThisWeek} de ${MAX_EVALS_PER_ISO_WEEK} evaluaciones de esta semana. Mejor espérate al final de la semana (ej. domingo) para evaluarla — así el coach ve cómo te fue completa y arma o actualiza la semana siguiente con esa info real, no a medias.`,
+  );
+}
+
+function evalFormHtml(isRefresh: boolean, hint: string): string {
   return `
     <div style="margin-top:10px">
       <button class="btn-light" id="coach-eval-open">${isRefresh ? 'Refrescar semana' : 'Evaluar semana'}</button>
-      <p class="hint" style="margin-top:4px">Te quedan ${remainingThisWeek} de ${MAX_EVALS_PER_ISO_WEEK} evaluaciones de esta semana. Mejor espérate al final de la semana (ej. domingo) para evaluarla — así el coach ve cómo te fue completa y arma o actualiza la semana siguiente con esa info real, no a medias.</p>
+      <p class="hint" style="margin-top:4px">${hint}</p>
     </div>
     <div id="coach-eval-form" style="display:none;margin-top:10px">
       <label class="live-col-label">¿Cómo te fue esta semana y algo que debamos saber para la que viene? (opcional)
@@ -291,7 +306,7 @@ function planSummaryHtml(plan: ActivePlanRow, weeklyEvalsUsed: number, planActio
       <div id="coach-abandon-zone" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
         <a href="#" class="prepare-link" id="coach-abandon">Dar de baja este plan</a>
         <p class="hint" style="margin-top:4px">
-          ${planActionsRemaining > 0 ? `Te quedan ${planActionsRemaining} de ${MONTHLY_PLAN_ACTION_LIMIT} cambios de plan este mes.` : `Ya usaste tus ${MONTHLY_PLAN_ACTION_LIMIT} cambios de plan de este mes — vuelve el próximo mes.`}
+          ${isUnlimited() ? UNLIMITED_HINT : planActionsRemaining > 0 ? `Te quedan ${planActionsRemaining} de ${MONTHLY_PLAN_ACTION_LIMIT} cambios de plan este mes.` : `Ya usaste tus ${MONTHLY_PLAN_ACTION_LIMIT} cambios de plan de este mes — vuelve el próximo mes.`}
           Para crear un plan nuevo primero tienes que dar de baja el actual.
         </p>
       </div>
@@ -455,13 +470,13 @@ async function fetchMonthlyWeeklyEvalsUsed(userId: string): Promise<number> {
 
 function createCardHtml(actionsUsed: number): string {
   const remaining = MONTHLY_PLAN_ACTION_LIMIT - actionsUsed;
-  const atLimit = remaining <= 0;
+  const atLimit = remaining <= 0 && !isUnlimited();
   return `
     <div class="panel plan-coach-card">
       <h2 class="perfil-h2" style="margin:0">${aiCoachTitle()}</h2>
       <p class="hint" style="margin-top:8px">Todavía no tienes un plan — el coach arma tu periodización y va ajustando cada semana según cómo te va.</p>
       <button class="btn-light" id="coach-open-create" style="margin-top:10px" ${atLimit ? 'disabled' : ''}>Crear mi plan</button>
-      <p class="hint" style="margin-top:6px">${atLimit ? 'Ya usaste tus 3 creaciones/cambios de plan de este mes — vuelve el próximo mes.' : `Te quedan ${remaining} de ${MONTHLY_PLAN_ACTION_LIMIT} creaciones/cambios de plan este mes.`}</p>
+      <p class="hint" style="margin-top:6px">${isUnlimited() ? UNLIMITED_HINT : atLimit ? 'Ya usaste tus 3 creaciones/cambios de plan de este mes — vuelve el próximo mes.' : `Te quedan ${remaining} de ${MONTHLY_PLAN_ACTION_LIMIT} creaciones/cambios de plan este mes.`}</p>
     </div>`;
 }
 
@@ -674,6 +689,20 @@ interface WeekSummary {
   missedWorkouts: number;
   /** minutos × RPE de lo que no es bici (escala distinta al TSS). */
   otherSrpeLoad?: number;
+  /** RPE promedio de las sesiones de bici que lo tienen (y cuántas). */
+  avgRpe?: number;
+  rpeCount?: number;
+}
+
+/** Una rodada que no estaba en el plan (libre, importada, MTB afuera). */
+interface UnplannedRideRow {
+  date: string;
+  dayOfWeek: string;
+  name: string;
+  minutes: number | null;
+  tss: number | null;
+  rpe: number | null;
+  note: string | null;
 }
 
 /** Una sesión que no es de bici, como la recibe el coach (weekJustFinished.otherActivities). */
@@ -723,6 +752,7 @@ async function computeWeekEvalContext(
     otherActivitiesNote: string | null;
     otherActivities: OtherActivityRow[];
     workouts: WeekWorkoutRow[];
+    unplannedRides?: UnplannedRideRow[];
   };
   pmcTrend: { ctl: number; atl: number; tsb: number; ctlRampLast4Weeks: number };
   recentGapPattern: { startDate: string; endDate: string; days: number }[] | null;
@@ -739,10 +769,15 @@ async function computeWeekEvalContext(
   if (weeks.length === 0) return null;
 
   const { localSessions, cloudOnly } = await aiEligibleSessions(true);
+  // RPE y nota: los de este dispositivo, o los de la nube si los puso en otro.
+  const cloudById = new Map(appState.cloudSessions.map((c) => [c.id, c]));
+  const rpeOf = (s: SessionRecord) => s.rpe ?? cloudById.get(s.id)?.rpe ?? null;
+  const noteOf = (s: SessionRecord) => (s.note ?? cloudById.get(s.id)?.note ?? '').trim().slice(0, 300) || null;
   const localEntries = localSessions.map((s) => ({
     dateKey: dayKeyOf(s.startedAt),
     tss: computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp }).trainingStressScore ?? 0,
     workoutId: s.workoutId as string | null,
+    rpe: rpeOf(s),
   }));
   // Las cloud-only no traen workoutId confiable para emparejar contra lo
   // planeado — cuentan para TSS/adherencia general, pero no para el conteo
@@ -753,6 +788,7 @@ async function computeWeekEvalContext(
     dateKey: dayKeyOf(s.startedAt),
     tss: s.trainingStressScore ?? 0,
     workoutId: null as string | null,
+    rpe: s.rpe,
   }));
   const allEntries = [...localEntries, ...cloudEntries];
   if (allEntries.length === 0) return null;
@@ -790,7 +826,9 @@ async function computeWeekEvalContext(
     const otherSrpeLoad = nonBike
       .filter((r) => r.date >= startKey && r.date <= endKey)
       .reduce((sum, r) => sum + (srpeLoad(r.kind, r.completion, r.rpe, r.minutes ?? 0) ?? 0), 0);
-    return { weekIndex: week.weekIndex, plannedTSS, actualTSS, completedWorkouts, missedWorkouts, ...(otherSrpeLoad > 0 ? { otherSrpeLoad } : {}) };
+    const rpes = weekEntries.map((e) => e.rpe).filter((r): r is number => typeof r === 'number' && r >= 1 && r <= 10);
+    const rpeFields = rpes.length ? { avgRpe: Math.round((rpes.reduce((a, b) => a + b, 0) / rpes.length) * 10) / 10, rpeCount: rpes.length } : {};
+    return { weekIndex: week.weekIndex, plannedTSS, actualTSS, completedWorkouts, missedWorkouts, ...(otherSrpeLoad > 0 ? { otherSrpeLoad } : {}), ...rpeFields };
   }
 
   /** Cada workout planeado de la semana con su sesión, si la hubo: la de
@@ -815,11 +853,11 @@ async function computeWeekEvalContext(
             ...base,
             actualTSS: round(a.trainingStressScore, 0),
             completed: true,
-            rpe: local.rpe ?? null,
+            rpe: rpeOf(local),
             hrDriftPct: round(a.hrDriftPct),
             efficiencyFactor: round(a.efficiencyFactor, 2),
             ruleTriggers: ruleTriggersOf(local.alerts),
-            note: local.note?.trim().slice(0, 300) || null,
+            note: noteOf(local),
           };
         }
         const cloud = cloudOnly.find((s) => s.workoutId === w.id);
@@ -885,6 +923,38 @@ async function computeWeekEvalContext(
 
   const occupiedDates = await computeOccupiedDates(localTodayKey(), 1);
 
+  // Rodadas de esa semana que no estaban en el plan (libres, importadas):
+  // su RPE y su nota dicen tanto como las planeadas.
+  const planIds = new Set(weeks.flatMap((w) => w.workoutIds));
+  const dayOf = (date: string) => DAY_ORDER[(new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7];
+  const minutesOf = (a: string, b: string) => Math.round((new Date(b).getTime() - new Date(a).getTime()) / 60000) || null;
+  const roundTss = (x: number | null | undefined) => (typeof x === 'number' && Number.isFinite(x) ? Math.round(x) : null);
+  const unplannedRides: UnplannedRideRow[] = [
+    ...localSessions
+      .filter((s) => !planIds.has(s.workoutId) && inLastWeek(dayKeyOf(s.startedAt)))
+      .map((s) => ({
+        date: dayKeyOf(s.startedAt),
+        name: s.workoutName,
+        minutes: minutesOf(s.startedAt, s.finishedAt),
+        tss: roundTss(computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp }).trainingStressScore),
+        rpe: rpeOf(s),
+        note: noteOf(s),
+      })),
+    ...cloudOnly
+      .filter((s) => !(s.workoutId && planIds.has(s.workoutId)) && inLastWeek(dayKeyOf(s.startedAt)))
+      .map((s) => ({
+        date: dayKeyOf(s.startedAt),
+        name: s.workoutName,
+        minutes: minutesOf(s.startedAt, s.finishedAt),
+        tss: roundTss(s.trainingStressScore),
+        rpe: s.rpe,
+        note: s.note?.trim().slice(0, 300) || null,
+      })),
+  ]
+    .map((r) => ({ ...r, name: r.name.slice(0, 120), dayOfWeek: dayOf(r.date) }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 14);
+
   // La semana que va a generar el servidor: la siguiente, o la misma si es
   // el "refresh" de esta semana ISO (mismo criterio que applyModeEffects).
   const nextWeekIndex = t.target;
@@ -906,6 +976,7 @@ async function computeWeekEvalContext(
       otherActivitiesNote,
       otherActivities: nonBike.filter((r) => inLastWeek(r.date)).slice(0, 30),
       workouts: weekWorkoutRows(evaluatedWeek),
+      ...(unplannedRides.length ? { unplannedRides } : {}),
       ...(removedThisWeek.length ? { removedWorkouts: removedThisWeek } : {}),
     },
     ...(removedBefore.length ? { removedBefore } : {}),

@@ -377,6 +377,22 @@ export const WeeklyEvalInputContextSchema = z.object({
       )
       .max(14)
       .optional(),
+    // Rodadas de esa semana que no estaban en el plan (libres, importadas,
+    // MTB afuera), con el RPE y la nota que puso el atleta.
+    unplannedRides: z
+      .array(
+        z.object({
+          date: z.string(),
+          dayOfWeek: z.string(),
+          name: z.string().max(120),
+          minutes: z.number().nonnegative().nullable(),
+          tss: z.number().nonnegative().nullable(),
+          rpe: z.number().nullable(),
+          note: z.string().max(300).nullable(),
+        }),
+      )
+      .max(14)
+      .optional(),
   }),
   pmcTrend: z.object({
     ctl: z.number().nonnegative(),
@@ -402,6 +418,9 @@ export const WeeklyEvalInputContextSchema = z.object({
         missedWorkouts: z.number().int().nonnegative(),
         // minutos × RPE de lo que no es bici esa semana (escala distinta al TSS)
         otherSrpeLoad: z.number().nonnegative().optional(),
+        // RPE promedio de las rodadas de esa semana que lo tienen, y cuántas.
+        avgRpe: z.number().min(1).max(10).optional(),
+        rpeCount: z.number().int().positive().optional(),
       }),
     )
     .nullable(),

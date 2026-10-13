@@ -9,3 +9,4 @@ export { startPhase } from './self-report-start';
 export { evalWeekTarget, planTotalWeeks, planWeekOf } from './eval-week';
 export { startingProfile } from './intake';
 export { rpeRampIntervals } from './rpe-ramp';
+export { hasUnlimitedCoach } from './coach-testers';

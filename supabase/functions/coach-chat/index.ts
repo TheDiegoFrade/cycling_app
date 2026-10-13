@@ -21,7 +21,7 @@ import { zodOutputFormat } from 'npm:@anthropic-ai/sdk@0/helpers/zod';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
 import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
-import { evalWeekTarget, localDateKey, planTotalWeeks, startingProfile } from '../_shared/core.gen.js';
+import { evalWeekTarget, hasUnlimitedCoach, localDateKey, planTotalWeeks, startingProfile } from '../_shared/core.gen.js';
 import { COACH_SYSTEM_PROMPT, WRITER_SYSTEM_PROMPT } from './prompt.ts';
 import { buildUserMessage } from './message.ts';
 import { PLANNING_MODES, WorkoutDescriptionsSchema, schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
     }
 
     const usedThisMonth = await getMonthlyTokens(admin, userId);
-    if (usedThisMonth >= MONTHLY_TOKEN_CEILING) {
+    if (usedThisMonth >= MONTHLY_TOKEN_CEILING && !hasUnlimitedCoach(userId)) {
       return json({ error: 'límite mensual de uso del coach alcanzado' }, 429);
     }
 
@@ -444,7 +444,9 @@ async function checkModeAllowed(
   if (mode === 'create_plan') {
     // 409: es un conflicto de estado, no un límite de uso (429 se lee como "reintenta").
     if (plan) return { ok: false, reason: 'ya tienes un plan activo', status: 409 };
-    const monthlyActions = await getMonthlyActionCount(admin, userId, ['create', 'modify']);
+    // Quien prueba el coach (src/core/coach-testers.ts) no tiene topes de conteo.
+    const unlimited = hasUnlimitedCoach(userId);
+    const monthlyActions = unlimited ? 0 : await getMonthlyActionCount(admin, userId, ['create', 'modify']);
     if (monthlyActions >= MONTHLY_PLAN_ACTION_LIMIT) {
       return {
         ok: false,
@@ -469,13 +471,14 @@ async function checkModeAllowed(
     // Hasta 2 veces en la misma semana ISO — la segunda es un "refresh" por
     // si el atleta quiere agregar contexto que olvidó la primera vez (ver
     // applyModeEffects). La tercera sí se bloquea.
-    if (plan.last_eval_iso_week === currentIsoWeek() && (plan.eval_count_this_iso_week ?? 0) >= 2) {
+    const unlimited = hasUnlimitedCoach(userId);
+    if (!unlimited && plan.last_eval_iso_week === currentIsoWeek() && (plan.eval_count_this_iso_week ?? 0) >= 2) {
       return { ok: false, reason: 'ya usaste tus 2 evaluaciones de esta semana — vuelve la próxima semana' };
     }
     // Red de seguridad adicional — el gate de arriba ya es el control
     // principal, esto solo cubre el caso límite de muchas semanas reales en
     // un mes (o varios refresh seguidos) o un bug en ese gate.
-    const monthlyEvals = await getMonthlyActionCount(admin, userId, ['weekly_eval']);
+    const monthlyEvals = unlimited ? 0 : await getMonthlyActionCount(admin, userId, ['weekly_eval']);
     if (monthlyEvals >= MONTHLY_WEEKLY_EVAL_LIMIT) {
       return {
         ok: false,
