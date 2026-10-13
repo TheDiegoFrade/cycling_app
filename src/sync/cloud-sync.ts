@@ -174,6 +174,16 @@ export async function backfillMetricsFromLocal(userId: string, localSessions: re
   return filled;
 }
 
+/** Guarda en la nube el RPE y la nota que el atleta puso después de grabar
+ * (pushSessionToCloud corre al terminar, antes de que los conteste). El
+ * coach IA los lee de ahí cuando evalúa desde otro dispositivo. */
+export async function updateSessionFeedback(id: string, userId: string, rpe: number | null, note: string | null): Promise<boolean> {
+  if (!supabase) return true;
+  const { error } = await supabase.from('sessions').update({ rpe, note }).eq('id', id).eq('user_id', userId);
+  if (error) console.error('[cloud-sync] no se pudo guardar el RPE/nota en la nube', error);
+  return !error;
+}
+
 /** Borra una sesión de la nube (fila + .fit en Storage). Best-effort: si
  * falla, se deja registro en consola y devuelve false — el llamador decide
  * si igual quita la fila local o del estado en memoria. */

@@ -9,7 +9,7 @@ import { deleteSession, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
 import type { Interval } from '../../core/types';
 import { isStravaConfigured, uploadSessionToStrava } from '../../sync/strava';
-import { deleteSessionFromCloud, downloadSessionSamples } from '../../sync/cloud-sync';
+import { deleteSessionFromCloud, downloadSessionSamples, updateSessionFeedback } from '../../sync/cloud-sync';
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
 import { checkAndCelebrateAchievements } from '../achievement-toast';
 import { escapeHtml } from '../workout-cover';
@@ -391,11 +391,18 @@ function renderFullSummary(container: HTMLElement, session: SessionRecord, cloud
     }
   });
 
+  // Local si la sesión vive en este dispositivo; siempre en la nube, que es
+  // de donde el coach IA la lee si evalúa desde otro dispositivo.
   async function saveFeedback(): Promise<void> {
     const note = container.querySelector<HTMLInputElement>('#session-note')!.value.trim();
-    session!.note = note || undefined;
-    await saveSession(session!);
-    appState.lastSession = session;
+    session.note = note || undefined;
+    if (!cloudNote) {
+      await saveSession(session);
+      appState.lastSession = session;
+    }
+    const cloud = appState.cloudSessions.find((c) => c.id === session.id);
+    if (cloud) Object.assign(cloud, { rpe: session.rpe ?? null, note: session.note ?? null });
+    if (appState.user) await updateSessionFeedback(session.id, appState.user.id, session.rpe ?? null, session.note ?? null);
   }
 
   container.querySelectorAll<HTMLButtonElement>('[data-rpe]').forEach((btn) => {
