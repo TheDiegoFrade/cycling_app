@@ -175,16 +175,18 @@ export async function backfillMetricsFromLocal(userId: string, localSessions: re
 }
 
 /** Borra una sesión de la nube (fila + .fit en Storage). Best-effort: si
- * falla, se deja registro en consola — el llamador decide si igual quita la
- * fila local o del estado en memoria. */
-export async function deleteSessionFromCloud(id: string, userId: string): Promise<void> {
-  if (!supabase) return;
+ * falla, se deja registro en consola y devuelve false — el llamador decide
+ * si igual quita la fila local o del estado en memoria. */
+export async function deleteSessionFromCloud(id: string, userId: string): Promise<boolean> {
+  if (!supabase) return true;
   try {
     const { error } = await supabase.from('sessions').delete().eq('id', id).eq('user_id', userId);
     if (error) throw error;
     await supabase.storage.from('fit-files').remove([`${userId}/${id}.fit`]);
+    return true;
   } catch (err) {
     console.error('[cloud-sync] no se pudo borrar la sesión de la nube', err);
+    return false;
   }
 }
 

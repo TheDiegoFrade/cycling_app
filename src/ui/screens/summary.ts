@@ -5,11 +5,11 @@ import { encodeFitActivity } from '../../export/fit';
 import { uploadActivityFit } from '../../export/intervals-icu';
 import { navigate } from '../router';
 import { appState } from '../state';
-import { saveSession } from '../../storage/session-store';
+import { deleteSession, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
 import type { Interval } from '../../core/types';
 import { isStravaConfigured, uploadSessionToStrava } from '../../sync/strava';
-import { downloadSessionSamples } from '../../sync/cloud-sync';
+import { deleteSessionFromCloud, downloadSessionSamples } from '../../sync/cloud-sync';
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
 import { checkAndCelebrateAchievements } from '../achievement-toast';
 import { escapeHtml } from '../workout-cover';
@@ -238,6 +238,7 @@ function renderCloudOnlySummary(container: HTMLElement, s: CloudSessionSummary):
           <h1 style="margin:4px 0 0">${s.workoutName}, completo</h1>
           <p class="hint" style="margin-top:4px">☁ Sincronizada desde otro dispositivo — solo hay resumen, no el detalle segundo a segundo.</p>
         </div>
+        <div class="row-actions" style="margin:0">${DELETE_BUTTON}</div>
       </div>
 
       <div class="panel">
@@ -283,6 +284,7 @@ function renderFullSummary(container: HTMLElement, session: SessionRecord, cloud
         <div class="row-actions" style="margin:0">
           ${isStravaConfigured() ? '<button class="btn-light" id="strava-upload">Subir a Strava</button>' : ''}
           <button id="download-fit">Descargar .fit</button>
+          ${DELETE_BUTTON}
         </div>
       </div>
       ${isStravaConfigured() ? '<div id="strava-upload-result"></div>' : ''}
@@ -373,6 +375,7 @@ function renderFullSummary(container: HTMLElement, session: SessionRecord, cloud
   `;
 
   drawSummaryGraph(container.querySelector('#g')!, session);
+  wireDeleteSession(container, session.id);
 
   container.querySelector('#download-fit')?.addEventListener('click', () => downloadFit(session));
 
@@ -446,6 +449,29 @@ function toSyntheticSession(s: CloudSessionSummary, samples: SessionRecord['samp
   };
 }
 
+const DELETE_BUTTON = '<button class="btn-light danger" id="delete-session">Borrar sesión</button>';
+
+/** Borra la sesión (local y nube) y regresa a donde estaba. Si se grabó desde
+ * un entrenamiento agendado, ese entrenamiento vuelve a verse pendiente. */
+function wireDeleteSession(container: HTMLElement, id: string): void {
+  const btn = container.querySelector<HTMLButtonElement>('#delete-session');
+  btn?.addEventListener('click', async () => {
+    if (!window.confirm('¿Borrar esta sesión? No se puede deshacer.')) return;
+    btn.disabled = true;
+    if (appState.user && !(await deleteSessionFromCloud(id, appState.user.id))) {
+      btn.disabled = false;
+      window.alert('No se pudo borrar la sesión. Revisa tu conexión e intenta de nuevo.');
+      return;
+    }
+    await deleteSession(id);
+    appState.cloudSessions = appState.cloudSessions.filter((s) => s.id !== id);
+    appState.lastSession = null;
+    appState.lastCloudSession = null;
+    if (window.history.length > 1) window.history.back();
+    else navigate('library');
+  });
+}
+
 const CLOUD_RECONSTRUCTED_NOTE =
   '☁ Reconstruida desde tu copia en la nube — los avisos y ajustes de intensidad de esa sesión no se sincronizan entre dispositivos, así que no aparecen aquí.';
 
@@ -477,6 +503,7 @@ export function renderSummary(container: HTMLElement): void {
         renderFullSummary(container, toSyntheticSession(cloudSession, samples), CLOUD_RECONSTRUCTED_NOTE);
       } else {
         renderCloudOnlySummary(container, cloudSession);
+        wireDeleteSession(container, cloudSession.id);
       }
     });
     return;

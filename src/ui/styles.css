@@ -5725,3 +5725,7 @@ button.plan-month-done-label {
   cursor: pointer;
   white-space: nowrap;
 }
+.btn-light.danger {
+  color: var(--danger-text);
+  border-color: var(--danger);
+}
