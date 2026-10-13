@@ -8,6 +8,7 @@ import { computePmc } from '../engine/pmc';
 import { listSessions } from '../storage/session-store';
 import type { SessionRecord } from '../storage/session-store';
 import { isAiEligibleSession } from '../core/session-source';
+import { hasUnlimitedCoach } from '../core/coach-testers';
 import { isBikeSession, isNonBikeKind, srpeLoad, wasTrained } from '../core/session-kind';
 import type { NonBikeKind, SessionCompletion, SessionKind } from '../core/session-kind';
 import { computeSessionAnalytics } from '../engine/analytics';
@@ -236,6 +237,10 @@ function currentIsoWeek(): string {
 // Solo aparece un mensaje si de verdad se topa, caso anómalo.
 const MONTHLY_WEEKLY_EVAL_LIMIT = 10; // mismo número que coach-chat/index.ts
 
+/** Cuenta de pruebas del coach (src/core/coach-testers.ts): sin topes de conteo. */
+const isUnlimited = (): boolean => hasUnlimitedCoach(appState.user?.id);
+const UNLIMITED_HINT = 'Cuenta de pruebas: sin límite de planes ni de evaluaciones.';
+
 function evalZoneHtml(plan: ActivePlanRow, weeklyEvalsUsed: number): string {
   // Mismo cálculo que el servidor (src/core/eval-week.ts): se evalúa la
   // semana que acaba de terminar (el domingo ya cuenta) y se genera o rehace
@@ -247,6 +252,9 @@ function evalZoneHtml(plan: ActivePlanRow, weeklyEvalsUsed: number): string {
   if (t.target >= planTotalWeeks(plan.data.blocks)) {
     return `<p class="hint" style="margin-top:10px">Terminaste tu plan. Dalo de baja y crea uno nuevo para seguir.</p>`;
   }
+  if (isUnlimited()) {
+    return evalFormHtml(plan.last_eval_iso_week === currentIsoWeek() && plan.eval_count_this_iso_week > 0, UNLIMITED_HINT);
+  }
   if (weeklyEvalsUsed >= MONTHLY_WEEKLY_EVAL_LIMIT) {
     return `<p class="hint" style="margin-top:10px">Alcanzaste el límite de seguridad de evaluaciones de este mes — vuelve el próximo mes.</p>`;
   }
@@ -256,10 +264,17 @@ function evalZoneHtml(plan: ActivePlanRow, weeklyEvalsUsed: number): string {
   if (remainingThisWeek <= 0) {
     return `<p class="hint" style="margin-top:10px">Ya usaste tus ${MAX_EVALS_PER_ISO_WEEK} evaluaciones de esta semana — vuelve la próxima para seguir ajustando.</p>`;
   }
+  return evalFormHtml(
+    isRefresh,
+    `Te quedan ${remainingThisWeek} de ${MAX_EVALS_PER_ISO_WEEK} evaluaciones de esta semana. Mejor espérate al final de la semana (ej. domingo) para evaluarla — así el coach ve cómo te fue completa y arma o actualiza la semana siguiente con esa info real, no a medias.`,
+  );
+}
+
+function evalFormHtml(isRefresh: boolean, hint: string): string {
   return `
     <div style="margin-top:10px">
       <button class="btn-light" id="coach-eval-open">${isRefresh ? 'Refrescar semana' : 'Evaluar semana'}</button>
-      <p class="hint" style="margin-top:4px">Te quedan ${remainingThisWeek} de ${MAX_EVALS_PER_ISO_WEEK} evaluaciones de esta semana. Mejor espérate al final de la semana (ej. domingo) para evaluarla — así el coach ve cómo te fue completa y arma o actualiza la semana siguiente con esa info real, no a medias.</p>
+      <p class="hint" style="margin-top:4px">${hint}</p>
     </div>
     <div id="coach-eval-form" style="display:none;margin-top:10px">
       <label class="live-col-label">¿Cómo te fue esta semana y algo que debamos saber para la que viene? (opcional)
@@ -291,7 +306,7 @@ function planSummaryHtml(plan: ActivePlanRow, weeklyEvalsUsed: number, planActio
       <div id="coach-abandon-zone" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
         <a href="#" class="prepare-link" id="coach-abandon">Dar de baja este plan</a>
         <p class="hint" style="margin-top:4px">
-          ${planActionsRemaining > 0 ? `Te quedan ${planActionsRemaining} de ${MONTHLY_PLAN_ACTION_LIMIT} cambios de plan este mes.` : `Ya usaste tus ${MONTHLY_PLAN_ACTION_LIMIT} cambios de plan de este mes — vuelve el próximo mes.`}
+          ${isUnlimited() ? UNLIMITED_HINT : planActionsRemaining > 0 ? `Te quedan ${planActionsRemaining} de ${MONTHLY_PLAN_ACTION_LIMIT} cambios de plan este mes.` : `Ya usaste tus ${MONTHLY_PLAN_ACTION_LIMIT} cambios de plan de este mes — vuelve el próximo mes.`}
           Para crear un plan nuevo primero tienes que dar de baja el actual.
         </p>
       </div>
@@ -455,13 +470,13 @@ async function fetchMonthlyWeeklyEvalsUsed(userId: string): Promise<number> {
 
 function createCardHtml(actionsUsed: number): string {
   const remaining = MONTHLY_PLAN_ACTION_LIMIT - actionsUsed;
-  const atLimit = remaining <= 0;
+  const atLimit = remaining <= 0 && !isUnlimited();
   return `
     <div class="panel plan-coach-card">
       <h2 class="perfil-h2" style="margin:0">${aiCoachTitle()}</h2>
       <p class="hint" style="margin-top:8px">Todavía no tienes un plan — el coach arma tu periodización y va ajustando cada semana según cómo te va.</p>
       <button class="btn-light" id="coach-open-create" style="margin-top:10px" ${atLimit ? 'disabled' : ''}>Crear mi plan</button>
-      <p class="hint" style="margin-top:6px">${atLimit ? 'Ya usaste tus 3 creaciones/cambios de plan de este mes — vuelve el próximo mes.' : `Te quedan ${remaining} de ${MONTHLY_PLAN_ACTION_LIMIT} creaciones/cambios de plan este mes.`}</p>
+      <p class="hint" style="margin-top:6px">${isUnlimited() ? UNLIMITED_HINT : atLimit ? 'Ya usaste tus 3 creaciones/cambios de plan de este mes — vuelve el próximo mes.' : `Te quedan ${remaining} de ${MONTHLY_PLAN_ACTION_LIMIT} creaciones/cambios de plan este mes.`}</p>
     </div>`;
 }
 
