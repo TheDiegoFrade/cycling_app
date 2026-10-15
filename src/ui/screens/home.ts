@@ -15,6 +15,7 @@ import { appState } from '../state';
 import { escapeHtml } from '../workout-cover';
 import { tokenForIntervals, tokenForTemplate, tokenForWorkout, tokenHtml } from '../workout-token';
 import { montanasVideoHtml } from '../montanas-video';
+import { maybeCelebrateWeek } from '../pinon';
 import type { Token } from '../workout-token';
 import { isNonBikeKind } from '../../core/session-kind';
 import { wireDatePicker } from '../date-picker';
@@ -169,7 +170,7 @@ export function renderHome(container: HTMLElement): void {
 
   function heroCardHtml(): string {
     return `
-      <section class="home-scene" aria-label="Hoy toca">
+      <section class="home-scene" aria-label="Hoy toca" data-pinon-perch>
         ${montanasVideoHtml('home-scene-img')}
         <div class="home-scene-shade" aria-hidden="true"></div>
         <a href="#/profile" class="perfil-avatar perfil-avatar-link home-scene-avatar" aria-label="Ir a tu perfil" title="Tu perfil">${initial}</a>
@@ -201,7 +202,7 @@ export function renderHome(container: HTMLElement): void {
           <span class="home-week-sub"><span class="num" id="week-hours">0:00</span> h · <span class="num" id="week-tss">0</span> TSS</span>
           <span class="home-week-link">ver plan →</span>
         </a>
-        <div class="home-week-tiles-wrap"><div class="home-week-tiles" id="week-days"></div></div>
+        <div class="home-week-tiles-wrap" data-pinon-perch><div class="home-week-tiles" id="week-days"></div></div>
         <div class="home-week-zones">
           <div class="live-col-label" style="margin-bottom:8px">Tiempo por zona</div>
           <div class="home-week-zonebar" id="week-zonebar"></div>
@@ -410,6 +411,12 @@ export function renderHome(container: HTMLElement): void {
       (w) => w.scheduledDate && w.scheduledDate >= weekStartKey && w.scheduledDate < toDateKey(weekEndExclusive) && !minutesByDay.has(w.scheduledDate),
     ).length;
     const totalThisWeek = completedThisWeek + scheduledPendingThisWeek;
+
+    // Semana cerrada: todo lo agendado de esta semana ya se entrenó. Piñón lo
+    // celebra una sola vez por semana (ver ui/pinon.ts).
+    const scheduledThisWeek = appState.workouts.filter((w) => w.scheduledDate && w.scheduledDate >= weekStartKey && w.scheduledDate < toDateKey(weekEndExclusive));
+    const scheduledDone = scheduledThisWeek.filter((w) => minutesByDay.has(w.scheduledDate!)).length;
+    if (container.isConnected) maybeCelebrateWeek(scheduledDone, scheduledThisWeek.length, weekStartKey);
 
     container.querySelector('#week-hours')!.textContent = fmtHours(totalSeconds);
     container.querySelector('#week-tss')!.textContent = String(Math.round(totalTss));

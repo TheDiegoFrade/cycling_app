@@ -491,7 +491,7 @@ export function renderCalendar(container: HTMLElement): () => void {
     }
     const more = entries.length > 1 ? `<span class="plan-sel-more">+${entries.length - 1} más este día (en su tarjeta)</span>` : '';
     return `
-      <section class="plan-sel" aria-label="Día seleccionado">
+      <section class="plan-sel" aria-label="Día seleccionado" data-pinon-perch>
         ${tokenHtml(first ? entryToken(first) : 'moon', 128, 'bob')}
         <div class="plan-sel-body">
           <span class="plan-sel-when${key === todayKey ? ' today' : ''}">${escapeHtml(when)}</span>
@@ -627,7 +627,7 @@ export function renderCalendar(container: HTMLElement): () => void {
         </div>
         <div id="plan-import-errors"></div>
         ${isMonth ? `<div class="plan-month-weekdays">${MONTH_WEEKDAY_HEADER.map((n) => `<div>${n}</div>`).join('')}</div>` : ''}
-        <div class="${isMonth ? 'plan-month-grid' : 'plan-week-scroll'}">${isMonth ? cellsHtml : `<div class="plan-week-grid">${cellsHtml}</div>`}</div>
+        <div class="${isMonth ? 'plan-month-grid' : 'plan-week-scroll'}"${isMonth ? '' : ' data-pinon-perch'}>${isMonth ? cellsHtml : `<div class="plan-week-grid">${cellsHtml}</div>`}</div>
         ${isMonth ? '' : selectedDayHtml(days)}
         <div class="plan-totals">
           <span>${totalsLabel}: <b>${fmtHours(doneS)}</b> de ${fmtHours(plannedS)} h</span>

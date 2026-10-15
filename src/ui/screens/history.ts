@@ -496,19 +496,19 @@ export function renderForma(container: HTMLElement): () => void {
                 <span class="forma-card-num num">${Math.round(latest.ctl)}</span>
                 <span class="forma-card-sub">tu base de las últimas 6 semanas</span>
               </div>
-              <div class="forma-card lift">
+              <div class="forma-card lift" data-pinon-perch>
                 <span class="forma-card-label">Fatiga</span>
                 <span class="forma-card-num num" style="color:var(--accent-light)">${Math.round(latest.atl)}</span>
                 <span class="forma-card-sub">carga de la última semana</span>
                 ${tokenHtml('vo2', 72, 'forma-card-tk')}
               </div>
-              <div class="forma-card lift">
+              <div class="forma-card lift" data-pinon-perch>
                 <span class="forma-card-label">Forma <span class="forma-num-sub">(${latest.tsb > 0 ? '+' : ''}${Math.round(latest.tsb)})</span></span>
                 <span class="forma-card-num forma-card-word" style="color:${formaColor(latest.tsb)}">${formLabel(latest.tsb)}</span>
                 <span class="forma-card-sub">fitness menos fatiga</span>
                 ${tokenHtml('ss', 72, 'forma-card-tk')}
               </div>
-              <a href="#/profile" class="forma-card forma-card-ftp lift">
+              <a href="#/profile" class="forma-card forma-card-ftp lift" data-pinon-perch>
                 <span class="forma-card-label" style="color:var(--sol)">${appState.profile.ftpSource === 'provisional' ? 'FTP provisional' : 'FTP'}</span>
                 <span class="forma-card-num num">${appState.profile.ftp} W</span>
                 <span class="forma-card-sub forma-card-sub-narrow">${ftpDeltaW !== null ? (ftpDeltaW > 0 ? `+${ftpDeltaW} W desde tu primer registro` : ftpDeltaW < 0 ? `${ftpDeltaW} W desde tu primer registro` : 'Igual que en tu primer registro') : 'Cámbialo en tu perfil'}</span>

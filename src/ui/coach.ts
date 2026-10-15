@@ -16,6 +16,7 @@ import { estimateWorkout } from '../core/workout-estimate';
 import { deleteWorkout } from '../storage/workout-store';
 import { escapeHtml } from './workout-cover';
 import { confirmAiWithHumanCoach, humanCoachName } from './coach-notice';
+import { pinonFigureHtml, pinonSpeak } from './pinon';
 import { coachFtpFields, coachProfileExtras, ftpSourceOf, isMeasuredFtp, sourceForAcceptedSuggestion, withFtp } from '../core/coach-profile';
 import { planContextFor, plannedTestLabel, weekStartOf } from '../core/plan-context';
 import { evalWeekTarget, planTotalWeeks } from '../core/eval-week';
@@ -85,13 +86,39 @@ function aiCoachTitle(): string {
 
 /** Presenta lo que dijo el coach como un mensaje amigable — sigue siendo de
  * un solo sentido, no hay caja de respuesta ni hilo. Solo texto que ya
- * regresó la Edge Function, nunca algo editable. */
-function coachBubbleHtml(text: string): string {
+ * regresó la Edge Function, nunca algo editable. Piñón (la cara del coach de
+ * IA) va a la izquierda; `fresh` = recién llegada: «habla» un momento. */
+function coachBubbleHtml(text: string, fresh = false): string {
   return `
-    <div class="coach-bubble">
-      <div class="coach-bubble-label"><span class="coach-bubble-dot"></span>${aiCoachTitle()}</div>
-      <div class="coach-bubble-text">${escapeHtml(text)}</div>
+    <div class="coach-bubble-row"${fresh ? ' data-pinon-fresh' : ''}>
+      ${pinonFigureHtml('base', 56)}
+      <div class="coach-bubble">
+        <div class="coach-bubble-label"><span class="coach-bubble-dot"></span>${aiCoachTitle()}</div>
+        <div class="coach-bubble-text">${escapeHtml(text)}</div>
+      </div>
     </div>`;
+}
+
+/** Después de insertar una burbuja nueva: Piñón habla ~1.5 s y vuelve a quieto. */
+function speakFreshBubbles(root: ParentNode): void {
+  root.querySelectorAll('[data-pinon-fresh]').forEach((row) => {
+    row.removeAttribute('data-pinon-fresh');
+    pinonSpeak(row.querySelector('.pinon'));
+  });
+}
+
+/** ¿El atleta tiene plan activo? null = todavía no se consultó en esta sesión
+ * (lo usa el consejo de Piñón sin volver a pedirlo a Supabase). */
+let knownHasPlan: boolean | null = null;
+export function knownCoachPlanState(): boolean | null {
+  return knownHasPlan;
+}
+
+/** Piñón pidió «Crear plan»: al pintar la tarjeta del coach se abre el mismo
+ * flujo que el botón (con su confirmAiWithHumanCoach). */
+let pendingCreate = false;
+export function requestCoachCreate(): void {
+  pendingCreate = true;
 }
 
 interface PlanWeek {
@@ -295,7 +322,7 @@ function planSummaryHtml(plan: ActivePlanRow, weeklyEvalsUsed: number, planActio
     .join('');
   const planActionsRemaining = MONTHLY_PLAN_ACTION_LIMIT - planActionsUsed;
   return `
-    <div class="panel plan-coach-card">
+    <div class="panel plan-coach-card" data-pinon-perch>
       <h2 class="perfil-h2" style="margin:0">${aiCoachTitle()} — ${plan.goal}</h2>
       <div class="plan-chip-row" style="margin-top:10px">${blocks}</div>
       <p class="hint" style="margin-top:8px">Semana en curso dentro del plan.</p>
@@ -411,7 +438,8 @@ function wireWeeklyEvalButton(slot: HTMLElement, plan: ActivePlanRow, onChange: 
 
     status.textContent = '';
     form.querySelectorAll('label, #coach-eval-submit').forEach((el) => ((el as HTMLElement).style.display = 'none'));
-    status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.reasoning));
+    status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.reasoning, true));
+    speakFreshBubbles(form);
     if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
     if (data.result.nextTest) status.insertAdjacentHTML('beforebegin', plannedTestHtml(data.result.nextTest, plan.data.startDate));
     if (data.result.notesUpdated) {
@@ -472,11 +500,14 @@ function createCardHtml(actionsUsed: number): string {
   const remaining = MONTHLY_PLAN_ACTION_LIMIT - actionsUsed;
   const atLimit = remaining <= 0 && !isUnlimited();
   return `
-    <div class="panel plan-coach-card">
-      <h2 class="perfil-h2" style="margin:0">${aiCoachTitle()}</h2>
-      <p class="hint" style="margin-top:8px">Todavía no tienes un plan — el coach arma tu periodización y va ajustando cada semana según cómo te va.</p>
-      <button class="btn-light" id="coach-open-create" style="margin-top:10px" ${atLimit ? 'disabled' : ''}>Crear mi plan</button>
-      <p class="hint" style="margin-top:6px">${isUnlimited() ? UNLIMITED_HINT : atLimit ? 'Ya usaste tus 3 creaciones/cambios de plan de este mes — vuelve el próximo mes.' : `Te quedan ${remaining} de ${MONTHLY_PLAN_ACTION_LIMIT} creaciones/cambios de plan este mes.`}</p>
+    <div class="panel plan-coach-card plan-coach-card-empty" data-pinon-perch>
+      ${pinonFigureHtml('base', 96)}
+      <div class="plan-coach-card-body">
+        <h2 class="perfil-h2" style="margin:0">${aiCoachTitle()}</h2>
+        <p class="hint" style="margin-top:8px">Todavía no tienes un plan — el coach arma tu periodización y va ajustando cada semana según cómo te va.</p>
+        <button class="btn-light" id="coach-open-create" style="margin-top:10px" ${atLimit ? 'disabled' : ''}>Crear mi plan</button>
+        <p class="hint" style="margin-top:6px">${isUnlimited() ? UNLIMITED_HINT : atLimit ? 'Ya usaste tus 3 creaciones/cambios de plan de este mes — vuelve el próximo mes.' : `Te quedan ${remaining} de ${MONTHLY_PLAN_ACTION_LIMIT} creaciones/cambios de plan este mes.`}</p>
+      </div>
     </div>`;
 }
 
@@ -520,6 +551,7 @@ export function renderCoachSection(container: HTMLElement, onChange: () => void)
     fetchMonthlyPlanActionsUsed(appState.user.id),
     fetchMonthlyWeeklyEvalsUsed(appState.user.id),
   ]).then(([plan, actionsUsed, weeklyEvalsUsed]) => {
+    knownHasPlan = !!plan;
     slot.innerHTML = plan ? planSummaryHtml(plan, weeklyEvalsUsed, actionsUsed) : createCardHtml(actionsUsed);
     // Con coach humano: recordatorio visible (no bloquea) de platicar con
     // él antes de pedirle cambios a la IA — ver ui/coach-notice.ts.
@@ -540,6 +572,10 @@ export function renderCoachSection(container: HTMLElement, onChange: () => void)
         openOnboardingForm(() => openCreateModal(onChange), false);
       }
     });
+    if (pendingCreate) {
+      pendingCreate = false;
+      slot.querySelector<HTMLButtonElement>('#coach-open-create:not([disabled])')?.click();
+    }
     if (plan) {
       wireFtpOffer(slot);
       wireAbandonButton(slot, container, onChange);
@@ -1117,7 +1153,8 @@ function openCreateModal(onChange: () => void): void {
     status.textContent = '';
     const form = backdrop.querySelectorAll('label, .plan-chip-row, #coach-submit');
     form.forEach((el) => ((el as HTMLElement).style.display = 'none'));
-    status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.coachNote));
+    status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.coachNote, true));
+    if (status.parentElement) speakFreshBubbles(status.parentElement);
     if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
     // El servidor puede correr el arranque al lunes siguiente si esta semana ya
     // no quedan días disponibles: manda la fecha con la que guardó el plan.
