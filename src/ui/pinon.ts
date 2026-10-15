@@ -362,7 +362,7 @@ export function maybeCelebrateWeek(done: number, planned: number, weekKey: strin
   });
 }
 
-const bubbleBusy = (): boolean => !!document.querySelector('.modal-backdrop, .ob-modal, .pinon-bubble-layer');
+const bubbleBusy = (): boolean => !!document.querySelector('.modal-backdrop, .ob-modal, .pinon-bubble-layer, .pinon-chat');
 /** El apoyo de Inicio (semana, racha, regreso) espera a que su guía ya salió. */
 const homeGuidePending = (): boolean => !areGuidesOff() && lsGet('torq.pinon.guide.home') !== '1';
 
@@ -470,7 +470,7 @@ function pickPerch(root: HTMLElement): DOMRect | null {
 }
 
 function showPeek(root: HTMLElement): (() => void) | null {
-  if (!root.isConnected || document.querySelector('.modal-backdrop, .ob-modal, .pinon-bubble-layer')) return null;
+  if (!root.isConnected || document.querySelector('.modal-backdrop, .ob-modal, .pinon-bubble-layer, .pinon-chat')) return null;
   const rect = pickPerch(root);
   if (!rect) return null;
   lsSet(peeksKey(localDateKey()), String(peeksToday() + 1));

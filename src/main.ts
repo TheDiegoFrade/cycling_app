@@ -3,6 +3,7 @@ import type { Screen } from './ui/router';
 import { refresh, registerScreen, startRouter } from './ui/router';
 import { installClickSound } from './ui/click-sound';
 import { schedulePinonGuide, schedulePinonPeek, startPinonBlink } from './ui/pinon';
+import { mountPinonChat } from './ui/pinon-chat-launcher';
 import { withSidebar } from './ui/sidebar';
 import { renderCalendar } from './ui/screens/calendar';
 import { renderConnect } from './ui/screens/connect';
@@ -49,9 +50,11 @@ function withPinon(screen: Screen, render: RenderFn): RenderFn {
     const cleanup = render(container);
     const stopPeek = schedulePinonPeek(screen, container);
     const stopGuide = schedulePinonGuide(screen, container);
+    const stopChat = mountPinonChat(screen);
     return () => {
       stopPeek();
       stopGuide();
+      stopChat();
       if (cleanup) cleanup();
     };
   };

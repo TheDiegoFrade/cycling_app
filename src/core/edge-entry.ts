@@ -10,3 +10,4 @@ export { evalWeekTarget, planTotalWeeks, planWeekOf } from './eval-week';
 export { startingProfile } from './intake';
 export { rpeRampIntervals } from './rpe-ramp';
 export { hasUnlimitedCoach } from './coach-testers';
+export { parsePinonRequest, pinonLimitReached, pinonUserMessage } from './pinon-chat-request';
