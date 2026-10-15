@@ -18,6 +18,8 @@ import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { navigate, refresh } from '../router';
 import { appState } from '../state';
 import { escapeHtml, renderWorkoutCover } from '../workout-cover';
+import { tokenForIntervals, tokenForWorkout, tokenHtml } from '../workout-token';
+import type { Token } from '../workout-token';
 import { wireDatePicker } from '../date-picker';
 import { renderCoachSection } from '../coach';
 import { isSupabaseConfigured } from '../../supabase/client';
@@ -191,6 +193,24 @@ function doneMeta(c: CalendarDone): string {
   return parts.join(' · ');
 }
 
+/** Objeto 3D de una sesión hecha: el del workout que se entrenó o, si fue
+ * libre, el de su intensidad (IF estimado de TSS y duración). */
+function doneToken(c: CalendarDone): Token {
+  if (c.nonBikeKind) return 'fuerza';
+  const w = c.workoutId ? appState.workouts.find((x) => x.id === c.workoutId) : undefined;
+  if (w) return tokenForWorkout(w);
+  const hours = c.durationS / 3600;
+  const intensity = hours > 0 && c.tss > 0 ? Math.sqrt(c.tss / (hours * 100)) : 0.65;
+  return tokenForIntervals([{ name: 'libre', type: 'steady', power_pct: Math.round(intensity * 100), duration_s: 600 }]);
+}
+
+/** Primeras dos oraciones de la descripción: la nota del coach en el panel del día. */
+function shortNote(text: string | undefined): string {
+  const clean = (text ?? '').replace(/\s+/g, ' ').trim();
+  const sentences = clean.match(/[^.!?]+[.!?]+/g) ?? (clean ? [clean] : []);
+  return sentences.slice(0, 2).join(' ').trim();
+}
+
 function errorsHtml(errors: string[]): string {
   if (errors.length === 0) return '';
   return `<div class="error-box"><strong>${errors.length} error(es):</strong><ul>${errors.map((e) => `<li>${e}</li>`).join('')}</ul></div>`;
@@ -230,6 +250,9 @@ export function renderCalendar(container: HTMLElement): () => void {
    * null si está cerrado — un solo panel compartido por semana y mes en vez
    * de uno por celda, ver createPanelHtml/wireCreatePanel. */
   let createDate: string | null = null;
+  /** Día del panel grande bajo la semana (rediseño): hoy si cae en la semana
+   * que se ve, si no el primero con algo. Tocar una tarjeta lo cambia. */
+  let selectedKey: string | null = null;
   /** Id del workout cuyo detalle (nombre + descripción + stats) se muestra
    * en el panel flotante, null si está cerrado — ver workoutDetailHtml. */
   let detailWorkoutId: string | null = null;
@@ -345,18 +368,31 @@ export function renderCalendar(container: HTMLElement): () => void {
     return `draggable="true" data-drag-kind="session" data-drag-id="${c.sessionId}"`;
   }
 
+  function entryToken(entry: DayEntry): Token {
+    if (entry.kind === 'scheduled') return tokenForWorkout(entry.workout);
+    if (entry.kind === 'routine') return 'fuerza';
+    return doneToken(entry.done);
+  }
+
+  /** Objeto grande de la tarjeta del día, con su sombra de piso. */
+  function dayTokenHtml(token: Token, size: number, extra = ''): string {
+    return `<span class="plan-day-obj" style="width:${size}px;height:${size}px" aria-hidden="true"><span class="plan-day-floor"></span>${tokenHtml(token, size, extra)}</span>`;
+  }
+
   function weekCellHtml(d: Date, key: string, isToday: boolean, scheduledList: Workout[], completedList: CalendarDone[]): string {
     const entries = dayEntries(scheduledList, completedList, pendingRoutines(key));
     const anyCompleted = completedList.length > 0;
+    const isSelected = key === selectedKey;
     const entryHtml = (entry: DayEntry): string => {
       if (entry.kind === 'scheduled') {
         const w = entry.workout;
         const est = estimateWorkout(w.intervals, appState.profile.ftp);
         return `
           <div class="plan-day-entry" ${dragAttrs(entry)}>
-            <button class="plan-day-cover" data-workout-id="${w.id}" title="${escapeHtml(w.name)} — Ver detalle">${renderWorkoutCover(w.intervals, 'sm')}</button>
-            <div class="plan-day-name">${escapeHtml(w.name)}</div>
-            <div class="live-col-label">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS</div>
+            <button class="plan-day-cover" data-workout-id="${w.id}" title="${escapeHtml(w.name)} — Ver detalle">
+              <span class="plan-day-name">${escapeHtml(w.name)}</span>
+              <span class="live-col-label">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS</span>
+            </button>
           </div>`;
       }
       if (entry.kind === 'routine') {
@@ -383,24 +419,90 @@ export function renderCalendar(container: HTMLElement): () => void {
       return `
         <div class="plan-day-entry" ${dragAttrs(entry)}${c.isStrava ? ' title="Viene de Strava — su fecha no se puede mover aquí"' : ''}>
           <button class="plan-day-done" ${openAttrs(c)} title="${escapeHtml(c.workoutName)} — Ver sesión">
-            ${c.coverHtml ? `<span class="plan-day-cover">${c.coverHtml}</span>` : ''}
             <span class="plan-day-name">${escapeHtml(c.workoutName)}</span>
             <span class="live-col-label">${doneMeta(c)}</span>
             <span class="plan-day-done-badge">✓ Completado${c.isStrava ? ' · Strava' : ''}</span>
           </button>
         </div>`;
     };
+    const mainToken: Token = entries.length ? entryToken(entries[0]) : 'moon';
     const body = entries.length > 0 ? entries.map(entryHtml).join('') : `<button class="plan-day-add" data-create-date="${key}">+ Crear nuevo</button>`;
     const miniActions =
       entries.length > 0 && entries.length < MAX_PER_DAY
         ? `<div class="plan-day-actions"><button class="plan-day-mini-add" data-create-date="${key}" title="Agregar otro">+</button></div>`
         : '';
+    const label = `${isToday ? 'HOY · ' : ''}${fmtDayShort(d).toUpperCase()}`;
     return `
-      <div class="plan-day${isToday ? ' today' : ''}${anyCompleted ? ' done' : ''}" data-drop-date="${key}">
-        <div class="plan-day-head"><span class="${isToday ? 'plan-day-today-label' : ''}">${fmtDayShort(d)}</span><span class="live-col-label">${anyCompleted ? 'Hecho' : isToday ? 'Hoy' : ''}</span></div>
+      <div class="plan-day${isToday ? ' today' : ''}${anyCompleted ? ' done' : ''}${isSelected ? ' selected' : ''}${entries.length ? '' : ' empty'}" data-drop-date="${key}">
+        <button type="button" class="plan-day-select" data-select-date="${key}" aria-pressed="${isSelected}" aria-label="${escapeHtml(`Ver ${fmtDayShort(d)}`)}">
+          <span class="plan-day-head"><span>${label}</span></span>
+          ${dayTokenHtml(mainToken, 92)}
+        </button>
+        ${anyCompleted ? '<span class="plan-day-check" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0B0D1A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg></span>' : ''}
         ${body}
         ${miniActions}
       </div>`;
+  }
+
+  /** Panel grande del día seleccionado (solo en Semana): objeto con .bob, qué
+   * toca, perfil en zonas, nota del coach y las mismas acciones de siempre. */
+  function selectedDayHtml(days: Date[]): string {
+    const keys = days.map(toDateKey);
+    if (!selectedKey || !keys.includes(selectedKey)) {
+      selectedKey = keys.includes(todayKey)
+        ? todayKey
+        : (keys.find((k) => appState.workouts.some((w) => w.scheduledDate === k) || (completedByDate.get(k) ?? []).length) ?? keys[0]);
+    }
+    const key = selectedKey;
+    const d = new Date(`${key}T00:00:00`);
+    const entries = dayEntries(appState.workouts.filter((w) => w.scheduledDate === key), completedByDate.get(key) ?? [], pendingRoutines(key));
+    const dayName = d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric' });
+    const when = `${key === todayKey ? 'hoy · ' : ''}${dayName}`;
+    const first = entries[0];
+    let name = key < todayKey ? 'Descanso' : 'Nada agendado';
+    let meta = key < todayKey ? 'Sin entrenamiento' : 'Agrega un entrenamiento o déjalo de descanso.';
+    let cover = '';
+    let note = '';
+    let actions = `<button type="button" class="plan-sel-secondary" data-create-date="${key}">+ Crear nuevo</button>`;
+    if (first?.kind === 'scheduled') {
+      const w = first.workout;
+      const est = estimateWorkout(w.intervals, appState.profile.ftp);
+      const [low, high] = est.wattsRange;
+      name = w.name;
+      meta = `${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS · ${low === high ? `${low} W` : `${low}–${high} W`}`;
+      cover = `<div class="plan-sel-cover">${renderWorkoutCover(w.intervals, 'lg')}</div>`;
+      note = shortNote(w.description);
+      actions = `
+        <button type="button" class="home-ride-btn small" data-train-id="${w.id}"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24"><path d="M6 4v16l14-8z" fill="currentColor"></path></svg><span>Entrenar</span></button>
+        <button type="button" class="plan-sel-secondary plan-day-cover" data-workout-id="${w.id}">Ver detalle →</button>`;
+    } else if (first?.kind === 'routine') {
+      name = first.routine.name;
+      meta = `${TEMPLATE_KIND_LABELS[first.routine.kind]} · ${routineSummary(first.routine.payload)}`;
+      note = 'Rutina de tu coach. Cuenta en tu cansancio aunque no sea bici.';
+      actions = `<button type="button" class="plan-sel-secondary" data-routine-id="${first.routine.id}">Registrar rutina →</button>`;
+    } else if (first?.kind === 'completed') {
+      const c = first.done;
+      name = c.workoutName;
+      meta = c.nonBikeKind ? (c.logMeta ?? '') : `${doneMeta(c)} · hecho`;
+      cover = c.coverHtml ? `<div class="plan-sel-cover">${c.coverHtml}</div>` : '';
+      actions = c.nonBikeKind
+        ? `<button type="button" class="plan-sel-secondary" data-log-id="${c.sessionId ?? c.cloudSessionId}">Ver o editar →</button>`
+        : `<button type="button" class="plan-sel-secondary" ${openAttrs(c)}>Ver sesión →</button>`;
+    }
+    const more = entries.length > 1 ? `<span class="plan-sel-more">+${entries.length - 1} más este día (en su tarjeta)</span>` : '';
+    return `
+      <section class="plan-sel" aria-label="Día seleccionado">
+        ${tokenHtml(first ? entryToken(first) : 'moon', 128, 'bob')}
+        <div class="plan-sel-body">
+          <span class="plan-sel-when${key === todayKey ? ' today' : ''}">${escapeHtml(when)}</span>
+          <span class="plan-sel-name">${escapeHtml(name)}</span>
+          <span class="plan-sel-meta">${escapeHtml(meta)}</span>
+          ${cover}
+          ${note ? `<p class="plan-sel-note">${escapeHtml(note)}</p>` : ''}
+          ${more}
+        </div>
+        <div class="plan-sel-actions">${actions}</div>
+      </section>`;
   }
 
   function monthCellHtml(d: Date, key: string, isToday: boolean, inCurrentMonth: boolean, scheduledList: Workout[], completedList: CalendarDone[]): string {
@@ -409,7 +511,7 @@ export function renderCalendar(container: HTMLElement): () => void {
     const entryHtml = (entry: DayEntry): string => {
       if (entry.kind === 'scheduled') {
         const w = entry.workout;
-        return `<button class="plan-month-cover" data-workout-id="${w.id}" ${dragAttrs(entry)} title="${escapeHtml(w.name)} — Ver detalle">${renderWorkoutCover(w.intervals, 'sm')}</button>`;
+        return `<button class="plan-month-cover plan-month-obj" data-workout-id="${w.id}" ${dragAttrs(entry)} title="${escapeHtml(w.name)} — Ver detalle">${tokenHtml(tokenForWorkout(w), 40)}<span class="plan-month-name">${escapeHtml(w.name)}</span></button>`;
       }
       if (entry.kind === 'routine') {
         return `<button class="plan-month-done-label plan-month-log kind-${entry.routine.kind}" data-routine-id="${entry.routine.id}" title="${escapeHtml(entry.routine.name)} — registrar">${escapeHtml(entry.routine.name)}</button>`;
@@ -418,16 +520,14 @@ export function renderCalendar(container: HTMLElement): () => void {
       if (c.nonBikeKind) {
         return `<button class="plan-month-done-label plan-month-log kind-${c.nonBikeKind}" ${dragAttrs(entry)} data-log-id="${c.sessionId ?? c.cloudSessionId}" title="${escapeHtml(c.logMeta ?? c.workoutName)}">${escapeHtml(c.workoutName)}</button>`;
       }
-      return c.coverHtml
-        ? `<button class="plan-month-cover plan-month-done" ${dragAttrs(entry)} ${openAttrs(c)} title="${escapeHtml(c.workoutName)} — Ver sesión">${c.coverHtml}</button>`
-        : `<button class="plan-month-done-label plan-month-done" ${dragAttrs(entry)} ${openAttrs(c)} title="${escapeHtml(c.workoutName)} — Ver sesión">✓ ${escapeHtml(c.workoutName)}</button>`;
+      return `<button class="plan-month-cover plan-month-obj plan-month-done" ${dragAttrs(entry)} ${openAttrs(c)} title="${escapeHtml(c.workoutName)} — Ver sesión">${tokenHtml(doneToken(c), 40)}<span class="plan-month-name">✓ ${escapeHtml(c.workoutName)}</span></button>`;
     };
     const body =
       entries.length > 0
         ? `<div class="plan-month-entries">${entries.map(entryHtml).join('')}</div>`
         : `<button class="plan-month-add" data-create-date="${key}" title="Crear nuevo" aria-label="Crear nuevo">+</button>`;
     return `
-      <div class="plan-month-day${isToday ? ' today' : ''}${anyCompleted ? ' done' : ''}${inCurrentMonth ? '' : ' outside'}" data-drop-date="${key}">
+      <div class="plan-month-day${isToday ? ' today' : ''}${anyCompleted ? ' done' : ''}${inCurrentMonth ? '' : ' outside'}${key < todayKey ? ' past' : ''}" data-drop-date="${key}">
         <div class="plan-month-daynum">${d.getDate()}</div>
         ${body}
       </div>`;
@@ -527,7 +627,8 @@ export function renderCalendar(container: HTMLElement): () => void {
         </div>
         <div id="plan-import-errors"></div>
         ${isMonth ? `<div class="plan-month-weekdays">${MONTH_WEEKDAY_HEADER.map((n) => `<div>${n}</div>`).join('')}</div>` : ''}
-        <div class="${isMonth ? 'plan-month-grid' : 'plan-week-grid'}">${cellsHtml}</div>
+        <div class="${isMonth ? 'plan-month-grid' : 'plan-week-scroll'}">${isMonth ? cellsHtml : `<div class="plan-week-grid">${cellsHtml}</div>`}</div>
+        ${isMonth ? '' : selectedDayHtml(days)}
         <div class="plan-totals">
           <span>${totalsLabel}: <b>${fmtHours(doneS)}</b> de ${fmtHours(plannedS)} h</span>
           <span>TSS: <b>${Math.round(doneTss)}</b> de ${Math.round(plannedTss)}</span>
@@ -601,6 +702,19 @@ export function renderCalendar(container: HTMLElement): () => void {
       if (viewMode === 'month') monthAnchor = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + 1, 1);
       else weekStart.setDate(weekStart.getDate() + 7);
       paint();
+    });
+
+    container.querySelectorAll<HTMLButtonElement>('[data-select-date]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        selectedKey = btn.dataset.selectDate!;
+        paint();
+      });
+    });
+    container.querySelectorAll<HTMLButtonElement>('[data-train-id]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        appState.selectedWorkoutId = btn.dataset.trainId!;
+        navigate('prepare');
+      });
     });
 
     container.querySelectorAll<HTMLButtonElement>('[data-workout-id].plan-day-cover, [data-workout-id].plan-month-cover').forEach((btn) => {
