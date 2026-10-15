@@ -7,6 +7,7 @@ import { ZONE_NAMES } from '../../core/zones';
 import type { PowerZone } from '../../core/zones';
 import { beeper } from '../audio';
 import { areGuidesOff, isPeekEnabled, pinonCatches, setGuidesOff, setPeekEnabled } from '../pinon';
+import { isRidePinonEnabled, setRidePinonEnabled } from '../pinon-ride';
 import { appState } from '../state';
 import { refresh } from '../router';
 import { escapeHtml } from '../workout-cover';
@@ -230,6 +231,10 @@ export function renderPerfil(container: HTMLElement): void {
                 <span>Guías de Piñón<span class="hint" style="display:block;margin:2px 0 0">Te explica cada pantalla la primera vez. Al prenderlas de nuevo, vuelven a salir.</span></span>
                 <button class="switch${areGuidesOff() ? '' : ' on'}" role="switch" aria-pressed="${!areGuidesOff()}" aria-label="Guías de Piñón" id="pinon-guides-switch"></button>
               </div>
+              <div class="perfil-click-row">
+                <span>Piñón al rodar<span class="hint" style="display:block;margin:2px 0 0">Te anima en la esquina durante el entrenamiento. Nunca encima de una alerta.</span></span>
+                <button class="switch${isRidePinonEnabled() ? ' on' : ''}" role="switch" aria-pressed="${isRidePinonEnabled()}" aria-label="Piñón al rodar" id="pinon-ride-switch"></button>
+              </div>
               ${pinonCatches() > 0 ? `<p class="hint" style="margin:8px 0 0">Lo has atrapado ${pinonCatches()} ${pinonCatches() === 1 ? 'vez' : 'veces'}.</p>` : ''}
             </div>
 
@@ -429,6 +434,11 @@ export function renderPerfil(container: HTMLElement): void {
 
     container.querySelector('#pinon-guides-switch')?.addEventListener('click', () => {
       setGuidesOff(!areGuidesOff());
+      paint();
+    });
+
+    container.querySelector('#pinon-ride-switch')?.addEventListener('click', () => {
+      setRidePinonEnabled(!isRidePinonEnabled());
       paint();
     });
 

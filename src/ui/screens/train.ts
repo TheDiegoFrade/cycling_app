@@ -17,6 +17,7 @@ import type { RampStep, RpeZones } from '../../core/rpe-ramp';
 import { beeper } from '../audio';
 import { navigate } from '../router';
 import { appState } from '../state';
+import { canRidePinonSpeak, inZoneLine, isInZone, isRidePinonEnabled, ridePinonHide, ridePinonHtml, ridePinonSay } from '../pinon-ride';
 
 function fmt(totalS: number): string {
   const s = Math.max(0, Math.round(totalS));
@@ -63,7 +64,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     <div class="live">
       <div class="live-zonestrip" id="zoneStrip"></div>
       <div class="live-topbar">
-        <span class="live-zonepill" id="zonePill">—</span>
+        <span class="live-zonepill" id="zonePill"><i class="live-zonepill-dot"></i><span id="zonePillText">—</span></span>
         <span class="live-blockinfo" id="blockInfo"></span>
         <div class="live-topbar-right">
           <span class="status-dot" id="trainer-dot" title="Rodillo"></span>
@@ -118,21 +119,23 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
           <span class="live-timeleft-num num empty" id="ivLeft">—</span>
           <div class="live-next" id="ivNext"></div>
         </div>
-        <div class="live-message-overlay" id="banner">
+        <div class="live-message-overlay" id="banner" role="status">
+          <span class="live-message-icon" aria-hidden="true"></span>
           <div class="live-message-title" id="bannerTitle"></div>
           <div class="live-message-detail" id="bannerDetail"></div>
         </div>
       </div>
 
       <div class="live-bottom-row">
-        <div>
+        <div class="live-metric">
           <div class="live-metric-label">Cadencia</div>
           <div class="live-metric-row"><span class="live-metric-num num empty" id="cad">—</span><span class="live-metric-sub" id="cadSub">rpm</span></div>
         </div>
-        <div>
+        <div class="live-metric">
           <div class="live-metric-label">Pulso</div>
           <div class="live-metric-row"><span class="live-metric-num num empty" id="hr">—</span><span class="live-metric-sub" id="hrSub">—</span></div>
         </div>
+        ${ridePinonHtml()}
       </div>
 
       <div class="live-graph">
@@ -230,6 +233,8 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   let bannerTimer: ReturnType<typeof setTimeout> | null = null;
   let compactTimer: ReturnType<typeof setTimeout> | null = null;
   const firedMotivation = new Set<string>();
+  let pinonSpokeAt: number | null = null;
+  let inZoneStreakS = 0;
   let cdShown = -1;
   let currentIndex0 = 0;
   // Un bloque 'free' es autodosificado (el bloque máximo de un test de 20
@@ -344,9 +349,19 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     const iv = workout.intervals[currentIndex0];
     if (!iv) return;
 
-    const fire = (key: string, title: string, detail = ''): true => {
+    // Con Piñón al rodar encendido los ánimos salen en su esquina (no tapan
+    // potencia ni tiempo) y nunca más seguido que RIDE_MIN_GAP_S; apagado,
+    // salen en el banner como antes.
+    const pinonOn = isRidePinonEnabled();
+    if (pinonOn && !canRidePinonSpeak(lastElapsedS, pinonSpokeAt, false, true)) return;
+    const fire = (key: string, title: string, detail = '', cheer = false): true => {
       firedMotivation.add(key);
-      showBanner('info', title, detail, 3200);
+      if (pinonOn) {
+        pinonSpokeAt = lastElapsedS;
+        ridePinonSay(title, detail, cheer);
+      } else {
+        showBanner('info', title, detail, 3200);
+      }
       return true;
     };
 
@@ -378,7 +393,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     if (plan.totalDuration > 1800 && lastElapsedS >= sessionHalf && !firedMotivation.has('s-half')) {
       const avgPower = Math.round(history.reduce((s, p) => s + p.power, 0) / history.length);
       const avgCadence = Math.round(history.reduce((s, p) => s + p.cadence, 0) / history.length);
-      fire('s-half', 'Vas a la mitad del entrenamiento', `Promedio hasta aquí: ${avgPower} W · ${avgCadence} rpm`);
+      fire('s-half', 'Vas a la mitad del entrenamiento', `Promedio hasta aquí: ${avgPower} W · ${avgCadence} rpm`, true);
       return;
     }
     if (plan.totalDuration > 1200 && totalLeft <= 600 && !firedMotivation.has('s-left10')) {
@@ -392,8 +407,17 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       return;
     }
     if (plan.totalDuration > 60 && totalLeft <= 60 && !firedMotivation.has('s-left1')) {
-      fire('s-left1', pick(MOTIVATION.sessionLeft1));
+      fire('s-left1', pick(MOTIVATION.sessionLeft1), '', true);
       return;
+    }
+
+    // rato largo bien en zona (solo con Piñón: es su forma de notar que vas bien)
+    if (pinonOn) {
+      const line = inZoneLine(inZoneStreakS, Math.floor(lastElapsedS / 60));
+      if (line) {
+        inZoneStreakS = 0; // vuelve a contar: lo dice otra vez si sigues igual
+        fire(`z-${lastElapsedS}`, line);
+      }
     }
   }
 
@@ -520,9 +544,11 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     if (!iv) return;
     const z = powerZone(iv.power_pct);
     const color = zoneColor(z);
-    $('zonePill').textContent = `Z${z} · ${ZONE_NAMES[z]}`;
-    $('zonePill').style.background = color;
+    $('zonePillText').textContent = `Z${z} · ${ZONE_NAMES[z]}`;
     $('zoneStrip').style.background = color;
+    // el resto de la pantalla (píldora, brillo de fondo, tarjetas) toma la
+    // zona del bloque de esta variable
+    container.querySelector<HTMLElement>('.live')?.style.setProperty('--zone', color);
     $('blockInfo').textContent = `Bloque ${currentIndex0 + 1} de ${workout.intervals.length} · ${iv.name}`;
   }
 
@@ -575,6 +601,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
       clearTimeout(compactTimer);
       compactTimer = null;
     }
+    if (kind !== 'info') ridePinonHide(); // una alerta real o la pausa mandan
     $('banner').className = `live-message-overlay live-message-${kind} on`;
     $('bannerTitle').textContent = title;
     $('bannerDetail').textContent = detail;
@@ -692,6 +719,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         $('tgt').textContent = String(event.sample.target);
         $('tgt').style.color = zColor;
         paintRangeBar(event.sample.power, event.sample.target, zColor);
+        inZoneStreakS = !isSelfPaced() && isInZone(event.sample.power, event.sample.target) ? inZoneStreakS + 1 : 0;
 
         // promedio móvil de 10 s, no la lectura instantánea: el sensor de
         // cadencia tiene picos falsos (p.ej. "40" pedaleando estable a 70)
@@ -1192,5 +1220,6 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     unsubHrReading?.();
     unsubRr?.();
     if (bannerTimer) clearTimeout(bannerTimer);
+    ridePinonHide();
   };
 }
