@@ -8,4 +8,5 @@ export const ALLOWED_USER_IDS = new Set([
   '95b1f5fc-a167-4c9e-ae16-95d158280c3d', // dpcfrade@gmail.com — dueño de la app y coach
   '85983750-01e5-449f-adb6-0a87c7047682', // joemtb03@gmail.com — Joe Hernández, entrenador (UR Training)
   'cef1d388-39f1-4216-ab5d-8c272c323f73', // diego.sanchez.c95@gmail.com
+  'b73d7ff9-adcb-494a-98fb-c94fdc509b3b', // joemtb03+pruebas@gmail.com — cuenta de pruebas de Joe (sin topes, ver coach-testers.ts)
 ]);

@@ -5,6 +5,7 @@
 // coach-chat (que es donde de verdad se aplican).
 export const UNLIMITED_COACH_USER_IDS: ReadonlySet<string> = new Set([
   '85983750-01e5-449f-adb6-0a87c7047682', // joemtb03@gmail.com — Joe Hernández, entrenador (UR Training)
+  'b73d7ff9-adcb-494a-98fb-c94fdc509b3b', // joemtb03+pruebas@gmail.com — su cuenta de pruebas
 ]);
 
 export function hasUnlimitedCoach(userId: string | null | undefined): boolean {

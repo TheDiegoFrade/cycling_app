@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Torq · Kit 3D</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D1A}
+.tk{display:block;background-position:center;background-size:contain;background-repeat:no-repeat;filter:drop-shadow(0 14px 14px rgba(0,0,0,.55));transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.card:hover .tk{transform:translateY(-8px) rotate(-6deg) scale(1.06)}
+@media (prefers-reduced-motion: reduce){.tk{transition:none}}
+</style>
+</helmet>
+<div style="min-height: 900px; box-sizing: border-box; padding: 40px clamp(16px, 4vw, 56px); background: #0B0D1A; color: #F2F4FA; font-family: 'Host Grotesk', 'Helvetica Neue', sans-serif; display: flex; flex-direction: column; gap: 28px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <h1 style="margin: 0; font-weight: 600; font-size: 44px; letter-spacing: -0.045em">Kit 3D de Torq</h1>
+    <p style="margin: 0; max-width: 680px; font-size: 16px; line-height: 1.5; color: #A9B1CC">Todos los objetos generados en Higgsfield y dónde se usan en la app. Arcilla mate, misma luz, fondo transparente.</p>
+  </header>
+
+  <section aria-label="Escena" style="display: flex; flex-direction: column; gap: 10px">
+    <img src="/_blob/2d7bacf49b2e427b53e401e19b0f387c" alt="Escena nocturna: sol con forma de plato de bicicleta detrás de una montaña, ciclista pequeño y cuadrícula naranja" style="width: 100%; max-width: 1200px; border-radius: 24px; display: block">
+    <span style="font-size: 14px; color: #A9B1CC"><strong style="color: #F2F4FA; font-weight: 600">Escena</strong> · fondo de «Hoy toca» en Inicio</span>
+  </section>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 14px">
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="10">
+      <div class="card" style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 22px 16px 18px; border-radius: 22px; background: #11152A; text-align: center">
+        <span aria-hidden="true" class="tk" style="width: 120px; height: 120px; background-image: {{it.img}}"></span>
+        <span style="font-weight: 600; font-size: 17px">{{it.name}}</span>
+        <span style="font-size: 13px; line-height: 1.4; color: #A9B1CC">{{it.use}}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const b = id => 'url(/_blob/' + id + ')';
+    const items = [
+      { name: 'Logo torq · atardecer', img: b('fa445c8b0bfbd44f1286236cad318e02'), use: 'Menú lateral (abierto) · landing y login' },
+      { name: 'Endurance / Z2', img: b('8cdaf45c0a131a708795625d5eb2a17f'), use: 'Endurance, Larga Z2 · Inicio, Plan, Historial' },
+      { name: 'Sweet spot', img: b('4a39691785bd530ad1a80dee35d911f0'), use: 'Sweet spot · Plan, Historial, tarjeta Forma' },
+      { name: 'Umbral (FTP)', img: b('f5e1bb068fffae6ed39225391bd64edc'), use: 'Workouts de umbral · Generar workout' },
+      { name: 'VO2max', img: b('7979febf3ce233c85ea9e1dde580903d'), use: 'VO2max · Plan, Historial, tarjeta Fatiga' },
+      { name: 'Recuperación', img: b('97c5ab1bf9039846a23e32be3943a7a1'), use: 'Rodadas suaves · Historial, Generar workout' },
+      { name: 'Descanso', img: b('34634d9dd5f1c08358508c44e182d71b'), use: 'Días sin bici · Plan, Inicio' },
+      { name: 'Rodillo', img: b('379d4e39942097c1efdb6648d8dd74a7'), use: 'Sensor · Antes de empezar, menú lateral' },
+      { name: 'Banda de pulso', img: b('66c0ccfd5781e25d6d9d54dcaae9e657'), use: 'Sensor · Antes de empezar, menú lateral' },
+      { name: 'Rayo', img: b('cbfb672bfccc52ba6893bfbd10e34a31'), use: 'FTP provisional · Forma' },
+      { name: 'Fuerza (provisional)', img: "url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%22-4 -4 32 32%22 fill=%22none%22 stroke=%22%23F2F4FA%22 stroke-width=%222.4%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M7 8v8M4 10v4M17 8v8M20 10v4M7 12h10%22/%3E%3C/svg%3E'), radial-gradient(circle closest-side at 50% 50%, #626B99 0%, #2A3150 70%, #1A1F38 94%, rgba(0,0,0,0) 100%)", use: 'Hecho a mano, falta generarlo en 3D · Plan, Historial' }
+    ];
+    return { items };
+  }
+}
+</script>
+</body>
+</html>

@@ -206,6 +206,15 @@ export function renderPerfil(container: HTMLElement): void {
             <div class="panel perfil-panel">
               <h2 class="perfil-h2">Sonidos</h2>
               <label class="perfil-volume">Volumen<input type="range" id="volume" min="0" max="1" step="0.05" value="${appState.settings.soundVolume}"></label>
+              <div class="perfil-click-row">
+                <span>Sonidos de bici al tocar<span class="hint" style="display:block;margin:2px 0 0">Rueda libre en los botones, cambio al navegar y timbre al empezar.</span></span>
+                <button class="switch${appState.settings.clickSound ? ' on' : ''}" role="switch" aria-pressed="${appState.settings.clickSound}" aria-label="Sonidos de bici al tocar" id="click-sound-switch"></button>
+              </div>
+              <div class="row-actions">
+                <button data-bike-sound="ratchet">▶ Rueda libre</button>
+                <button data-bike-sound="shift">▶ Cambio</button>
+                <button data-bike-sound="bell">▶ Timbre</button>
+              </div>
               <div class="row-actions">
                 ${SOUNDS.map((s) => `<button data-sound="${s.id}">▶ ${s.label}</button>`).join('')}
               </div>
@@ -213,6 +222,7 @@ export function renderPerfil(container: HTMLElement): void {
 
             <div class="panel perfil-panel">
               <h2 class="perfil-h2">Ilustración de fondo</h2>
+              <p class="hint" style="margin:4px 0 10px">Se ve en la pantalla de inicio de sesión.</p>
               <div class="perfil-illustration-toggle">
                 <button data-hero="man" class="${appState.settings.heroCharacter === 'man' ? 'on' : ''}">Ciclista hombre</button>
                 <button data-hero="woman" class="${appState.settings.heroCharacter === 'woman' ? 'on' : ''}">Ciclista mujer</button>
@@ -395,6 +405,19 @@ export function renderPerfil(container: HTMLElement): void {
       appState.settings = { ...appState.settings, soundVolume: v };
       beeper.setVolume(v);
       appState.persistSettings();
+    });
+
+    container.querySelectorAll<HTMLButtonElement>('[data-bike-sound]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        beeper.unlock();
+        beeper.bike(btn.dataset.bikeSound as 'ratchet' | 'shift' | 'bell');
+      });
+    });
+
+    container.querySelector('#click-sound-switch')?.addEventListener('click', () => {
+      appState.settings = { ...appState.settings, clickSound: !appState.settings.clickSound };
+      appState.persistSettings();
+      paint();
     });
 
     container.querySelectorAll<HTMLButtonElement>('[data-sound]').forEach((btn) => {

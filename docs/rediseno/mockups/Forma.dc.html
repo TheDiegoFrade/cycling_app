@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Torq · Forma</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D1A}
+a{color:#F2F4FA}a:hover{color:#FF8A4C}
+button{font-family:inherit;cursor:pointer}
+.tk{display:block;background-position:center;background-size:contain;background-repeat:no-repeat;filter:drop-shadow(0 10px 12px rgba(0,0,0,.55))}
+.bob{animation:bob 4.5s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+@media (prefers-reduced-motion: reduce){.bob{animation:none}}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #0B0D1A; color: #F2F4FA; font-family: 'Host Grotesk', 'Helvetica Neue', sans-serif; display: flex; flex-wrap: wrap; align-items: stretch">
+  <dc-import name="Sidebar" active="forma" hint-size="248px,900px"></dc-import>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 28px clamp(16px, 3vw, 40px) 40px; box-sizing: border-box">
+    <div style="max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px">
+      <header style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap">
+        <h1 style="margin: 0; font-weight: 600; font-size: 40px; letter-spacing: -0.04em">Tu forma</h1>
+        <div role="radiogroup" aria-label="Ventana de análisis" style="display: flex; padding: 4px; gap: 4px; border-radius: 12px; background: #141829">
+          <sc-for list="{{wins}}" as="w" hint-placeholder-count="3">
+            <button type="button" role="radio" aria-checked="{{w.checked}}" onClick="{{w.pick}}" style="min-height: 36px; padding: 0 14px; border-radius: 9px; border: 0; background: {{w.bg}}; color: {{w.color}}; font-weight: 600; font-size: 14px">{{w.label}}</button>
+          </sc-for>
+        </div>
+      </header>
+
+      <section aria-label="Tu fitness como sierra" style="position: relative; height: 360px; border-radius: 24px; overflow: hidden">
+        <dc-import name="Escena" modo="forma" alto="{{ 360 }}" hint-size="100%,360px"></dc-import>
+        <div style="position: absolute; left: 28px; top: 24px; display: flex; flex-direction: column; gap: 4px; pointer-events: none">
+          <span style="font-size: 15px; color: #C9D3F5">Fitness</span>
+          <span style="font-weight: 600; font-size: 72px; line-height: 0.9; letter-spacing: -0.05em">34</span>
+          <span style="font-size: 15px; color: #C9D3F5">+6 en 6 semanas · la punteada es lo agendado</span>
+        </div>
+      </section>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 14px">
+        <div style="position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 4px; padding: 20px 22px; border-radius: 22px; background: #11152A"><span style="font-size: 14px; color: #A9B1CC">Fatiga</span><span style="font-weight: 600; font-size: 38px; letter-spacing: -0.04em; color: #FF8A4C">41</span><span style="font-size: 14px; color: #A9B1CC">semana cargada</span><span aria-hidden="true" class="tk" style="position: absolute; right: 14px; bottom: 12px; width: 72px; height: 72px; background-image: url(/_blob/7979febf3ce233c85ea9e1dde580903d)"></span></div>
+        <div style="position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 4px; padding: 20px 22px; border-radius: 22px; background: #11152A"><span style="font-size: 14px; color: #A9B1CC">Forma</span><span style="font-weight: 600; font-size: 38px; letter-spacing: -0.04em">−7</span><span style="font-size: 14px; color: #A9B1CC">entrenando, sin exceso</span><span aria-hidden="true" class="tk" style="position: absolute; right: 14px; bottom: 12px; width: 72px; height: 72px; background-image: url(/_blob/4a39691785bd530ad1a80dee35d911f0)"></span></div>
+        <a href="#" style="position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 4px; padding: 20px 22px; border-radius: 22px; background: linear-gradient(135deg, #2A1A12 0%, #11152A 70%); box-shadow: inset 0 0 0 1px #4A2E1E; text-decoration: none; color: #F2F4FA"><span style="font-size: 14px; color: #FFC24A">FTP provisional</span><span style="font-weight: 600; font-size: 38px; letter-spacing: -0.04em">[FTP] W</span><span style="font-size: 14px; color: #A9B1CC; max-width: 70%">[El coach dice si mantenerlo o ajustarlo.]</span><span aria-hidden="true" class="tk bob" style="position: absolute; right: 12px; top: 14px; width: 84px; height: 84px; background-image: url(/_blob/cbfb672bfccc52ba6893bfbd10e34a31)"></span></a>
+      </div>
+
+      <nav aria-label="Más de tu forma" style="display: flex; gap: 28px; flex-wrap: wrap; padding: 18px 6px 0; border-top: 1px solid #1E2440; font-size: 16px">
+        <a href="#" style="text-decoration: none">Análisis completo →</a>
+        <a href="#" style="text-decoration: none">Eficiencia aeróbica →</a>
+        <a href="#" style="text-decoration: none">Rachas y récords →</a>
+      </nav>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { win: '6s' }; }
+  renderVals() {
+    const wins = [['6s', '6 semanas'], ['3m', '3 meses'], ['1a', '1 año']].map(([id, label]) => ({ label, checked: id === this.state.win ? 'true' : 'false', bg: id === this.state.win ? '#F2F4FA' : 'transparent', color: id === this.state.win ? '#0B0D1A' : '#A9B1CC', pick: () => this.setState({ win: id }) }));
+    return { wins };
+  }
+}
+</script>
+</body>
+</html>

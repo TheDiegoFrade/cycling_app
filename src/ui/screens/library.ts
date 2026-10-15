@@ -13,6 +13,8 @@ import { deleteWorkoutFromCloud, pushWorkoutToCloud } from '../../sync/workout-s
 import { getRouteParam, navigate } from '../router';
 import { appState } from '../state';
 import { escapeHtml, renderWorkoutCover } from '../workout-cover';
+import { tokenForIntervals, tokenForWorkout, tokenHtml } from '../workout-token';
+import type { Token } from '../workout-token';
 import { wireDatePicker } from '../date-picker';
 import { notifyPlanChange, planChangeNotice } from '../coach-notice';
 import { openSessionDetail } from '../open-session';
@@ -153,6 +155,16 @@ function cloudRow(s: (typeof appState.cloudSessions)[number]): HistoryRow {
   };
 }
 
+/** Objeto 3D de una fila: el del workout que se entrenó o, si fue libre, el
+ * de su intensidad (IF estimado de TSS y duración). */
+function rowToken(row: HistoryRow): Token {
+  const workout = appState.workouts.find((w) => w.id === row.workoutId);
+  if (workout) return tokenForWorkout(workout);
+  const hours = row.durationS / 3600;
+  const intensity = hours > 0 && row.tss > 0 ? Math.sqrt(row.tss / (hours * 100)) : 0.65;
+  return tokenForIntervals([{ name: 'libre', type: 'steady', power_pct: Math.round(intensity * 100), duration_s: 600 }]);
+}
+
 function activityCoverHtml(row: HistoryRow): string {
   const workout = appState.workouts.find((w) => w.id === row.workoutId);
   if (workout) return renderWorkoutCover(workout.intervals, 'sm');
@@ -226,7 +238,8 @@ export function renderLibrary(container: HTMLElement): () => void {
     const est = estimateWorkout(w.intervals, appState.profile.ftp);
     const meta = `${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS · ${w.scheduledDate ? `agendado ${w.scheduledDate}` : 'sin fecha'}`;
     return `
-      <div class="plan-lib-row" id="lib-row-${w.id}" data-workout-id="${w.id}">
+      <div class="plan-lib-row lift" id="lib-row-${w.id}" data-workout-id="${w.id}">
+        ${tokenHtml(tokenForWorkout(w), 44, 'forma-row-tk')}
         ${renderWorkoutCover(w.intervals, 'sm')}
         <div class="plan-lib-info">
           <div style="font-weight:500">${w.name}</div>
@@ -268,7 +281,8 @@ export function renderLibrary(container: HTMLElement): () => void {
     if (r.ef !== null) meta.push(`EF ${r.ef.toFixed(2)}`);
     if (r.rpe) meta.push(`RPE ${r.rpe}`);
     return `
-      <div class="forma-row" data-action="view" data-session-id="${r.id}" data-origin="${r.origin}" role="button" tabindex="0">
+      <div class="forma-row lift" data-action="view" data-session-id="${r.id}" data-origin="${r.origin}" role="button" tabindex="0">
+        ${tokenHtml(rowToken(r), 44, 'forma-row-tk')}
         ${activityCoverHtml(r)}
         <div class="forma-row-info">
           <div class="forma-row-name">${r.workoutName}</div>

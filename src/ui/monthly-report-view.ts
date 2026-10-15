@@ -71,7 +71,7 @@ function sec(num: number, title: string, hint: string, body: string, label = tit
 
 // ---------- Gráficas (SVG en texto) ----------
 
-const AX = 'font-family="Archivo, sans-serif" font-size="11" fill="#6b7380"';
+const AX = 'font-family="Host Grotesk, sans-serif" font-size="11" fill="#6b7380"';
 
 function pmcSvg(r: MonthlyReport): string {
   const pts = r.pmc;

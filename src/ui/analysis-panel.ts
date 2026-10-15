@@ -180,7 +180,7 @@ function drawCurve(canvas: HTMLCanvasElement, curve: CurvePoint[]): void {
   const Y = (v: number) => padT + (1 - (v - min) / (max - min || 1)) * (h - padT - padB);
 
   // rejilla recesiva y ejes con texto en tinta de texto, no de serie
-  g.font = '11px Archivo, sans-serif';
+  g.font = '11px "Host Grotesk", sans-serif';
   g.fillStyle = muted;
   g.strokeStyle = grid;
   g.lineWidth = 1;
@@ -286,7 +286,7 @@ function drawDecoupling(canvas: HTMLCanvasElement, points: { dateKey: string; pc
 
   g.fillStyle = 'rgba(34, 197, 139, 0.10)'; // --success, apenas visible
   g.fillRect(padL, Y(5), w - padL - padR, Y(Math.max(min, 0)) - Y(5));
-  g.font = '11px Archivo, sans-serif';
+  g.font = '11px "Host Grotesk", sans-serif';
   g.fillStyle = muted;
   g.textAlign = 'right';
   for (const v of [0, 5, 10]) if (v >= min && v <= max) g.fillText(`${v} %`, padL - 6, Y(v) + 4);

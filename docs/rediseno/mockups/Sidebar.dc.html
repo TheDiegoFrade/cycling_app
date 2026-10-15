@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Torq · Menú lateral</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D1A}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<nav aria-label="Principal" style="width: {{width}}; min-height: 100vh; box-sizing: border-box; padding: 20px 12px 16px; background: #0E1122; border-right: 1px solid #1E2440; color: #F2F4FA; font-family: 'Host Grotesk', sans-serif; display: flex; flex-direction: column; gap: 22px; transition: width 200ms ease">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 6px; min-height: 40px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <sc-if value="{{closed}}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" viewBox="0 0 100 100" style="width: 34px; height: 34px; flex: none">
+        <defs><linearGradient id="sbSun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC24A"></stop><stop offset="1" stop-color="#E8392B"></stop></linearGradient><mask id="sbCut"><rect width="100" height="100" fill="#fff"></rect><rect y="60" width="100" height="5" fill="#000"></rect></mask></defs>
+        <g mask="url(#sbCut)"><circle cx="50" cy="80" r="40" fill="none" stroke="url(#sbSun)" stroke-width="9" stroke-dasharray="6 5"></circle><circle cx="50" cy="80" r="34" fill="url(#sbSun)"></circle></g>
+        <rect x="0" y="80" width="100" height="20" fill="#0E1122"></rect><rect x="4" y="80" width="92" height="6" fill="#F2F4FA"></rect>
+      </svg></sc-if>
+      <sc-if value="{{open}}" hint-placeholder-val="{{ true }}"><a href="Inicio.dc.html" aria-label="torq, ir a Inicio" style="display: block; line-height: 0"><img src="/_blob/fa445c8b0bfbd44f1286236cad318e02" alt="torq" width="99" height="46" style="display: block; width: 99px; height: auto; margin: -4px 0 -4px -4px; filter: drop-shadow(0 6px 10px rgba(232,57,43,0.25))"></a></sc-if>
+    </div>
+    <sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+      <button type="button" aria-label="Esconder menú" onClick="{{toggle}}" style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid #262C48; background: transparent; color: #A9B1CC; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
+    </sc-if>
+  </div>
+  <sc-if value="{{closed}}" hint-placeholder-val="{{ false }}">
+    <button type="button" aria-label="Mostrar menú" onClick="{{toggle}}" style="align-self: center; width: 44px; height: 36px; border-radius: 10px; border: 1px solid #262C48; background: transparent; color: #A9B1CC; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></button>
+  </sc-if>
+
+  <div style="display: flex; flex-direction: column; gap: 2px">
+    <sc-for list="{{main}}" as="it" hint-placeholder-count="5">
+      <a href="{{it.href}}" aria-current="{{it.current}}" aria-label="{{it.label}}" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 12px; background: {{it.bg}}; color: {{it.color}}; text-decoration: none; font-size: 15px; font-weight: {{it.weight}}">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{it.stroke}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="{{it.d}}"></path></svg>
+        <sc-if value="{{open}}" hint-placeholder-val="{{ true }}"><span>{{it.label}}</span></sc-if>
+      </a>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 2px">
+    <sc-if value="{{open}}" hint-placeholder-val="{{ true }}"><span style="padding: 0 12px 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; color: #7F88A8">COACH</span></sc-if>
+    <sc-if value="{{closed}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="display: block; height: 1px; margin: 0 10px 8px; background: #262C48"></span></sc-if>
+    <sc-for list="{{coach}}" as="it" hint-placeholder-count="4">
+      <a href="#" aria-label="{{it.label}}" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 12px; color: #A9B1CC; text-decoration: none; font-size: 15px">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="{{it.d}}"></path></svg>
+        <sc-if value="{{open}}" hint-placeholder-val="{{ true }}"><span>{{it.label}}</span></sc-if>
+      </a>
+    </sc-for>
+  </div>
+
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 4px; padding: 10px 8px; border-radius: 14px; background: #141829; border: 1px solid #1E2440">
+    <sc-if value="{{open}}" hint-placeholder-val="{{ true }}"><span style="padding: 0 4px 2px; font-size: 12px; color: #7F88A8">Sensores</span></sc-if>
+    <a href="Preparar.dc.html" title="Rodillo sin conectar · conectar" aria-label="Rodillo sin conectar, conectar" style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 4px; border-radius: 10px; color: #F2F4FA; text-decoration: none">
+      <span aria-hidden="true" style="flex: none; width: 34px; height: 34px; background: url(/_blob/379d4e39942097c1efdb6648d8dd74a7) center/contain no-repeat; opacity: 0.6; filter: grayscale(0.6)"></span>
+      <sc-if value="{{open}}" hint-placeholder-val="{{ true }}"><span style="display: flex; flex-direction: column; line-height: 1.2"><span style="font-size: 14px; font-weight: 600">Rodillo</span><span style="font-size: 12px; color: #A9B1CC">Sin conectar</span></span></sc-if>
+    </a>
+    <a href="Preparar.dc.html" title="Pulso sin conectar · conectar" aria-label="Pulso sin conectar, conectar" style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 4px; border-radius: 10px; color: #F2F4FA; text-decoration: none">
+      <span aria-hidden="true" style="flex: none; width: 34px; height: 34px; background: url(/_blob/66c0ccfd5781e25d6d9d54dcaae9e657) center/contain no-repeat; opacity: 0.6; filter: grayscale(0.6)"></span>
+      <sc-if value="{{open}}" hint-placeholder-val="{{ true }}"><span style="display: flex; flex-direction: column; line-height: 1.2"><span style="font-size: 14px; font-weight: 600">Pulso</span><span style="font-size: 12px; color: #A9B1CC">Sin conectar</span></span></sc-if>
+    </a>
+  </div>
+
+  <a href="#" aria-label="Diego, ver perfil" style="display: flex; align-items: center; gap: 10px; padding: 0 4px; color: #F2F4FA; text-decoration: none">
+    <span aria-hidden="true" style="flex: none; width: 38px; height: 38px; border-radius: 50%; background: #FF6A1F; color: #0B0D1A; display: flex; align-items: center; justify-content: center; font-weight: 700">D</span>
+    <sc-if value="{{open}}" hint-placeholder-val="{{ true }}"><span style="display: flex; flex-direction: column; line-height: 1.2"><span style="font-weight: 600; font-size: 15px">Diego</span><span style="font-size: 12px; color: #A9B1CC">Ver perfil</span></span></sc-if>
+  </a>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","default":"inicio","options":["inicio","plan","historial","forma","perfil"]},"collapsed":{"editor":"boolean","default":false},"$preview":{"width":248,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { open: !props.collapsed }; }
+  renderVals() {
+    const open = this.state.open;
+    const active = this.props.active || 'inicio';
+    const mk = (id, label, d, href) => ({
+      id, label, d, href: href || '#',
+      current: id === active ? 'page' : 'false',
+      bg: id === active ? '#1C2240' : 'transparent',
+      color: id === active ? '#F2F4FA' : '#A9B1CC',
+      stroke: id === active ? '#FF6A1F' : 'currentColor',
+      weight: id === active ? '600' : '400'
+    });
+    return {
+      open, closed: !open,
+      width: open ? '248px' : '76px',
+      toggle: () => this.setState({ open: !open }),
+      main: [
+        mk('inicio', 'Inicio', 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', 'Inicio.dc.html'),
+        mk('plan', 'Plan', 'M4 5h16v16H4z M4 10h16 M8 3v4 M16 3v4', 'Plan.dc.html'),
+        mk('historial', 'Historial', 'M4 6h16 M4 12h16 M4 18h10', 'Historial.dc.html'),
+        mk('forma', 'Forma', 'M3 17l6-6 4 4 8-8 M15 7h6v6', 'Forma.dc.html'),
+        mk('perfil', 'Perfil', 'M12 4a4 4 0 1 1 0 8a4 4 0 1 1 0-8z M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6')
+      ],
+      coach: [
+        { label: 'Atletas', d: 'M9 4a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7z M2 20c1-3.5 3.8-5.5 7-5.5s6 2 7 5.5 M16 5a3 3 0 0 1 0 6 M18 14.5c2 .6 3.3 2.4 4 5' },
+        { label: 'Semanas', d: 'M4 4h16v16H4z M4 9h16 M4 14h16 M9 4v16 M14 4v16' },
+        { label: 'Biblioteca', d: 'M6 3h12v18H6z M9 7h6 M9 11h6' },
+        { label: 'Invitar atleta', d: 'M10 4a4 4 0 1 1 0 8a4 4 0 1 1 0-8z M3 21c1.3-3.8 4-5.6 7-5.6 M18 13v6 M15 16h6' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import type { AppSettings } from '../storage/settings-store';
+import { withSettingsDefaults } from '../storage/settings-store';
 import { supabase } from '../supabase/client';
 
 /** Mismo patrón de 3 estados que profile-sync: `undefined` = no se pudo
@@ -12,7 +13,7 @@ export async function fetchCloudSettings(userId: string): Promise<AppSettings | 
     return undefined;
   }
   if (!data) return null;
-  return data.data as AppSettings;
+  return withSettingsDefaults(data.data as Partial<AppSettings>);
 }
 
 export async function pushSettingsToCloud(settings: AppSettings, userId: string): Promise<void> {

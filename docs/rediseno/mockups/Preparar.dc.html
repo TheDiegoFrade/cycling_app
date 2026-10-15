@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Torq · Antes de empezar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D1A}
+a{color:#F2F4FA}a:hover{color:#FF8A4C}
+button{font-family:inherit;cursor:pointer}
+.tk{display:block;background-position:center;background-size:contain;background-repeat:no-repeat;filter:drop-shadow(0 10px 12px rgba(0,0,0,.55));transition:transform .4s cubic-bezier(.2,.8,.2,1), filter .4s, opacity .4s}
+.bob{animation:bob 4.5s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(2deg)}}
+@media (prefers-reduced-motion: reduce){.bob{animation:none}.tk{transition:none}}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #0B0D1A; color: #F2F4FA; font-family: 'Host Grotesk', 'Helvetica Neue', sans-serif; display: flex; flex-wrap: wrap; align-items: stretch">
+  <dc-import name="Sidebar" active="inicio" collapsed="{{ true }}" hint-size="76px,900px"></dc-import>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 28px clamp(16px, 3vw, 40px) 40px; box-sizing: border-box">
+    <div style="max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px">
+      <a href="Inicio.dc.html" style="align-self: flex-start; font-size: 15px; text-decoration: none; color: #A9B1CC">← Volver a Inicio</a>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch">
+        <!-- Workout -->
+        <section aria-label="Vas a entrenar" style="flex: 3 1 520px; min-width: 0; padding: 28px; border-radius: 24px; background: #141829; border: 1px solid #232A45; display: flex; flex-direction: column; gap: 18px">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px">
+            <span style="font-size: 14px; font-weight: 600; color: #FF8A4C">Vas a entrenar</span>
+            <span aria-hidden="true" class="tk bob" style="width: 84px; height: 84px; margin: -14px -6px -40px 0; background-image: url(/_blob/8cdaf45c0a131a708795625d5eb2a17f)"></span>
+          </div>
+          <h1 style="margin: 0; font-weight: 600; font-size: clamp(44px, 5vw, 72px); line-height: 0.9; letter-spacing: -0.05em">Endurance · Sesión 1</h1>
+          <svg role="img" aria-label="Perfil: 10 min Z1, 45 min Z2, 10 min Z1; la bici al inicio" viewBox="0 0 700 200" style="width: 100%; height: auto; overflow: visible">
+            <g stroke="#232A45" stroke-width="1"><path d="M0 40 H700 M0 120 H700"></path></g>
+            <text x="700" y="34" fill="#7F88A8" font-family="Host Grotesk, sans-serif" font-size="12" text-anchor="end">FTP</text>
+            <path d="M0 200 L0 120 L108 120 L108 96 L592 96 L592 128 L700 128 L700 200 Z" fill="#1C2240"></path>
+            <path d="M0 120 L108 120" stroke="#8A91AD" stroke-width="3" fill="none"></path>
+            <path d="M108 120 L108 96 L592 96 L592 128" stroke="#4C8DFF" stroke-width="3" fill="none"></path>
+            <path d="M592 128 L700 128" stroke="#8A91AD" stroke-width="3" fill="none"></path>
+            <g transform="translate(26,120)" fill="none" stroke="#F2F4FA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="-8" cy="-7" r="6.5"></circle><circle cx="11" cy="-7" r="6.5"></circle>
+              <path d="M-8 -7 L0 -7 L6 -16 L-4 -16 L0 -7 M6 -16 L11 -7"></path>
+              <path d="M-4 -18 L2 -28 L9 -20 L6 -16 M-4 -18 L2 -11 L0 -7"></path>
+              <circle cx="4" cy="-32" r="3.2" fill="#F2F4FA"></circle>
+            </g>
+            <g font-family="Host Grotesk, sans-serif" font-size="13" fill="#C9D3F5">
+              <text x="54" y="150" text-anchor="middle">10′ · Z1</text>
+              <text x="350" y="130" text-anchor="middle">45′ · Z2 · 74–86 W</text>
+              <text x="646" y="160" text-anchor="middle">10′ · Z1</text>
+            </g>
+          </svg>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+            <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; color: #A9B1CC">duración</span><span style="font-weight: 600; font-size: 30px; letter-spacing: -0.03em">65 min</span></div>
+            <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; color: #A9B1CC">TSS estimado</span><span style="font-weight: 600; font-size: 30px; letter-spacing: -0.03em">23</span></div>
+            <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; color: #A9B1CC">potencia</span><span style="font-weight: 600; font-size: 30px; letter-spacing: -0.03em">74–86 W</span></div>
+          </div>
+          <div style="display: flex; gap: 20px; flex-wrap: wrap; font-size: 15px"><a href="#">Editar límites por bloque</a><a href="Plan.dc.html">Cambiar workout</a></div>
+        </section>
+
+        <!-- Sensores + empezar -->
+        <section aria-label="Sensores" style="flex: 2 1 340px; min-width: 0; padding: 28px; border-radius: 24px; background: #10142A; border: 1px solid #232A45; display: flex; flex-direction: column; gap: 16px">
+          <h2 style="margin: 0; font-weight: 600; font-size: 22px; letter-spacing: -0.02em">Antes de empezar</h2>
+
+          <div style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 18px; background: #141829; border: 1px solid {{trainer.border}}; box-shadow: {{trainer.glow}}">
+            <span aria-hidden="true" class="{{trainer.cls}}" style="flex: none; width: 64px; height: 64px; background-image: url(/_blob/379d4e39942097c1efdb6648d8dd74a7); opacity: {{trainer.op}}; filter: {{trainer.filter}}"></span>
+            <div style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600; font-size: 16px">Rodillo</span><span style="font-size: 13px; color: {{trainer.color}}">{{trainer.status}}</span></div>
+            <button type="button" onClick="{{connectTrainer}}" style="min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid {{trainer.btnBorder}}; background: {{trainer.btnBg}}; color: {{trainer.btnColor}}; font-weight: 600; font-size: 14px">{{trainer.btn}}</button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 18px; background: #141829; border: 1px solid {{hr.border}}; box-shadow: {{hr.glow}}">
+            <span aria-hidden="true" class="{{hr.cls}}" style="flex: none; width: 64px; height: 64px; background-image: url(/_blob/66c0ccfd5781e25d6d9d54dcaae9e657); opacity: {{hr.op}}; filter: {{hr.filter}}"></span>
+            <div style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600; font-size: 16px">Banda de pulso <span style="font-weight: 400; color: #7F88A8">· opcional</span></span><span style="font-size: 13px; color: {{hr.color}}">{{hr.status}}</span></div>
+            <button type="button" onClick="{{connectHr}}" style="min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid {{hr.btnBorder}}; background: {{hr.btnBg}}; color: {{hr.btnColor}}; font-weight: 600; font-size: 14px">{{hr.btn}}</button>
+          </div>
+
+          <a href="RutaVivo.dc.html" aria-disabled="{{startDisabled}}" style="margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 76px; border-radius: 18px; background: {{start.bg}}; color: {{start.color}}; text-decoration: none; font-weight: 700; font-size: 22px; letter-spacing: -0.02em">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24"><path d="M6 4v16l14-8z" fill="{{start.color}}"></path></svg>Empezar
+          </a>
+          <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #A9B1CC">Arranca en cuanto pedaleas. Espacio para pausar. En el celular, deja Torq abierto durante la sesión: si cambias de app, el rodillo se puede desconectar.</p>
+          <a href="#" style="font-size: 14px; color: #C9D3F5">Probar sin rodillo (modo demo, no se graba)</a>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { trainer: false, hr: false }; }
+  renderVals() {
+    const sensor = (on, name) => on
+      ? { status: 'Conectado · ' + name, color: '#3FE08A', border: '#2C5A44', btn: 'Desconectar', btnBg: 'transparent', btnColor: '#A9B1CC', btnBorder: '#2A3150', cls: 'tk bob', op: '1', filter: 'drop-shadow(0 10px 14px rgba(63,224,138,0.35))', glow: '0 0 0 4px rgba(63,224,138,0.06)' }
+      : { status: 'Sin conectar', color: '#7F88A8', border: '#232A45', btn: 'Conectar por Bluetooth', btnBg: '#F2F4FA', btnColor: '#0B0D1A', btnBorder: '#F2F4FA', cls: 'tk', op: '0.55', filter: 'grayscale(0.7) drop-shadow(0 8px 10px rgba(0,0,0,0.5))', glow: 'none' };
+    const t = this.state.trainer;
+    return {
+      trainer: sensor(t, 'Saris H3'),
+      hr: { ...sensor(this.state.hr, 'banda de pecho'), btn: this.state.hr ? 'Desconectar' : 'Buscar banda' },
+      connectTrainer: () => this.setState({ trainer: !t }),
+      connectHr: () => this.setState({ hr: !this.state.hr }),
+      startDisabled: t ? 'false' : 'true',
+      start: t ? { bg: '#FF6A1F', color: '#0B0D1A' } : { bg: '#232A45', color: '#7F88A8' }
+    };
+  }
+}
+</script>
+</body>
+</html>

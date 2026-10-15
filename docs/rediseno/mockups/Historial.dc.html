@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Torq · Historial</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D1A}
+a{color:#F2F4FA}a:hover{color:#FF8A4C}
+button{font-family:inherit;cursor:pointer}
+.tk{display:block;background-position:center;background-size:contain;background-repeat:no-repeat;filter:drop-shadow(0 6px 8px rgba(0,0,0,.5));transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.row{transition:background-color .2s}
+.row:hover{background-color:#161B33 !important}
+.row:hover .tk{transform:translateY(-4px) rotate(-6deg) scale(1.08)}
+@media (prefers-reduced-motion: reduce){.tk,.row{transition:none}}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #0B0D1A; color: #F2F4FA; font-family: 'Host Grotesk', 'Helvetica Neue', sans-serif; display: flex; flex-wrap: wrap; align-items: stretch">
+  <dc-import name="Sidebar" active="historial" hint-size="248px,900px"></dc-import>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 28px clamp(16px, 3vw, 40px) 40px; box-sizing: border-box">
+    <div style="max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px">
+      <header style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap">
+        <h1 style="margin: 0; font-weight: 600; font-size: 40px; letter-spacing: -0.04em">Historial</h1>
+        <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap">
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #A9B1CC">Desde<input type="date" value="2026-09-01" style="min-height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid #2A3150; background: #141829; color: #F2F4FA; font-family: inherit; color-scheme: dark"></label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #A9B1CC">Hasta<input type="date" value="2026-10-13" style="min-height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid #2A3150; background: #141829; color: #F2F4FA; font-family: inherit; color-scheme: dark"></label>
+          <button type="button" style="min-height: 40px; padding: 0 14px; border-radius: 10px; border: 0; background: transparent; color: #A9B1CC; font-size: 14px">Limpiar filtros</button>
+          <button type="button" style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #2A3150; background: transparent; color: #F2F4FA; font-size: 14px">Importar archivo</button>
+        </div>
+      </header>
+
+
+
+      <div style="display: flex; gap: 18px; font-size: 13px; color: #A9B1CC; padding: 0 4px">
+        <span style="display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 16px; height: 0; border-top: 2px dashed #7F88A8"></span>Planeado</span>
+        <span style="display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 16px; height: 10px; background: #2A3466; border-top: 2px solid #4C8DFF"></span>Lo que hiciste</span>
+      </div>
+
+      <div style="overflow-x: auto; border-radius: 20px">
+        <div style="min-width: 860px; display: flex; flex-direction: column">
+          <div style="display: grid; grid-template-columns: 90px 180px minmax(200px, 1fr) 80px 70px 90px 60px 40px; gap: 16px; align-items: center; padding: 12px 18px; background: #10142A; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: #7F88A8">
+            <span>FECHA</span><span>FORMA</span><span>SESIÓN</span><span>TIEMPO</span><span>TSS</span><span>POT. AVG</span><span>RPE</span><span></span>
+          </div>
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+            <a href="#" class="row" aria-label="{{r.aria}}" style="display: grid; grid-template-columns: 90px 180px minmax(200px, 1fr) 80px 70px 90px 60px 40px; gap: 16px; align-items: center; padding: 14px 18px; border-top: 1px solid #1A1F36; background: #11152A; text-decoration: none; color: #F2F4FA">
+              <span style="font-size: 14px; color: #C9D3F5">{{r.date}}</span>
+              <svg aria-hidden="true" viewBox="0 0 100 40" preserveAspectRatio="none" style="width: 100%; height: 44px"><path d="{{r.fill}}" fill="#2A3466"></path><path d="{{r.top}}" fill="none" stroke="{{r.color}}" stroke-width="2" vector-effect="non-scaling-stroke"></path><path d="{{r.plan}}" fill="none" stroke="#7F88A8" stroke-width="1.5" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"></path></svg>
+              <span style="display: flex; align-items: center; gap: 12px"><span aria-hidden="true" class="tk" style="flex: none; width: 44px; height: 44px; background-image: {{r.img}}"></span><span style="display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600; font-size: 16px">{{r.name}}</span><span style="align-self: flex-start; padding: 2px 8px; border-radius: 999px; background: #1C2240; color: #A9B1CC; font-size: 12px">{{r.src}}</span></span></span>
+              <span style="font-size: 15px">{{r.time}}</span>
+              <span style="font-size: 15px">{{r.tss}}</span>
+              <span style="font-size: 15px">{{r.pw}}</span>
+              <span style="font-size: 15px">{{r.rpe}}</span>
+              <span aria-hidden="true" style="color: #7F88A8">→</span>
+            </a>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const Z = p => p < 56 ? '#8A91AD' : p < 76 ? '#4C8DFF' : p < 88 ? '#3FE08A' : p < 106 ? '#FFC24A' : p < 121 ? '#FF8A3D' : '#FF4D5E';
+    const path = (blocks, W, H) => {
+      const total = blocks.reduce((a, b) => a + b.m, 0); let x = 0; let top = ''; let maxP = 0;
+      blocks.forEach((b, i) => { const w = b.m / total * W; const y = (H - (b.p / 125) * H).toFixed(1); top += (i === 0 ? 'M0 ' + y : ' L' + x.toFixed(1) + ' ' + y) + ' L' + (x + w).toFixed(1) + ' ' + y; x += w; maxP = Math.max(maxP, b.p); });
+      return { top, fill: 'M0 ' + H + ' L' + top.slice(1) + ' L' + W + ' ' + H + ' Z', color: Z(maxP) };
+    };
+    const T = {
+      end: 'url(/_blob/8cdaf45c0a131a708795625d5eb2a17f)', ss: 'url(/_blob/4a39691785bd530ad1a80dee35d911f0)',
+      vo2: 'url(/_blob/7979febf3ce233c85ea9e1dde580903d)', rec: 'url(/_blob/97c5ab1bf9039846a23e32be3943a7a1)',
+      fuerza: "url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%22-4 -4 32 32%22 fill=%22none%22 stroke=%22%23F2F4FA%22 stroke-width=%222.4%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M7 8v8M4 10v4M17 8v8M20 10v4M7 12h10%22/%3E%3C/svg%3E'), radial-gradient(circle closest-side at 50% 50%, #626B99 0%, #2A3150 70%, #1A1F38 94%, rgba(0,0,0,0) 100%)"
+    };
+    const S = [
+      { date: 'lun 12 oct', name: 'Endurance', tok: 'end', src: 'Torq', time: '1:00', tss: '38', pw: '78 W', rpe: '3', plan: [{ m: 10, p: 50 }, { m: 40, p: 63 }, { m: 10, p: 45 }], real: [{ m: 10, p: 52 }, { m: 40, p: 64 }, { m: 10, p: 44 }] },
+      { date: 'sáb 10 oct', name: 'Larga Z2', tok: 'end', src: 'intervals.icu', time: '1:52', tss: '84', pw: '81 W', rpe: '5', plan: [{ m: 15, p: 50 }, { m: 90, p: 66 }, { m: 15, p: 45 }], real: [{ m: 15, p: 52 }, { m: 82, p: 64 }, { m: 15, p: 46 }] },
+      { date: 'jue 8 oct', name: 'Sweet spot 2 × 12', tok: 'ss', src: 'Torq', time: '0:55', tss: '54', pw: '95 W', rpe: '7', plan: [{ m: 10, p: 50 }, { m: 12, p: 90 }, { m: 5, p: 50 }, { m: 12, p: 90 }, { m: 10, p: 45 }], real: [{ m: 10, p: 50 }, { m: 12, p: 89 }, { m: 5, p: 52 }, { m: 12, p: 86 }, { m: 10, p: 46 }] },
+      { date: 'mié 7 oct', name: 'Fuerza y movilidad', tok: 'fuerza', src: 'Registrada', time: '0:40', tss: 'sRPE 200', pw: '—', rpe: '5', plan: null, real: null },
+      { date: 'mar 6 oct', name: 'Recuperación', tok: 'rec', src: 'Torq', time: '0:40', tss: '18', pw: '62 W', rpe: '2', plan: [{ m: 40, p: 50 }], real: [{ m: 40, p: 49 }] },
+      { date: 'dom 4 oct', name: 'VO2max 4 × 3', tok: 'vo2', src: '.fit', time: '0:50', tss: '52', pw: '88 W', rpe: '8', plan: [{ m: 12, p: 50 }, { m: 3, p: 115 }, { m: 3, p: 50 }, { m: 3, p: 115 }, { m: 3, p: 50 }, { m: 3, p: 115 }, { m: 3, p: 50 }, { m: 3, p: 115 }, { m: 10, p: 45 }], real: [{ m: 12, p: 52 }, { m: 3, p: 112 }, { m: 3, p: 52 }, { m: 3, p: 116 }, { m: 3, p: 50 }, { m: 3, p: 110 }, { m: 3, p: 50 }, { m: 3, p: 104 }, { m: 10, p: 46 }] }
+    ];
+    const flat = { top: 'M0 38 L100 38', fill: 'M0 40 L0 38 L100 38 L100 40 Z', color: '#3A4266' };
+    const rows = S.map(s => { const r = s.real ? path(s.real, 100, 40) : flat; const p = s.plan ? path(s.plan, 100, 40).top : ''; return { ...s, ...r, plan: p, img: T[s.tok], aria: s.date + ', ' + s.name }; });
+    return { rows };
+  }
+}
+</script>
+</body>
+</html>

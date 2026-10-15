@@ -98,7 +98,7 @@ function sidebarHtml(active: SidebarScreen | null): string {
     (appState.coach.isCoach ? `<div class="sidebar-group-title">Coach</div>${COACH_ITEMS.map(linkHtml).join('')}` : '');
   return `
     <nav class="sidebar" id="app-sidebar">
-      <div class="sidebar-brand">TORQ<button type="button" class="drawer-close" id="drawer-close" aria-label="Cerrar menú">✕</button></div>
+      <div class="sidebar-brand"><a href="#/home" class="sidebar-logo" aria-label="torq, ir a Inicio"><img src="/brand/logo-torq.webp" alt="torq" width="99" height="46"></a><button type="button" class="drawer-close" id="drawer-close" aria-label="Cerrar menú">✕</button></div>
       <div class="sidebar-links">${links}</div>
       ${
         appState.coach.myCoach
@@ -108,12 +108,12 @@ function sidebarHtml(active: SidebarScreen | null): string {
       <div class="sidebar-sensors">
         <div class="sidebar-sensors-title">Sensores</div>
         <button type="button" class="sidebar-sensor-row" id="sidebar-trainer-row">
-          <span>Rodillo</span>
-          <span class="sidebar-sensor-state"><span class="status-dot" id="sidebar-trainer-dot"></span><span id="sidebar-trainer-state">${STATE_LABEL.disconnected}</span></span>
+          <span class="sidebar-sensor-obj disconnected" id="sidebar-trainer-dot" aria-hidden="true" style="background-image:url('/brand/obj-trainer.webp')"></span>
+          <span class="sidebar-sensor-text"><span class="sidebar-sensor-name">Rodillo</span><span class="sidebar-sensor-state" id="sidebar-trainer-state">${STATE_LABEL.disconnected}</span></span>
         </button>
         <button type="button" class="sidebar-sensor-row" id="sidebar-hr-row">
-          <span>Pulso</span>
-          <span class="sidebar-sensor-state"><span class="status-dot" id="sidebar-hr-dot"></span><span id="sidebar-hr-state">${STATE_LABEL.disconnected}</span></span>
+          <span class="sidebar-sensor-obj disconnected" id="sidebar-hr-dot" aria-hidden="true" style="background-image:url('/brand/obj-hr.webp')"></span>
+          <span class="sidebar-sensor-text"><span class="sidebar-sensor-name">Pulso</span><span class="sidebar-sensor-state" id="sidebar-hr-state">${STATE_LABEL.disconnected}</span></span>
         </button>
       </div>
       <a href="#/profile" class="sidebar-profile${active === 'profile' ? ' active' : ''}" aria-label="Ir a tu perfil">
@@ -160,7 +160,7 @@ function wireSensorRow(
   let unsub: (() => void) | null = null;
 
   function paint(state: ConnectionState): void {
-    dot.className = `status-dot ${state}`;
+    dot.className = `sidebar-sensor-obj ${state}`; // el objeto 3D: gris sin conectar, a color conectado
     stateEl.textContent = STATE_LABEL[state];
   }
 
