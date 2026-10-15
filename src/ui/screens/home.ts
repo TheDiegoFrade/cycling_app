@@ -14,6 +14,7 @@ import { navigate, refresh } from '../router';
 import { appState } from '../state';
 import { escapeHtml } from '../workout-cover';
 import { tokenForIntervals, tokenForTemplate, tokenForWorkout, tokenHtml } from '../workout-token';
+import { montanasVideoHtml } from '../montanas-video';
 import type { Token } from '../workout-token';
 import { isNonBikeKind } from '../../core/session-kind';
 import { wireDatePicker } from '../date-picker';
@@ -169,7 +170,7 @@ export function renderHome(container: HTMLElement): void {
   function heroCardHtml(): string {
     return `
       <section class="home-scene" aria-label="Hoy toca">
-        <img class="home-scene-img drift" src="/brand/escena-hoy.webp" alt="">
+        ${montanasVideoHtml('home-scene-img')}
         <div class="home-scene-shade" aria-hidden="true"></div>
         <a href="#/profile" class="perfil-avatar perfil-avatar-link home-scene-avatar" aria-label="Ir a tu perfil" title="Tu perfil">${initial}</a>
         <div class="home-scene-col">${heroContentHtml()}</div>

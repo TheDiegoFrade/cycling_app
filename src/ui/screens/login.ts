@@ -3,16 +3,10 @@ import { subscribeAmbientState, toggleAmbientTrack } from '../ambient-audio';
 import { navigate } from '../router';
 import { appState } from '../state';
 import { requestPasswordReset } from '../password-reset';
-import { montanasVideoHtml } from '../montanas-video';
-
-const HERO_ORDER = ['man', 'woman', 'montanas'] as const;
-const HERO_ICON = { man: '🚴‍♂️', woman: '🚴‍♀️', montanas: '🏔️' } as const;
 
 function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supabase>): void {
-  const hero = appState.settings.heroCharacter;
   container.innerHTML = `
-    <div class="hero${hero === 'woman' ? ' hero-woman' : hero === 'montanas' ? ' hero-montanas' : ''}" style="min-height:100vh">
-      ${hero === 'montanas' ? `<div class="hero-video-bg">${montanasVideoHtml()}<div class="hero-video-shade"></div></div>` : ''}
+    <div class="hero${appState.settings.heroCharacter === 'woman' ? ' hero-woman' : ''}" style="min-height:100vh">
       <div class="entry-pill">
         <div class="brand"><img class="brand-logo" src="/brand/logo-torq.webp" alt="torq" width="150" height="70"></div>
         <div class="tag">Entrena sin mirar la pantalla.</div>
@@ -26,14 +20,13 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
         </div>
       </div>
       <button type="button" class="music-toggle" id="music-toggle" title="Still Corners – The Trip (click para reproducir)">🔇</button>
-      <button type="button" class="hero-toggle" id="hero-toggle" title="Cambiar fondo" aria-label="Cambiar fondo">${HERO_ICON[hero] ?? HERO_ICON.man}</button>
+      <button type="button" class="hero-toggle" id="hero-toggle" title="Cambiar apariencia">${appState.settings.heroCharacter === 'woman' ? '🚴‍♀️' : '🚴‍♂️'}</button>
       <div class="track-credit">🎵 "The Trip" — Still Corners</div>
     </div>
   `;
 
   container.querySelector('#hero-toggle')?.addEventListener('click', () => {
-    const next = HERO_ORDER[(HERO_ORDER.indexOf(hero) + 1) % HERO_ORDER.length];
-    appState.settings = { ...appState.settings, heroCharacter: next };
+    appState.settings = { ...appState.settings, heroCharacter: appState.settings.heroCharacter === 'woman' ? 'man' : 'woman' };
     appState.persistSettings();
     renderLoginGate(container, client);
   });

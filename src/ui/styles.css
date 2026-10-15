@@ -5839,7 +5839,8 @@ button.plan-month-done-label {
   height: 540px;
   border-radius: var(--radius-2xl);
   overflow: hidden;
-  background: var(--bg);
+  /* respaldo si el video no carga: la escena fija del sol-plato */
+  background: var(--bg) url('/brand/escena-hoy.webp') 68% 50% / cover no-repeat;
   margin-bottom: 22px;
 }
 .home-scene-img {
@@ -6643,26 +6644,4 @@ button.plan-month-done-label {
     font-weight: 600;
     color: var(--text);
   }
-}
-
-/* ---- Login: fondo «Montañas» en video (ui/montanas-video.ts) ---- */
-.hero.hero-montanas {
-  background: var(--bg);
-}
-.hero-video-bg {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-.hero-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.hero-video-shade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(11, 13, 26, 0.6) 0%, rgba(11, 13, 26, 0.1) 32%, transparent 55%);
 }

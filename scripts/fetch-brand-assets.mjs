@@ -22,8 +22,8 @@ const ASSETS = {
   'obj-bolt.webp': 'hf_20261015_032913_e7ac2d4c-c332-4304-a04f-5b062529e94e_min.webp',
   'obj-moon.webp': 'hf_20261015_032935_b80b2ec7-0e96-4499-a1b7-d3dc1cfba89b_min.webp',
   'obj-trophy.webp': 'hf_20261015_032936_505599d6-6f4f-47ef-8584-ffe7686dd4d6_min.webp',
-  // Fondo «Montañas» del login (video de Kling y su primer cuadro):
-  'login-montanas.mp4': 'hf_20261015_045150_4829c7af-e102-4dcb-b160-0b017ac4a1a1.mp4',
+  // Video de «Hoy toca» en Inicio (Kling: sol-plato girando, ciclista hacia las montañas):
+  'escena-hoy.mp4': 'hf_20261015_045150_4829c7af-e102-4dcb-b160-0b017ac4a1a1.mp4',
   // Opcional, para la landing/login (escena del hombre subiéndose al rodillo):
   'login-subirse.mp4': 'hf_20261015_044738_7cb649a3-c53d-4ae5-8a56-085ef7441e2c.mp4',
   'login-escena-hombre.webp': 'hf_20261015_044343_6e6c6ac7-126e-439c-be11-ba500f3d1fb4_min.webp',
