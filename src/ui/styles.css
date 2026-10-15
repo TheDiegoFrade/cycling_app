@@ -1,46 +1,55 @@
 :root {
-  /* TORQ_DESIGN.md — tokens tal cual el doc, fuente de verdad del rediseño. */
+  /* Rediseño «Sol-plato» (docs/rediseno/REDISENO.md): mismos nombres de
+   * token, valores nuevos. Noche azul, acento naranja (plato), Host Grotesk. */
   /* Superficies */
-  --bg: #000000;
-  --surface-nav: #0e0f12;
-  --surface: #15171b;
-  --surface-sunken: #0b0c0f;
-  --surface-active: #1a1d23;
-  --border: #1c1f25;
-  --border-control: #2f343d;
+  --bg: #0b0d1a;
+  --surface-nav: #0e1122;
+  --surface: #141829;
+  --surface-sunken: #10142a;
+  --surface-active: #1c2240;
+  --border: #1e2440;
+  --border-control: #2a3150;
 
   /* Texto */
-  --text: #f2f4f7;
-  --text-soft: #c5cad3;
-  --text-muted: #8b93a1;
+  --text: #f2f4fa;
+  --text-soft: #c9d3f5;
+  --text-muted: #a9b1cc;
+  --text-label: #7f88a8; /* solo etiquetas de 12 px en mayúsculas */
 
   /* Acento (acciones) */
-  --accent: #3d8bff;
-  --accent-light: #8fbfff;
-  --on-accent: #000000;
+  --accent: #ff6a1f;
+  --accent-light: #ff8a4c;
+  --on-accent: #0b0d1a;
 
   /* Estados */
-  --success: #22c58b;
-  --danger: #ff4d4d;
-  --danger-text: #ff6b6b;
+  --success: #3fe08a;
+  --danger: #ff4d5e;
+  --danger-text: #ff6b78;
 
   /* Zonas de potencia */
-  --z1: #6b7280;
-  --z2: #3d8bff;
-  --z3: #22c58b;
-  --z4: #f5c518;
+  --z1: #8a91ad;
+  --z2: #4c8dff;
+  --z3: #3fe08a;
+  --z4: #ffc24a;
   --z5: #ff8a3d;
-  --z6: #ff4d4d;
+  --z6: #ff4d5e;
 
   /* Tipografía */
-  --font-display: 'Barlow Condensed', sans-serif;
-  --font-body: 'Archivo', sans-serif;
+  --font-display: 'Host Grotesk', sans-serif;
+  --font-body: 'Host Grotesk', sans-serif;
 
   /* Radios */
   --radius-sm: 8px;
   --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px; /* hero de Inicio */
+
+  /* Nuevos del rediseño */
+  --sol: #ffc24a; /* ámbar del sol */
+  --brasa: #e8392b; /* rojo de la base del sol */
+  --card: #11152a; /* tarjetas de día, filas de historial */
+  --card-hover: #1a1f38;
 }
 * {
   box-sizing: border-box;
@@ -134,11 +143,22 @@ a {
   gap: 32px;
 }
 .sidebar-brand {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 34px;
-  letter-spacing: 2px;
-  padding-left: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding-left: 6px;
+}
+.sidebar-logo {
+  display: block;
+  line-height: 0;
+}
+.sidebar-logo img {
+  display: block;
+  width: 99px;
+  height: auto;
+  margin: -4px 0 -4px -4px;
+  filter: drop-shadow(0 6px 10px rgba(232, 57, 43, 0.25));
 }
 .sidebar-links {
   display: flex;
@@ -160,7 +180,10 @@ a {
 .sidebar-link.active {
   background: var(--surface-active);
   color: var(--text);
-  font-weight: 500;
+  font-weight: 600;
+}
+.sidebar-link.active svg {
+  stroke: var(--accent);
 }
 .sidebar-link svg {
   flex-shrink: 0;
@@ -168,11 +191,12 @@ a {
 .sidebar-sensors {
   margin-top: auto;
   background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 8px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
 }
 .sidebar-sensors-title {
   font-size: 12px;
@@ -227,10 +251,13 @@ a {
 .sidebar-sensor-row {
   background: none;
   border: none;
-  padding: 0;
+  padding: 0 4px;
+  min-height: 44px;
+  border-radius: var(--radius-md);
   display: flex;
-  justify-content: space-between;
+  gap: 10px;
   align-items: center;
+  text-align: left;
   font-size: 14px;
   color: var(--text);
   font-family: var(--font-body);
@@ -240,11 +267,34 @@ a {
   color: var(--accent-light);
 }
 .sidebar-sensor-state {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   font-size: 12px;
   color: var(--text-muted);
+}
+.sidebar-sensor-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.sidebar-sensor-name {
+  font-weight: 600;
+}
+.sidebar-sensor-obj {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  background: center / contain no-repeat;
+  opacity: 0.6;
+  filter: grayscale(0.6);
+  transition: opacity 0.2s, filter 0.2s;
+}
+.sidebar-sensor-obj.connected {
+  opacity: 1;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+.sidebar-sensor-obj.connecting,
+.sidebar-sensor-obj.reconnecting {
+  opacity: 0.85;
+  filter: grayscale(0.2);
 }
 .main-content {
   flex-grow: 1;
@@ -292,6 +342,7 @@ a {
   margin: 0 auto;
 }
 .screen h1 {
+  letter-spacing: -0.04em;
   font-family: var(--font-display);
   font-size: 28px;
   font-weight: 600;
@@ -2859,6 +2910,7 @@ a {
   flex-direction: column;
   gap: 4px;
   padding: 14px 16px;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   color: var(--text);
@@ -5728,4 +5780,44 @@ button.plan-month-done-label {
 .btn-light.danger {
   color: var(--danger-text);
   border-color: var(--danger);
+}
+
+/* ---- Rediseño «Sol-plato»: objetos 3D (src/ui/workout-token.ts) ---- */
+.tk {
+  display: block;
+  flex: none;
+  background: center / contain no-repeat;
+  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.55));
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tk-fuerza {
+  border-radius: 50%;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 32 32' fill='none' stroke='%23F2F4FA' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M7 8v8M4 10v4M17 8v8M20 10v4M7 12h10'/%3E%3C/svg%3E"),
+    radial-gradient(circle closest-side at 50% 50%, #626b99 0%, #2a3150 70%, #1a1f38 94%, rgba(0, 0, 0, 0) 100%);
+  background-size: 60%, contain;
+}
+.lift:hover .tk,
+.lift:focus-visible .tk {
+  transform: translateY(-6px) rotate(-5deg) scale(1.08);
+}
+.bob {
+  animation: bob 4.5s ease-in-out infinite;
+}
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(2deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bob {
+    animation: none;
+  }
+  .tk {
+    transition: none;
+  }
 }

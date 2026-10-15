@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Torq · Plan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D1A}
+a{color:#F2F4FA}a:hover{color:#FF8A4C}
+button{font-family:inherit;cursor:pointer}
+.tk{display:block;background-position:center;background-size:contain;background-repeat:no-repeat;filter:drop-shadow(0 12px 12px rgba(0,0,0,.55));transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.day{transition:background-color .2s, transform .35s cubic-bezier(.2,.8,.2,1)}
+.day:hover{background-color:#1A1F38 !important;transform:perspective(700px) rotateX(8deg) translateY(-3px)}
+.day:hover .tk,.day:focus-visible .tk{transform:translateY(-8px) rotate(-6deg) scale(1.08)}
+.bob{animation:bob 4.5s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(2deg)}}
+@media (prefers-reduced-motion: reduce){.bob{animation:none}.tk,.day{transition:none}.day:hover{transform:none}}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #0B0D1A; color: #F2F4FA; font-family: 'Host Grotesk', 'Helvetica Neue', sans-serif; display: flex; flex-wrap: wrap; align-items: stretch">
+  <dc-import name="Sidebar" active="plan" hint-size="248px,900px"></dc-import>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 28px clamp(16px, 3vw, 40px) 40px; box-sizing: border-box">
+    <div style="max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px">
+
+      <header style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap">
+        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+          <h1 style="margin: 0; font-weight: 600; font-size: 40px; letter-spacing: -0.04em">Plan</h1>
+          <div role="radiogroup" aria-label="Vista" style="display: flex; padding: 4px; gap: 4px; border-radius: 12px; background: #141829">
+            <button type="button" role="radio" aria-checked="{{weekOn}}" onClick="{{showWeek}}" style="min-height: 36px; padding: 0 14px; border-radius: 9px; border: 0; background: {{weekBg}}; color: {{weekColor}}; font-weight: 600; font-size: 14px">Semana</button>
+            <button type="button" role="radio" aria-checked="{{monthOn}}" onClick="{{showMonth}}" style="min-height: 36px; padding: 0 14px; border-radius: 9px; border: 0; background: {{monthBg}}; color: {{monthColor}}; font-weight: 600; font-size: 14px">Mes</button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 2px">
+            <button type="button" aria-label="Anterior" style="width: 40px; height: 40px; border-radius: 10px; border: 0; background: transparent; color: #C9D3F5; font-size: 18px">←</button>
+            <span style="font-size: 15px; color: #C9D3F5; padding: 0 4px">{{rangeLabel}}</span>
+            <button type="button" aria-label="Siguiente" style="width: 40px; height: 40px; border-radius: 10px; border: 0; background: transparent; color: #C9D3F5; font-size: 18px">→</button>
+          </div>
+        </div>
+        <div style="position: relative; display: flex; gap: 8px">
+          <button type="button" style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 0; background: #F2F4FA; color: #0B0D1A; font-weight: 600; font-size: 14px">+ Crear</button>
+          <button type="button" onClick="{{toggleMore}}" aria-expanded="{{moreStr}}" style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #2A3150; background: transparent; color: #F2F4FA; font-size: 14px">Más ▾</button>
+          <sc-if value="{{more}}" hint-placeholder-val="{{ false }}">
+            <div role="menu" style="position: absolute; right: 0; top: 48px; z-index: 5; min-width: 240px; padding: 6px; border-radius: 14px; background: #1A1F38; box-shadow: 0 16px 40px rgba(0,0,0,0.45); display: flex; flex-direction: column">
+              <button type="button" role="menuitem" style="min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: #F2F4FA; text-align: left; font-size: 14px">Importar archivo (.zwo, .mrc, .erg, .fit)</button>
+              <button type="button" role="menuitem" style="min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: #F2F4FA; text-align: left; font-size: 14px">Registrar fuerza o movilidad</button>
+              <button type="button" role="menuitem" style="min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: #F2F4FA; text-align: left; font-size: 14px">Biblioteca</button>
+            </div>
+          </sc-if>
+        </div>
+      </header>
+
+      <sc-if value="{{isWeek}}" hint-placeholder-val="{{ true }}">
+        <div style="overflow-x: auto; margin: 0 -6px; padding: 10px 6px 6px">
+          <div role="tablist" aria-label="Días de la semana" style="display: grid; grid-template-columns: repeat(7, minmax(118px, 1fr)); gap: 10px; min-width: 860px">
+            <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+              <button type="button" role="tab" class="day" aria-selected="{{d.sel}}" aria-label="{{d.aria}}" onClick="{{d.pick}}" style="position: relative; min-height: 232px; padding: 14px 12px 14px; border-radius: 22px; border: 0; background: {{d.bg}}; box-shadow: {{d.ring}}; color: #F2F4FA; text-align: left; display: flex; flex-direction: column; gap: 8px">
+                <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: {{d.labelColor}}">{{d.label}}</span>
+                <span aria-hidden="true" style="position: relative; align-self: center; width: 92px; height: 92px; margin: 4px 0 2px">
+                  <span aria-hidden="true" style="position: absolute; left: 14px; right: 14px; bottom: -2px; height: 10px; border-radius: 50%; background: rgba(0,0,0,0.45); filter: blur(5px)"></span>
+                  <span class="tk" style="position: absolute; inset: 0; background-image: {{d.img}}; opacity: {{d.op}}"></span>
+                </span>
+                <span style="font-weight: 600; font-size: 16px; line-height: 1.15; letter-spacing: -0.01em">{{d.name}}</span>
+                <span style="margin-top: auto; font-size: 13px; color: #A9B1CC">{{d.short}}</span>
+                <span aria-hidden="true" style="position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; border-radius: 50%; background: #3FE08A; display: {{d.check}}; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0B0D1A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg></span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <section aria-label="Día seleccionado" style="display: flex; align-items: center; gap: 28px; flex-wrap: wrap; padding: 22px 26px; border-radius: 24px; background: #11152A">
+          <span aria-hidden="true" class="tk bob" style="flex: none; width: 128px; height: 128px; background-image: {{cur.img}}"></span>
+          <div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 340px; min-width: 0">
+            <span style="font-size: 14px; color: {{cur.labelColor}}">{{cur.when}}</span>
+            <span style="font-weight: 600; font-size: 38px; line-height: 1; letter-spacing: -0.045em">{{cur.name}}</span>
+            <span style="font-size: 16px; color: #C9D3F5">{{cur.meta}}</span>
+            <sc-if value="{{cur.hasProfile}}" hint-placeholder-val="{{ true }}">
+              <svg role="img" aria-label="{{cur.profileAria}}" viewBox="0 0 400 48" preserveAspectRatio="none" style="width: 100%; max-width: 520px; height: 44px; margin-top: 6px"><path d="{{cur.prof.fill}}" fill="#1C2240"></path><path d="{{cur.prof.top}}" fill="none" stroke="{{cur.prof.color}}" stroke-width="2.5" vector-effect="non-scaling-stroke"></path></svg>
+            </sc-if>
+            <p style="margin: 4px 0 0; max-width: 560px; font-size: 15px; line-height: 1.5; color: #A9B1CC">{{cur.note}}</p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start">
+            <sc-if value="{{cur.canRide}}" hint-placeholder-val="{{ true }}">
+              <a href="Preparar.dc.html" style="display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 24px; border-radius: 999px; background: #FF6A1F; color: #0B0D1A; text-decoration: none; font-weight: 700; font-size: 16px"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24"><path d="M6 4v16l14-8z" fill="#0B0D1A"></path></svg>Entrenar</a>
+            </sc-if>
+            <a href="#" style="font-size: 14px; color: #C9D3F5">{{cur.secondary}}</a>
+          </div>
+        </section>
+
+        <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 4px 6px 0; font-size: 15px; color: #A9B1CC">
+          <span>276 TSS planeado · 38 hecho · 6:00 h de bici</span>
+          <a href="#" style="color: #FF8A4C">Evaluar semana con el coach →</a>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isMonth}}" hint-placeholder-val="{{ false }}">
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; font-size: 12px; color: #7F88A8; text-align: center"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{month}}" as="c" hint-placeholder-count="35">
+            <div style="min-height: 92px; padding: 8px; border-radius: 12px; background: #11152A; box-shadow: {{c.ring}}; display: flex; flex-direction: column; gap: 4px; opacity: {{c.op}}">
+              <span style="font-size: 12px; color: #A9B1CC">{{c.n}}</span>
+              <span aria-hidden="true" class="tk" style="align-self: center; width: 40px; height: 40px; background-image: {{c.img}}; opacity: {{c.tokOp}}"></span>
+              <span style="font-size: 11px; color: #C9D3F5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.name}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { view: 'week', sel: 1, more: false }; }
+  renderVals() {
+    const Z = p => p < 56 ? '#8A91AD' : p < 76 ? '#4C8DFF' : p < 88 ? '#3FE08A' : p < 106 ? '#FFC24A' : p < 121 ? '#FF8A3D' : '#FF4D5E';
+    const mtn = (blocks, W, H) => {
+      if (!blocks) return { top: 'M0 ' + (H - 2) + ' L' + W + ' ' + (H - 2), fill: '', color: '#3A4266' };
+      const total = blocks.reduce((a, b) => a + b.m, 0); let x = 0; let top = ''; let maxP = 0;
+      blocks.forEach((b, i) => { const w = b.m / total * W; const y = (H - (b.p / 125) * H).toFixed(1); top += (i === 0 ? 'M0 ' + y : ' L' + x.toFixed(1) + ' ' + y) + ' L' + (x + w).toFixed(1) + ' ' + y; x += w; maxP = Math.max(maxP, b.p); });
+      return { top, fill: 'M0 ' + H + ' L' + top.slice(1) + ' L' + W + ' ' + H + ' Z', color: Z(maxP) };
+    };
+    const T = {
+      end: 'url(/_blob/8cdaf45c0a131a708795625d5eb2a17f)', ss: 'url(/_blob/4a39691785bd530ad1a80dee35d911f0)',
+      ftp: 'url(/_blob/f5e1bb068fffae6ed39225391bd64edc)', vo2: 'url(/_blob/7979febf3ce233c85ea9e1dde580903d)',
+      rec: 'url(/_blob/97c5ab1bf9039846a23e32be3943a7a1)', moon: 'url(/_blob/34634d9dd5f1c08358508c44e182d71b)',
+      fuerza: "url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%22-4 -4 32 32%22 fill=%22none%22 stroke=%22%23F2F4FA%22 stroke-width=%222.4%22 stroke-linecap=%22round%22%3E%3Cpath d=%22M7 8v8M4 10v4M17 8v8M20 10v4M7 12h10%22/%3E%3C/svg%3E'), radial-gradient(circle closest-side at 50% 50%, #626B99 0%, #2A3150 70%, #1A1F38 94%, rgba(0,0,0,0) 100%)",
+      none: 'none'
+    };
+    const END = [{ m: 10, p: 50 }, { m: 45, p: 65 }, { m: 10, p: 45 }];
+    const SS = [{ m: 10, p: 50 }, { m: 15, p: 90 }, { m: 5, p: 50 }, { m: 15, p: 90 }, { m: 10, p: 45 }];
+    const LONG = [{ m: 15, p: 50 }, { m: 90, p: 66 }, { m: 15, p: 45 }];
+    const VO2 = [{ m: 12, p: 50 }, { m: 3, p: 115 }, { m: 3, p: 50 }, { m: 3, p: 115 }, { m: 3, p: 50 }, { m: 3, p: 115 }, { m: 3, p: 50 }, { m: 3, p: 115 }, { m: 3, p: 50 }, { m: 3, p: 115 }, { m: 10, p: 45 }];
+    const raw = [
+      { label: 'LUN 12', when: 'lunes 12 · hecho', name: 'Endurance', short: '60′ · 38 TSS', meta: '60 min · 38 TSS · 78 W promedio', st: 'done', tok: 'end', blocks: END, note: 'Sesión completa dentro de los límites.', secondary: 'Ver sesión →' },
+      { label: 'HOY · MAR 13', when: 'hoy · martes 13', name: 'Endurance · Sesión 1', short: '65′ · 23 TSS', meta: '65 min · 23 TSS · 74–86 W', st: 'today', tok: 'end', blocks: END, note: '[Por qué hoy: nota del coach.]', secondary: 'Mover de día →' },
+      { label: 'MIÉ 14', when: 'miércoles 14', name: 'Fuerza y movilidad', short: '40′ · RPE 5', meta: '40 min · RPE objetivo 5', st: 'other', tok: 'fuerza', blocks: null, note: 'Rutina de tu coach. Cuenta en tu cansancio aunque no sea bici.', secondary: 'Registrar rutina →' },
+      { label: 'JUE 15', when: 'jueves 15', name: 'Sweet spot 2 × 15', short: '60′ · 62 TSS', meta: '60 min · 62 TSS', st: 'plan', tok: 'ss', blocks: SS, note: '[Nota del coach.]', secondary: 'Mover de día →' },
+      { label: 'VIE 16', when: 'viernes 16', name: 'Descanso', short: 'Sin bici', meta: 'Sin entrenamiento', st: 'rest', tok: 'moon', blocks: null, note: 'Descansar también es parte del plan.', secondary: 'Agregar entrenamiento →' },
+      { label: 'SÁB 17', when: 'sábado 17', name: 'Larga Z2', short: '2 h · 95 TSS', meta: '2 h · 95 TSS', st: 'plan', tok: 'end', blocks: LONG, note: '[Nota del coach.]', secondary: 'Mover de día →' },
+      { label: 'DOM 18', when: 'domingo 18', name: 'VO2max 5 × 3', short: '55′ · 58 TSS', meta: '55 min · 58 TSS', st: 'plan', tok: 'vo2', blocks: VO2, note: '[Nota del coach.]', secondary: 'Mover de día →' }
+    ];
+    const s = this.state.sel;
+    const days = raw.map((d, i) => ({
+      label: d.label, name: d.name, short: d.short, img: T[d.tok],
+      aria: d.when + ': ' + d.name, sel: i === s ? 'true' : 'false',
+      bg: i === s ? '#1A1F38' : '#11152A',
+      ring: i === s ? 'inset 0 0 0 1.5px #FF6A1F, 0 18px 40px rgba(0,0,0,0.35)' : (d.st === 'today' ? 'inset 0 0 0 1px #5A3A2A' : 'none'),
+      labelColor: d.st === 'today' ? '#FF8A4C' : '#7F88A8',
+      op: d.st === 'rest' ? '0.85' : '1',
+      check: d.st === 'done' ? 'flex' : 'none',
+      pick: () => this.setState({ sel: i })
+    }));
+    const c = raw[s];
+    const prof = c.blocks ? mtn(c.blocks, 400, 48) : { top: '', fill: '', color: '#3A4266' };
+    const cur = { ...c, img: T[c.tok], prof, hasProfile: !!c.blocks, profileAria: 'Perfil del workout ' + c.name, canRide: c.st === 'today' || c.st === 'plan', labelColor: c.st === 'today' ? '#FF8A4C' : '#A9B1CC' };
+    const pattern = [null, 'end', 'fuerza', 'ss', 'moon', 'end', 'vo2'];
+    const names = ['', 'Endurance', 'Fuerza', 'Sweet spot', 'Descanso', 'Larga Z2', 'VO2max'];
+    const month = Array.from({ length: 35 }, (_, i) => { const n = i - 2; const k = pattern[i % 7]; const inMonth = n >= 1 && n <= 31; return {
+      n: inMonth ? String(n) : '', name: inMonth ? names[i % 7] : '', img: inMonth && k ? T[k] : 'none', tokOp: n < 13 ? '0.55' : '1',
+      ring: n === 13 ? 'inset 0 0 0 1.5px #FF6A1F' : 'none', op: inMonth ? '1' : '0.3' }; });
+    const w = this.state.view === 'week';
+    return {
+      days, cur, month, isWeek: w, isMonth: !w,
+      more: this.state.more, moreStr: this.state.more ? 'true' : 'false', toggleMore: () => this.setState({ more: !this.state.more }),
+      rangeLabel: w ? '12 – 18 de octubre' : 'octubre 2026',
+      weekOn: w ? 'true' : 'false', monthOn: w ? 'false' : 'true',
+      weekBg: w ? '#F2F4FA' : 'transparent', weekColor: w ? '#0B0D1A' : '#A9B1CC',
+      monthBg: w ? 'transparent' : '#F2F4FA', monthColor: w ? '#A9B1CC' : '#0B0D1A',
+      showWeek: () => this.setState({ view: 'week' }), showMonth: () => this.setState({ view: 'month' })
+    };
+  }
+}
+</script>
+</body>
+</html>
