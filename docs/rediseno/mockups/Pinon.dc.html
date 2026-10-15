@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Torq · Piñón, el coach</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D1A}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid #FF6A1F;outline-offset:3px}
+.pk{position:absolute;inset:0;border:0;padding:0;background:none;transform:translateY(100%);transition:transform .45s cubic-bezier(.2,.9,.25,1.15);pointer-events:none}
+.pk.on{transform:translateY(0);pointer-events:auto}
+.pk img{display:block;width:132px;height:73px;transition:transform .22s ease}
+.pk.right img{transform:scaleX(-1)}
+.pk.on:hover img{filter:brightness(1.08)}
+.coach{animation:pop .42s cubic-bezier(.2,.9,.25,1.2) both}
+.flo{animation:flo 3.4s ease-in-out infinite}
+.hop{animation:hop .9s cubic-bezier(.3,1.6,.5,1) 2}
+@keyframes pop{from{opacity:0;transform:translateY(28px) scale(.92)}to{opacity:1;transform:none}}
+@keyframes flo{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-9px) rotate(1.5deg)}}
+@keyframes hop{0%,100%{transform:translateY(0)}35%{transform:translateY(-26px) rotate(-6deg)}65%{transform:translateY(0) rotate(4deg)}}
+.st{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.card:hover .st{transform:translateY(-6px)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){.pk,.pk img,.st{transition:none}.coach,.flo,.hop{animation:none}}
+</style>
+</helmet>
+<div style="min-height: 960px; box-sizing: border-box; padding: 40px 56px; background: #0B0D1A; color: #F2F4FA; font-family: 'Host Grotesk', 'Helvetica Neue', sans-serif; display: flex; flex-direction: column; gap: 28px">
+  <header style="display: flex; flex-direction: column; gap: 6px">
+    <h1 style="margin: 0; font-weight: 600; font-size: 44px; letter-spacing: -0.045em">Piñón, tu coach</h1>
+    <p style="margin: 0; max-width: 760px; font-size: 16px; line-height: 1.5; color: #A9B1CC">Se asoma al azar por el borde de una tarjeta y te sigue con la mirada. Si llegas rápido con el mouse, se esconde; acércate despacio y dale clic para que te hable.</p>
+  </header>
+
+  <div style="display: flex; gap: 32px; align-items: flex-start">
+    <div ref="{{setStage}}" onMouseMove="{{onMove}}" style="position: relative; flex: none; width: 880px; height: 650px">
+      <section aria-label="Hoy toca" style="position: absolute; left: 0; top: 70px; width: 880px; height: 330px; box-sizing: border-box; border-radius: 28px; overflow: hidden; background: #11152A url(/_blob/2d7bacf49b2e427b53e401e19b0f387c) right center / cover no-repeat">
+        <div style="position: absolute; inset: 0; background: linear-gradient(90deg, #0B0D1A 0%, rgba(11,13,26,0.92) 34%, rgba(11,13,26,0.15) 70%, rgba(11,13,26,0) 100%)"></div>
+        <div style="position: relative; height: 100%; box-sizing: border-box; padding: 36px 40px; display: flex; flex-direction: column; justify-content: center; gap: 10px; max-width: 460px">
+          <span style="font-size: 13px; font-weight: 600; letter-spacing: 0.14em; color: #FF6A1F">HOY TOCA</span>
+          <h2 style="margin: 0; font-size: 46px; font-weight: 600; letter-spacing: -0.04em; line-height: 1">Endurance Z2</h2>
+          <p style="margin: 0; font-size: 16px; color: #A9B1CC">60 min · suave, conversacional</p>
+          <div style="display: flex; gap: 10px; margin-top: 14px">
+            <a href="Preparar.dc.html" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 999px; background: #FF6A1F; color: #0B0D1A; font-weight: 600; font-size: 16px; text-decoration: none"><span>Empezar a rodar</span></a>
+            <a href="Plan.dc.html" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1px solid #2B3360; color: #F2F4FA; font-size: 16px; text-decoration: none"><span>Cambiar</span></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-label="Tu semana" style="position: absolute; left: 0; top: 480px; width: 428px; height: 170px; box-sizing: border-box; padding: 24px 26px; border-radius: 24px; background: #11152A; display: flex; flex-direction: column; justify-content: space-between">
+        <div style="display: flex; justify-content: space-between; align-items: baseline">
+          <span style="font-size: 15px; color: #A9B1CC">Tu semana</span>
+          <span style="font-size: 15px; color: #A9B1CC">3 de 4 rodadas</span>
+        </div>
+        <div style="display: flex; gap: 10px">
+          <sc-for list="{{week}}" as="d" hint-placeholder-count="7">
+            <span style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px">
+              <span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 50%; background: {{d.bg}}; border: 1.5px solid {{d.ring}}"></span>
+              <span style="font-size: 12px; color: #7F88A8">{{d.l}}</span>
+            </span>
+          </sc-for>
+        </div>
+      </section>
+
+      <section class="card" aria-label="Forma" style="position: absolute; left: 452px; top: 480px; width: 428px; height: 170px; box-sizing: border-box; padding: 24px 26px; border-radius: 24px; background: #11152A; display: flex; align-items: center; justify-content: space-between">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 15px; color: #A9B1CC">Forma</span>
+          <span style="font-size: 44px; font-weight: 600; letter-spacing: -0.04em; line-height: 1">+4</span>
+          <span style="font-size: 14px; color: #A9B1CC">esta semana · vas fresco</span>
+        </div>
+        <span aria-hidden="true" class="st" style="width: 96px; height: 96px; background: url(/_blob/4a39691785bd530ad1a80dee35d911f0) center / contain no-repeat; filter: drop-shadow(0 12px 12px rgba(0,0,0,.5))"></span>
+      </section>
+
+      <div style="position: absolute; left: {{peekX}}; top: {{peekY}}; width: 132px; height: 73px; overflow: hidden; z-index: 3">
+        <button type="button" class="{{peekCls}}" onClick="{{openTalk}}" tabIndex="{{peekTab}}" aria-hidden="{{peekHidden}}" aria-label="Piñón se asoma. Abrir su consejo"><img src="/_blob/e39b6a1b1c2395c2c3fe6f754f38b285" alt=""></button>
+      </div>
+
+      <sc-if value="{{coachOpen}}" hint-placeholder-val="{{ false }}">
+        <div class="coach" role="dialog" aria-label="Piñón te dice" style="position: absolute; right: -8px; bottom: -12px; z-index: 5; display: flex; align-items: flex-end; gap: 4px">
+          <div style="position: relative; width: 330px; margin-bottom: 70px; box-sizing: border-box; padding: 20px 22px 16px; border-radius: 22px 22px 6px 22px; background: #FFF4EC; color: #0B0D1A; box-shadow: 0 18px 40px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 12px">
+            <span style="font-size: 13px; font-weight: 700; letter-spacing: 0.12em; color: #C2410C">{{coachTitle}}</span>
+            <p aria-hidden="true" style="margin: 0; min-height: 66px; font-size: 17px; line-height: 1.4">{{typed}}</p>
+            <span class="sr" aria-live="polite">{{fullText}}</span>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <a href="{{primaryHref}}" style="display: inline-flex; align-items: center; min-height: 42px; padding: 0 18px; border-radius: 999px; background: #FF6A1F; color: #0B0D1A; font-weight: 600; font-size: 15px; text-decoration: none"><span>{{primaryLabel}}</span></a>
+              <button type="button" onClick="{{close}}" style="min-height: 42px; padding: 0 14px; border-radius: 999px; border: 0; background: transparent; color: #4B5070; font-size: 15px">{{closeLabel}}</button>
+            </div>
+          </div>
+          <div class="flo" style="flex: none">
+            <img class="{{figCls}}" src="{{figSrc}}" alt="Piñón" style="display: block; height: 160px; width: auto; filter: drop-shadow(0 16px 16px rgba(0,0,0,.55))">
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <aside aria-label="Estados de Piñón" style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+        <div class="card" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 12px 16px; border-radius: 20px; background: #11152A; text-align: center">
+          <img class="st" src="{{blinkSrc}}" alt="" style="height: 104px; width: auto; filter: drop-shadow(0 10px 10px rgba(0,0,0,.5))">
+          <span style="font-weight: 600; font-size: 16px">Quieto</span>
+          <span style="font-size: 13px; line-height: 1.4; color: #A9B1CC">Parpadea cada 3 a 5 s</span>
+        </div>
+        <div class="card" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 12px 16px; border-radius: 20px; background: #11152A; text-align: center">
+          <img class="st" src="/_blob/a9089738b8efcae366c802ea0e5c047f" alt="" style="height: 104px; width: auto; filter: drop-shadow(0 10px 10px rgba(0,0,0,.5))">
+          <span style="font-weight: 600; font-size: 16px">Habla</span>
+          <span style="font-size: 13px; line-height: 1.4; color: #A9B1CC">Consejo del día en burbuja</span>
+        </div>
+        <div class="card" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 12px 16px; border-radius: 20px; background: #11152A; text-align: center">
+          <img class="st" src="/_blob/f1cfc7134b2a55d5bd83ddd9d2247294" alt="" style="height: 104px; width: auto; filter: drop-shadow(0 10px 10px rgba(0,0,0,.5))">
+          <span style="font-weight: 600; font-size: 16px">Motiva</span>
+          <span style="font-size: 13px; line-height: 1.4; color: #A9B1CC">Semana cerrada, FTP nuevo, récord</span>
+        </div>
+        <div class="card" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 12px 16px; border-radius: 20px; background: #11152A; text-align: center">
+          <span style="height: 104px; display: flex; align-items: flex-end"><img class="st" src="/_blob/e39b6a1b1c2395c2c3fe6f754f38b285" alt="" style="width: 150px; height: auto; display: block; filter: drop-shadow(0 10px 10px rgba(0,0,0,.5))"></span>
+          <span style="font-weight: 600; font-size: 16px">Se asoma</span>
+          <span style="font-size: 13px; line-height: 1.4; color: #A9B1CC">Al azar, en cualquier pantalla</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 20px; background: #11152A">
+        <span style="font-size: 13px; font-weight: 600; letter-spacing: 0.12em; color: #7F88A8">PRUÉBALO</span>
+        <button type="button" onClick="{{peekNow}}" style="min-height: 44px; border-radius: 12px; border: 1px solid #2B3360; background: transparent; color: #F2F4FA; font-size: 15px; text-align: left; padding: 0 14px">Que se asome ahora</button>
+        <button type="button" onClick="{{openMotiva}}" style="min-height: 44px; border-radius: 12px; border: 1px solid #2B3360; background: transparent; color: #F2F4FA; font-size: 15px; text-align: left; padding: 0 14px">Simular: cerraste la semana</button>
+        <button type="button" onClick="{{toggleAuto}}" aria-pressed="{{autoPressed}}" style="min-height: 44px; border-radius: 12px; border: 1px solid #2B3360; background: {{autoBg}}; color: #F2F4FA; font-size: 15px; text-align: left; padding: 0 14px; display: flex; align-items: center; justify-content: space-between"><span>Asomarse solo</span><span style="color: {{autoColor}}">{{autoLabel}}</span></button>
+      </div>
+
+      <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #7F88A8">Aquí mira a la izquierda o a la derecha según dónde esté tu mouse. Para que las pupilas te sigan de verdad, la versión final lleva el eslabón hueco y los ojos y párpados dibujados en código.</p>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.B = {
+      base: '/_blob/2166ab69c5ff9f537b93a8366779584a',
+      blink: '/_blob/4a03e47a7382576601fab30730c319f0',
+      habla: '/_blob/a9089738b8efcae366c802ea0e5c047f',
+      motiva: '/_blob/f1cfc7134b2a55d5bd83ddd9d2247294'
+    };
+    this.spots = [
+      { x: 110, top: 70 }, { x: 420, top: 70 }, { x: 700, top: 70 },
+      { x: 60, top: 480 }, { x: 250, top: 480 }, { x: 510, top: 480 }, { x: 720, top: 480 }
+    ];
+    this.msgs = [
+      'Hoy toca Z2, 60 minutos suaves. Mañana viene el sweet spot, así que guarda piernas. ¿Le damos?',
+      'Llevas 3 de 4 rodadas. Una más y cierras la semana.',
+      'Tu Forma subió 4 puntos. El descanso también entrena, eh.'
+    ];
+    this.motiva = '¡4 de 4! Así se construye la Forma. El lunes subimos un poquito.';
+    this.timers = {};
+    this.last = null;
+    this.state = { peek: true, spot: 1, lookRight: false, blink: false, coach: null, n: 0, typed: 0, auto: true };
+    this.setStage = el => { this.stage = el; };
+    this.onMove = e => this.move(e);
+    this.openTalk = () => this.openCoach('habla');
+    this.openMotiva = () => this.openCoach('motiva');
+    this.close = () => this.closeCoach();
+    this.peekNow = () => { this.closeCoach(true); this.showPeek(); };
+    this.toggleAuto = () => {
+      const auto = !this.state.auto;
+      this.setState({ auto });
+      if (auto) this.later('show', 1200, () => this.showPeek());
+      else clearTimeout(this.timers.show);
+    };
+    this.onKey = e => { if (e.key === 'Escape' && this.state.coach) this.closeCoach(); };
+  }
+  componentDidMount() {
+    this.rm = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (typeof document !== 'undefined') document.addEventListener('keydown', this.onKey);
+    this.blinkLoop();
+    this.later('hide', 4200, () => this.hidePeek());
+  }
+  componentWillUnmount() {
+    Object.keys(this.timers).forEach(k => { clearTimeout(this.timers[k]); clearInterval(this.timers[k]); });
+    if (typeof document !== 'undefined') document.removeEventListener('keydown', this.onKey);
+  }
+  later(k, ms, fn) { clearTimeout(this.timers[k]); this.timers[k] = setTimeout(fn, ms); }
+  blinkLoop() {
+    if (this.rm) return;
+    this.later('blink', 2800 + Math.random() * 2200, () => {
+      this.setState({ blink: true });
+      this.later('unblink', 140, () => { this.setState({ blink: false }); this.blinkLoop(); });
+    });
+  }
+  showPeek() {
+    if (this.state.coach) return;
+    let s = this.state.spot;
+    while (s === this.state.spot) s = Math.floor(Math.random() * this.spots.length);
+    this.setState({ peek: true, spot: s, lookRight: Math.random() < 0.5 });
+    this.later('hide', 4800, () => this.hidePeek());
+  }
+  hidePeek() {
+    clearTimeout(this.timers.hide);
+    if (this.state.peek) this.setState({ peek: false });
+    if (this.state.auto && !this.state.coach) this.later('show', 2500 + Math.random() * 3500, () => this.showPeek());
+  }
+  move(e) {
+    if (!this.stage || !this.state.peek) { this.last = null; return; }
+    const r = this.stage.getBoundingClientRect();
+    const k = r.width / 880 || 1;
+    const x = (e.clientX - r.left) / k, y = (e.clientY - r.top) / k;
+    const now = Date.now();
+    let speed = 0;
+    if (this.last && now > this.last.t) speed = Math.hypot(x - this.last.x, y - this.last.y) / (now - this.last.t);
+    this.last = { x, y, t: now };
+    const s = this.spots[this.state.spot];
+    const cx = s.x + 66, cy = s.top - 30;
+    const d = Math.hypot(x - cx, y - cy);
+    if (d < 150 && speed > 1.3) { this.hidePeek(); return; }
+    if (d < 220) this.later('hide', 3200, () => this.hidePeek());
+    const lr = x > cx;
+    if (lr !== this.state.lookRight) this.setState({ lookRight: lr });
+  }
+  openCoach(kind) {
+    clearTimeout(this.timers.show); clearTimeout(this.timers.hide); clearInterval(this.timers.type);
+    const idx = this.state.n % this.msgs.length;
+    const text = kind === 'motiva' ? this.motiva : this.msgs[idx];
+    this.fullLen = text.length;
+    this.setState({ coach: kind, peek: false, n: kind === 'habla' ? this.state.n + 1 : this.state.n, msgIdx: idx, typed: this.rm ? 9999 : 0 });
+    if (this.rm) return;
+    this.timers.type = setInterval(() => {
+      if (this.state.typed >= this.fullLen) { clearInterval(this.timers.type); return; }
+      this.setState({ typed: this.state.typed + 2 });
+    }, 32);
+  }
+  closeCoach(silent) {
+    clearInterval(this.timers.type);
+    if (this.state.coach) this.setState({ coach: null });
+    if (!silent && this.state.auto) this.later('show', 3000, () => this.showPeek());
+  }
+  renderVals() {
+    const st = this.state, B = this.B;
+    const s = this.spots[st.spot];
+    const kind = st.coach;
+    const text = kind === 'motiva' ? this.motiva : this.msgs[st.msgIdx || 0];
+    const typing = kind && st.typed < text.length;
+    const days = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+    const done = [1, 0, 1, 1, 0, 0, 0];
+    return {
+      setStage: this.setStage, onMove: this.onMove, openTalk: this.openTalk, openMotiva: this.openMotiva,
+      close: this.close, peekNow: this.peekNow, toggleAuto: this.toggleAuto,
+      week: days.map((l, i) => ({ l, bg: done[i] ? '#FF6A1F' : 'transparent', ring: done[i] ? '#FF6A1F' : (i === 3 ? '#F2F4FA' : '#2B3360') })),
+      peekX: s.x + 'px', peekY: (s.top - 73) + 'px',
+      peekCls: 'pk' + (st.peek ? ' on' : '') + (st.lookRight ? ' right' : ''),
+      peekTab: st.peek ? 0 : -1, peekHidden: st.peek ? 'false' : 'true',
+      coachOpen: !!kind,
+      coachTitle: kind === 'motiva' ? '¡SEMANA CERRADA!' : 'PIÑÓN',
+      typed: kind ? text.slice(0, st.typed) : '',
+      fullText: kind ? text : '',
+      primaryLabel: kind === 'motiva' ? 'Ver mi semana' : 'Empezar a rodar',
+      primaryHref: kind === 'motiva' ? 'Plan.dc.html' : 'Preparar.dc.html',
+      closeLabel: kind === 'motiva' ? 'Gracias' : 'Luego',
+      figSrc: kind === 'motiva' ? B.motiva : (typing ? B.habla : (st.blink ? B.blink : B.base)),
+      figCls: kind === 'motiva' ? 'hop' : '',
+      blinkSrc: st.blink ? B.blink : B.base,
+      autoPressed: st.auto ? 'true' : 'false',
+      autoBg: st.auto ? '#1C2240' : 'transparent',
+      autoColor: st.auto ? '#FF6A1F' : '#7F88A8',
+      autoLabel: st.auto ? 'Sí' : 'No'
+    };
+  }
+}
+</script>
+</body>
+</html>

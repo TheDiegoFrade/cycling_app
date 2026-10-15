@@ -238,6 +238,11 @@ del día seleccionado). Lo demás se queda quieto hasta el hover.
   en el último cuadro. Falta un loop de pedaleo bueno y la versión mujer, así
   que no lo actives hasta que existan. Con reduced-motion se ve solo el poster.
 
+### Fase 7 · Piñón, la mascota del coach de IA
+
+Todo está en `docs/rediseno/PINON.md`, con sus imágenes en `public/brand/pinon/`
+y la demo en `mockups/Pinon.dc.html`. Va en su propio PR.
+
 ---
 
 ## 4. Cómo revisar cada PR

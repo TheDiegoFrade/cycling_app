@@ -2,6 +2,7 @@ import './ui/styles.css';
 import type { Screen } from './ui/router';
 import { refresh, registerScreen, startRouter } from './ui/router';
 import { installClickSound } from './ui/click-sound';
+import { schedulePinonGuide, schedulePinonPeek, startPinonBlink } from './ui/pinon';
 import { withSidebar } from './ui/sidebar';
 import { renderCalendar } from './ui/screens/calendar';
 import { renderConnect } from './ui/screens/connect';
@@ -39,17 +40,34 @@ function guarded(render: RenderFn): RenderFn {
   return (container) => (appState.cloudEnabled && !appState.user ? renderLogin(container) : render(container));
 }
 
+/** Piñón explica estas pantallas la primera vez y se asoma en las del
+ * atleta (ver ui/pinon.ts). Su cleanup va
+ * junto con el de la pantalla: el router lo corre al cambiar de pantalla. Al
+ * envolver por dentro de guarded(), nunca aparece en el login. */
+function withPinon(screen: Screen, render: RenderFn): RenderFn {
+  return (container) => {
+    const cleanup = render(container);
+    const stopPeek = schedulePinonPeek(screen, container);
+    const stopGuide = schedulePinonGuide(screen, container);
+    return () => {
+      stopPeek();
+      stopGuide();
+      if (cleanup) cleanup();
+    };
+  };
+}
+
 // Home, Plan, Historial, Forma y Perfil viven detrás de la barra lateral fija
 // (ver TORQ_DESIGN.md, "Navegación"); Prepare/Sesión en vivo/Login no la usan.
 const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
-  ['home', withSidebar('home', renderHome)],
-  ['plan', withSidebar('plan', renderCalendar)],
-  ['library', withSidebar('library', renderLibrary)],
+  ['home', withPinon('home', withSidebar('home', renderHome))],
+  ['plan', withPinon('plan', withSidebar('plan', renderCalendar))],
+  ['library', withPinon('library', withSidebar('library', renderLibrary))],
   ['prepare', renderConnect],
   ['train', renderTrain],
   ['session', withSidebar(null, renderSummary)],
-  ['form', withSidebar('form', renderForma)],
-  ['profile', withSidebar('profile', renderPerfil)],
+  ['form', withPinon('form', withSidebar('form', renderForma))],
+  ['profile', withPinon('profile', withSidebar('profile', renderPerfil))],
   ['limits', renderLimits],
   // Registrar fuerza/movilidad (#/log, #/log/:id) — se llega desde Plan.
   ['log', withSidebar('plan', renderLogSession)],
@@ -75,6 +93,7 @@ registerScreen('login', renderLogin); // nunca bloqueada: si no, nadie podría i
 
 installDomTips();
 installClickSound();
+startPinonBlink();
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = '<div class="screen"><p class="hint">Cargando…</p></div>';
 

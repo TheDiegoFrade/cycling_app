@@ -9,6 +9,7 @@ import { localPowerBests, bestOf } from './screens/history';
 import { getPowerRecords } from '../sync/cloud-sync';
 import { appState } from './state';
 import { dayKeyOf } from '../core/day-key';
+import { pinonFigureHtml } from './pinon';
 
 /** Lo mínimo que necesita el toast de celebración para mostrarse — un
  * `Achievement` del catálogo fijo cumple esto de sobra (trae además el
@@ -105,7 +106,7 @@ export function showAchievementCelebration(achievements: readonly CelebratableAc
   el.className = 'achievement-celebration';
   const title = achievements.length === 1 ? '¡Nuevo logro desbloqueado!' : `¡${achievements.length} logros nuevos desbloqueados!`;
   el.innerHTML = `
-    <div class="achievement-celebration-trophy">🏆</div>
+    <div class="achievement-celebration-trophy">${pinonFigureHtml('motiva', 64)}<span class="achievement-celebration-fallback" hidden>🏆</span></div>
     <div class="achievement-celebration-title">${title}</div>
     <div class="achievement-celebration-list">
       ${achievements
@@ -122,6 +123,13 @@ export function showAchievementCelebration(achievements: readonly CelebratableAc
         .join('')}
     </div>
   `;
+  // Piñón celebra (pose «motiva», con salto); si su imagen no carga, el trofeo.
+  const pinon = el.querySelector<HTMLElement>('.pinon');
+  if (pinon && !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)) pinon.classList.add('pinon-hop');
+  pinon?.querySelector('img')?.addEventListener('error', () => {
+    pinon.remove();
+    el.querySelector<HTMLElement>('.achievement-celebration-fallback')?.removeAttribute('hidden');
+  });
   el.addEventListener('click', () => el.remove());
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 8000);

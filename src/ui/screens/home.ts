@@ -15,6 +15,9 @@ import { appState } from '../state';
 import { escapeHtml } from '../workout-cover';
 import { tokenForIntervals, tokenForTemplate, tokenForWorkout, tokenHtml } from '../workout-token';
 import { montanasVideoHtml } from '../montanas-video';
+import { maybeCelebrateStreak, maybeCelebrateWeek, maybeWelcomeBack } from '../pinon';
+import { computeWeeklyStreak } from '../../engine/streaks';
+import { humanCoachName } from '../coach-notice';
 import type { Token } from '../workout-token';
 import { isNonBikeKind } from '../../core/session-kind';
 import { wireDatePicker } from '../date-picker';
@@ -169,7 +172,7 @@ export function renderHome(container: HTMLElement): void {
 
   function heroCardHtml(): string {
     return `
-      <section class="home-scene" aria-label="Hoy toca">
+      <section class="home-scene" aria-label="Hoy toca" data-pinon-perch>
         ${montanasVideoHtml('home-scene-img')}
         <div class="home-scene-shade" aria-hidden="true"></div>
         <a href="#/profile" class="perfil-avatar perfil-avatar-link home-scene-avatar" aria-label="Ir a tu perfil" title="Tu perfil">${initial}</a>
@@ -201,7 +204,7 @@ export function renderHome(container: HTMLElement): void {
           <span class="home-week-sub"><span class="num" id="week-hours">0:00</span> h · <span class="num" id="week-tss">0</span> TSS</span>
           <span class="home-week-link">ver plan →</span>
         </a>
-        <div class="home-week-tiles-wrap"><div class="home-week-tiles" id="week-days"></div></div>
+        <div class="home-week-tiles-wrap" data-pinon-perch><div class="home-week-tiles" id="week-days"></div></div>
         <div class="home-week-zones">
           <div class="live-col-label" style="margin-bottom:8px">Tiempo por zona</div>
           <div class="home-week-zonebar" id="week-zonebar"></div>
@@ -410,6 +413,23 @@ export function renderHome(container: HTMLElement): void {
       (w) => w.scheduledDate && w.scheduledDate >= weekStartKey && w.scheduledDate < toDateKey(weekEndExclusive) && !minutesByDay.has(w.scheduledDate),
     ).length;
     const totalThisWeek = completedThisWeek + scheduledPendingThisWeek;
+
+    // Semana cerrada: todo lo agendado de esta semana ya se entrenó. Piñón lo
+    // celebra una sola vez por semana (ver ui/pinon.ts).
+    const scheduledThisWeek = appState.workouts.filter((w) => w.scheduledDate && w.scheduledDate >= weekStartKey && w.scheduledDate < toDateKey(weekEndExclusive));
+    const scheduledDone = scheduledThisWeek.filter((w) => minutesByDay.has(w.scheduledDate!)).length;
+    if (container.isConnected) {
+      // Apoyo de Piñón, uno a la vez (cada función se salta si ya hay burbuja):
+      // semana cerrada, racha de semanas seguidas y bienvenida tras días sin rodar.
+      maybeCelebrateWeek(scheduledDone, scheduledThisWeek.length, weekStartKey);
+      const rideDays = [
+        ...sessions.filter(isBikeSession).map((s) => dayKeyOf(s.startedAt)),
+        ...appState.cloudSessions.filter((s) => !localIds.has(s.id) && isBikeSession(s)).map((s) => dayKeyOf(s.startedAt)),
+      ].filter((k) => k <= todayKey);
+      maybeCelebrateStreak(computeWeeklyStreak(rideDays, todayKey).currentWeeks);
+      const lastRide = rideDays.length ? rideDays.reduce((a, b) => (a > b ? a : b)) : null;
+      maybeWelcomeBack(lastRide, todayKey, humanCoachName() !== null);
+    }
 
     container.querySelector('#week-hours')!.textContent = fmtHours(totalSeconds);
     container.querySelector('#week-tss')!.textContent = String(Math.round(totalTss));

@@ -295,7 +295,7 @@ export function renderLibrary(container: HTMLElement): () => void {
 
   function libraryTabHtml(): string {
     return `
-      <div class="library-filters">
+      <div class="library-filters" data-pinon-perch>
         <input type="search" id="lib-search" placeholder="Buscar por título…" value="${search}">
         ${search ? '<button id="lib-clear-filters" class="btn-light">Limpiar filtros</button>' : ''}
       </div>
@@ -305,7 +305,7 @@ export function renderLibrary(container: HTMLElement): () => void {
 
   function activityTabHtml(): string {
     const filterRow = `
-      <div class="library-filters">
+      <div class="library-filters" data-pinon-perch>
         <label class="live-col-label">Desde<input type="date" id="lib-date-from" value="${dateFrom}"></label>
         <label class="live-col-label">Hasta<input type="date" id="lib-date-to" value="${dateTo}"></label>
         ${dateFrom || dateTo ? '<button id="lib-clear-filters" class="btn-light">Limpiar filtros</button>' : ''}
