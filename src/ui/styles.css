@@ -1348,6 +1348,319 @@ a {
   border-radius: 4px 4px 0 0;
 }
 
+/* ── Sesión en vivo · look TORQ ──
+ * Tarjetas redondeadas como el resto de la app; la zona del bloque (--zone,
+ * la pone paintBlockHeader) tiñe la píldora, el brillo de fondo y el borde de
+ * las tarjetas. Las alertas son tarjetas con borde que late, legibles a 2 m,
+ * y al achicarse quedan como una píldora arriba, no una franja plana. */
+.live {
+  --zone: var(--z1);
+  background:
+    radial-gradient(120% 70% at 50% -10%, color-mix(in srgb, var(--zone) 16%, transparent), transparent 60%),
+    var(--bg);
+  transition: background 0.6s;
+}
+.live-zonestrip {
+  height: 6px;
+  margin: 0 32px;
+  border-radius: 0 0 6px 6px;
+  transition: background 0.6s;
+}
+.live-zonepill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  background: color-mix(in srgb, var(--zone) 18%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--zone) 55%, transparent);
+  white-space: nowrap;
+}
+.live-zonepill-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--zone);
+  box-shadow: 0 0 10px var(--zone);
+}
+.live-blockinfo {
+  color: var(--text-soft);
+  font-weight: 500;
+}
+.live-clock {
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.live-intensity,
+.live-menu-btn,
+.live-erg-quick {
+  background: var(--card);
+  border: 1px solid var(--border-control);
+}
+.live-intensity button:hover,
+.live-menu-btn:hover,
+.live-erg-quick:hover {
+  background: var(--card-hover);
+}
+.live-erg-quick {
+  height: 52px;
+  padding: 0 18px;
+  border-radius: 26px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.live-erg-quick.off {
+  background: transparent;
+  border-style: dashed;
+}
+.live-pause-btn {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.live-pause-btn:hover {
+  background: var(--accent-light);
+}
+.live-menu {
+  background: var(--card);
+  border: 1px solid var(--border-control);
+}
+.live-center {
+  gap: 20px;
+  padding: 18px 32px;
+}
+.live-power-col,
+.live-block-col {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+  padding: 22px 28px 26px;
+  align-self: stretch;
+  justify-content: center;
+}
+.live-power-col {
+  border-color: color-mix(in srgb, var(--zone) 40%, var(--border));
+}
+.live .live-col-label,
+.live-metric-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+.live .live-power-rangebar {
+  background: var(--border-control);
+}
+.live-bottom-row {
+  gap: 20px;
+  padding: 0 32px 18px;
+  align-items: stretch;
+}
+.live-metric {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 14px 24px 16px;
+  min-width: 200px;
+}
+.live-metric-num {
+  font-size: 72px;
+  letter-spacing: -2px;
+}
+.live-metric-sub {
+  font-weight: 600;
+}
+.live-graph {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  margin: 0 32px 24px;
+}
+
+/* Alertas y mensajes: tarjeta encima de las dos tarjetas de números. */
+.live-message-overlay {
+  inset: 18px 32px;
+  border-radius: var(--radius-2xl);
+  border: 3px solid transparent;
+  gap: 14px;
+  animation: live-alert-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.live-message-icon {
+  display: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.live-message-icon::before {
+  content: '!';
+}
+.live-message-danger .live-message-icon,
+.live-message-adjust .live-message-icon {
+  display: flex;
+}
+.live-message-title {
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+.live-message-danger {
+  background: color-mix(in srgb, var(--danger) 16%, var(--card));
+  border-color: var(--danger);
+  color: var(--text);
+  animation:
+    live-alert-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1),
+    live-alert-pulse 1.6s ease-in-out 0.35s infinite;
+  --pulse: var(--danger);
+}
+.live-message-danger .live-message-icon {
+  background: var(--danger);
+  color: #fff;
+}
+.live-message-danger .live-message-detail {
+  color: #ffc9cf;
+}
+.live-message-adjust {
+  background: color-mix(in srgb, var(--z4) 14%, var(--card));
+  border-color: var(--z4);
+  color: var(--text);
+  animation:
+    live-alert-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1),
+    live-alert-pulse 1.6s ease-in-out 0.35s infinite;
+  --pulse: var(--z4);
+}
+.live-message-adjust .live-message-icon {
+  background: var(--z4);
+  color: #211700;
+}
+.live-message-adjust .live-message-detail {
+  color: #ffe2a6;
+}
+.live-message-info {
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  border-color: color-mix(in srgb, var(--zone) 60%, var(--border));
+  backdrop-filter: blur(6px);
+}
+.live-message-pause {
+  background: color-mix(in srgb, var(--card) 96%, transparent);
+  border: 3px dashed var(--border-control);
+  outline: none;
+}
+/* Sostenida: píldora arriba, centrada, sin tapar los números grandes. */
+.live-message-overlay.compact {
+  inset: 6px auto auto 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 64px);
+  padding: 10px 22px 10px 12px;
+  border-radius: 999px;
+  border-width: 2px;
+  gap: 12px;
+  animation: live-alert-pulse 1.6s ease-in-out infinite;
+  z-index: 6;
+}
+.live-message-overlay.compact .live-message-icon {
+  width: 34px;
+  height: 34px;
+  font-size: 22px;
+}
+.live-message-overlay.compact .live-message-title {
+  font-size: 28px;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+.live-message-overlay.compact .live-message-detail {
+  font-size: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+@keyframes live-alert-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+@keyframes live-alert-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--pulse, transparent) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--pulse, transparent) 0%, transparent);
+  }
+}
+
+/* Piñón al rodar: esquina derecha de la fila de cadencia/pulso. */
+.live-pinon {
+  margin-left: auto;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 440px;
+  padding: 10px 20px 10px 10px;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  border-radius: var(--radius-xl);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+.live-pinon[hidden] {
+  display: none;
+}
+.live-pinon.on {
+  animation: live-pinon-in 0.45s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.live-pinon .pinon {
+  flex-shrink: 0;
+}
+.live-pinon-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.live-pinon-text b {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.live-pinon-text span:empty {
+  display: none;
+}
+.live-pinon-text span {
+  font-size: 15px;
+  color: var(--text-muted);
+}
+@keyframes live-pinon-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live,
+  .live-zonestrip {
+    transition: none;
+  }
+  .live-message-overlay,
+  .live-message-danger,
+  .live-message-adjust,
+  .live-message-overlay.compact,
+  .live-pinon.on {
+    animation: none;
+  }
+}
+
 .count {
   position: fixed;
   inset: 0;
@@ -6885,5 +7198,97 @@ button.plan-month-done-label {
   .pinon-hop,
   .pinon-bubble-layer {
     animation: none;
+  }
+}
+
+/* Sesión en vivo · look TORQ en celular (va al final para ganarle a lo de arriba) */
+@media (max-width: 760px) {
+  .live-zonestrip {
+    margin: 0 12px;
+  }
+  .live-erg-quick {
+    height: 44px;
+  }
+  .live-center {
+    gap: 12px;
+    padding: 12px;
+  }
+  .live-power-col,
+  .live-block-col {
+    padding: 14px 18px 18px;
+    border-radius: var(--radius-xl);
+  }
+  .live-message-overlay {
+    inset: 12px;
+  }
+  .live-message-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 30px;
+  }
+  .live-message-overlay.compact {
+    inset: 4px 12px auto 12px;
+    transform: none;
+    width: auto;
+    max-width: none;
+    border-radius: var(--radius-lg);
+  }
+  .live-message-overlay.compact.on {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 12px;
+    row-gap: 0;
+    text-align: left;
+    padding: 8px 14px 8px 10px;
+  }
+  .live-message-overlay.compact .live-message-icon {
+    grid-row: span 2;
+  }
+  .live-message-overlay.compact .live-message-title,
+  .live-message-overlay.compact .live-message-detail {
+    white-space: normal;
+  }
+  .live-message-overlay.compact .live-message-title {
+    font-size: 18px;
+  }
+  .live-message-overlay.compact .live-message-detail {
+    font-size: 14px;
+  }
+  .live-bottom-row {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0 12px 10px;
+  }
+  .live-metric {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 10px 14px 12px;
+  }
+  .live-metric-num {
+    font-size: 44px;
+  }
+  /* flota sobre la gráfica: no empuja nada al aparecer y desaparecer */
+  .live-pinon {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: 7;
+    max-width: none;
+    margin-left: 0;
+  }
+  .live-pinon-text b {
+    font-size: 17px;
+  }
+  .live-graph {
+    margin: 0 12px calc(12px + env(safe-area-inset-bottom));
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .live-pinon .pinon img {
+    height: 48px;
+  }
+  .live-metric {
+    padding: 6px 14px 8px;
   }
 }

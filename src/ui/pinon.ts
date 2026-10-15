@@ -1,8 +1,9 @@
 // Piñón, la mascota del coach de IA (docs/rediseno/PINON.md). Todo vive aquí;
 // las pantallas solo lo llaman. No llama a la IA ni a Supabase: el consejo se
 // arma con lo que la app ya sabe (pinon-context.ts, que se carga al hacer
-// clic). Nunca en train, prepare, login, limits, invite ni coach-*, ni con un
-// modal abierto. Con «reducir movimiento» nada se anima.
+// clic). Nunca en train (salvo la esquina de pinon-ride.ts), prepare, login,
+// limits, invite ni coach-*, ni con un modal abierto. Con «reducir
+// movimiento» nada se anima.
 import type { Screen } from './router';
 import type { WorkoutZone } from '../core/workout-zone';
 
@@ -312,6 +313,7 @@ export function openPinonBubble(opts: {
     window.clearInterval(typer);
     document.removeEventListener('keydown', onKey, true);
     document.removeEventListener('pointerdown', onOutside, true);
+    window.removeEventListener('hashchange', close);
     layer.remove();
     if (closeCurrentBubble === close) closeCurrentBubble = null;
     const target = prevFocus && prevFocus.isConnected && prevFocus !== document.body ? prevFocus : opts.returnFocus;
@@ -327,6 +329,9 @@ export function openPinonBubble(opts: {
     if (!layer.contains(e.target as Node)) close();
   };
   document.addEventListener('keydown', onKey, true);
+  // Se cambió de pantalla sin tocar fuera (teclado, navigate() del código):
+  // la burbuja no se queda flotando en otra pantalla (ni en la sesión en vivo).
+  window.addEventListener('hashchange', close);
   // El clic que la abrió no debe cerrarla: se escucha desde el siguiente.
   window.setTimeout(() => document.addEventListener('pointerdown', onOutside, true), 0);
   layer.querySelector('.pinon-btn-later')!.addEventListener('click', () => {

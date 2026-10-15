@@ -81,6 +81,13 @@ Estilos en `styles.css` bajo un bloque `/* ── Piñón ── */`. Clases con
 `invite`, ni en las pantallas `coach-*` (son del coach humano). Tampoco mientras
 haya un modal abierto (`.modal-backdrop`, `.ob-modal`).
 
+**Excepción: Piñón al rodar** (`src/ui/pinon-ride.ts`, pedida después de la
+Fase 7). En `train` no se asoma ni abre burbujas. Solo sale en la esquina
+derecha de la fila de cadencia y pulso, con mensajes de ánimo en hitos del
+bloque o de la sesión y tras 4 min seguidos en zona. Sale como máximo cada
+75 s, nunca encima de una alerta (se quita en cuanto sale una) y se apaga en
+Perfil («Piñón al rodar»).
+
 ## 5. Se asoma (el comportamiento travieso)
 
 **Dónde puede asomarse:** solo en elementos marcados con `data-pinon-perch`.
