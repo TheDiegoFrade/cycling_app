@@ -46,7 +46,7 @@ const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
  * `bikeOnly` deja fuera fuerza/movilidad: el TSS, el PMC y las horas que ve
  * la IA son de bici, igual que Forma (ver core/session-kind.ts). Los
  * registros "No la hice" nunca entran — no se entrenó. */
-async function aiEligibleSessions(bikeOnly: boolean): Promise<{
+export async function aiEligibleSessions(bikeOnly: boolean): Promise<{
   localSessions: SessionRecord[];
   cloudOnly: typeof appState.cloudSessions;
 }> {

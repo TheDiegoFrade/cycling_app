@@ -101,12 +101,12 @@ function computePmc(entries) {
   let ctl = 0;
   let atl = 0;
   for (const d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
-    const dateKey = toDateKey(d);
+    const dateKey2 = toDateKey(d);
     const tsb = ctl - atl;
-    const tss = tssByDate.get(dateKey) ?? 0;
+    const tss = tssByDate.get(dateKey2) ?? 0;
     ctl = ctl + (tss - ctl) * ctlFactor;
     atl = atl + (tss - atl) * atlFactor;
-    points.push({ dateKey, ctl, atl, tsb });
+    points.push({ dateKey: dateKey2, ctl, atl, tsb });
   }
   return points;
 }
@@ -128,8 +128,8 @@ function dayKeyOf(iso, timeZone) {
 }
 
 // src/engine/streaks.ts
-function mondayOfWeek(dateKey) {
-  const [y, m, d] = dateKey.split("-").map(Number);
+function mondayOfWeek(dateKey2) {
+  const [y, m, d] = dateKey2.split("-").map(Number);
   const date = new Date(Date.UTC(y, m - 1, d));
   const mondayOffset = (date.getUTCDay() + 6) % 7;
   date.setUTCDate(date.getUTCDate() - mondayOffset);
@@ -514,13 +514,13 @@ function startPhase(startedOn, monthKey) {
 
 // src/core/eval-week.ts
 var DAY_MS = 864e5;
-function mondayKey(dateKey) {
-  const d = /* @__PURE__ */ new Date(`${dateKey}T00:00:00Z`);
+function mondayKey(dateKey2) {
+  const d = /* @__PURE__ */ new Date(`${dateKey2}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7);
   return d.toISOString().slice(0, 10);
 }
-function planWeekOf(startDate, dateKey) {
-  const diff = Date.parse(`${mondayKey(dateKey)}T00:00:00Z`) - Date.parse(`${mondayKey(startDate)}T00:00:00Z`);
+function planWeekOf(startDate, dateKey2) {
+  const diff = Date.parse(`${mondayKey(dateKey2)}T00:00:00Z`) - Date.parse(`${mondayKey(startDate)}T00:00:00Z`);
   return Math.round(diff / DAY_MS / 7);
 }
 function evalWeekTarget(startDate, todayKey) {
@@ -598,6 +598,99 @@ var UNLIMITED_COACH_USER_IDS = /* @__PURE__ */ new Set([
 function hasUnlimitedCoach(userId) {
   return !!userId && UNLIMITED_COACH_USER_IDS.has(userId);
 }
+
+// src/core/pinon-chat.ts
+var PINON_MAX_CHARS = 200;
+var PINON_DAILY_AI_LIMIT = 10;
+var CHANGE_VERBS = "(mueve|mover|muevas|cambia|cambiar|cambies|quita|quitar|quites|borra|borrar|elimina|eliminar|agrega|agregar|anade|anadir|reprograma|reprogramar|ajusta|ajustar|modifica|modificar|recorre|recorrer|cancela|cancelar)";
+var CHANGE_ONLY_ENCLITIC = "(subeme|subele|bajame|bajale|ponme|ponle|pasame|pasale)";
+var CHANGE_RE = new RegExp(
+  `\\b(${CHANGE_VERBS}(me|le|lo|la|melo|mela|selo|sela)?|${CHANGE_ONLY_ENCLITIC})\\b.*\\b(entreno|entrenamiento|entrenamientos|plan|sesion|sesiones|dia|semana|workout|rodada|intervalos?|intensidad|ftp|zonas?)\\b`
+);
+
+// src/core/pinon-chat-request.ts
+var PINON_HISTORY_TURNS = 6;
+var HISTORY_TEXT_MAX = 400;
+var NOTE_MAX = 240;
+var NAME_MAX = 80;
+var DESCRIPTION_MAX = 400;
+var RECENT_MAX = 6;
+var ZONES = ["fondo", "tempo", "sweet spot", "umbral", "VO2", "test"];
+var str = (v, max) => typeof v === "string" && v.trim() ? v.trim().slice(0, max) : null;
+var num = (v, min, max) => typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, Math.round(v * 10) / 10)) : null;
+var dateKey = (v) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
+function session(v) {
+  if (!v || typeof v !== "object") return null;
+  const s = v;
+  const date = dateKey(s.date);
+  const name = str(s.name, NAME_MAX);
+  if (!date || !name) return null;
+  return { date, name, minutes: num(s.minutes, 0, 1e3) ?? 0, tss: num(s.tss, 0, 1e3), rpe: num(s.rpe, 1, 10), note: str(s.note, NOTE_MAX) };
+}
+function context(v) {
+  if (!v || typeof v !== "object") return null;
+  const c = v;
+  const todayKey = dateKey(c.todayKey);
+  if (!todayKey) return null;
+  const t = c.today;
+  const todayName = t ? str(t.name, NAME_MAX) : null;
+  const w = c.week ?? {};
+  const f = c.form;
+  const ctl = f ? num(f.ctl, -500, 500) : null;
+  const atl = f ? num(f.atl, -500, 500) : null;
+  const tsb = f ? num(f.tsb, -500, 500) : null;
+  return {
+    todayKey,
+    humanCoach: c.humanCoach === true,
+    hasPlan: c.hasPlan !== false,
+    ftp: num(c.ftp, 0, 700) ?? 0,
+    ...t && todayName ? {
+      today: {
+        name: todayName,
+        minutes: num(t.minutes, 0, 1e3) ?? 0,
+        zone: ZONES.includes(t.zone) ? t.zone : null,
+        description: str(t.description, DESCRIPTION_MAX),
+        done: t.done === true
+      }
+    } : {},
+    week: { done: num(w.done, 0, 50) ?? 0, planned: num(w.planned, 0, 50) ?? 0 },
+    ...ctl !== null && atl !== null && tsb !== null ? { form: { ctl, atl, tsb } } : {},
+    recent: (Array.isArray(c.recent) ? c.recent : []).slice(0, RECENT_MAX).map(session).filter((s) => s !== null),
+    daysSinceLastRide: num(c.daysSinceLastRide, 0, 1e4)
+  };
+}
+function parsePinonRequest(body) {
+  if (!body || typeof body !== "object") return { ok: false, error: "pedido vac\xEDo" };
+  const b = body;
+  const message = typeof b.message === "string" ? b.message.trim() : "";
+  if (!message) return { ok: false, error: "escribe algo para Pi\xF1\xF3n" };
+  if (message.length > PINON_MAX_CHARS) return { ok: false, error: `m\xE1ximo ${PINON_MAX_CHARS} caracteres` };
+  const ctx = context(b.context);
+  if (!ctx) return { ok: false, error: "falta el contexto" };
+  const history = (Array.isArray(b.history) ? b.history : []).slice(-PINON_HISTORY_TURNS).map((h) => {
+    const turn = h;
+    const text = turn ? str(turn.text, HISTORY_TEXT_MAX) : null;
+    return text && (turn.role === "user" || turn.role === "pinon") ? { role: turn.role, text } : null;
+  }).filter((h) => h !== null);
+  return { ok: true, request: { message, history, context: ctx } };
+}
+function pinonLimitReached(usedToday, unlimited) {
+  return !unlimited && usedToday >= PINON_DAILY_AI_LIMIT;
+}
+function pinonUserMessage(req) {
+  const transcript = req.history.map((h) => `${h.role === "user" ? "Atleta" : "Pi\xF1\xF3n"}: ${h.text}`).join("\n");
+  return [
+    `<datos_del_atleta>
+${JSON.stringify(req.context)}
+</datos_del_atleta>`,
+    transcript ? `<conversacion_reciente>
+${transcript}
+</conversacion_reciente>` : "",
+    `<pregunta>
+${req.message}
+</pregunta>`
+  ].filter(Boolean).join("\n\n");
+}
 export {
   addDays,
   buildMonthlyReport,
@@ -609,6 +702,9 @@ export {
   mondayOfWeek,
   monthEnd,
   monthStart,
+  parsePinonRequest,
+  pinonLimitReached,
+  pinonUserMessage,
   planTotalWeeks,
   planWeekOf,
   reviewAiContext,

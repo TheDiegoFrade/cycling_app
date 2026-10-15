@@ -7292,3 +7292,248 @@ button.plan-month-done-label {
     padding: 6px 14px 8px;
   }
 }
+
+/* ── Chat con Piñón (ui/pinon-chat.ts, pinon-chat-launcher.ts) ── */
+.pinon-chat-launcher {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 40;
+  width: 84px;
+  height: 84px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: radial-gradient(circle at 50% 35%, var(--card-hover), var(--card));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 0 0 color-mix(in srgb, var(--accent) 40%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.pinon-chat-launcher:hover {
+  transform: translateY(-3px) rotate(-4deg);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5), 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.pinon-chat-launcher[hidden],
+body:has(.pinon-bubble-layer) .pinon-chat-launcher {
+  display: none;
+}
+.pinon-chat {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 60;
+  width: 400px;
+  height: min(640px, calc(100vh - 48px));
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-2xl);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  animation: pinon-chat-in 0.35s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+@keyframes pinon-chat-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+}
+.pinon-chat-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent);
+}
+.pinon-chat-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.pinon-chat-title b {
+  font-size: 18px;
+}
+.pinon-chat-title span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.pinon-chat-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-control);
+  background: transparent;
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  padding: 0;
+}
+.pinon-chat-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pinon-chat-msg {
+  max-width: 85%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+.pinon-chat-msg p {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.pinon-chat-msg.pinon p {
+  background: var(--surface-active);
+  border-bottom-left-radius: 4px;
+}
+.pinon-chat-msg.user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+.pinon-chat-msg.user p {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 500;
+  border-bottom-right-radius: 4px;
+}
+.pinon-chat-action {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+}
+.pinon-chat-action:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.pinon-chat-msg.typing p {
+  display: flex;
+  gap: 5px;
+  padding: 14px 16px;
+}
+.pinon-chat-msg.typing i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  animation: pinon-typing 1s infinite ease-in-out;
+}
+.pinon-chat-msg.typing i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.pinon-chat-msg.typing i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes pinon-typing {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+.pinon-chat-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+}
+.pinon-chat-quick button {
+  font-size: 13px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-control);
+  background: var(--surface);
+  color: var(--text-soft);
+}
+.pinon-chat-quick button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.pinon-chat-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 8px;
+  padding: 8px 16px 14px;
+}
+.pinon-chat-form input {
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-control);
+  background: var(--surface-sunken);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+}
+.pinon-chat-send {
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+.pinon-chat-send:disabled {
+  opacity: 0.5;
+}
+.pinon-chat-count {
+  grid-column: 1;
+  font-size: 11px;
+  color: var(--text-label);
+  padding-left: 14px;
+}
+@media (max-width: 760px) {
+  .pinon-chat-launcher {
+    right: 14px;
+    bottom: 14px;
+    width: 64px;
+    height: 64px;
+  }
+  .pinon-chat-launcher .pinon img {
+    height: 48px;
+  }
+  .pinon-chat {
+    right: 8px;
+    left: 8px;
+    bottom: 8px;
+    width: auto;
+    height: calc(100dvh - 16px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pinon-chat,
+  .pinon-chat-msg.typing i {
+    animation: none;
+  }
+  .pinon-chat-launcher,
+  .pinon-chat-launcher:hover {
+    transition: none;
+    transform: none;
+  }
+}
