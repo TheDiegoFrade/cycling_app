@@ -12,7 +12,10 @@ import { downloadSessionSamples, pushSessionToCloud } from '../../sync/cloud-syn
 import { pushWorkoutToCloud } from '../../sync/workout-sync';
 import { navigate, refresh } from '../router';
 import { appState } from '../state';
-import { escapeHtml, renderWorkoutCover } from '../workout-cover';
+import { escapeHtml } from '../workout-cover';
+import { tokenForIntervals, tokenForTemplate, tokenForWorkout, tokenHtml } from '../workout-token';
+import type { Token } from '../workout-token';
+import { isNonBikeKind } from '../../core/session-kind';
 import { wireDatePicker } from '../date-picker';
 import { isSupabaseConfigured } from '../../supabase/client';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
@@ -21,7 +24,7 @@ import { ZONE_NAMES } from '../../core/zones';
 import type { PowerZone } from '../../core/zones';
 import { dayKeyOf } from '../../core/day-key';
 
-const DAY_LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S']; // índice = Date#getDay()
+const DAY_SHORT = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB']; // índice = Date#getDay()
 const MONTH_NAMES_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 function errorsHtml(errors: string[]): string {
@@ -87,39 +90,90 @@ export function renderHome(container: HTMLElement): void {
           .filter((w): w is Workout & { scheduledDate: string } => Boolean(w.scheduledDate) && w.scheduledDate! > todayKey)
           .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate))[0];
 
-  function heroCardFor(w: Workout, label: string): string {
+  // Zona que se lee en la meta del hero («65 min · 74–86 W · Z2»).
+  const TOKEN_ZONE: Record<Token, string> = { rec: 'Z1', end: 'Z2', ss: 'Z3', ftp: 'Z4', vo2: 'Z5', moon: '', fuerza: '' };
+
+  function metaFor(w: Workout): string {
     const est = estimateWorkout(w.intervals, appState.profile.ftp);
     const [low, high] = est.wattsRange;
     const wattsLabel = low === high ? `${low} W` : `${low}–${high} W`;
-    return `
-      <div class="home-hero-card home-hero-clickable" data-workout-id="${w.id}">
-        ${renderWorkoutCover(w.intervals, 'lg')}
-        <div class="home-hero-body">
-          <div>
-            <div class="live-col-label">${label}</div>
-            <div class="home-hero-title">${escapeHtml(w.name)}</div>
-            <div class="hint">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS · a ${wattsLabel}</div>
-          </div>
-          <button class="home-play-btn" aria-label="Empezar">▶</button>
+    const zone = TOKEN_ZONE[tokenForWorkout(w)];
+    return [`${Math.round(est.durationS / 60)} min`, wattsLabel, zone, `${est.tss ?? '—'} TSS`].filter(Boolean).join(' · ');
+  }
+
+  /** Lo que está conectado, debajo del botón de rodar. */
+  function sensorsHint(): string {
+    const trainerOn = appState.trainer?.state === 'connected';
+    const hrOn = appState.hr?.state === 'connected';
+    if (trainerOn && hrOn) return 'Rodillo y pulso conectados';
+    if (trainerOn) return 'Rodillo conectado';
+    return 'Rodillo sin conectar · se conecta en el siguiente paso';
+  }
+
+  const PLAY_ICON = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path d="M6 4v16l14-8z" fill="currentColor"></path></svg>';
+
+  /** Botón de rodar: hace lo mismo que el ▶ de antes (Antes de empezar con
+   * ese workout). */
+  function rideBtn(w: Workout, label = 'Empezar a rodar', small = false): string {
+    return `<button type="button" class="home-ride-btn${small ? ' small' : ''}" data-ride-id="${w.id}">${PLAY_ICON}<span>${label}</span></button>`;
+  }
+
+  function heroTitle(text: string, token: Token): string {
+    // Los nombres del coach o importados son largos: bajan de tamaño para no partir palabras.
+    const size = text.length > 22 ? ' long' : text.length > 9 ? ' mid' : '';
+    return `<div class="home-scene-titlerow"><h1 class="home-scene-title${size}">${escapeHtml(text)}</h1>${tokenHtml(token, 76, 'bob')}</div>`;
+  }
+
+  function heroContentHtml(): string {
+    const hello = `${greeting()}${name ? `, ${escapeHtml(name)}` : ''}`;
+    if (todayWorkouts.length > 1) {
+      // Hoy puede tener hasta 2 agendados (MAX_PER_DAY en calendar.ts): cada uno con su botón.
+      return `
+        <span class="home-scene-hello">${hello} · hoy toca, elige uno</span>
+        <div class="home-scene-choices">
+          ${todayWorkouts
+            .map(
+              (w) => `
+            <div class="home-scene-choice">
+              ${tokenHtml(tokenForWorkout(w), 56)}
+              <div class="home-scene-choice-text">
+                <span class="home-scene-choice-name">${escapeHtml(w.name)}</span>
+                <span class="home-scene-meta">${metaFor(w)}</span>
+              </div>
+              ${rideBtn(w, 'Rodar', true)}
+            </div>`,
+            )
+            .join('')}
         </div>
+        <span class="home-scene-hint">${sensorsHint()}</span>`;
+    }
+    const w = todayWorkouts[0] ?? nextWorkout;
+    if (!w) {
+      return `
+        <span class="home-scene-hello">${hello} · hoy toca</span>
+        ${heroTitle('Nada agendado', 'moon')}
+        <span class="home-scene-meta">Elige o agenda un workout en Plan para verlo aquí.</span>
+        <div class="home-scene-cta"><a href="#/plan" class="home-ride-btn">Ir a Plan</a></div>`;
+    }
+    const label = todayWorkouts.length ? `${hello} · hoy toca` : `${hello} · agendado · ${w.scheduledDate}`;
+    return `
+      <span class="home-scene-hello">${label}</span>
+      ${heroTitle(w.name, tokenForWorkout(w))}
+      <span class="home-scene-meta">${metaFor(w)}</span>
+      <div class="home-scene-cta">
+        ${rideBtn(w)}
+        <span class="home-scene-hint">${sensorsHint()}</span>
       </div>`;
   }
 
   function heroCardHtml(): string {
-    if (todayWorkouts.length > 0) {
-      const label = todayWorkouts.length > 1 ? 'Hoy toca — elige uno' : 'Hoy toca';
-      return todayWorkouts.map((w) => heroCardFor(w, label)).join('');
-    }
-    if (!nextWorkout) {
-      return `
-        <div class="home-hero-card home-hero-empty">
-          <div class="live-col-label">Hoy toca</div>
-          <div class="home-hero-title">Nada agendado</div>
-          <p class="hint">Elige o agenda un workout en Plan para verlo aquí.</p>
-          <a href="#/plan" class="prepare-link">Ir a Plan</a>
-        </div>`;
-    }
-    return heroCardFor(nextWorkout, `Agendado · ${nextWorkout.scheduledDate}`);
+    return `
+      <section class="home-scene" aria-label="Hoy toca">
+        <img class="home-scene-img drift" src="/brand/escena-hoy.webp" alt="">
+        <div class="home-scene-shade" aria-hidden="true"></div>
+        <a href="#/profile" class="perfil-avatar perfil-avatar-link home-scene-avatar" aria-label="Ir a tu perfil" title="Tu perfil">${initial}</a>
+        <div class="home-scene-col">${heroContentHtml()}</div>
+      </section>`;
   }
 
   const needsOnboarding = isSupabaseConfigured() && !!appState.user && !isCoachProfileComplete(appState.profile);
@@ -127,10 +181,6 @@ export function renderHome(container: HTMLElement): void {
   container.innerHTML = `
     <div class="screen home-screen">
       <div id="draft-recovery"></div>
-      <div class="home-topline">
-        <h1>${greeting()}${name ? `, ${name}` : ''}</h1>
-        <a href="#/profile" class="perfil-avatar perfil-avatar-link" aria-label="Ir a tu perfil" title="Tu perfil">${initial}</a>
-      </div>
 
       ${
         needsOnboarding
@@ -141,28 +191,30 @@ export function renderHome(container: HTMLElement): void {
           : ''
       }
 
-      <div class="home-grid">
-        <div class="home-grid-hero">${heroCardHtml()}</div>
-        <div class="panel home-week-card" id="week-card">
-          <div class="home-week-head"><h2 class="perfil-h2" style="margin:0">Esta semana</h2></div>
-          <div class="home-week-nums">
-            <div><div class="prepare-stat-num num" id="week-count">0/0</div><div class="live-col-label">entrenamientos</div></div>
-            <div><div class="prepare-stat-num num" id="week-hours">0:00</div><div class="live-col-label">horas</div></div>
-            <div><div class="prepare-stat-num num" id="week-tss">0</div><div class="live-col-label">TSS</div></div>
-          </div>
-          <div>
-            <div class="live-col-label" style="margin-bottom:8px">Tiempo por zona</div>
-            <div class="home-week-zonebar" id="week-zonebar"></div>
-          </div>
-          <div class="home-week-days" id="week-days"></div>
+      ${heroCardHtml()}
+
+      <section class="home-week" id="week-card" aria-label="Esta semana">
+        <a href="#/plan" class="home-week-summary">
+          <span class="home-week-kicker">Esta semana</span>
+          <span class="home-week-big"><span class="num" id="week-count">—</span> <span class="home-week-unit">entrenamientos</span></span>
+          <span class="home-week-sub"><span class="num" id="week-hours">0:00</span> h · <span class="num" id="week-tss">0</span> TSS</span>
+          <span class="home-week-link">ver plan →</span>
+        </a>
+        <div class="home-week-tiles-wrap"><div class="home-week-tiles" id="week-days"></div></div>
+        <div class="home-week-zones">
+          <div class="live-col-label" style="margin-bottom:8px">Tiempo por zona</div>
+          <div class="home-week-zonebar" id="week-zonebar"></div>
         </div>
-      </div>
+      </section>
 
       <div class="panel home-generate">
         <h2 class="perfil-h2" style="margin:0">Generar workout</h2>
         <p class="hint" style="margin:4px 0 0">Créalo y entrena ahora mismo — también queda guardado en tu Plan.</p>
-        <div class="plan-chip-row" id="gen-chips" style="margin-top:12px">
-          ${WORKOUT_TEMPLATES.map((t, i) => `<button class="plan-chip${i === 0 ? ' on' : ''}" data-template="${t.id}">${t.name}</button>`).join('')}
+        <div class="home-gen-cards" id="gen-chips" role="radiogroup" aria-label="Tipo de workout">
+          ${WORKOUT_TEMPLATES.map(
+            (t, i) =>
+              `<button type="button" role="radio" aria-checked="${i === 0}" class="home-gen-card lift${i === 0 ? ' on' : ''}" data-template="${t.id}">${tokenHtml(tokenForTemplate(t.id) ?? 'end', 54)}<span>${t.name}</span></button>`,
+          ).join('')}
         </div>
         <label class="live-col-label">Duración<input type="number" id="gen-minutes" value="${WORKOUT_TEMPLATES[0].defaultMinutes}" min="${WORKOUT_TEMPLATES[0].minMinutes}" max="${WORKOUT_TEMPLATES[0].maxMinutes}"></label>
         <p class="hint" id="gen-description">${WORKOUT_TEMPLATES[0].description}</p>
@@ -177,11 +229,9 @@ export function renderHome(container: HTMLElement): void {
     </div>
   `;
 
-  container.querySelectorAll<HTMLElement>('.home-hero-clickable').forEach((card) => {
-    card.addEventListener('click', () => {
-      const id = card.dataset.workoutId;
-      if (!id) return;
-      appState.selectedWorkoutId = id;
+  container.querySelectorAll<HTMLButtonElement>('[data-ride-id]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      appState.selectedWorkoutId = btn.dataset.rideId!;
       navigate('prepare');
     });
   });
@@ -191,7 +241,7 @@ export function renderHome(container: HTMLElement): void {
   });
 
   function wireGenerate(): void {
-    const chips = container.querySelectorAll<HTMLButtonElement>('.plan-chip');
+    const chips = container.querySelectorAll<HTMLButtonElement>('.home-gen-card');
     const minutesInput = container.querySelector<HTMLInputElement>('#gen-minutes')!;
     const description = container.querySelector<HTMLElement>('#gen-description')!;
     const genErrors = container.querySelector<HTMLElement>('#gen-errors')!;
@@ -213,8 +263,12 @@ export function renderHome(container: HTMLElement): void {
 
     chips.forEach((chip) => {
       chip.addEventListener('click', () => {
-        chips.forEach((c) => c.classList.remove('on'));
+        chips.forEach((c) => {
+          c.classList.remove('on');
+          c.setAttribute('aria-checked', 'false');
+        });
         chip.classList.add('on');
+        chip.setAttribute('aria-checked', 'true');
         const t = findTemplate(chip.dataset.template!);
         if (!t) return;
         minutesInput.min = String(t.minMinutes);
@@ -225,7 +279,7 @@ export function renderHome(container: HTMLElement): void {
     });
 
     container.querySelector('#gen-create')?.addEventListener('click', async () => {
-      const activeChip = container.querySelector<HTMLButtonElement>('.plan-chip.on');
+      const activeChip = container.querySelector<HTMLButtonElement>('.home-gen-card.on');
       const t = findTemplate(activeChip?.dataset.template ?? WORKOUT_TEMPLATES[0].id);
       if (!t) return;
       const minutes = Math.round(Number(minutesInput.value));
@@ -291,8 +345,18 @@ export function renderHome(container: HTMLElement): void {
     const zoneSeconds = [0, 0, 0, 0, 0, 0];
     const minutesByDay = new Map<string, number>();
     const tssByDay = new Map<string, number>();
+    // Objeto de cada día hecho: el del workout que se entrenó o, si fue libre,
+    // el de su intensidad (IF), y la bolita de fuerza para lo que no es bici.
+    const doneTokenByDay = new Map<string, Token>();
+    const workoutById = new Map(appState.workouts.map((w) => [w.id, w]));
+    const doneToken = (workoutId: string | null | undefined, intensityFactor: number | null | undefined): Token => {
+      const w = workoutId ? workoutById.get(workoutId) : undefined;
+      if (w) return tokenForWorkout(w);
+      return tokenForIntervals([{ name: 'libre', type: 'steady', power_pct: Math.round((intensityFactor ?? 0.65) * 100), duration_s: 600 }]);
+    };
     weekSessions.forEach((s: SessionRecord) => {
       const analytics = computeSessionAnalytics(s.samples, { ...appState.profile, ftp: s.ftp });
+      if (!doneTokenByDay.has(dayKeyOf(s.startedAt))) doneTokenByDay.set(dayKeyOf(s.startedAt), doneToken(s.workoutId, analytics.intensityFactor));
       totalSeconds += s.samples.length;
       totalTss += analytics.trainingStressScore ?? 0;
       analytics.powerZoneSeconds.forEach((z, i) => (zoneSeconds[i] += z.seconds));
@@ -310,6 +374,7 @@ export function renderHome(container: HTMLElement): void {
       return key >= weekStartKey && key < toDateKey(weekEndExclusive);
     });
     cloudOnlyThisWeek.forEach((s) => {
+      if (!doneTokenByDay.has(dayKeyOf(s.startedAt))) doneTokenByDay.set(dayKeyOf(s.startedAt), doneToken(s.workoutId, s.intensityFactor));
       const durationS = Math.max(0, (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 1000);
       totalSeconds += durationS;
       totalTss += s.trainingStressScore ?? 0;
@@ -359,8 +424,13 @@ export function renderHome(container: HTMLElement): void {
       })
       .join('');
 
-    // la barra más alta de la semana llena 64 px; el resto, en proporción
-    const maxDayMinutes = Math.max(60, ...minutesByDay.values());
+    // Fuerza, movilidad, correr… registrados esa semana (no suman a horas ni TSS).
+    const inWeek = (key: string) => key >= weekStartKey && key < toDateKey(weekEndExclusive);
+    const nonBikeDays = new Set([
+      ...sessions.filter((x) => isNonBikeKind(x.kind) && inWeek(dayKeyOf(x.startedAt))).map((x) => dayKeyOf(x.startedAt)),
+      ...appState.cloudSessions.filter((x) => !localIds.has(x.id) && isNonBikeKind(x.kind) && inWeek(dayKeyOf(x.startedAt))).map((x) => dayKeyOf(x.startedAt)),
+    ]);
+
     const daysHtml: string[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(weekStart);
@@ -368,18 +438,21 @@ export function renderHome(container: HTMLElement): void {
       const key = toDateKey(d);
       const isToday = key === todayKey;
       const minutes = minutesByDay.get(key) ?? 0;
-      const heightPx = minutes > 0 ? Math.max(6, Math.round((minutes / maxDayMinutes) * 64)) : 6;
-      const barStyle = minutes > 0 ? `height:${heightPx}px;background:var(--text-soft)` : isToday ? `height:${heightPx}px;background:transparent;border:1.5px dashed var(--text-soft);box-sizing:border-box` : `height:${heightPx}px;background:var(--surface-active)`;
       const dayTss = Math.round(tssByDay.get(key) ?? 0);
+      const planned = appState.workouts.find((w) => w.scheduledDate === key);
+      const done = minutes > 0 || nonBikeDays.has(key);
+      const token: Token = doneTokenByDay.get(key) ?? (planned ? tokenForWorkout(planned) : nonBikeDays.has(key) ? 'fuerza' : 'moon');
       const dayName = d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric' });
+      const what = done ? 'hecho' : planned ? planned.name : key > todayKey || isToday ? 'sin nada agendado' : 'descanso';
       const dayTip =
         tipTitle(dayName.charAt(0).toUpperCase() + dayName.slice(1)) +
-        (minutes > 0 ? tipRow('Tiempo', fmtMinutes(minutes * 60)) + tipRow('TSS', String(dayTss)) : tipRow(key > todayKey ? 'Pendiente' : 'Descanso', '—'));
+        (minutes > 0 ? tipRow('Tiempo', fmtMinutes(minutes * 60)) + tipRow('TSS', String(dayTss)) : tipRow(planned && !done ? 'Agendado' : key > todayKey ? 'Pendiente' : 'Descanso', planned && !done ? escapeHtml(planned.name) : '—'));
       daysHtml.push(`
-        <div class="home-week-day" data-tip="${escapeHtml(dayTip)}">
-          <div class="home-week-daybar" style="${barStyle}"></div>
-          <div class="home-week-daylabel" style="${isToday ? 'color:var(--text);font-weight:500' : ''}">${isToday ? 'Hoy' : DAY_LETTERS[d.getDay()]}</div>
-        </div>`);
+        <a href="#/plan" class="home-week-tile lift${isToday ? ' today' : ''}${token === 'moon' ? ' rest' : ''}" data-tip="${escapeHtml(dayTip)}" aria-label="${escapeHtml(`${dayName}: ${what}`)}">
+          <span class="home-week-tile-day">${isToday ? 'HOY' : DAY_SHORT[d.getDay()]}</span>
+          ${tokenHtml(token, 46)}
+          ${done ? '<span class="home-week-tile-check" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0B0D1A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg></span>' : ''}
+        </a>`);
     }
     container.querySelector('#week-days')!.innerHTML = daysHtml.join('');
   }

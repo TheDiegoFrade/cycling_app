@@ -20,7 +20,8 @@ describe('workout-token', () => {
     expect(tokenForIntervals([warm, iv(50, 1800), cool])).toBe('rec');
     expect(tokenForIntervals([warm, iv(65, 3600), cool])).toBe('end');
     expect(tokenForIntervals([warm, iv(80, 1200), cool])).toBe('ss');
-    expect(tokenForIntervals([warm, iv(88, 480), iv(55, 240), iv(88, 480), cool])).toBe('ftp');
+    expect(tokenForIntervals([warm, iv(88, 480), iv(55, 240), iv(88, 480), cool])).toBe('ss');
+    expect(tokenForIntervals([warm, iv(97, 900), iv(55, 300), iv(97, 900), cool])).toBe('ftp');
     expect(tokenForIntervals([warm, iv(110, 180), iv(50, 180), cool])).toBe('vo2');
   });
 

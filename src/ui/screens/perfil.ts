@@ -213,6 +213,7 @@ export function renderPerfil(container: HTMLElement): void {
 
             <div class="panel perfil-panel">
               <h2 class="perfil-h2">Ilustración de fondo</h2>
+              <p class="hint" style="margin:4px 0 10px">Se ve en la pantalla de inicio de sesión.</p>
               <div class="perfil-illustration-toggle">
                 <button data-hero="man" class="${appState.settings.heroCharacter === 'man' ? 'on' : ''}">Ciclista hombre</button>
                 <button data-hero="woman" class="${appState.settings.heroCharacter === 'woman' ? 'on' : ''}">Ciclista mujer</button>

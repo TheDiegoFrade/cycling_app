@@ -30,9 +30,11 @@ export function tokenForIntervals(intervals: readonly Interval[]): Token {
     if (acc >= MIN_WORK_S) break;
   }
   if (acc < MIN_WORK_S) pct = 0; // sesión de puro calentamiento o vacía
+  // Mismos cortes que src/core/workout-zone.ts: tempo y sweet spot (76-95 %)
+  // son los dos bloques verdes; umbral, el pico ámbar.
   if (pct < 56) return 'rec';
   if (pct < 76) return 'end';
-  if (pct < 88) return 'ss';
+  if (pct < 95) return 'ss';
   if (pct < 106) return 'ftp';
   return 'vo2';
 }
