@@ -59,6 +59,51 @@ export function shouldCelebrateWeek(done: number, planned: number, alreadyCelebr
   return !alreadyCelebrated && planned > 0 && done >= planned;
 }
 
+// ── Guía la primera vez, apoyo y juego (lógica pura) ────────────────────────
+
+export type GuideScreen = 'home' | 'plan' | 'form' | 'library' | 'profile';
+export const GUIDE_SCREENS: readonly GuideScreen[] = ['home', 'plan', 'form', 'library', 'profile'];
+export const GUIDES_OFF_KEY = 'torq.pinon.guides';
+const guideKey = (screen: GuideScreen) => `torq.pinon.guide.${screen}`;
+const CATCHES_KEY = 'torq.pinon.catches';
+
+/** Lo que Piñón explica la primera vez que entras a cada pantalla. */
+export const GUIDES: Record<GuideScreen, string> = {
+  home: 'Aquí ves qué toca hoy. Dale a Empezar a rodar y en el siguiente paso conectas tu rodillo.',
+  plan: 'Tu semana. Toca un día para ver el detalle; arrastra un entrenamiento para moverlo.',
+  form: 'Fitness es tu base, Fatiga lo cansado que vienes. Si la Forma es positiva, llegas fresco.',
+  library: 'Todo lo que has rodado. Toca una sesión para ver cómo te fue y ponerle tu RPE.',
+  profile: 'Pon tu FTP y tu pulso máximo: con eso calculo tus zonas.',
+};
+
+/** ¿Explicar esta pantalla? Solo la primera vez y si no apagaste las guías. */
+export function shouldShowGuide(screen: Screen, seen: boolean, guidesOff: boolean): boolean {
+  return !guidesOff && !seen && (GUIDE_SCREENS as readonly Screen[]).includes(screen);
+}
+
+/** Días sin rodar a partir de los cuales Piñón te da la bienvenida de vuelta. */
+export const WELCOME_BACK_DAYS = 5;
+export function shouldWelcomeBack(daysSinceLastRide: number | null, alreadyShown: boolean): boolean {
+  return !alreadyShown && daysSinceLastRide !== null && daysSinceLastRide >= WELCOME_BACK_DAYS;
+}
+export function welcomeBackText(humanCoach: boolean): string {
+  return humanCoach ? 'Qué bueno verte de vuelta. Tu coach ya tiene tu semana lista.' : 'Qué bueno verte de vuelta. Hoy algo suave para retomar.';
+}
+
+/** Racha: se celebra cada 3 semanas seguidas (3, 6, 9…) una sola vez. */
+export function streakMilestone(weeks: number, lastCelebrated: number): number | null {
+  return weeks >= 3 && weeks % 3 === 0 && weeks > lastCelebrated ? weeks : null;
+}
+
+/** Atraparlo: a las 10, 25, 50 y 100 veces lo celebra; si no, solo cuenta. */
+export const CATCH_MILESTONES = [10, 25, 50, 100] as const;
+export function catchTitle(n: number): string {
+  return `ME ATRAPASTE ${n} ${n === 1 ? 'VEZ' : 'VECES'}`;
+}
+export function isCatchMilestone(n: number): boolean {
+  return (CATCH_MILESTONES as readonly number[]).includes(n);
+}
+
 export interface PinonTipContext {
   todayWorkout?: { name: string; minutes: number; zone: WorkoutZone | null };
   weekDone: number;
@@ -74,7 +119,8 @@ export interface PinonTipContext {
 
 export interface PinonAction {
   label: string;
-  href: string;
+  /** Sin href es un botón que solo cierra (y corre onSelect). */
+  href?: string;
   /** Qué hacer antes de navegar (elegir el workout, abrir Crear plan). */
   onSelect?: () => void;
 }
@@ -213,6 +259,8 @@ export function openPinonBubble(opts: {
   text: string;
   action?: PinonAction;
   dismissLabel?: string;
+  /** Solo al tocar el botón secundario (no con Esc ni clic fuera). */
+  onDismiss?: () => void;
   /** A dónde regresar el foco si lo que lo tenía ya no existe. */
   returnFocus?: HTMLElement | null;
 }): void {
@@ -230,7 +278,7 @@ export function openPinonBubble(opts: {
       <p class="pinon-bubble-text" aria-hidden="true"></p>
       <span class="pinon-sr" aria-live="polite"></span>
       <div class="pinon-bubble-actions">
-        ${opts.action ? `<a class="pinon-btn-primary" href="${escapeHtml(opts.action.href)}">${escapeHtml(opts.action.label)}</a>` : ''}
+        ${opts.action ? (opts.action.href ? `<a class="pinon-btn-primary" href="${escapeHtml(opts.action.href)}">${escapeHtml(opts.action.label)}</a>` : `<button type="button" class="pinon-btn-primary">${escapeHtml(opts.action.label)}</button>`) : ''}
         <button type="button" class="pinon-btn-later">${escapeHtml(opts.dismissLabel ?? 'Luego')}</button>
       </div>
     </div>
@@ -281,8 +329,11 @@ export function openPinonBubble(opts: {
   document.addEventListener('keydown', onKey, true);
   // El clic que la abrió no debe cerrarla: se escucha desde el siguiente.
   window.setTimeout(() => document.addEventListener('pointerdown', onOutside, true), 0);
-  layer.querySelector('.pinon-btn-later')!.addEventListener('click', close);
-  const primary = layer.querySelector<HTMLAnchorElement>('.pinon-btn-primary');
+  layer.querySelector('.pinon-btn-later')!.addEventListener('click', () => {
+    opts.onDismiss?.();
+    close();
+  });
+  const primary = layer.querySelector<HTMLElement>('.pinon-btn-primary');
   primary?.addEventListener('click', () => {
     opts.action?.onSelect?.();
     close();
@@ -295,7 +346,7 @@ export function openPinonBubble(opts: {
 export function maybeCelebrateWeek(done: number, planned: number, weekKey: string): void {
   const key = motivaKey(weekKey);
   if (!shouldCelebrateWeek(done, planned, lsGet(key) === '1')) return;
-  if (document.querySelector('.modal-backdrop, .ob-modal, .pinon-bubble-layer')) return;
+  if (bubbleBusy() || homeGuidePending()) return;
   lsSet(key, '1');
   openPinonBubble({
     pose: 'motiva',
@@ -304,6 +355,74 @@ export function maybeCelebrateWeek(done: number, planned: number, weekKey: strin
     action: { label: 'Ver mi semana', href: '#/plan' },
     dismissLabel: 'Gracias',
   });
+}
+
+const bubbleBusy = (): boolean => !!document.querySelector('.modal-backdrop, .ob-modal, .pinon-bubble-layer');
+/** El apoyo de Inicio (semana, racha, regreso) espera a que su guía ya salió. */
+const homeGuidePending = (): boolean => !areGuidesOff() && lsGet('torq.pinon.guide.home') !== '1';
+
+export function areGuidesOff(): boolean {
+  return lsGet(GUIDES_OFF_KEY) === 'off';
+}
+export function setGuidesOff(off: boolean): void {
+  lsSet(GUIDES_OFF_KEY, off ? 'off' : 'on');
+  if (!off) GUIDE_SCREENS.forEach((g) => lsSet(guideKey(g), '')); // volver a verlas desde cero
+}
+function guideSeen(screen: Screen): boolean {
+  return !(GUIDE_SCREENS as readonly Screen[]).includes(screen) || lsGet(guideKey(screen as GuideScreen)) === '1';
+}
+
+/** La primera vez en una pantalla, Piñón la explica. Devuelve cleanup. */
+export function schedulePinonGuide(screen: Screen, root: HTMLElement): () => void {
+  if (!shouldShowGuide(screen, guideSeen(screen), areGuidesOff())) return () => {};
+  const t = window.setTimeout(() => {
+    if (!root.isConnected || bubbleBusy()) return; // con el cuestionario abierto, en la próxima visita
+    lsSet(guideKey(screen as GuideScreen), '1');
+    openPinonBubble({
+      pose: 'habla',
+      title: 'TE CUENTO',
+      text: GUIDES[screen as GuideScreen],
+      action: { label: 'Entendido' },
+      dismissLabel: 'No mostrar más guías',
+      onDismiss: () => setGuidesOff(true),
+    });
+  }, 1200);
+  return () => window.clearTimeout(t);
+}
+
+/** Celebración suelta (FTP nuevo, racha…). No encima de otra burbuja ni de un modal. */
+export function celebratePinon(title: string, text: string, action?: PinonAction): boolean {
+  if (bubbleBusy()) return false;
+  openPinonBubble({ pose: 'motiva', title, text, action, dismissLabel: 'Gracias' });
+  return true;
+}
+
+/** Bienvenida tras varios días sin rodar; una vez por cada regreso. */
+export function maybeWelcomeBack(lastRideKey: string | null, todayKey: string, humanCoach: boolean): void {
+  if (!lastRideKey || lastRideKey >= todayKey) return;
+  const days = Math.round((new Date(`${todayKey}T00:00:00`).getTime() - new Date(`${lastRideKey}T00:00:00`).getTime()) / 86_400_000);
+  const key = `torq.pinon.back.${lastRideKey}`;
+  if (!shouldWelcomeBack(days, lsGet(key) === '1') || bubbleBusy() || homeGuidePending()) return;
+  lsSet(key, '1');
+  openPinonBubble({ pose: 'habla', title: 'PIÑÓN', text: welcomeBackText(humanCoach), action: { label: 'Ver mi plan', href: '#/plan' } });
+}
+
+/** Racha de 3, 6, 9… semanas seguidas entrenando. */
+export function maybeCelebrateStreak(weeks: number): void {
+  const last = Number(lsGet('torq.pinon.racha')) || 0;
+  const m = streakMilestone(weeks, last);
+  if (m === null || bubbleBusy() || homeGuidePending()) return;
+  lsSet('torq.pinon.racha', String(m));
+  celebratePinon(`¡${m} SEMANAS SEGUIDAS!`, `${m} semanas sin soltar el rodillo. La constancia es lo que más rinde.`);
+}
+
+export function pinonCatches(): number {
+  return Number(lsGet(CATCHES_KEY)) || 0;
+}
+function addCatch(): number {
+  const n = pinonCatches() + 1;
+  lsSet(CATCHES_KEY, String(n));
+  return n;
 }
 
 // ── Se asoma ────────────────────────────────────────────────────────────────
@@ -325,6 +444,8 @@ const CORNER = 28;
 /** Llamar después de renderizar cada pantalla; devuelve el cleanup (el router
  * lo corre al cambiar de pantalla). */
 export function schedulePinonPeek(screen: Screen, root: HTMLElement): () => void {
+  // Primero la guía de la pantalla; asomarse viene en las siguientes visitas.
+  if (!guideSeen(screen) && !areGuidesOff()) return () => {};
   if (!shouldPeek(screen, peeksToday(), isPeekEnabled(), Math.random())) return () => {};
   let hidePeek: (() => void) | null = null;
   const showTimer = window.setTimeout(() => {
@@ -400,8 +521,9 @@ function showPeek(root: HTMLElement): (() => void) | null {
 
   btn.addEventListener('click', () => {
     const returnTo = root.querySelector<HTMLElement>('[data-pinon-perch] a[href], [data-pinon-perch] button');
+    const caught = addCatch(); // el juego: cuántas veces lo has atrapado
     hide(true);
-    void import('./pinon-context').then(({ openPinonTip }) => openPinonTip(returnTo));
+    void import('./pinon-context').then(({ openPinonTip }) => openPinonTip(returnTo, caught));
   });
 
   window.addEventListener('pointermove', onMove);
@@ -414,6 +536,16 @@ function showPeek(root: HTMLElement): (() => void) | null {
   };
   if (still) appear();
   else requestAnimationFrame(() => requestAnimationFrame(appear));
-  scheduleHide(noHover() ? 6000 : 5000);
+  // Travesura: la mitad de las veces solo se asoma un instante, mira a un lado
+  // y al otro, y se vuelve a esconder (si lo alcanzas a tocar, cuenta igual).
+  if (!still && Math.random() < 0.5) {
+    window.setTimeout(() => btn.classList.toggle('right'), 550);
+    window.setTimeout(() => btn.classList.toggle('right'), 1050);
+    window.clearTimeout(hideTimer);
+    hideTimer = window.setTimeout(() => hide(), 1700);
+    window.removeEventListener('pointermove', onMove);
+  } else {
+    scheduleHide(noHover() ? 6000 : 5000);
+  }
   return () => hide(true);
 }

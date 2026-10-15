@@ -16,7 +16,7 @@ import { estimateWorkout } from '../core/workout-estimate';
 import { deleteWorkout } from '../storage/workout-store';
 import { escapeHtml } from './workout-cover';
 import { confirmAiWithHumanCoach, humanCoachName } from './coach-notice';
-import { pinonFigureHtml, pinonSpeak } from './pinon';
+import { celebratePinon, pinonFigureHtml, pinonSpeak } from './pinon';
 import { coachFtpFields, coachProfileExtras, ftpSourceOf, isMeasuredFtp, sourceForAcceptedSuggestion, withFtp } from '../core/coach-profile';
 import { planContextFor, plannedTestLabel, weekStartOf } from '../core/plan-context';
 import { evalWeekTarget, planTotalWeeks } from '../core/eval-week';
@@ -195,6 +195,7 @@ function wireFtpOffer(root: HTMLElement): void {
       appState.profile = withFtp(appState.profile, watts, sourceForAcceptedSuggestion(appState.profile));
       await appState.persistProfile();
       offer.innerHTML = `<p class="hint" style="margin:0">Listo: tu FTP ahora es ${watts} W.</p>`;
+      celebratePinon('¡FTP NUEVO!', `${watts} W. Tus zonas ya están al día.`);
     });
     offer.querySelector('[data-ftp-dismiss]')?.addEventListener('click', () => {
       try {

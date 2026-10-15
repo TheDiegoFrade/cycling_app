@@ -15,7 +15,9 @@ import { appState } from '../state';
 import { escapeHtml } from '../workout-cover';
 import { tokenForIntervals, tokenForTemplate, tokenForWorkout, tokenHtml } from '../workout-token';
 import { montanasVideoHtml } from '../montanas-video';
-import { maybeCelebrateWeek } from '../pinon';
+import { maybeCelebrateStreak, maybeCelebrateWeek, maybeWelcomeBack } from '../pinon';
+import { computeWeeklyStreak } from '../../engine/streaks';
+import { humanCoachName } from '../coach-notice';
 import type { Token } from '../workout-token';
 import { isNonBikeKind } from '../../core/session-kind';
 import { wireDatePicker } from '../date-picker';
@@ -416,7 +418,18 @@ export function renderHome(container: HTMLElement): void {
     // celebra una sola vez por semana (ver ui/pinon.ts).
     const scheduledThisWeek = appState.workouts.filter((w) => w.scheduledDate && w.scheduledDate >= weekStartKey && w.scheduledDate < toDateKey(weekEndExclusive));
     const scheduledDone = scheduledThisWeek.filter((w) => minutesByDay.has(w.scheduledDate!)).length;
-    if (container.isConnected) maybeCelebrateWeek(scheduledDone, scheduledThisWeek.length, weekStartKey);
+    if (container.isConnected) {
+      // Apoyo de Piñón, uno a la vez (cada función se salta si ya hay burbuja):
+      // semana cerrada, racha de semanas seguidas y bienvenida tras días sin rodar.
+      maybeCelebrateWeek(scheduledDone, scheduledThisWeek.length, weekStartKey);
+      const rideDays = [
+        ...sessions.filter(isBikeSession).map((s) => dayKeyOf(s.startedAt)),
+        ...appState.cloudSessions.filter((s) => !localIds.has(s.id) && isBikeSession(s)).map((s) => dayKeyOf(s.startedAt)),
+      ].filter((k) => k <= todayKey);
+      maybeCelebrateStreak(computeWeeklyStreak(rideDays, todayKey).currentWeeks);
+      const lastRide = rideDays.length ? rideDays.reduce((a, b) => (a > b ? a : b)) : null;
+      maybeWelcomeBack(lastRide, todayKey, humanCoachName() !== null);
+    }
 
     container.querySelector('#week-hours')!.textContent = fmtHours(totalSeconds);
     container.querySelector('#week-tss')!.textContent = String(Math.round(totalTss));

@@ -6,7 +6,7 @@ import { ageFromBirthDate, ftpSourceOf, isMeasuredFtp, withFtp } from '../../cor
 import { ZONE_NAMES } from '../../core/zones';
 import type { PowerZone } from '../../core/zones';
 import { beeper } from '../audio';
-import { isPeekEnabled, setPeekEnabled } from '../pinon';
+import { areGuidesOff, isPeekEnabled, pinonCatches, setGuidesOff, setPeekEnabled } from '../pinon';
 import { appState } from '../state';
 import { refresh } from '../router';
 import { escapeHtml } from '../workout-cover';
@@ -226,6 +226,11 @@ export function renderPerfil(container: HTMLElement): void {
                 <span>Piñón se asoma<span class="hint" style="display:block;margin:2px 0 0">La mascota del coach se asoma de vez en cuando por el borde de una tarjeta.</span></span>
                 <button class="switch${isPeekEnabled() ? ' on' : ''}" role="switch" aria-pressed="${isPeekEnabled()}" aria-label="Piñón se asoma" id="pinon-peek-switch"></button>
               </div>
+              <div class="perfil-click-row">
+                <span>Guías de Piñón<span class="hint" style="display:block;margin:2px 0 0">Te explica cada pantalla la primera vez. Al prenderlas de nuevo, vuelven a salir.</span></span>
+                <button class="switch${areGuidesOff() ? '' : ' on'}" role="switch" aria-pressed="${!areGuidesOff()}" aria-label="Guías de Piñón" id="pinon-guides-switch"></button>
+              </div>
+              ${pinonCatches() > 0 ? `<p class="hint" style="margin:8px 0 0">Lo has atrapado ${pinonCatches()} ${pinonCatches() === 1 ? 'vez' : 'veces'}.</p>` : ''}
             </div>
 
             <div class="panel perfil-panel">
@@ -420,6 +425,11 @@ export function renderPerfil(container: HTMLElement): void {
         beeper.unlock();
         beeper.bike(btn.dataset.bikeSound as 'ratchet' | 'shift' | 'bell');
       });
+    });
+
+    container.querySelector('#pinon-guides-switch')?.addEventListener('click', () => {
+      setGuidesOff(!areGuidesOff());
+      paint();
     });
 
     container.querySelector('#pinon-peek-switch')?.addEventListener('click', () => {

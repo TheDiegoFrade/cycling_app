@@ -12,7 +12,7 @@ import { listSessions } from '../storage/session-store';
 import { appState } from './state';
 import { humanCoachName } from './coach-notice';
 import { knownCoachPlanState, requestCoachCreate } from './coach';
-import { openPinonBubble, pinonTip } from './pinon';
+import { catchTitle, isCatchMilestone, openPinonBubble, pinonTip } from './pinon';
 import type { PinonAction, PinonTipContext } from './pinon';
 
 function localKey(d: Date): string {
@@ -66,7 +66,11 @@ export async function buildPinonTipContext(): Promise<{ ctx: PinonTipContext; to
 }
 
 /** Abre la burbuja con el consejo de hoy (clic en el Piñón asomado). */
-export async function openPinonTip(returnFocus: HTMLElement | null): Promise<void> {
+export async function openPinonTip(returnFocus: HTMLElement | null, caught = 0): Promise<void> {
+  if (isCatchMilestone(caught)) {
+    openPinonBubble({ pose: 'motiva', title: catchTitle(caught), text: 'Qué reflejos. Sigo escondiéndome por ahí, a ver si me vuelves a atrapar.', dismissLabel: 'Ja', returnFocus });
+    return;
+  }
   const { ctx, todayWorkoutId } = await buildPinonTipContext();
   const tip = pinonTip(ctx);
   let action: PinonAction | undefined;
@@ -79,5 +83,5 @@ export async function openPinonTip(returnFocus: HTMLElement | null): Promise<voi
       onSelect: kind === 'ride' && todayWorkoutId ? () => (appState.selectedWorkoutId = todayWorkoutId) : kind === 'create' ? requestCoachCreate : undefined,
     };
   }
-  openPinonBubble({ pose: 'habla', title: 'PIÑÓN', text: tip.text, action, returnFocus });
+  openPinonBubble({ pose: 'habla', title: caught > 0 ? catchTitle(caught) : 'PIÑÓN', text: tip.text, action, returnFocus });
 }

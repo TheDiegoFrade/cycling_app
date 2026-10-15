@@ -2,7 +2,7 @@ import './ui/styles.css';
 import type { Screen } from './ui/router';
 import { refresh, registerScreen, startRouter } from './ui/router';
 import { installClickSound } from './ui/click-sound';
-import { schedulePinonPeek, startPinonBlink } from './ui/pinon';
+import { schedulePinonGuide, schedulePinonPeek, startPinonBlink } from './ui/pinon';
 import { withSidebar } from './ui/sidebar';
 import { renderCalendar } from './ui/screens/calendar';
 import { renderConnect } from './ui/screens/connect';
@@ -40,15 +40,18 @@ function guarded(render: RenderFn): RenderFn {
   return (container) => (appState.cloudEnabled && !appState.user ? renderLogin(container) : render(container));
 }
 
-/** Piñón puede asomarse en estas pantallas (ver ui/pinon.ts). Su cleanup va
+/** Piñón explica estas pantallas la primera vez y se asoma en las del
+ * atleta (ver ui/pinon.ts). Su cleanup va
  * junto con el de la pantalla: el router lo corre al cambiar de pantalla. Al
  * envolver por dentro de guarded(), nunca aparece en el login. */
 function withPinon(screen: Screen, render: RenderFn): RenderFn {
   return (container) => {
     const cleanup = render(container);
     const stopPeek = schedulePinonPeek(screen, container);
+    const stopGuide = schedulePinonGuide(screen, container);
     return () => {
       stopPeek();
+      stopGuide();
       if (cleanup) cleanup();
     };
   };
@@ -64,7 +67,7 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['train', renderTrain],
   ['session', withSidebar(null, renderSummary)],
   ['form', withPinon('form', withSidebar('form', renderForma))],
-  ['profile', withSidebar('profile', renderPerfil)],
+  ['profile', withPinon('profile', withSidebar('profile', renderPerfil))],
   ['limits', renderLimits],
   // Registrar fuerza/movilidad (#/log, #/log/:id) — se llega desde Plan.
   ['log', withSidebar('plan', renderLogSession)],

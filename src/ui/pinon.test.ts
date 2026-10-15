@@ -124,3 +124,42 @@ describe('shouldCelebrateWeek', () => {
     expect(shouldCelebrateWeek(4, 4, true)).toBe(false);
   });
 });
+
+describe('guías, apoyo y juego', () => {
+  it('guía: solo la primera vez, en sus pantallas, y nunca si se apagaron', async () => {
+    const { shouldShowGuide, GUIDES } = await import('./pinon');
+    expect(shouldShowGuide('home', false, false)).toBe(true);
+    expect(shouldShowGuide('profile', false, false)).toBe(true);
+    expect(shouldShowGuide('home', true, false)).toBe(false);
+    expect(shouldShowGuide('home', false, true)).toBe(false);
+    for (const s of ['train', 'prepare', 'login', 'limits', 'invite', 'coach-athletes', 'session'] as const) expect(shouldShowGuide(s, false, false)).toBe(false);
+    Object.values(GUIDES).forEach(expectTone);
+  });
+
+  it('bienvenida de vuelta a partir de 5 días sin rodar, una vez', async () => {
+    const { shouldWelcomeBack, welcomeBackText } = await import('./pinon');
+    expect(shouldWelcomeBack(4, false)).toBe(false);
+    expect(shouldWelcomeBack(5, false)).toBe(true);
+    expect(shouldWelcomeBack(12, true)).toBe(false);
+    expect(shouldWelcomeBack(null, false)).toBe(false);
+    expect(welcomeBackText(true)).not.toMatch(/suave|cambia|plan/i);
+    expectTone(welcomeBackText(false));
+    expectTone(welcomeBackText(true));
+  });
+
+  it('racha: cada 3 semanas, sin repetir', async () => {
+    const { streakMilestone } = await import('./pinon');
+    expect(streakMilestone(2, 0)).toBeNull();
+    expect(streakMilestone(3, 0)).toBe(3);
+    expect(streakMilestone(3, 3)).toBeNull();
+    expect(streakMilestone(4, 3)).toBeNull();
+    expect(streakMilestone(6, 3)).toBe(6);
+  });
+
+  it('atraparlo: cuenta y celebra en 10, 25, 50 y 100', async () => {
+    const { catchTitle, isCatchMilestone } = await import('./pinon');
+    expect(catchTitle(1)).toBe('ME ATRAPASTE 1 VEZ');
+    expect(catchTitle(7)).toBe('ME ATRAPASTE 7 VECES');
+    expect([9, 10, 11, 25, 50, 100].map(isCatchMilestone)).toEqual([false, true, false, true, true, true]);
+  });
+});
