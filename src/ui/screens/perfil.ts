@@ -226,6 +226,7 @@ export function renderPerfil(container: HTMLElement): void {
               <div class="perfil-illustration-toggle">
                 <button data-hero="man" class="${appState.settings.heroCharacter === 'man' ? 'on' : ''}">Ciclista hombre</button>
                 <button data-hero="woman" class="${appState.settings.heroCharacter === 'woman' ? 'on' : ''}">Ciclista mujer</button>
+                <button data-hero="montanas" class="${appState.settings.heroCharacter === 'montanas' ? 'on' : ''}">Montañas (animada)</button>
               </div>
             </div>
 
@@ -429,7 +430,7 @@ export function renderPerfil(container: HTMLElement): void {
 
     container.querySelectorAll<HTMLButtonElement>('[data-hero]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const heroCharacter = btn.dataset.hero as 'man' | 'woman';
+        const heroCharacter = btn.dataset.hero as 'man' | 'woman' | 'montanas';
         if (heroCharacter === appState.settings.heroCharacter) return;
         appState.settings = { ...appState.settings, heroCharacter };
         appState.persistSettings();

@@ -13,7 +13,7 @@ export interface AppSettings {
   clickSound: boolean;
   intervalsIcu?: { athleteId: string; apiKey: string };
   /** Quién aparece en la ilustración de fondo del inicio de sesión. */
-  heroCharacter: 'man' | 'woman';
+  heroCharacter: 'man' | 'woman' | 'montanas';
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {

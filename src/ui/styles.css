@@ -6644,3 +6644,25 @@ button.plan-month-done-label {
     color: var(--text);
   }
 }
+
+/* ---- Login: fondo «Montañas» en video (ui/montanas-video.ts) ---- */
+.hero.hero-montanas {
+  background: var(--bg);
+}
+.hero-video-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hero-video-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(11, 13, 26, 0.6) 0%, rgba(11, 13, 26, 0.1) 32%, transparent 55%);
+}
