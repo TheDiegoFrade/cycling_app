@@ -206,6 +206,10 @@ export function renderPerfil(container: HTMLElement): void {
             <div class="panel perfil-panel">
               <h2 class="perfil-h2">Sonidos</h2>
               <label class="perfil-volume">Volumen<input type="range" id="volume" min="0" max="1" step="0.05" value="${appState.settings.soundVolume}"></label>
+              <div class="perfil-click-row">
+                <span>Click al tocar<span class="hint" style="display:block;margin:2px 0 0">Un click vintage en cada botón de la app.</span></span>
+                <button class="switch${appState.settings.clickSound ? ' on' : ''}" role="switch" aria-pressed="${appState.settings.clickSound}" aria-label="Click al tocar" id="click-sound-switch"></button>
+              </div>
               <div class="row-actions">
                 ${SOUNDS.map((s) => `<button data-sound="${s.id}">▶ ${s.label}</button>`).join('')}
               </div>
@@ -396,6 +400,12 @@ export function renderPerfil(container: HTMLElement): void {
       appState.settings = { ...appState.settings, soundVolume: v };
       beeper.setVolume(v);
       appState.persistSettings();
+    });
+
+    container.querySelector('#click-sound-switch')?.addEventListener('click', () => {
+      appState.settings = { ...appState.settings, clickSound: !appState.settings.clickSound };
+      appState.persistSettings();
+      paint();
     });
 
     container.querySelectorAll<HTMLButtonElement>('[data-sound]').forEach((btn) => {

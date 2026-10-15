@@ -6569,3 +6569,78 @@ button.plan-month-done-label {
   margin: 0 auto;
   filter: drop-shadow(0 8px 14px rgba(232, 57, 43, 0.3));
 }
+.perfil-click-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 4px;
+  font-size: 15px;
+}
+
+/* ---- Menú (rediseño): tipografía más legible ---- */
+.sidebar-link {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-soft);
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+.sidebar-link:hover {
+  color: var(--text);
+  background: rgba(28, 34, 64, 0.5);
+}
+.sidebar-link.active {
+  font-weight: 600;
+  color: var(--text);
+}
+.sidebar-group-title,
+.sidebar-sensors-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-label);
+}
+.sidebar-group-title {
+  margin: 18px 12px 6px;
+}
+.sidebar-sensors > .sidebar-sensors-title {
+  padding: 2px 4px 4px;
+}
+.sidebar-sensor-name {
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+.sidebar-sensor-state {
+  font-size: 13px;
+}
+.sidebar-coach-card {
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+.sidebar-profile-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+.sidebar-profile-text .sidebar-sensors-title {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-muted);
+}
+@media (max-width: 760px) {
+  .tabbar-item {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--text-soft);
+  }
+  .tabbar-item.active {
+    font-weight: 600;
+    color: var(--text);
+  }
+}

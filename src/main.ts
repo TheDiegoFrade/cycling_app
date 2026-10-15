@@ -1,6 +1,7 @@
 import './ui/styles.css';
 import type { Screen } from './ui/router';
 import { refresh, registerScreen, startRouter } from './ui/router';
+import { installClickSound } from './ui/click-sound';
 import { withSidebar } from './ui/sidebar';
 import { renderCalendar } from './ui/screens/calendar';
 import { renderConnect } from './ui/screens/connect';
@@ -73,6 +74,7 @@ SCREENS_TO_GUARD.forEach(([screen, render]) => registerScreen(screen, guarded(re
 registerScreen('login', renderLogin); // nunca bloqueada: si no, nadie podría iniciar sesión
 
 installDomTips();
+installClickSound();
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = '<div class="screen"><p class="hint">Cargando…</p></div>';
 

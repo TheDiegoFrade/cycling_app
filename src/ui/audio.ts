@@ -31,6 +31,42 @@ export class Beeper {
     osc.stop(t0 + ms / 1000);
   }
 
+  /** Click mecánico vintage (tecla de máquina de escribir / interruptor
+   * viejo): un golpecito de ruido filtrado y un «toc» grave muy corto. Más
+   * bajo que las alertas: es solo para que tocar se sienta. */
+  click(): void {
+    if (!this.ctx || this.volume <= 0) return;
+    const ctx = this.ctx;
+    const t0 = ctx.currentTime;
+    const level = this.volume * 0.35;
+
+    const len = Math.floor(ctx.sampleRate * 0.025);
+    const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4);
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const band = ctx.createBiquadFilter();
+    band.type = 'bandpass';
+    band.frequency.value = 2400;
+    band.Q.value = 1.4;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = level;
+    noise.connect(band).connect(noiseGain).connect(ctx.destination);
+    noise.start(t0);
+
+    const thock = ctx.createOscillator();
+    const thockGain = ctx.createGain();
+    thock.type = 'triangle';
+    thock.frequency.setValueAtTime(190, t0);
+    thock.frequency.exponentialRampToValueAtTime(90, t0 + 0.04);
+    thockGain.gain.setValueAtTime(level * 0.8, t0);
+    thockGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.05);
+    thock.connect(thockGain).connect(ctx.destination);
+    thock.start(t0);
+    thock.stop(t0 + 0.06);
+  }
+
   play(sound: SoundId): void {
     switch (sound) {
       case 'tick':
