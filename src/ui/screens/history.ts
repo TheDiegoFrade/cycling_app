@@ -20,6 +20,7 @@ import { bindChartHover, evenIndexAt, tipRow, tipTitle } from '../chart-hover';
 import { renderAnalysisPanel } from '../analysis-panel';
 import { stateSessionFromCloud, stateSessionFromLocal } from '../athlete-state-data';
 import { dayKeyOf } from '../../core/day-key';
+import { objHtml, tokenHtml } from '../workout-token';
 
 const CHART_WEEKS = 6;
 
@@ -489,13 +490,30 @@ export function renderForma(container: HTMLElement): () => void {
 
         <div class="forma-top">
           <div class="forma-left">
-            <div class="forma-numbers">
-              <div><div class="forma-num num">${Math.round(latest.ctl)}</div><div class="live-col-label">Fitness</div></div>
-              <div><div class="forma-num num" style="color:var(--text-muted)">${Math.round(latest.atl)}</div><div class="live-col-label">Fatiga</div></div>
-              <div>
-                <div class="forma-num forma-num-label num" style="color:${formaColor(latest.tsb)}">${formLabel(latest.tsb)}</div>
-                <div class="live-col-label">Forma <span class="forma-num-sub">(${latest.tsb > 0 ? '+' : ''}${Math.round(latest.tsb)})</span></div>
+            <div class="forma-cards">
+              <div class="forma-card lift">
+                <span class="forma-card-label">Fitness</span>
+                <span class="forma-card-num num">${Math.round(latest.ctl)}</span>
+                <span class="forma-card-sub">tu base de las últimas 6 semanas</span>
               </div>
+              <div class="forma-card lift">
+                <span class="forma-card-label">Fatiga</span>
+                <span class="forma-card-num num" style="color:var(--accent-light)">${Math.round(latest.atl)}</span>
+                <span class="forma-card-sub">carga de la última semana</span>
+                ${tokenHtml('vo2', 72, 'forma-card-tk')}
+              </div>
+              <div class="forma-card lift">
+                <span class="forma-card-label">Forma <span class="forma-num-sub">(${latest.tsb > 0 ? '+' : ''}${Math.round(latest.tsb)})</span></span>
+                <span class="forma-card-num forma-card-word" style="color:${formaColor(latest.tsb)}">${formLabel(latest.tsb)}</span>
+                <span class="forma-card-sub">fitness menos fatiga</span>
+                ${tokenHtml('ss', 72, 'forma-card-tk')}
+              </div>
+              <a href="#/profile" class="forma-card forma-card-ftp lift">
+                <span class="forma-card-label" style="color:var(--sol)">${appState.profile.ftpSource === 'provisional' ? 'FTP provisional' : 'FTP'}</span>
+                <span class="forma-card-num num">${appState.profile.ftp} W</span>
+                <span class="forma-card-sub forma-card-sub-narrow">${ftpDeltaW !== null ? (ftpDeltaW > 0 ? `+${ftpDeltaW} W desde tu primer registro` : ftpDeltaW < 0 ? `${ftpDeltaW} W desde tu primer registro` : 'Igual que en tu primer registro') : 'Cámbialo en tu perfil'}</span>
+                ${objHtml('bolt', 84, 'forma-card-tk forma-card-tk-top bob')}
+              </a>
             </div>
             ${
               ctlWeekDelta !== null || efTrend !== null

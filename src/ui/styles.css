@@ -6470,3 +6470,96 @@ button.plan-month-done-label {
   font-weight: 700;
   letter-spacing: -0.02em;
 }
+
+/* ---- Forma (rediseño): tarjetas con objeto ---- */
+.forma-cards {
+  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 14px;
+}
+.forma-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 132px;
+  padding: 20px 22px;
+  border-radius: 22px;
+  background: var(--card);
+  color: var(--text);
+  text-decoration: none;
+}
+.forma-card-label {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.forma-card-num {
+  font-weight: 600;
+  font-size: 38px;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+.forma-card-word {
+  font-family: var(--font-display);
+  font-size: 30px;
+}
+.forma-card-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: calc(100% - 70px);
+}
+.forma-card-sub-narrow {
+  max-width: 70%;
+}
+.forma-card-tk {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+}
+.forma-card-tk-top {
+  bottom: auto;
+  top: 14px;
+  right: 12px;
+}
+.forma-card-ftp {
+  background: linear-gradient(135deg, #2a1a12 0%, var(--card) 70%);
+  box-shadow: inset 0 0 0 1px #4a2e1e;
+}
+.forma-card-ftp:hover {
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.forma-card-ftp:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- Historial (rediseño): filas tipo tarjeta con objeto ---- */
+.forma-list .forma-row,
+.plan-lib-row {
+  background: var(--card);
+  border: 0;
+  border-radius: 16px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  transition: background-color 0.2s;
+}
+.forma-list .forma-row:hover,
+.plan-lib-row:hover {
+  background: var(--card-hover);
+}
+.forma-row-tk {
+  flex: none;
+}
+.forma-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.brand-logo {
+  display: block;
+  width: 150px;
+  height: auto;
+  margin: 0 auto;
+  filter: drop-shadow(0 8px 14px rgba(232, 57, 43, 0.3));
+}

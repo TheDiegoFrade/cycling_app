@@ -51,10 +51,20 @@ export function tokenUrl(t: Token): string | null {
   return t === 'fuerza' ? null : `/brand/obj-${t}.webp`;
 }
 
-/** <span> decorativo con el objeto. `size` en px; `extra` agrega clases (p. ej. «bob»). */
-export function tokenHtml(t: Token, size: number, extra = ''): string {
-  const url = tokenUrl(t);
-  const cls = `tk${t === 'fuerza' ? ' tk-fuerza' : ''}${extra ? ` ${extra}` : ''}`;
+/** Objetos de /brand que no son de un workout. */
+export type BrandObject = 'bolt' | 'trainer' | 'hr';
+
+function spanHtml(url: string | null, size: number, cls: string): string {
   const bg = url ? `background-image:url('${url}');` : '';
   return `<span class="${cls}" aria-hidden="true" style="width:${size}px;height:${size}px;${bg}"></span>`;
+}
+
+/** <span> decorativo con el objeto. `size` en px; `extra` agrega clases (p. ej. «bob»). */
+export function tokenHtml(t: Token, size: number, extra = ''): string {
+  return spanHtml(tokenUrl(t), size, `tk${t === 'fuerza' ? ' tk-fuerza' : ''}${extra ? ` ${extra}` : ''}`);
+}
+
+/** Igual que tokenHtml, para el rayo (FTP) y los sensores. */
+export function objHtml(o: BrandObject, size: number, extra = ''): string {
+  return spanHtml(`/brand/obj-${o}.webp`, size, `tk${extra ? ` ${extra}` : ''}`);
 }

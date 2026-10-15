@@ -8,7 +8,7 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
   container.innerHTML = `
     <div class="hero${appState.settings.heroCharacter === 'woman' ? ' hero-woman' : ''}" style="min-height:100vh">
       <div class="entry-pill">
-        <div class="brand">🚴 <span>TORQ</span></div>
+        <div class="brand"><img class="brand-logo" src="/brand/logo-torq.webp" alt="torq" width="150" height="70"></div>
         <div class="tag">Entrena sin mirar la pantalla.</div>
         <button type="button" class="ghost-btn" id="entry-toggle">Entrar</button>
         <div class="entry-fields" id="entry-fields">
