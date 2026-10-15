@@ -5,6 +5,7 @@ import { SimulatedHrAdapter, SimulatedTrainerAdapter } from '../../devices/simul
 import type { ConnectionState, HrAdapter, TrainerAdapter, TrainerReading } from '../../devices/types';
 import { estimateWorkout } from '../../core/workout-estimate';
 import { escapeHtml, renderWorkoutCover } from '../workout-cover';
+import { tokenForWorkout, tokenHtml } from '../workout-token';
 import { navigate } from '../router';
 import { appState } from '../state';
 import type { Interval } from '../../core/types';
@@ -69,7 +70,10 @@ export function renderConnect(container: HTMLElement): void {
         <div class="prepare-left">
           ${renderWorkoutCover(workout.intervals, 'lg')}
           <div class="prepare-heading">
-            <div class="live-col-label">Vas a entrenar</div>
+            <div class="prepare-heading-top">
+              <div class="prepare-kicker">Vas a entrenar</div>
+              ${tokenHtml(tokenForWorkout(workout), 84, 'bob')}
+            </div>
             <div class="prepare-title">${escapeHtml(workout.name)}</div>
           </div>
           <div class="prepare-stats">
@@ -90,17 +94,25 @@ export function renderConnect(container: HTMLElement): void {
           <div class="prepare-subtitle">Antes de empezar</div>
           ${hasBluetooth ? '' : `<div class="panel prepare-no-ble" role="status">${noBluetoothMessage()}</div>`}
           <div class="panel prepare-sensor">
-            <div class="prepare-sensor-head"><div class="prepare-sensor-name">Rodillo</div><div class="prepare-sensor-status"><span class="status-dot" id="trainer-dot"></span><span id="trainer-state">${STATE_LABEL.disconnected}</span></div></div>
-            <div class="prepare-sensor-reading" id="trainer-reading"><span><b class="num">0</b> W</span><span><b class="num">0</b> rpm</span></div>
-            <div class="row-actions">
-              <button id="trainer-connect" ${hasBluetooth ? '' : 'disabled title="este navegador no soporta Web Bluetooth"'}>Conectar por Bluetooth</button>
+            <span class="prepare-sensor-obj disconnected" id="trainer-dot" aria-hidden="true" style="background-image:url('/brand/obj-trainer.webp')"></span>
+            <div class="prepare-sensor-body">
+              <div class="prepare-sensor-head"><div class="prepare-sensor-name">Rodillo</div><div class="prepare-sensor-status"><span id="trainer-state">${STATE_LABEL.disconnected}</span></div></div>
+              <div class="prepare-sensor-reading" id="trainer-reading"><span><b class="num">0</b> W</span><span><b class="num">0</b> rpm</span></div>
+              <div class="row-actions">
+                <button id="trainer-connect" ${hasBluetooth ? '' : 'disabled title="este navegador no soporta Web Bluetooth"'}>Conectar por Bluetooth</button>
+              </div>
+              <div id="trainer-error"></div>
             </div>
-            <div id="trainer-error"></div>
           </div>
           <div class="panel prepare-sensor">
-            <div class="prepare-sensor-head"><div class="prepare-sensor-name">Banda de pulso</div><div class="prepare-sensor-status">Opcional · <span class="status-dot" id="hr-dot"></span><span id="hr-state">${STATE_LABEL.disconnected}</span></div></div>
-            <button id="hr-connect" ${hasBluetooth ? '' : 'disabled title="este navegador no soporta Web Bluetooth"'}>Buscar banda</button>
-            <div id="hr-error"></div>
+            <span class="prepare-sensor-obj disconnected" id="hr-dot" aria-hidden="true" style="background-image:url('/brand/obj-hr.webp')"></span>
+            <div class="prepare-sensor-body">
+              <div class="prepare-sensor-head"><div class="prepare-sensor-name">Banda de pulso <span class="prepare-sensor-opt">· opcional</span></div><div class="prepare-sensor-status"><span id="hr-state">${STATE_LABEL.disconnected}</span></div></div>
+              <div class="row-actions">
+                <button id="hr-connect" ${hasBluetooth ? '' : 'disabled title="este navegador no soporta Web Bluetooth"'}>Buscar banda</button>
+              </div>
+              <div id="hr-error"></div>
+            </div>
           </div>
           <button class="prepare-start" id="continue" disabled>▶ Empezar</button>
           <div class="prepare-hint">Arranca en cuanto pedaleas. Espacio para pausar. En el celular, deja Torq abierto durante la sesión: si cambias de app, el rodillo se puede desconectar.</div>
@@ -184,7 +196,12 @@ function wireSensor<A extends TrainerAdapter | HrAdapter, R>(
   const errorEl = document.getElementById(cfg.errorEl)!;
 
   function paint(state: ConnectionState): void {
-    if (dot) dot.className = `status-dot ${state}`;
+    // El objeto 3D del sensor: gris sin conectar; conectado, a color, con
+    // .bob y halo verde en su tarjeta.
+    if (dot) {
+      dot.className = `prepare-sensor-obj ${state}${state === 'connected' ? ' bob' : ''}`;
+      dot.closest('.prepare-sensor')?.classList.toggle('is-connected', state === 'connected');
+    }
     stateEl.textContent = STATE_LABEL[state];
     cfg.onState?.(state);
   }

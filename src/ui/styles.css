@@ -6396,3 +6396,77 @@ button.plan-month-done-label {
     transform: none;
   }
 }
+
+/* ---- Antes de empezar (rediseño): objeto del workout y de cada sensor ---- */
+.prepare-heading-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.prepare-heading-top .tk {
+  margin: -14px -6px -40px 0;
+}
+.prepare-kicker {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-light);
+}
+.prepare-title {
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  font-size: clamp(40px, 5vw, 64px);
+}
+.prepare-sensor {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.prepare-sensor.is-connected {
+  border-color: rgba(63, 224, 138, 0.45);
+  box-shadow: 0 0 0 4px rgba(63, 224, 138, 0.08), 0 10px 30px rgba(63, 224, 138, 0.08);
+}
+.prepare-sensor-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.prepare-sensor-name {
+  font-weight: 600;
+}
+.prepare-sensor-opt {
+  font-weight: 400;
+  color: var(--text-label);
+}
+.prepare-sensor.is-connected .prepare-sensor-status {
+  color: var(--success);
+}
+.prepare-sensor-obj {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  background: center / contain no-repeat;
+  opacity: 0.6;
+  filter: grayscale(0.6);
+}
+.prepare-sensor-obj.connecting,
+.prepare-sensor-obj.reconnecting {
+  opacity: 0.85;
+  filter: grayscale(0.2);
+}
+.prepare-sensor-obj.connected {
+  opacity: 1;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.5));
+}
+.prepare-start {
+  height: 76px;
+  border-radius: 18px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
