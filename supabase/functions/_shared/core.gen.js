@@ -689,12 +689,40 @@ function parsePinonRequest(body) {
 function pinonLimitReached(usedToday, unlimited) {
   return !unlimited && usedToday >= PINON_DAILY_AI_LIMIT;
 }
+var WEEKDAYS = ["domingo", "lunes", "martes", "mi\xE9rcoles", "jueves", "viernes", "s\xE1bado"];
+var MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+var utcDate = (key) => /* @__PURE__ */ new Date(`${key}T00:00:00Z`);
+var dayLabel = (key) => {
+  const d = utcDate(key);
+  return `${WEEKDAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+};
+function mondayOf(key) {
+  const d = utcDate(key);
+  d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7);
+  return d.toISOString().slice(0, 10);
+}
+function pinonAgenda(ctx) {
+  const thisMonday = mondayOf(ctx.todayKey);
+  const lines = [`Hoy es ${dayLabel(ctx.todayKey)}. \xABEsta semana\xBB va del lunes ${utcDate(thisMonday).getUTCDate()} al domingo; \xABeste fin de semana\xBB es el s\xE1bado y domingo de esta semana.`];
+  if (ctx.schedule.length === 0) lines.push("No hay nada agendado esta semana ni la siguiente.");
+  for (const d of ctx.schedule) {
+    const week = mondayOf(d.date) === thisMonday ? "esta semana" : "semana siguiente";
+    const when = d.date === ctx.todayKey ? "HOY" : d.date < ctx.todayKey ? "ya pas\xF3" : "pendiente";
+    const status = d.done ? "hecho" : when === "ya pas\xF3" ? "no se hizo" : when === "HOY" ? "hoy, pendiente" : "pendiente";
+    lines.push(`- ${dayLabel(d.date)} (${week}): ${d.name}, ${d.minutes} min${d.zone ? `, ${d.zone}` : ""}. ${status}.`);
+  }
+  return lines.join("\n");
+}
 function pinonUserMessage(req) {
   const transcript = req.history.map((h) => `${h.role === "user" ? "Atleta" : "Pi\xF1\xF3n"}: ${h.text}`).join("\n");
+  const { schedule: _schedule, ...data } = req.context;
   return [
     `<datos_del_atleta>
-${JSON.stringify(req.context)}
+${JSON.stringify(data)}
 </datos_del_atleta>`,
+    `<agenda>
+${pinonAgenda(req.context)}
+</agenda>`,
     transcript ? `<conversacion_reciente>
 ${transcript}
 </conversacion_reciente>` : "",
