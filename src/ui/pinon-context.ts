@@ -131,6 +131,19 @@ export async function buildPinonChatData(): Promise<PinonChatData> {
   const weekDone = rides.filter((r) => inWeek(r.dateKey)).length;
   const pending = appState.workouts.filter((w) => w.scheduledDate && inWeek(w.scheduledDate) && !doneDays.has(w.scheduledDate)).length;
   const todayWorkout = appState.workouts.find((w) => w.scheduledDate === todayKey);
+  const nextSunday = new Date(sunday);
+  nextSunday.setDate(nextSunday.getDate() + 7);
+  const scheduleEnd = localKey(nextSunday);
+  const schedule = appState.workouts
+    .filter((w) => w.scheduledDate && w.scheduledDate >= weekStart && w.scheduledDate <= scheduleEnd)
+    .sort((a, b) => (a.scheduledDate! < b.scheduledDate! ? -1 : 1))
+    .map((w) => ({
+      date: w.scheduledDate!,
+      name: w.name,
+      minutes: Math.round(estimateWorkout(w.intervals, appState.profile.ftp).durationS / 60),
+      zone: mainZoneOf(w),
+      done: doneDays.has(w.scheduledDate!),
+    }));
   const pmc = computePmc(rides.map((r) => ({ dateKey: r.dateKey, tss: r.tss ?? 0 })));
   const last = pmc[pmc.length - 1];
   const lastRide = rides[0]?.dateKey;
@@ -154,6 +167,7 @@ export async function buildPinonChatData(): Promise<PinonChatData> {
     week: { done: weekDone, planned: weekDone + pending },
     ...(last ? { form: { ctl: Math.round(last.ctl), atl: Math.round(last.atl), tsb: Math.round(last.tsb) } } : {}),
     recent: rides.slice(0, 5).map(({ dateKey: _d, ...r }) => r),
+    schedule,
     daysSinceLastRide: lastRide ? Math.round((new Date(`${todayKey}T00:00:00`).getTime() - new Date(`${lastRide}T00:00:00`).getTime()) / 86_400_000) : null,
   };
 }

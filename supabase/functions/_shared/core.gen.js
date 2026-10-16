@@ -615,6 +615,7 @@ var NOTE_MAX = 240;
 var NAME_MAX = 80;
 var DESCRIPTION_MAX = 400;
 var RECENT_MAX = 6;
+var SCHEDULE_MAX = 21;
 var ZONES = ["fondo", "tempo", "sweet spot", "umbral", "VO2", "test"];
 var str = (v, max) => typeof v === "string" && v.trim() ? v.trim().slice(0, max) : null;
 var num = (v, min, max) => typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, Math.round(v * 10) / 10)) : null;
@@ -626,6 +627,14 @@ function session(v) {
   const name = str(s.name, NAME_MAX);
   if (!date || !name) return null;
   return { date, name, minutes: num(s.minutes, 0, 1e3) ?? 0, tss: num(s.tss, 0, 1e3), rpe: num(s.rpe, 1, 10), note: str(s.note, NOTE_MAX) };
+}
+function scheduledDay(v) {
+  if (!v || typeof v !== "object") return null;
+  const d = v;
+  const date = dateKey(d.date);
+  const name = str(d.name, NAME_MAX);
+  if (!date || !name) return null;
+  return { date, name, minutes: num(d.minutes, 0, 1e3) ?? 0, zone: ZONES.includes(d.zone) ? d.zone : null, done: d.done === true };
 }
 function context(v) {
   if (!v || typeof v !== "object") return null;
@@ -656,6 +665,7 @@ function context(v) {
     week: { done: num(w.done, 0, 50) ?? 0, planned: num(w.planned, 0, 50) ?? 0 },
     ...ctl !== null && atl !== null && tsb !== null ? { form: { ctl, atl, tsb } } : {},
     recent: (Array.isArray(c.recent) ? c.recent : []).slice(0, RECENT_MAX).map(session).filter((s) => s !== null),
+    schedule: (Array.isArray(c.schedule) ? c.schedule : []).slice(0, SCHEDULE_MAX).map(scheduledDay).filter((s) => s !== null),
     daysSinceLastRide: num(c.daysSinceLastRide, 0, 1e4)
   };
 }

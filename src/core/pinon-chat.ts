@@ -43,7 +43,17 @@ export interface PinonChatData {
   week: { done: number; planned: number };
   form?: { ctl: number; atl: number; tsb: number };
   recent: PinonChatSession[];
+  /** Lo agendado de esta semana y la siguiente (lunes a domingo), hecho o no. */
+  schedule: PinonScheduledDay[];
   daysSinceLastRide: number | null;
+}
+
+export interface PinonScheduledDay {
+  date: string;
+  name: string;
+  minutes: number;
+  zone: WorkoutZone | null;
+  done: boolean;
 }
 
 export interface PinonReplyAction {
