@@ -49,6 +49,13 @@ describe('matchIntent', () => {
     expect(matchIntent('')).toBeNull();
     expect(matchIntent('¿qué pasa si hago el entreno en la tarde?')).not.toBe('change');
     expect(matchIntent('¿por qué sube mi pulso en el entreno?')).not.toBe('change');
+    // otro día, un concepto o un cansancio con matiz: los contesta la IA con la agenda
+    expect(matchIntent('¿qué me toca el sábado?')).toBeNull();
+    expect(matchIntent('¿qué me toca este fin de semana?')).toBeNull();
+    expect(matchIntent('¿cómo viene la semana que entra?')).toBeNull();
+    expect(matchIntent('¿qué es el FTP y para qué sirve?')).toBeNull();
+    expect(matchIntent('¿por qué mi coach me puso umbral si estoy tan cansado?')).toBeNull();
+    expect(matchIntent('¿para qué sirve el entreno de hoy?')).toBe('why');
   });
 });
 
