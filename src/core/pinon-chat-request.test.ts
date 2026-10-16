@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PINON_HISTORY_TURNS, parsePinonRequest, pinonLimitReached, pinonUserMessage } from './pinon-chat-request';
+import { PINON_HISTORY_TURNS, parsePinonRequest, pinonAgenda, pinonLimitReached, pinonUserMessage } from './pinon-chat-request';
 
 const ctx = {
   todayKey: '2026-10-15',
@@ -69,5 +69,42 @@ describe('límite y mensaje', () => {
     expect(m).toContain('<datos_del_atleta>');
     expect(m).toContain('Atleta: hola\nPiñón: ¡Hola!');
     expect(m.trim().endsWith('<pregunta>\n¿Y mañana?\n</pregunta>')).toBe(true);
+  });
+});
+
+describe('pinonAgenda', () => {
+  it('escribe el día de la semana y a qué semana cae cada entreno', () => {
+    const a = pinonAgenda({
+      ...(ctx as unknown as Parameters<typeof pinonAgenda>[0]),
+      todayKey: '2026-10-16',
+      schedule: [
+        { date: '2026-10-13', name: 'VO2 4×4', minutes: 50, zone: 'VO2', done: true },
+        { date: '2026-10-14', name: 'Tempo', minutes: 40, zone: 'tempo', done: false },
+        { date: '2026-10-16', name: 'Sweet spot', minutes: 60, zone: 'sweet spot', done: false },
+        { date: '2026-10-17', name: 'Fondo largo', minutes: 120, zone: 'fondo', done: false },
+        { date: '2026-10-24', name: 'Test FTP', minutes: 50, zone: 'test', done: false },
+      ],
+    });
+    expect(a).toContain('Hoy es viernes 16 oct.');
+    expect(a).toContain('- martes 13 oct (esta semana): VO2 4×4, 50 min, VO2. hecho.');
+    expect(a).toContain('- miércoles 14 oct (esta semana): Tempo, 40 min, tempo. no se hizo.');
+    expect(a).toContain('- viernes 16 oct (esta semana): Sweet spot, 60 min, sweet spot. hoy, pendiente.');
+    expect(a).toContain('- sábado 17 oct (esta semana): Fondo largo, 120 min, fondo. pendiente.');
+    expect(a).toContain('- sábado 24 oct (semana siguiente): Test FTP, 50 min, test. pendiente.');
+  });
+
+  it('el domingo sigue siendo de esta semana; sin agenda lo dice', () => {
+    const a = pinonAgenda({ ...(ctx as unknown as Parameters<typeof pinonAgenda>[0]), todayKey: '2026-10-18', schedule: [{ date: '2026-10-19', name: 'Fondo', minutes: 60, zone: 'fondo', done: false }] });
+    expect(a).toContain('Hoy es domingo 18 oct.');
+    expect(a).toContain('lunes 19 oct (semana siguiente)');
+    expect(pinonAgenda({ ...(ctx as unknown as Parameters<typeof pinonAgenda>[0]), schedule: [] })).toContain('No hay nada agendado');
+  });
+
+  it('el mensaje lleva la agenda aparte y no repite schedule en el JSON', () => {
+    const r = parsePinonRequest({ message: '¿y el sábado?', history: [], context: ctx });
+    if (!r.ok) throw new Error(r.error);
+    const m = pinonUserMessage(r.request);
+    expect(m).toContain('<agenda>');
+    expect(m).not.toContain('"schedule"');
   });
 });

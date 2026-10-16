@@ -117,11 +117,43 @@ export function pinonLimitReached(usedToday: number, unlimited: boolean): boolea
   return !unlimited && usedToday >= PINON_DAILY_AI_LIMIT;
 }
 
-/** El mensaje que ve el modelo: datos, conversación reciente y la pregunta. */
+const WEEKDAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const utcDate = (key: string) => new Date(`${key}T00:00:00Z`);
+const dayLabel = (key: string) => {
+  const d = utcDate(key);
+  return `${WEEKDAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+};
+/** Lunes (YYYY-MM-DD) de la semana de `key`. */
+function mondayOf(key: string): string {
+  const d = utcDate(key);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+  return d.toISOString().slice(0, 10);
+}
+
+/** La agenda ya escrita con día de la semana y a qué semana cae: con fechas
+ * sueltas el modelo se equivocaba (decía que «este fin de semana» tocaba el
+ * test del siguiente). */
+export function pinonAgenda(ctx: PinonChatData): string {
+  const thisMonday = mondayOf(ctx.todayKey);
+  const lines = [`Hoy es ${dayLabel(ctx.todayKey)}. «Esta semana» va del lunes ${utcDate(thisMonday).getUTCDate()} al domingo; «este fin de semana» es el sábado y domingo de esta semana.`];
+  if (ctx.schedule.length === 0) lines.push('No hay nada agendado esta semana ni la siguiente.');
+  for (const d of ctx.schedule) {
+    const week = mondayOf(d.date) === thisMonday ? 'esta semana' : 'semana siguiente';
+    const when = d.date === ctx.todayKey ? 'HOY' : d.date < ctx.todayKey ? 'ya pasó' : 'pendiente';
+    const status = d.done ? 'hecho' : when === 'ya pasó' ? 'no se hizo' : when === 'HOY' ? 'hoy, pendiente' : 'pendiente';
+    lines.push(`- ${dayLabel(d.date)} (${week}): ${d.name}, ${d.minutes} min${d.zone ? `, ${d.zone}` : ''}. ${status}.`);
+  }
+  return lines.join('\n');
+}
+
+/** El mensaje que ve el modelo: datos, agenda, conversación reciente y la pregunta. */
 export function pinonUserMessage(req: PinonChatRequest): string {
   const transcript = req.history.map((h) => `${h.role === 'user' ? 'Atleta' : 'Piñón'}: ${h.text}`).join('\n');
+  const { schedule: _schedule, ...data } = req.context;
   return [
-    `<datos_del_atleta>\n${JSON.stringify(req.context)}\n</datos_del_atleta>`,
+    `<datos_del_atleta>\n${JSON.stringify(data)}\n</datos_del_atleta>`,
+    `<agenda>\n${pinonAgenda(req.context)}\n</agenda>`,
     transcript ? `<conversacion_reciente>\n${transcript}\n</conversacion_reciente>` : '',
     `<pregunta>\n${req.message}\n</pregunta>`,
   ]
