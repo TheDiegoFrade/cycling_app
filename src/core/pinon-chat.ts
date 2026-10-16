@@ -90,8 +90,17 @@ const RULES: [PinonIntent, RegExp][] = [
   ['why', /\b(para que (sirve|es)|por que (toca|hago|este|esto)|de que sirve|que gano)\b/],
   ['today', /\b(que (me )?toca|toca hoy|que hago hoy|entreno de hoy|entrenamiento de hoy|hoy que)\b/],
   ['week', /\b(como voy|mi semana|esta semana|cuantos llevo|cuantas llevo|voy bien)\b/],
-  ['form', /\b(mi forma|como estoy|fatiga|fitness|tsb|ctl|atl|estoy en forma)\b/],
+  ['form', /\b(mi forma|como estoy de forma|como ando de forma|fatiga|fitness|tsb|ctl|atl|estoy en forma)\b/],
 ];
+// Si habla de otro día, las respuestas locales (que son de hoy y de esta
+// semana) contestarían otra cosa: eso lo ve la IA con la agenda.
+const OTHER_DAY_RE =
+  /\b(manana|pasado|ayer|lunes|martes|miercoles|jueves|viernes|sabado|domingo|fin de semana|finde|semana que (entra|viene)|proxima semana|siguiente semana|semana pasada)\b/;
+// «¿para qué sirve…?» solo es la del botón si habla del entreno, no de un concepto.
+const WHY_ABOUT_TODAY_RE = /\b(hoy|esto|este|entreno|entrenamiento)\b/;
+const CONCEPT_RE = /\b(ftp|zona|zonas|vo2|umbral|tempo|sweet spot|cadencia|rodillo|erg|rpe|pulso|potencia)\b/;
+/** «Estoy cansado» solo si es corto: si trae un «por qué» o a su coach, que lo vea la IA. */
+const TIRED_MAX = 45;
 
 /** Reconoce preguntas comunes escritas a mano. Solo textos cortos: una
  * pregunta larga casi siempre trae algo más y la contesta la IA. Un pedido
@@ -100,8 +109,13 @@ export function matchIntent(text: string): PinonIntent | null {
   const t = normalize(text);
   if (!t) return null;
   if (CHANGE_RE.test(t)) return 'change';
-  if (t.length > 70) return null;
-  for (const [intent, re] of RULES) if (re.test(t)) return intent;
+  if (t.length > 70 || OTHER_DAY_RE.test(t)) return null;
+  for (const [intent, re] of RULES) {
+    if (!re.test(t)) continue;
+    if (intent === 'why' && (!WHY_ABOUT_TODAY_RE.test(t) || CONCEPT_RE.test(t))) continue;
+    if (intent === 'tired' && (t.length > TIRED_MAX || /\b(coach|por que)\b/.test(t))) continue;
+    return intent;
+  }
   return null;
 }
 
