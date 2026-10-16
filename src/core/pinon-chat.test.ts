@@ -11,6 +11,7 @@ const base: PinonChatData = {
   week: { done: 2, planned: 4 },
   form: { ctl: 42, atl: 50, tsb: -8 },
   recent: [],
+  schedule: [],
   daysSinceLastRide: 1,
 };
 

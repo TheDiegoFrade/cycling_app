@@ -10,6 +10,10 @@ const ctx = {
   week: { done: 1, planned: 3 },
   form: { ctl: 40, atl: 45, tsb: -5 },
   recent: [{ date: '2026-10-14', name: 'Sweet spot', minutes: 62, tss: 70, rpe: 7, note: 'piernas pesadas' }],
+  schedule: [
+    { date: '2026-10-14', name: 'Sweet spot', minutes: 62, zone: 'sweet spot', done: true },
+    { date: '2026-10-18', name: 'Fondo largo', minutes: 120, zone: 'fondo', done: false },
+  ],
   daysSinceLastRide: 1,
 };
 
@@ -21,6 +25,7 @@ describe('parsePinonRequest', () => {
     expect(r.request.message).toBe('¿Qué desayuno?');
     expect(r.request.context.recent[0].note).toBe('piernas pesadas');
     expect(r.request.context.today?.zone).toBe('fondo');
+    expect(r.request.context.schedule.map((d) => d.name)).toEqual(['Sweet spot', 'Fondo largo']);
   });
 
   it('rechaza vacío, más de 200 caracteres o sin contexto', () => {
@@ -45,6 +50,8 @@ describe('parsePinonRequest', () => {
     expect(r.request.context.recent.length).toBe(6);
     expect(r.request.context.recent[0].note!.length).toBe(240);
     expect(r.request.context.today?.zone).toBeNull();
+    const long = parsePinonRequest({ message: 'hola', context: { ...ctx, schedule: Array.from({ length: 40 }, () => ctx.schedule[1]) } });
+    expect(long.ok && long.request.context.schedule.length).toBe(21);
   });
 });
 

@@ -2,7 +2,7 @@
 // por campo con topes de largo: nada del body pasa tal cual al modelo. Lo usa
 // la Edge Function (vía core.gen.js); aquí se prueba con vitest.
 import { PINON_DAILY_AI_LIMIT, PINON_MAX_CHARS } from './pinon-chat';
-import type { PinonChatData, PinonChatSession } from './pinon-chat';
+import type { PinonChatData, PinonChatSession, PinonScheduledDay } from './pinon-chat';
 import type { WorkoutZone } from './workout-zone';
 
 export const PINON_HISTORY_TURNS = 6;
@@ -11,6 +11,8 @@ const NOTE_MAX = 240;
 const NAME_MAX = 80;
 const DESCRIPTION_MAX = 400;
 const RECENT_MAX = 6;
+/** Dos semanas, con margen por si un día trae dos cosas. */
+const SCHEDULE_MAX = 21;
 const ZONES: readonly WorkoutZone[] = ['fondo', 'tempo', 'sweet spot', 'umbral', 'VO2', 'test'];
 
 export interface PinonTurn {
@@ -36,6 +38,15 @@ function session(v: unknown): PinonChatSession | null {
   const name = str(s.name, NAME_MAX);
   if (!date || !name) return null;
   return { date, name, minutes: num(s.minutes, 0, 1000) ?? 0, tss: num(s.tss, 0, 1000), rpe: num(s.rpe, 1, 10), note: str(s.note, NOTE_MAX) };
+}
+
+function scheduledDay(v: unknown): PinonScheduledDay | null {
+  if (!v || typeof v !== 'object') return null;
+  const d = v as Record<string, unknown>;
+  const date = dateKey(d.date);
+  const name = str(d.name, NAME_MAX);
+  if (!date || !name) return null;
+  return { date, name, minutes: num(d.minutes, 0, 1000) ?? 0, zone: ZONES.includes(d.zone as WorkoutZone) ? (d.zone as WorkoutZone) : null, done: d.done === true };
 }
 
 function context(v: unknown): PinonChatData | null {
@@ -72,6 +83,10 @@ function context(v: unknown): PinonChatData | null {
       .slice(0, RECENT_MAX)
       .map(session)
       .filter((s): s is PinonChatSession => s !== null),
+    schedule: (Array.isArray(c.schedule) ? c.schedule : [])
+      .slice(0, SCHEDULE_MAX)
+      .map(scheduledDay)
+      .filter((s): s is PinonScheduledDay => s !== null),
     daysSinceLastRide: num(c.daysSinceLastRide, 0, 10000),
   };
 }

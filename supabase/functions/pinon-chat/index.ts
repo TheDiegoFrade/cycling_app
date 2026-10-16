@@ -21,8 +21,8 @@ const MODEL = 'claude-haiku-5-5';
 const MODE = 'pinon_chat';
 /** El tope diario cuenta las últimas 24 h, no el día de calendario. */
 const WINDOW_MS = 24 * 60 * 60 * 1000;
-/** Respuesta corta, pero con margen para que pueda pensar un poco antes. */
-const MAX_TOKENS = 1024;
+/** Respuesta de 1 a 3 frases y sin pensar antes: con esto basta. */
+const MAX_TOKENS = 400;
 const REPLY_MAX_CHARS = 600;
 
 Deno.serve(async (req) => {
@@ -55,7 +55,10 @@ Deno.serve(async (req) => {
       response = await client.messages.create({
         model: MODEL,
         max_tokens: MAX_TOKENS,
-        // low: preguntas cortas; puede saltarse el pensar en las fáciles.
+        // Lo más barato: el modelo más barato (Haiku 5.5) y sin pensar antes
+        // de contestar (solo se cobra la respuesta). Sin thinking se permite
+        // con effort high o menor.
+        thinking: { type: 'disabled' },
         output_config: { effort: 'low' },
         system: PINON_SYSTEM_PROMPT,
         messages: [{ role: 'user', content: pinonUserMessage(parsed.request) }],
@@ -65,7 +68,7 @@ Deno.serve(async (req) => {
       throw err;
     }
 
-    // Puede empezar con bloques de thinking: se lee el texto por tipo.
+    // Se lee el texto por tipo de bloque, no por posición.
     const text = response.content
       .filter((b): b is Anthropic.TextBlock => b.type === 'text')
       .map((b) => b.text)
