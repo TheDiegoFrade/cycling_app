@@ -72,3 +72,39 @@ describe('startingProfile (método de Joe)', () => {
     expect(s).toMatchObject({ healthFirst: false, maxEffortReady: true, testPlan: 'ramp', baseFirst: false, start: 'normal' });
   });
 });
+
+describe('límites de Joe: intensidad, metabolismo y temporada', () => {
+  it('sano y sin datos nuevos: sin límites, sin metabolismo primero, no en temporada', () => {
+    expect(startingProfile({ ...athlete, intake: healthy })).toMatchObject({ intensityLimit: false, intensityLimitReasons: [], metabolicFirst: false, inSeason: false, recentHoursPerWeek: null });
+  });
+
+  it('corazón, disautonomía, vértigo o lesión que la impide: sin alta intensidad', () => {
+    for (const c of ['heart', 'dysautonomia', 'vertigo'] as const) {
+      const s = startingProfile({ ...athlete, intake: { ...healthy, conditions: [c] } });
+      expect(s.intensityLimit).toBe(true);
+      expect(s.healthFirst).toBe(true);
+    }
+    const injury = startingProfile({ ...athlete, intake: { ...healthy, injuryLimitsIntensity: true } });
+    expect(injury.intensityLimit).toBe(true);
+    expect(injury.intensityLimitReasons[0]).toMatch(/lesión/);
+    expect(startingProfile({ ...athlete, intake: { ...healthy, conditions: ['hypertension'] } }).intensityLimit).toBe(false);
+  });
+
+  it('diabetes o metabólica: metabolismo primero', () => {
+    expect(startingProfile({ ...athlete, intake: { ...healthy, conditions: ['diabetes'] } }).metabolicFirst).toBe(true);
+    expect(startingProfile({ ...athlete, intake: { ...healthy, conditions: ['metabolic'] } }).metabolicFirst).toBe(true);
+    expect(startingProfile({ ...athlete, intake: { ...healthy, conditions: ['asthma'] } }).metabolicFirst).toBe(false);
+  });
+
+  it('viene entrenando con intensidad: en temporada, con sus horas', () => {
+    const s = startingProfile({ ...athlete, intake: { ...healthy, recentTraining: 'with_intensity', recentHoursPerWeek: 7.5 } });
+    expect(s).toMatchObject({ inSeason: true, recentHoursPerWeek: 7.5 });
+    expect(startingProfile({ ...athlete, intake: { ...healthy, recentTraining: 'easy' } }).inSeason).toBe(false);
+  });
+
+  it('horas fuera de rango se piden de nuevo', () => {
+    expect(intakeError({ ...healthy, recentHoursPerWeek: 60 })).toMatch(/horas por semana/);
+    expect(intakeError({ ...healthy, recentHoursPerWeek: null })).toBeNull();
+  });
+});
+

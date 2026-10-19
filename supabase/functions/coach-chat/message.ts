@@ -41,7 +41,7 @@ export function buildUserMessage(mode: Mode, context: Record<string, unknown>): 
   const headers: Record<Mode, string> = {
     create_plan: [
       'Modo: create_plan. Genera el esqueleto del plan y concreta las primeras semanas (máximo 3).',
-      'Antes de decidir: revisa si el perfil se contradice, dimensiona la carga inicial con lo que el atleta ya hace y elige el arranque según haya o no FTP medido. Si `profile.ftp` es null, no propongas un FTP: hasta el test todo va por sensación y el test da su punto de partida.',
+      'Antes de decidir: revisa si el perfil se contradice, dimensiona la carga inicial con lo que el atleta ya hace y elige el arranque según haya o no FTP medido. Si `profile.ftp` es null, no propongas un FTP: hasta el test todo va por sensación (la intensidad, por RPE en steps "free", si no hay límite) y el test da su punto de partida.',
       'Si `goal` menciona una lesión, un dolor o un límite de tiempo, es una instrucción aunque venga en texto libre.',
       'Si `profile.otherActivities` trae actividades (correr, gym, crossfit…), súmalas a la carga y acomoda la bici alrededor de ellas, sin agendarlas (sección "Otras actividades además de la bici").',
     ].join('\n'),

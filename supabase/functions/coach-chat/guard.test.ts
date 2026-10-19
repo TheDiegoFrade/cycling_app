@@ -53,6 +53,14 @@ describe('repairOutput', () => {
     expect(fixes.some((f) => f.includes('quitado'))).toBe(true);
   });
 
+  it('sin FTP medido no toca los steps "free" (intensidad por RPE)', () => {
+    const ctx = weeklyCtx({ profile: { ftp: null } });
+    const rpe = { ...hard('tue'), segments: [{ repeat: 5, steps: [{ ...step(4, 115), type: 'free' }, step(4, 50)] }] };
+    const { out, fixes } = repairOutput('weekly_eval', ctx, weeklyOut([rpe]));
+    expect(out.nextWeekWorkouts[0].segments[0].steps[0].power_pct).toBe(115);
+    expect(fixes.some((f) => f.includes('sin FTP'))).toBe(false);
+  });
+
   it('sin FTP medido baja a 90 % lo que no es test', () => {
     const ctx = weeklyCtx({ profile: { ftp: null } });
     const test = { ...hard('sat'), name: 'Test de rampa', kind: 'test' };
@@ -109,6 +117,14 @@ describe('create_plan sin FTP: el test', () => {
   it('sweet spot antes del test es falla; después, no', () => {
     expect(fails(plan([[easy('mon'), easy('wed')], [sweet('mon')]])).some((m) => m.includes('antes del test'))).toBe(true);
     expect(fails(plan([[easy('mon'), ramp], [sweet('mon')]]))).toEqual([]);
+  });
+
+  it('Joe: antes del test sí hay intensidad, pero por RPE en steps "free"', () => {
+    const rpeVo2 = { ...easy('mon'), name: 'VO2 por RPE', erg: 'off', intent: '4 × 4 min a RPE 8', segments: [{ repeat: 4, steps: [{ ...step(4, 110), type: 'free' }, step(4, 50)] }] };
+    expect(fails(plan([[rpeVo2, ramp]]))).toEqual([]);
+    // el mismo trabajo en ERG, a un % de un FTP que no existe, no
+    const ergVo2 = { ...rpeVo2, segments: [{ repeat: 4, steps: [step(4, 110), step(4, 50)] }] };
+    expect(fails(plan([[ergVo2, ramp]])).some((m) => m.includes('en ERG'))).toBe(true);
   });
 });
 
@@ -255,6 +271,15 @@ describe('perfil de arranque (método de Joe)', () => {
     const ctx = { ...base, starting: starting({ testPlan: 'ramp' }) };
     expect(fails(ctx, plan([easy('mon'), t20], { weekIndex: 0, type: 'test20', reason: 'x' })).some((m) => m.includes('rampa'))).toBe(true);
     expect(fails(ctx, plan([easy('mon'), ramp], { weekIndex: 0, type: 'ramp', reason: 'x' })).filter((m) => m.includes('rampa'))).toEqual([]);
+  });
+
+  it('sin alta intensidad (corazón, disautonomía, vértigo, lesión): ni por RPE, en ningún modo', () => {
+    const limit = starting({ intensityLimit: true, intensityLimitReasons: ['condición: disautonomía o pots'], healthFirst: true, testPlan: 'none', maxEffortReady: false, notReadyReasons: ['x'] });
+    const rpeVo2 = { ...easy('mon'), name: 'VO2 por RPE', segments: [{ repeat: 4, steps: [{ ...step(4, 110), type: 'free' }, step(4, 50)] }] };
+    expect(fails({ ...base, starting: limit }, plan([rpeVo2, easy('sat')], null)).some((m) => m.includes('no puede hacer alta intensidad'))).toBe(true);
+    expect(fails({ ...base, starting: limit }, plan([easy('mon'), easy('sat')], null))).toEqual([]);
+    const weekly = weeklyCtx({ starting: limit });
+    expect(reviewOutput('weekly_eval', weekly, weeklyOut([hard('tue'), easy('sat')])).some((x) => x.level === 'fail' && x.msg.includes('alta intensidad'))).toBe(true);
   });
 
   it('base primero: nada a 88 % o más al arrancar', () => {
