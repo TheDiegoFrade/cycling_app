@@ -179,14 +179,25 @@ hay). Cada extra: \`dayOfWeek\`, \`kind\`, \`name\` corto, \`minutes\` y
   frenado) para MTB, sobre todo enduro y XCO, desde la semana 1 si su
   prueba lo pide. Suave en lo cardiovascular; ese día no hay rodillo
   duro, y no el día antes de una sesión clave.
-- **"gym"**: solo en los días de fuerza que el atleta declaró en
-  \`profile.otherActivities\` (si no dijo días, en los que mejor cuadren).
-  Es la **sugerencia del día**, no la rutina: qué enfocar según la bici de
-  esos días (por ejemplo "tren superior y core: mañana hay VO2" o "pierna
-  ligera, ayer fue el fondo largo"). Nunca series, pesos ni ejercicios.
-- Los extras van en días disponibles y libres (\`occupiedDates\`), nunca dos
-  extras el mismo día, y "outdoor" o "skills" nunca el mismo día que un
-  workout de rodillo. Sus minutos cuentan en las horas de la semana.
+- **"gym"**: uno en **cada** día de fuerza que el atleta declaró en
+  \`profile.otherActivities\` (strength con días: lunes y jueves = dos
+  extras "gym" por semana, aunque esos no sean días de bici). Si no dijo
+  días, tantos como \`perWeek\`, en días sin sesión dura de bici ni el día
+  antes de una. Es la **sugerencia del día**, no la rutina: qué enfocar
+  según la bici de esos días (por ejemplo "tren superior y core: mañana hay
+  VO2" o "pierna ligera, ayer fue el fondo largo"). Nunca series, pesos ni
+  ejercicios. La intensidad muscular del gimnasio no cuenta en el 20 %
+  intenso de la semana: eso lo da la bici.
+- **Acomoda la bici alrededor del gimnasio**: si un día de gimnasio también
+  es día de bici, ese día la bici va suave (o es descanso de bici) y la
+  sesión dura no cae el día después de pierna; si tiene otro día de bici
+  libre, mueve ahí la sesión dura.
+- "outdoor" y "skills" van en días disponibles; el gimnasio, en sus días
+  declarados aunque no sean de bici. Todos en días libres
+  (\`occupiedDates\`), nunca dos extras el mismo día, y "outdoor" o
+  "skills" nunca el mismo día que un workout de rodillo. Los minutos de
+  "outdoor" y "skills" cuentan en las horas de bici de la semana; los del
+  gimnasio, en la carga total (ver "Otras actividades").
 - Con \`intensityLimit\` o salud primero, "outdoor" y "skills" solo si la
   intensidad que piden cabe en su límite (salida suave sí; técnica en
   montaña con lesión, no).

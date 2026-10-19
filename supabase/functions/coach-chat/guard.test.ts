@@ -324,10 +324,30 @@ describe('extras (lo que no es rodillo)', () => {
         { workouts: [easy('wed')], extras: [x('sun', 'outdoor', 'domingo ocupado'), x('fri', 'outdoor', 'viernes no disponible')] },
       ]),
     );
-    expect(out.firstBlockWeeks[0].extras.map((e: { name: string }) => e.name)).toEqual(['técnica', 'gym en jueves']);
+    expect(out.firstBlockWeeks[0].extras.map((e: { name: string }) => e.name)).toEqual(['gym en jueves', 'técnica']);
     expect(out.firstBlockWeeks[1].extras).toEqual([]);
     expect(fixes.filter((f) => f.includes('quitado'))).toHaveLength(5);
     expect(fixes.some((f) => f.includes('ya hay rodillo'))).toBe(true);
+  });
+
+  it('gimnasio: uno en cada día que declaró, aunque no sea de bici; fuera de ellos se quita', () => {
+    const gctx = { ...ctx, profile: { ftp: 250, otherActivities: [{ kind: 'strength', perWeek: 2, minutes: 50, days: ['mon', 'thu'] }] } };
+    const { out, fixes } = repairOutput(
+      'create_plan',
+      gctx,
+      plan([
+        { workouts: [easy('wed'), hard('sat')], extras: [x('thu', 'gym', 'del modelo')] },
+        { workouts: [hard('wed'), easy('sat')], extras: [x('fri', 'gym', 'viernes no declarado')] },
+      ]),
+    );
+    // semana 0 arranca miércoles: el lunes ya pasó
+    expect(out.firstBlockWeeks[0].extras.map((e: { dayOfWeek: string; name: string }) => `${e.dayOfWeek} ${e.name}`)).toEqual(['thu del modelo']);
+    const w1 = out.firstBlockWeeks[1].extras;
+    expect(w1.map((e: { dayOfWeek: string }) => e.dayOfWeek)).toEqual(['mon', 'thu']);
+    expect(w1[0]).toMatchObject({ kind: 'gym', minutes: 50 });
+    expect(w1[1].description).toMatch(/ayer fue sesión dura/);
+    expect(fixes.some((f) => f.includes('no es uno de sus días de gimnasio'))).toBe(true);
+    expect(fixes.filter((f) => f.includes('agregado'))).toHaveLength(2);
   });
 
   it('weekly_eval: nextWeekExtras se revisa igual', () => {
