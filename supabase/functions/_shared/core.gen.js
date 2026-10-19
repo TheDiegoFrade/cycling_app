@@ -535,6 +535,18 @@ function planTotalWeeks(blocks) {
 }
 
 // src/core/intake.ts
+var CHRONIC_CONDITION_LABELS = {
+  hypertension: "Presi\xF3n alta",
+  diabetes: "Diabetes",
+  metabolic: "Metab\xF3lica (tiroides, resistencia a la insulina\u2026)",
+  asthma: "Asma",
+  heart: "Del coraz\xF3n",
+  dysautonomia: "Disautonom\xEDa o POTS",
+  vertigo: "V\xE9rtigo o mareos",
+  other: "Otra"
+};
+var NO_HIGH_INTENSITY_CONDITIONS = ["heart", "dysautonomia", "vertigo"];
+var METABOLIC_CONDITIONS = ["diabetes", "metabolic"];
 var SHORT_SLEEP_H = 6;
 var bump = (l) => l === "low" ? "medium" : "high";
 function startingProfile(p) {
@@ -557,6 +569,9 @@ function startingProfile(p) {
   if (i && i.alcohol === "frequent") stress = "high";
   const poorSleep = !!i && (i.sleepHours < SHORT_SLEEP_H || i.sleepQuality === "poor");
   const start = poorSleep || stress === "high" ? "conservative" : "normal";
+  const intensityLimitReasons = [];
+  for (const c of i?.conditions ?? []) if (NO_HIGH_INTENSITY_CONDITIONS.includes(c)) intensityLimitReasons.push(`condici\xF3n: ${CHRONIC_CONDITION_LABELS[c].toLowerCase()}`);
+  if (i?.injuryLimitsIntensity) intensityLimitReasons.push("una lesi\xF3n o molestia que hoy le impide esfuerzos fuertes");
   return {
     healthFirst,
     maxEffortReady,
@@ -565,7 +580,12 @@ function startingProfile(p) {
     baseFirst,
     start,
     stressAdjusted: stress,
-    teachRpe: !!i && i.rpeLiteracy !== "yes"
+    teachRpe: !!i && i.rpeLiteracy !== "yes",
+    intensityLimit: intensityLimitReasons.length > 0,
+    intensityLimitReasons,
+    metabolicFirst: !!i && i.conditions.some((c) => METABOLIC_CONDITIONS.includes(c)),
+    inSeason: i?.recentTraining === "with_intensity",
+    recentHoursPerWeek: typeof i?.recentHoursPerWeek === "number" ? i.recentHoursPerWeek : null
   };
 }
 

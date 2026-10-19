@@ -160,6 +160,8 @@ function modalHtml(p: Profile): string {
             </label>
             <p class="ob-q">¿Tuviste alguna lesión o cirugía importante en los últimos 2 años?</p>
             ${chipGroupHtml('ob-recent-injury', [['no', 'No'], ['yes', 'Sí']], yesNo(intake?.recentInjury))}
+            <p class="ob-q">¿Hoy tienes una lesión o molestia que te impida hacer esfuerzos fuertes?</p>
+            ${chipGroupHtml('ob-injury-limits', [['no', 'No'], ['yes', 'Sí']], yesNo(intake?.injuryLimitsIntensity))}
             <label class="ob-field"><span>Lesiones o limitaciones actuales</span>
               <textarea id="ob-injuries" rows="3" placeholder="Ej. molestia en rodilla izquierda, evitar sentadilla profunda" ${noInjuries ? 'disabled' : ''}>${noInjuries ? '' : esc(p.injuries)}</textarea>
             </label>
@@ -208,6 +210,13 @@ function modalHtml(p: Profile): string {
               </label>
               <label class="ob-field">Años entrenando con potencia o estructura
                 <span class="ob-input-unit"><input type="number" id="ob-structured-years" value="${esc(p.structuredTrainingYears)}" placeholder="0 si nunca" min="0" max="60" inputmode="numeric"><span>años</span></span>
+              </label>
+            </div>
+            <p class="ob-q">¿Cómo has entrenado las últimas 4 semanas?</p>
+            ${chipGroupHtml('ob-recent-training', [['little', 'Poco o nada'], ['easy', 'Rodadas suaves'], ['with_intensity', 'Con intensidad (series, carreras, salidas fuertes)']], intake?.recentTraining)}
+            <div class="ob-grid">
+              <label class="ob-field"><span>Horas por semana, más o menos <span class="ob-optional">opcional</span></span>
+                <span class="ob-input-unit"><input type="number" id="ob-recent-hours" value="${esc(intake?.recentHoursPerWeek ?? '')}" min="0" max="40" step="0.5" inputmode="decimal"><span>h</span></span>
               </label>
             </div>
             <p class="ob-q">¿Sabes medir qué tan duro vas del 1 al 10 (RPE)?</p>
@@ -422,6 +431,8 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     if (!medication) return { missing: 'Dinos si tomas algún medicamento de forma regular.' };
     const recentInjury = picked('ob-recent-injury');
     if (!recentInjury) return { missing: 'Dinos si tuviste una lesión o cirugía importante en los últimos 2 años.' };
+    const injuryLimits = picked('ob-injury-limits');
+    if (!injuryLimits) return { missing: 'Dinos si hoy tienes una lesión o molestia que te impida hacer esfuerzos fuertes.' };
     const smoking = picked('ob-smoking');
     if (!smoking) return { missing: 'Dinos si fumas.' };
     const alcohol = picked('ob-alcohol');
@@ -431,6 +442,9 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     const sleepRaw = backdrop.querySelector<HTMLInputElement>('#ob-sleep-hours')!.value;
     const sleepQuality = picked('ob-sleep-quality');
     if (!sleepQuality) return { missing: 'Dinos cómo duermes.' };
+    const recentTraining = picked('ob-recent-training');
+    if (!recentTraining) return { missing: 'Dinos cómo has entrenado las últimas 4 semanas.' };
+    const recentHoursRaw = backdrop.querySelector<HTMLInputElement>('#ob-recent-hours')!.value.trim();
     const rpe = picked('ob-rpe');
     if (!rpe) return { missing: 'Dinos si sabes medir tu esfuerzo del 1 al 10.' };
     const maxEffort = picked('ob-max-effort');
@@ -447,6 +461,9 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
           ? { medicationNote: backdrop.querySelector<HTMLInputElement>('#ob-medication-note')!.value.trim() }
           : {}),
         recentInjury: recentInjury === 'yes',
+        injuryLimitsIntensity: injuryLimits === 'yes',
+        recentTraining: recentTraining as HealthIntake['recentTraining'],
+        recentHoursPerWeek: recentHoursRaw ? Number(recentHoursRaw) : null,
         smoking: smoking as HealthIntake['smoking'],
         alcohol: alcohol as HealthIntake['alcohol'],
         stress: stress as HealthIntake['stress'],

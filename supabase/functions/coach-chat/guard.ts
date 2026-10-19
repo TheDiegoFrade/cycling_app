@@ -85,6 +85,9 @@ function isHard(steps: Step[]): boolean {
   return at(88) >= 480 || at(105) >= 180;
 }
 const maxPct = (steps: Step[]) => Math.max(0, ...steps.map((s) => Math.max(s.power_pct, s.ramp_to_pct ?? 0)));
+/** Lo más alto en ERG: los steps "free" (el atleta regula por RPE; sin FTP
+ * medido, la intensidad va así) no cuentan, su % es solo de referencia. */
+const maxErgPct = (steps: Step[]) => maxPct(steps.filter((s) => s.type !== 'free'));
 const isTest = (w: Any) => isTestWorkout(w);
 const EASY_NAME_RE = /fondo|suave|recuperaci|tranquil|conversacional|regenera|\bz2\b/i;
 /** Un nombre que ya avisa del trabajo duro ("Fondo largo con sweet spot") no engaña. */
@@ -236,18 +239,23 @@ export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes:
           fixes.push(`S${wi + 1} «${w.name}»: cadencia mínima bajada a ${START_MAX_CADENCE_MIN} rpm (todavía no se conoce su cadencia)`);
         }
       }
-      // Sin FTP medido, nada que no sea test llega a umbral.
-      if (ftpUnknown(ctx) && !isTest(w) && maxPct(flat(w.segments)) >= 95) {
-        const top = maxPct(flat(w.segments));
+      // Sin FTP medido, nada en ERG llega a umbral (lo intenso va en steps
+      // "free" por RPE, que no se tocan).
+      if (ftpUnknown(ctx) && !isTest(w) && maxErgPct(flat(w.segments)) >= 95) {
+        const top = maxErgPct(flat(w.segments));
         w = {
           ...w,
           segments: w.segments.map((seg: Segment) => ({
             ...seg,
-            steps: seg.steps.map((st) => ({
-              ...st,
-              power_pct: Math.min(st.power_pct, NO_FTP_MAX_PCT),
-              ...(st.ramp_to_pct !== undefined ? { ramp_to_pct: Math.min(st.ramp_to_pct, NO_FTP_MAX_PCT) } : {}),
-            })),
+            steps: seg.steps.map((st) =>
+              st.type === 'free'
+                ? st
+                : {
+                    ...st,
+                    power_pct: Math.min(st.power_pct, NO_FTP_MAX_PCT),
+                    ...(st.ramp_to_pct !== undefined ? { ramp_to_pct: Math.min(st.ramp_to_pct, NO_FTP_MAX_PCT) } : {}),
+                  },
+            ),
           })),
         };
         fixes.push(`S${wi + 1} «${w.name}»: bajado de ${top} % a ${NO_FTP_MAX_PCT} % (sin FTP medido)`);
@@ -336,23 +344,24 @@ function checkNoFtp(f: Finding[], ctx: Any, out: Any, weeks: { workouts: Any[] }
   for (const [wi, week] of weeks.entries()) {
     for (const w of week.workouts) {
       if (isTest(w)) continue;
-      const top = maxPct(flat(w.segments));
-      if (top >= 95) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % FTP sin FTP medido` });
+      const top = maxErgPct(flat(w.segments));
+      if (top >= 95) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % FTP en ERG sin FTP medido (lo intenso va en steps "free" por RPE)` });
     }
   }
   if (out.nextTest && isMinor(ctx)) f.push({ level: 'fail', msg: 'un menor de 18 no hace tests máximos: nextTest va null' });
   if (!out.nextTest && !noPerformance(ctx) && !isMinor(ctx) && ctx.starting?.testPlan !== 'none') f.push({ level: 'fail', msg: 'sin FTP medido y nextTest es null: tienes que decir cuándo se mide' });
 }
 
-/** Sin FTP medido, nada que no sea test llega a 88 % antes del primer test
- * (si no hay test en las semanas armadas, en ninguna). */
+/** Sin FTP medido, antes del primer test nada en ERG llega a 88 % (si no
+ * hay test en las semanas armadas, en ninguna). Lo intenso sí puede ir,
+ * pero por RPE en steps "free" (Joe): ahí el % es solo referencia. */
 function checkNothingHardBeforeTest(f: Finding[], weeks: { workouts: Any[] }[]) {
   for (const [wi, week] of weeks.entries()) {
     const ordered = [...week.workouts].sort((a, b) => DAY_OFFSET[a.dayOfWeek] - DAY_OFFSET[b.dayOfWeek]);
     for (const w of ordered) {
       if (isTest(w)) return;
-      const top = maxPct(flat(w.segments));
-      if (top >= 88) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % antes del test, sin FTP medido (todo por sensación hasta medirlo)` });
+      const top = maxErgPct(flat(w.segments));
+      if (top >= 88) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % en ERG antes del test, sin FTP medido (lo intenso va en steps "free" guiados por RPE)` });
     }
   }
 }
@@ -380,6 +389,17 @@ function checkStartingProfile(f: Finding[], mode: Mode, ctx: Any, out: Any, week
   if (s.testPlan === 'ramp') {
     if (out.nextTest?.type === 'test20') f.push({ level: 'fail', msg: 'el atleta no tiene experiencia con esfuerzos máximos: su test es la rampa (nextTest.type "ramp"), no el de 20 min' });
     for (const { w, wi } of tests) if (isTwentyMinTest(w)) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: test de 20 min para alguien sin experiencia con máximos: usa la rampa` });
+  }
+  // Sin alta intensidad (corazón, disautonomía, vértigo o lesión que la
+  // impide): nada a 88 % o más, ni en steps "free" por RPE, en ningún modo.
+  if (s.intensityLimit) {
+    for (const [wi, week] of weeks.entries()) {
+      for (const w of week.workouts) {
+        if (isTest(w)) continue;
+        const top = maxPct(flat(w.segments));
+        if (top >= 88) f.push({ level: 'fail', msg: `S${wi + 1} «${w.name}»: llega a ${top} % y el atleta no puede hacer alta intensidad (${(s.intensityLimitReasons ?? []).join('; ')}): fondo y tempo suave` });
+      }
+    }
   }
   // Base primero (fuma o toma con frecuencia): nada a 88 % o más al crear el plan.
   if (s.baseFirst && mode === 'create_plan') {

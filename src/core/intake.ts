@@ -13,15 +13,25 @@
 // Lo calcula el servidor también (core.gen.js) para que el coach IA lo
 // reciba decidido y la guardia lo haga cumplir.
 
-export type ChronicCondition = 'hypertension' | 'diabetes' | 'asthma' | 'heart' | 'other';
-export const CHRONIC_CONDITIONS: readonly ChronicCondition[] = ['hypertension', 'diabetes', 'asthma', 'heart', 'other'];
+export type ChronicCondition = 'hypertension' | 'diabetes' | 'metabolic' | 'asthma' | 'heart' | 'dysautonomia' | 'vertigo' | 'other';
+export const CHRONIC_CONDITIONS: readonly ChronicCondition[] = ['hypertension', 'diabetes', 'metabolic', 'asthma', 'heart', 'dysautonomia', 'vertigo', 'other'];
 export const CHRONIC_CONDITION_LABELS: Record<ChronicCondition, string> = {
   hypertension: 'Presión alta',
   diabetes: 'Diabetes',
+  metabolic: 'Metabólica (tiroides, resistencia a la insulina…)',
   asthma: 'Asma',
   heart: 'Del corazón',
+  dysautonomia: 'Disautonomía o POTS',
+  vertigo: 'Vértigo o mareos',
   other: 'Otra',
 };
+/** Joe: con estas no se mete alta intensidad (lesión que la impide, aparte). */
+const NO_HIGH_INTENSITY_CONDITIONS: readonly ChronicCondition[] = ['heart', 'dysautonomia', 'vertigo'];
+/** Joe: un desorden metabólico se ataca desde el metabolismo primero. */
+const METABOLIC_CONDITIONS: readonly ChronicCondition[] = ['diabetes', 'metabolic'];
+
+/** Cómo ha entrenado las últimas 4 semanas (lo diga o no la app). */
+export type RecentTraining = 'little' | 'easy' | 'with_intensity';
 
 export type Smoking = 'no' | 'occasional' | 'daily';
 export type Alcohol = 'rarely' | 'weekly' | 'frequent';
@@ -39,6 +49,15 @@ export interface HealthIntake {
   /** Lesión o cirugía importante en los últimos 2 años. Más vieja no
    * cuenta, salvo que deje molestia (eso va en Profile.injuries). */
   recentInjury: boolean;
+  /** Hoy tiene una lesión o molestia que le impide esfuerzos fuertes.
+   * Evaluaciones de antes de esta pregunta no la traen. */
+  injuryLimitsIntensity?: boolean;
+  /** Últimas 4 semanas: poco o nada, rodadas suaves, o con intensidad
+   * (series, carreras, salidas fuertes). Quien llega a media temporada sin
+   * historial en Torq no arranca desde base. Evaluaciones viejas no la traen. */
+  recentTraining?: RecentTraining;
+  /** Horas por semana de esas 4 semanas (aprox.); null = no sabe. */
+  recentHoursPerWeek?: number | null;
   smoking: Smoking;
   /** rarely = nunca o rara vez · weekly = 1-2 veces por semana ·
    * frequent = 3 o más veces por semana. */
@@ -59,6 +78,8 @@ export function intakeError(i: HealthIntake | undefined): string | null {
   if (i.conditions.includes('other') && !i.conditionsOther?.trim()) return 'Escribe cuál es la otra condición de salud.';
   if (!(i.sleepHours >= 3 && i.sleepHours <= 12)) return 'Escribe cuántas horas duermes en promedio (de 3 a 12).';
   if (i.restingHr !== null && !(i.restingHr >= 30 && i.restingHr <= 120)) return 'Escribe tu pulso en reposo (de 30 a 120) o marca que no lo sabes.';
+  if (i.recentHoursPerWeek !== undefined && i.recentHoursPerWeek !== null && !(i.recentHoursPerWeek >= 0 && i.recentHoursPerWeek <= 40))
+    return 'Escribe cuántas horas por semana has entrenado (de 0 a 40) o déjalo vacío.';
   return null;
 }
 
@@ -84,6 +105,20 @@ export interface StartingProfile {
   stressAdjusted: Level3;
   /** No sabe usar RPE: hay que enseñárselo antes de pedírselo. */
   teachRpe: boolean;
+  /** Nada de alta intensidad (RPE 7 o más): corazón, disautonomía, vértigo
+   * o una lesión que hoy la impide. */
+  intensityLimit: boolean;
+  /** Por qué (en palabras para el coach). Vacío si no hay límite. */
+  intensityLimitReasons: string[];
+  /** Diabetes u otra condición metabólica: primero el metabolismo (fondo y
+   * tempo constantes) y después las cargas según la demanda de su prueba. */
+  metabolicFirst: boolean;
+  /** Viene entrenando con intensidad las últimas 4 semanas: no arranca
+   * desde base aunque no tenga historial en Torq. */
+  inSeason: boolean;
+  /** Horas por semana que dice que viene haciendo (para dimensionar la
+   * carga si no hay historial). null = no lo dijo. */
+  recentHoursPerWeek: number | null;
 }
 
 /** (provisional) Menos de 6 h o mal sueño = arranque conservador. */
@@ -127,6 +162,10 @@ export function startingProfile(
   const poorSleep = !!i && (i.sleepHours < SHORT_SLEEP_H || i.sleepQuality === 'poor');
   const start = poorSleep || stress === 'high' ? 'conservative' : 'normal';
 
+  const intensityLimitReasons: string[] = [];
+  for (const c of i?.conditions ?? []) if (NO_HIGH_INTENSITY_CONDITIONS.includes(c)) intensityLimitReasons.push(`condición: ${CHRONIC_CONDITION_LABELS[c].toLowerCase()}`);
+  if (i?.injuryLimitsIntensity) intensityLimitReasons.push('una lesión o molestia que hoy le impide esfuerzos fuertes');
+
   return {
     healthFirst,
     maxEffortReady,
@@ -136,5 +175,10 @@ export function startingProfile(
     start,
     stressAdjusted: stress,
     teachRpe: !!i && i.rpeLiteracy !== 'yes',
+    intensityLimit: intensityLimitReasons.length > 0,
+    intensityLimitReasons,
+    metabolicFirst: !!i && i.conditions.some((c) => METABOLIC_CONDITIONS.includes(c)),
+    inSeason: i?.recentTraining === 'with_intensity',
+    recentHoursPerWeek: typeof i?.recentHoursPerWeek === 'number' ? i.recentHoursPerWeek : null,
   };
 }

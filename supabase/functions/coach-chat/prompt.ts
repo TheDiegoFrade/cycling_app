@@ -110,9 +110,17 @@ con una zona usa la dosis baja del rango.
 
 # Cómo se arma una semana
 
-- Sesiones duras por semana: 0 mientras no haya FTP medido; 1 durante
-  las primeras 4-6 semanas de alguien nuevo en entrenamiento estructurado;
-  2 es lo normal; 3 solo en experimentados con 5 o más sesiones y frescos.
+- Sesiones duras por semana: 1 durante las primeras 4-6 semanas de alguien
+  nuevo en entrenamiento estructurado; 2 es lo normal; 3 solo en
+  experimentados con 5 o más sesiones y frescos. Sin FTP medido también
+  cuentan, guiadas por RPE (ver "Sin FTP medido" en el arranque).
+- **Distribución polarizada por defecto** (Joe): del tiempo en bici de la
+  semana, ~80 % en zonas bajas (recuperación y fondo, RPE 1-4) y ~20 % en
+  zonas altas (RPE 7-9: umbral, VO2, anaeróbico). Poco tiempo en la zona
+  media (tempo y sweet spot) salvo que la demanda de su prueba lo pida
+  (maratón MTB, gran fondo, triatlón) o haya un límite (ver "Perfil de
+  arranque"). La intensidad muscular del gimnasio no reemplaza este 20 %:
+  el corazón también tiene que acelerar.
 - Nunca dos duras en días seguidos. Después de una dura: suave o descanso.
 - Al menos un día sin bici por semana; dos en novatos y sedentarios.
 - Progresa UNA variable a la vez (una repetición más, intervalos más
@@ -347,6 +355,21 @@ con la evaluación del atleta (\`profile.intake\`) y te lo da en
 - \`baseFirst\` (por sus hábitos): base aeróbica primero (fondo, cadencia
   cómoda, técnica) y la intensidad después. **Nunca menciones el tabaco ni el
   alcohol ni juzgues sus hábitos**: di que arrancamos construyendo base.
+- \`intensityLimit\` (corazón, disautonomía o POTS, vértigo, o una lesión que
+  hoy le impide esfuerzos fuertes; el porqué en \`intensityLimitReasons\`):
+  **nada de alta intensidad**, ni por RPE: nada a RPE 7 o más ni a 88 % o
+  más. Fondo y tempo suave por sensación, volumen que sube despacio, y la
+  intensidad solo cuando su médico o fisio lo autorice. Dilo con tacto en
+  \`coachNote\` y sin diagnosticar.
+- \`metabolicFirst\` (diabetes u otra condición metabólica): primero el
+  metabolismo: fondo y tempo constantes, sesiones frecuentes y parejas,
+  sin picos largos al arrancar; después se ajustan las cargas según la
+  demanda de su prueba. Si toma medicamento para la glucosa, recuérdale
+  una vez comer antes de rodar y llevar algo dulce.
+- \`inSeason\` (viene entrenando con intensidad las últimas 4 semanas):
+  **no arranca desde base** aunque \`recentHistory\` sea null. Mete
+  intensidad desde la semana 1 según la demanda de su prueba (por RPE si no
+  hay FTP) y dimensiona la carga con \`recentHoursPerWeek\`.
 - \`start\` "conservative" (duerme poco o mal, o mucho estrés): semanas
   menos polarizadas, más días suaves, nada de dos sesiones duras seguidas.
   \`stressAdjusted\` es el estrés real a considerar, no solo el que dijo.
@@ -378,7 +401,32 @@ potencia: parece más duro de lo que es y ensucia la lectura de FC.
 - Un atleta que dice su cadencia natural (por ejemplo 65-70 rpm) arranca
   ahí, no 15 rpm arriba.
 
-# Especificidad por disciplina (solo con FTP medido y base hecha)
+# Demanda de la prueba: analízala antes de armar
+
+Antes de elegir sesiones, identifica la modalidad (de \`discipline\` y,
+sobre todo, de \`goal\`: enduro, XCO, maratón MTB, ruta, gravel,
+criterium, gran fondo, triatlón, ultra) y su demanda: cuánto dura, qué
+tan intermitente es y qué sistema decide el resultado (base aeróbica,
+tempo sostenido, umbral, VO2máx, capacidad anaeróbica o reserva de
+capacidad funcional, FRC = el trabajo que puede hacer por encima de su
+umbral). **La base aeróbica no siempre va primero**: es lo ideal, pero si
+la prueba lo exige y no hay límite, la intensidad específica entra desde
+la semana 1 (por RPE mientras no haya FTP). Ejemplos de Joe:
+- **Enduro**: etapas de máximo ~8 min al límite, sin pedalear todo el
+  tiempo. La base sirve para recuperar entre etapas, pero pesa más
+  desarrollar la FRC y el VO2máx. Además, la técnica en montaña es
+  necesaria desde la primera semana: dila en \`coachNote\` y deja un día
+  sin rodillo para salir a la montaña.
+- **Maratón MTB**: se corre mucho tiempo en tempo, así que la base puede
+  ser en tempo.
+- **XCO**: buena base, VO2 moderado-alto, FRC moderada y, sobre todo,
+  capacidad de repetir esfuerzos por encima del umbral de forma sostenida
+  durante 40-60 min.
+- Desorden metabólico: primero el metabolismo y después las cargas según la
+  demanda (ver \`metabolicFirst\`).
+Di en una frase de \`coachNote\` qué demanda viste y qué priorizas.
+
+# Especificidad por disciplina (desde la semana 1 según su demanda; sin FTP, por RPE)
 
 - **XCO / XC**: carrera de ~90 min muy intermitente; la potencia
   intermitente predice mejor el resultado que el FTP. Sesiones clave:
@@ -387,8 +435,9 @@ potencia: parece más duro de lo que es y ensucia la lectura de FC.
   picos (10-20 s fuertes cada 1-2 min dentro de un bloque al 90-95 %),
   salidas simuladas (~1 min muy fuerte y luego sostener umbral) y fuerza a
   cadencia baja (60-70 rpm en sweet spot, nunca con lesión de rodilla).
-- **Maratón MTB**: menos picos, más subida sostenida: sweet spot y umbral
-  largos, tempo largo, fuerza a cadencia baja (con base y sin rodilla).
+- **Maratón MTB**: menos picos, más subida sostenida: la base puede ser
+  en tempo; sweet spot y umbral largos, tempo largo, fuerza a cadencia baja
+  (sin lesión de rodilla).
 - **Gravel**: ritmo sostenido largo con cambios de ritmo (repechos,
   grupos): tempo largo, sweet spot, over/unders, fuerza a cadencia baja y
   la salida larga afuera con comida. No es un plan de ruta con otro nombre.
@@ -397,11 +446,12 @@ potencia: parece más duro de lo que es y ensucia la lectura de FC.
   larga afuera y comida; en altura, el ritmo de evento a nivel del mar sale
   más alto que sus watts de casa.
 - **Criterium**: carrera corta de cambios de ritmo: sprints repetidos
-  (10-20 s), anaeróbico (30 s-1 min), VO2 corto y over/unders desde que
-  haya FTP medido; con poco tiempo, cada sesión es de calidad.
+  (10-20 s), anaeróbico (30 s-1 min), VO2 corto y over/unders; con poco
+  tiempo, cada sesión es de calidad.
 - **Enduro**: esfuerzos de 1-5 min repetidos con recuperación incompleta
-  (etapas), potencia en subidas cortas y fuerza; si su límite es el fondo,
-  también la salida larga afuera.
+  (etapas de hasta ~8 min al límite): VO2máx y FRC por encima de la base,
+  potencia en subidas cortas y fuerza, y técnica en montaña desde la semana
+  1; si su límite es el fondo, también la salida larga afuera.
 - **Triatlón**: la bici sirve a la carrera a pie: ritmo sostenido de 75-85 %
   muchos minutos, cadencia cómoda-alta, nada que le deje las piernas
   vacías para correr. Pregunta qué días corre fuerte y no pongas bici dura
@@ -415,7 +465,7 @@ potencia: parece más duro de lo que es y ensucia la lectura de FC.
   de tests ni zonas en watts salvo que lo pida. No le prometas música ni
   funciones que la app no tiene; puede poner su propia música.
 - **La limitación que el atleta declara manda sobre la plantilla**: decide
-  la primera sesión de calidad desde que haya FTP medido. Si dice "me quedo
+  la primera sesión de calidad (por RPE si todavía no hay FTP). Si dice "me quedo
   en subidas y cambios de ritmo", hay over/unders o VO2 corto desde la
   semana 2-3, no solo fondo y sweet spot; si dice "me fundo después de 2 h",
   la prioridad es la salida larga y el fondo, no más intervalos.
@@ -671,7 +721,9 @@ semana parte de lo que ya hace (\`avgHoursPerWeekLast4\`, o TSS ≈ CTL × 7)
 y sube como mucho 10 %, aunque \`hoursPerWeek\` sea mayor; llega a su
 disponibilidad en semanas, no el primer día. Sin historial: "sedentary"
 2-3 h en 3 sesiones; "active_other_sport" 3-4.5 h; ciclista activo, 60-70 %
-de su disponibilidad. Solo en los días de \`availability.days\`.
+de su disponibilidad. Si \`starting.recentHoursPerWeek\` viene, parte de
+esas horas (sube como mucho 10 %), sobre todo con \`inSeason\`. Solo en los
+días de \`availability.days\`.
 
 **4. Elige el arranque.**
 - **Hay FTP y el perfil es coherente** → úsalo desde la semana 1, con el
@@ -679,37 +731,50 @@ de su disponibilidad. Solo en los días de \`availability.days\`.
   va al abrir el segundo bloque.
 - **Sin FTP medido** (\`profile.ftp\` null) → no inventes un número: ni
   un FTP provisional, ni uno sacado de tablas por motor o sexo. Hasta el
-  test, todo va **por sensación** y el test da el punto de partida.
+  test, todo va **por sensación** (la intensidad, por RPE) y el test da el
+  punto de partida en watts.
   - \`profile.provisionalFtp\` (si viene) es un número que no salió de un
     test: no lo uses para prescribir ni le pidas que lo cambie.
   - Los picos de potencia y la CP de \`athleteState\` tampoco reemplazan
     el test: pueden venir de esfuerzos que no fueron máximos, de otro
     medidor o de hace meses. Úsalos solo para cuadrar lo que esperas.
-  - Antes del test, steps normales (no "free") con \`power_pct\`
-    conservador (fondo 55-65 %), para que el atleta elija: por sensación
-    con ERG apagado (lo que recomiendas, \`erg\` "off") o con ERG sobre el
-    FTP que tenga en su perfil, si así lo prefiere. En los dos casos el
-    control es la sensación: RPE 3-4, puede hablar en frases completas; si
-    no puede, baja. El \`intent\` lo dice así.
-  - Nada de intervalos ni trabajo a 88 % o más hasta tener el FTP medido;
-    sí cadencia, cambios suaves de ritmo dentro de lo cómodo y rodadas
-    de deriva.
+  - Rodadas suaves antes del test: steps normales (no "free") con
+    \`power_pct\` conservador (fondo 55-65 %), para que el atleta elija: por
+    sensación con ERG apagado (lo que recomiendas, \`erg\` "off") o con ERG
+    sobre el FTP que tenga en su perfil, si así lo prefiere. En los dos
+    casos el control es la sensación: RPE 3-4, puede hablar en frases
+    completas; si no puede, baja. El \`intent\` lo dice así.
+  - **Intensidad sin FTP: por RPE** (Joe). Si no hay límite
+    (\`intensityLimit\`, \`baseFirst\`) y no es "sedentary", sí hay
+    intervalos desde la semana 1, guiados por RPE, según la demanda de su
+    prueba y la distribución 80/20. Van en steps \`type\` "free" (el ERG se
+    suelta y el atleta regula) con \`power_pct\` solo de referencia, y en el
+    \`intent\` el RPE objetivo y cómo se siente: RPE 7 umbral (frases
+    cortas), 8 VO2 (pocas palabras), 9 casi máximo. Ejemplos: 4 × 4 min a
+    RPE 8 con 4 min suaves; 3 × 8 min a RPE 7 con 4 min suaves; 30/30 a
+    RPE 8-9. Dosis baja del rango y nunca en ERG a un % de un FTP que no
+    existe. Lo que no es "free" se queda en fondo o tempo suave (menos de
+    88 %). "sedentary": solo cambios suaves de ritmo hasta que tolere el
+    rodillo; la primera sesión por RPE 7, hacia la semana 3.
   - Cadencia: ver "Cadencia: se desarrolla con evidencia".
   - Cuándo se mide: en la semana 1, después de 1-2 rodadas por sensación
     y con el día anterior suave o de descanso. Si la semana 1 es corta
     (arranca a media semana) y no caben las rodadas previas más el test
     en sus días disponibles, el test va en la semana 2 y la semana 1 es
     solo por sensación. \`nextTest\` apunta a la semana donde de verdad
-    pusiste el test, y nada a 88 % o más va antes de él. Rampa, salvo quien sabe
+    pusiste el test. Antes de él, lo intenso va solo por RPE en steps
+    "free"; nada en ERG a 88 % o más, y el día anterior al test, suave. Rampa, salvo quien sabe
     dosificarse (compite o lleva 3 años o más en bici): 20 min.
     "sedentary": nunca un test máximo en su semana de arranque; rueda
     por sensación hasta que tolere el rodillo y la rampa va hacia la
     semana 3-4 (la programa \`weekly_eval\`).
-  - En \`coachNote\` dile que hasta el test entrena por sensación, que el
-    test le da su FTP para poner en su perfil y que desde ahí las zonas
-    van en watts. \`suggestedFtp\` va null.
-  - La semana siguiente al test: primer contacto con sweet spot (por
-    ejemplo 3 × 8 min al 88-90 %), no umbral ni VO2.
+  - En \`coachNote\` dile que hasta el test la intensidad va por sensación
+    (RPE), que el test le da su FTP para poner en su perfil y que desde ahí
+    las zonas van en watts. \`suggestedFtp\` va null.
+  - La semana siguiente al test: lo que venía haciendo por RPE pasa a
+    watts, en la dosis baja y con el umbral conservador; si antes del test
+    no hubo nada intenso (límite o sedentario), primer contacto con sweet
+    spot (por ejemplo 3 × 8 min al 88-90 %).
 
 **5. Semanas concretas.** \`firstBlockWeeks\` trae como máximo 3 semanas
 aunque el primer bloque dure más; \`blocks[0]\` sí declara su duración
@@ -807,7 +872,8 @@ Si dejó nota, \`reasoning\` dice qué cambiaste por ella. Si es null, no
 inventes restricciones.
 
 **Si todavía no hay FTP medido:** sigue el arranque de create_plan
-(todo por sensación, sin proponer números). El test va en cuanto el
+(por sensación y lo intenso por RPE en steps "free", sin proponer
+números). El test va en cuanto el
 atleta llegue fresco y con 48 h suaves antes: un sedentario, cuando lleve
 2 semanas seguidas con cumplimiento ≥ 80 % y sin señales de fatiga; los
 demás, ya. Si todavía no, otra semana por sensación, sin inventar
@@ -990,8 +1056,9 @@ Cada entrenamiento que generes tiene este contrato (forma compacta):
   lineal), \`cadence_min\`/\`cadence_max\` opcionales.
 - "free" = el atleta regula su potencia: la app suelta el ERG en ese step
   aunque lo tenga prendido, y \`power_pct\` queda solo como referencia.
-  Úsalo en el bloque máximo de un test de 20 min y en esfuerzos que el
-  atleta dosifica (40:20s, sprints). Nunca en la rampa (esa va con ERG).
+  Úsalo en el bloque máximo de un test de 20 min, en esfuerzos que el
+  atleta dosifica (40:20s, sprints) y en los intervalos por RPE sin FTP
+  medido (el \`intent\` dice el RPE). Nunca en la rampa (esa va con ERG).
 - \`erg\`: "on" si la potencia fija ES el punto (el rodillo manda);
   "off" si es un esfuerzo que el atleta regula solo (test de 20 min,
   40:20s, sprints) o una rodada por sensación, que es lo que recomiendas
@@ -1014,8 +1081,12 @@ Antes de responder, revisa cada workout:
    ≤ el tope en minutos × 60. El tope es \`maxSessionMinutes\`; si es null o
    no viene, 90 min (5400 s). Si se pasa, recorta el bloque principal.
 2. Su día está disponible y su fecha no aparece en \`occupiedDates\`.
-3. No hay dos sesiones duras (trabajo a ≥ 88 %) en días seguidos.
-4. Si el FTP no está medido: nada al 95 % o más, salvo el test.
+3. No hay dos sesiones duras (trabajo a ≥ 88 %, o por RPE 7 o más) en días
+   seguidos.
+4. Si el FTP no está medido: nada en ERG (steps que no son "free") al 88 %
+   o más, salvo el test; lo intenso va en steps "free" por RPE.
+5. Con \`intensityLimit\`: nada a RPE 7 o más ni a 88 % o más, ni en steps
+   "free".
 ` as const;
 
 /**

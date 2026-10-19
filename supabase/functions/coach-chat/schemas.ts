@@ -41,11 +41,14 @@ const OtherActivitySchema = z.object({
 
 /** Evaluación de salud y hábitos (src/core/intake.ts, método de Joe). */
 const HealthIntakeSchema = z.object({
-  conditions: z.array(z.enum(['hypertension', 'diabetes', 'asthma', 'heart', 'other'])).max(5),
+  conditions: z.array(z.enum(['hypertension', 'diabetes', 'metabolic', 'asthma', 'heart', 'dysautonomia', 'vertigo', 'other'])).max(8),
   conditionsOther: z.string().max(120).nullable().optional(),
   takesMedication: z.boolean(),
   medicationNote: z.string().max(200).nullable().optional(),
   recentInjury: z.boolean(),
+  injuryLimitsIntensity: z.boolean().optional(),
+  recentTraining: z.enum(['little', 'easy', 'with_intensity']).optional(),
+  recentHoursPerWeek: z.number().min(0).max(40).nullable().optional(),
   smoking: z.enum(['no', 'occasional', 'daily']),
   alcohol: z.enum(['rarely', 'weekly', 'frequent']),
   stress: z.enum(['low', 'medium', 'high']),
