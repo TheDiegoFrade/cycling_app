@@ -101,7 +101,6 @@ export function renderConnect(container: HTMLElement): void {
               <div class="row-actions">
                 <button id="trainer-connect" ${hasBluetooth ? '' : 'disabled title="este navegador no soporta Web Bluetooth"'}>Conectar por Bluetooth</button>
               </div>
-              ${hasBluetooth ? '<a href="#" id="trainer-show-all" class="prepare-link">¿No aparece tu rodillo? Ver todos los dispositivos</a>' : ''}
               <div id="trainer-error"></div>
             </div>
           </div>
@@ -128,22 +127,13 @@ export function renderConnect(container: HTMLElement): void {
     btn.disabled = appState.trainer?.state !== 'connected';
   }
 
-  // «Ver todos»: el mismo botón de conectar, pero con la lista completa.
-  let trainerShowAll = false;
-  container.querySelector<HTMLAnchorElement>('#trainer-show-all')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    trainerShowAll = true;
-    container.querySelector<HTMLButtonElement>('#trainer-connect')?.click();
-    trainerShowAll = false;
-  });
-
   wireSensor<TrainerAdapter, TrainerReading>('trainer', appState.trainer, {
     connectBtn: 'trainer-connect',
     dot: 'trainer-dot',
     stateEl: 'trainer-state',
     readingEl: 'trainer-reading',
     errorEl: 'trainer-error',
-    makeReal: () => new BleTrainerAdapter({ showAll: trainerShowAll }),
+    makeReal: () => new BleTrainerAdapter(),
     formatReading: (r) => `<span><b class="num">${r.power}</b> W</span><span><b class="num">${r.cadence}</b> rpm</span>`,
     onReady: (a) => {
       appState.trainer = a;

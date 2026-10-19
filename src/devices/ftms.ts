@@ -22,13 +22,6 @@ const RECONNECT_DELAYS_MS = [1000, 2000, 4000, 8000, 16000];
  * sigue al pie de la letra SPEC.md § Dispositivos (banderas de
  * indoor_bike_data, secuencia de control point, reconexión). */
 export class BleTrainerAdapter implements TrainerAdapter {
-  /** showAll: el selector de Chrome muestra todos los dispositivos, para
-   * un rodillo que no anuncia FTMS ni se llama como esperamos. */
-  private readonly opts: { showAll?: boolean };
-  constructor(opts: { showAll?: boolean } = {}) {
-    this.opts = opts;
-  }
-
   state: ConnectionState = 'disconnected';
   private device: BluetoothDevice | null = null;
   private dataCharacteristic: BluetoothRemoteGATTCharacteristic | null = null;
@@ -61,14 +54,11 @@ export class BleTrainerAdapter implements TrainerAdapter {
   async connect(): Promise<void> {
     this.manuallyDisconnected = false;
     this.setState('connecting');
-    // Por servicio FTMS, y por nombre para los Tacx: un Neo 2T con FTMS no
-    // siempre lo pone en el anuncio, y sin esto la lista de Chrome sale
-    // vacía. Si el que elige no trae FTMS, attachToDevice lo explica.
-    this.device = await navigator.bluetooth.requestDevice(
-      this.opts.showAll
-        ? { acceptAllDevices: true, optionalServices: ['fitness_machine'] }
-        : { filters: [{ services: ['fitness_machine'] }, { namePrefix: 'Tacx' }, { namePrefix: 'TACX' }, { namePrefix: 'NEO' }, { namePrefix: 'Neo' }], optionalServices: ['fitness_machine'] },
-    );
+    // Todos los dispositivos cercanos, como la banda de pulso: un rodillo
+    // con FTMS no siempre lo pone en su anuncio (el Tacx Neo 2T salía con
+    // la lista vacía al filtrar por servicio). Si el que elige no trae FTMS,
+    // attachToDevice lo explica.
+    this.device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['fitness_machine'] });
     this.device.addEventListener('gattserverdisconnected', this.handleDisconnected);
     await this.attachToDevice();
   }
@@ -202,7 +192,7 @@ export class BleTrainerAdapter implements TrainerAdapter {
     const server = await this.device.gatt.connect();
     const service = await server.getPrimaryService('fitness_machine').catch(() => {
       server.disconnect();
-      throw new Error('Este rodillo no tiene Bluetooth FTMS activo. Actualiza su firmware (en Tacx o Garmin, la app del fabricante) y vuelve a intentar.');
+      throw new Error('Ese dispositivo no es un rodillo con Bluetooth FTMS. Si es tu rodillo, actualiza su firmware en la app del fabricante (Tacx o Garmin, Wahoo…) y vuelve a intentar.');
     });
 
     this.dataCharacteristic = await service.getCharacteristic('indoor_bike_data');
