@@ -132,7 +132,15 @@ export function planCsv(items: readonly CsvPlanItem[]): string {
   return toCsv(PLAN_HEADERS, rows);
 }
 
-/** Nombre del archivo: torq-sesiones-2026-10-19.csv */
-export function csvFileName(what: 'sesiones' | 'plan', todayKey: string): string {
-  return `torq-${what}-${todayKey}.csv`;
+/** Nombre del archivo: torq-sesiones-2026-10-19.csv, o con el atleta
+ * (vista del coach): torq-andrea-guerrero-plan-2026-10-19.csv */
+export function csvFileName(what: 'sesiones' | 'plan', todayKey: string, athleteName?: string): string {
+  const who = athleteName
+    ?.normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+  return `torq-${who ? `${who}-` : ''}${what}-${todayKey}.csv`;
 }

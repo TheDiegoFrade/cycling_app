@@ -68,5 +68,7 @@ describe('planCsv', () => {
 
   it('nombre de archivo con la fecha', () => {
     expect(csvFileName('plan', '2026-10-19')).toBe('torq-plan-2026-10-19.csv');
+    expect(csvFileName('sesiones', '2026-10-19', 'Andrea Guerrero Guzmán')).toBe('torq-andrea-guerrero-guzman-sesiones-2026-10-19.csv');
+    expect(csvFileName('plan', '2026-10-19', '  ')).toBe('torq-plan-2026-10-19.csv');
   });
 });

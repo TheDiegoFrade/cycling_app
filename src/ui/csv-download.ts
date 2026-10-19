@@ -14,6 +14,10 @@ import { computeSessionAnalytics } from '../engine/analytics';
 import { listSessions } from '../storage/session-store';
 import type { SessionRecord } from '../storage/session-store';
 import type { CloudSessionSummary } from '../sync/cloud-sync';
+import { listAthleteSessionsForExport } from '../sync/coach-athletes';
+import { fetchAthleteScheduledWorkouts, fetchPlannedRoutines } from '../sync/plan-weeks';
+import type { PlannedRoutine } from '../core/coach-templates';
+import type { Workout } from '../core/types';
 import { appState } from './state';
 
 const SOURCE_LABELS: Record<SessionSource, string> = {
@@ -115,14 +119,11 @@ export async function downloadSessionsCsv(inRange: (dayKey: string) => boolean =
   return rows.length;
 }
 
-/** Todo lo agendado (rodillo y rutinas del coach), hecho o no. Devuelve
- * cuántos elementos se exportaron. */
-export async function downloadPlanCsv(): Promise<number> {
-  const local = await listSessions().catch(() => [] as SessionRecord[]);
-  const doneDays = new Set([...local, ...appState.cloudSessions].filter(wasTrained).map((s) => dayKeyOf(s.startedAt)));
-  const ftp = appState.profile.ftp;
-  const items: CsvPlanItem[] = [
-    ...appState.workouts
+/** Filas del plan: entrenos agendados y rutinas, marcados como hechos si
+ * ese día hubo una sesión entrenada. */
+function planItems(workouts: readonly Workout[], routines: readonly PlannedRoutine[], doneDays: ReadonlySet<string>, ftp: number): CsvPlanItem[] {
+  return [
+    ...workouts
       .filter((w) => w.scheduledDate)
       .map((w) => {
         const est = estimateWorkout(w.intervals, ftp);
@@ -137,7 +138,7 @@ export async function downloadPlanCsv(): Promise<number> {
           description: w.description?.trim() || null,
         };
       }),
-    ...appState.plannedRoutines.map((r) => ({
+    ...routines.map((r) => ({
       date: r.scheduledDate,
       name: r.name,
       kind: TEMPLATE_KIND_LABELS[r.kind],
@@ -148,6 +149,36 @@ export async function downloadPlanCsv(): Promise<number> {
       description: routineSummary(r.payload),
     })),
   ];
+}
+
+/** Todo lo agendado (rodillo y rutinas del coach), hecho o no. Devuelve
+ * cuántos elementos se exportaron. */
+export async function downloadPlanCsv(): Promise<number> {
+  const local = await listSessions().catch(() => [] as SessionRecord[]);
+  const doneDays = new Set([...local, ...appState.cloudSessions].filter(wasTrained).map((s) => dayKeyOf(s.startedAt)));
+  const items = planItems(appState.workouts, appState.plannedRoutines, doneDays, appState.profile.ftp);
   download(csvFileName('plan', todayKey()), planCsv(items));
+  return items.length;
+}
+
+// ── Vista del coach: lo mismo, de un atleta ─────────────────────────────────
+
+/** Sesiones del atleta (sin Strava: la vista del coach nunca las ve). */
+export async function downloadAthleteSessionsCsv(athleteId: string, athleteName: string): Promise<number> {
+  const sessions = (await listAthleteSessionsForExport(athleteId)).filter(wasTrained);
+  download(csvFileName('sesiones', todayKey(), athleteName), sessionsCsv(sessions.map(fromCloud)));
+  return sessions.length;
+}
+
+/** Lo agendado del atleta (rodillo y rutinas), con su FTP para el TSS estimado. */
+export async function downloadAthletePlanCsv(athleteId: string, athleteName: string, ftp: number): Promise<number> {
+  const [workouts, routines, sessions] = await Promise.all([
+    fetchAthleteScheduledWorkouts(athleteId),
+    fetchPlannedRoutines(athleteId, '2000-01-01', '2100-12-31'),
+    listAthleteSessionsForExport(athleteId),
+  ]);
+  const doneDays = new Set(sessions.filter(wasTrained).map((s) => dayKeyOf(s.startedAt)));
+  const items = planItems(workouts, routines, doneDays, ftp);
+  download(csvFileName('plan', todayKey(), athleteName), planCsv(items));
   return items.length;
 }
