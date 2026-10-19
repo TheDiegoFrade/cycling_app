@@ -55,7 +55,10 @@ export class BleTrainerAdapter implements TrainerAdapter {
     this.manuallyDisconnected = false;
     this.setState('connecting');
     this.device = await navigator.bluetooth.requestDevice({
-      filters: [{ services: ['fitness_machine'] }],
+      // Por servicio FTMS, y por nombre para los Tacx: un Neo 2T con FTMS no
+      // siempre lo pone en el anuncio, y sin esto la lista de Chrome sale
+      // vacía. Si el que elige no trae FTMS, attachToDevice lo explica.
+      filters: [{ services: ['fitness_machine'] }, { namePrefix: 'Tacx' }, { namePrefix: 'TACX' }],
       optionalServices: ['fitness_machine'],
     });
     this.device.addEventListener('gattserverdisconnected', this.handleDisconnected);
@@ -189,7 +192,10 @@ export class BleTrainerAdapter implements TrainerAdapter {
   private async attachToDevice(): Promise<void> {
     if (!this.device?.gatt) throw new Error('dispositivo sin GATT server');
     const server = await this.device.gatt.connect();
-    const service = await server.getPrimaryService('fitness_machine');
+    const service = await server.getPrimaryService('fitness_machine').catch(() => {
+      server.disconnect();
+      throw new Error('Este rodillo no tiene Bluetooth FTMS activo. Actualiza su firmware (en Tacx o Garmin, la app del fabricante) y vuelve a intentar.');
+    });
 
     this.dataCharacteristic = await service.getCharacteristic('indoor_bike_data');
     this.dataCharacteristic.addEventListener('characteristicvaluechanged', this.handleDataChanged);
