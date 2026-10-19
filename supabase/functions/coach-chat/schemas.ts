@@ -59,6 +59,18 @@ const HealthIntakeSchema = z.object({
   maxEffortExperience: z.boolean(),
 });
 
+/** Lo que el coach agenda y no es rodillo (feedback de Joe): va al
+ * calendario como rutina (planned_routines, source 'ai'). outdoor = salida
+ * larga afuera · skills = técnica en montaña · gym = la sugerencia del día
+ * de gimnasio (sin rutina). */
+export const PlannedExtraSchema = z.object({
+  dayOfWeek: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
+  kind: z.enum(['outdoor', 'skills', 'gym']),
+  name: z.string(),
+  minutes: z.number().int().min(15).max(360),
+  description: z.string(),
+});
+
 const PlannedWorkoutSchema = z.object({
   name: z.string(),
   dayOfWeek: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
@@ -275,6 +287,7 @@ export const CreatePlanOutputSchema = z.object({
       z.object({
         weekIndex: z.number().int().nonnegative(),
         workouts: z.array(PlannedWorkoutSchema).min(1),
+        extras: z.array(PlannedExtraSchema).max(4),
       }),
     )
     // Como mucho 3 semanas concretadas (el resto lo llena weekly_eval): lo
@@ -435,6 +448,7 @@ export const WeeklyEvalOutputSchema = z.object({
   contradictionFlag: z.string().nullable(), // si hubo señales contradictorias, explícalo aquí; si no, null
   recurringPatternFlag: z.string().nullable(), // si detectaste un patrón recurrente, pregunta concreta aquí; si no, null
   nextWeekWorkouts: z.array(PlannedWorkoutSchema).min(1),
+  nextWeekExtras: z.array(PlannedExtraSchema).max(4),
   // "change": debe cambiar su FTP a suggestedFtp · "keep": mantenerlo (tras
   // un test, o si preguntó) · null: el FTP no viene al caso esta semana.
   ftpAction: z.enum(['keep', 'change']).nullable(),
@@ -475,6 +489,7 @@ export const PublishBlockOutputSchema = z.object({
       z.object({
         weekIndex: z.number().int().nonnegative(),
         workouts: z.array(PlannedWorkoutSchema).min(1),
+        extras: z.array(PlannedExtraSchema).max(4),
       }),
     )
     .min(1),

@@ -303,3 +303,36 @@ describe('zonas de la rampa por RPE: no se habla de FTP', () => {
     expect(fails.some((m) => m.includes('rampa por RPE'))).toBe(true);
   });
 });
+
+describe('extras (lo que no es rodillo)', () => {
+  const ctx = { startDate: '2026-10-14', availability: { days: ['mon', 'wed', 'sat', 'sun'], maxSessionMinutes: 90 }, occupiedDates: ['2026-10-25'], profile: { ftp: 250 } }; // miércoles
+  const x = (dayOfWeek: string, kind: string, name = kind) => ({ dayOfWeek, kind, name, minutes: 90, description: 'x' });
+  const plan = (weeks: { workouts: unknown[]; extras: unknown[] }[]) => ({
+    blocks: [{ weeks: weeks.length }],
+    firstBlockWeeks: weeks.map((w, weekIndex) => ({ weekIndex, ...w })),
+    coachNote: 'Arrancamos con calma y con salidas afuera para el fondo largo de los fines de semana.',
+    suggestedFtp: null,
+    nextTest: null,
+  });
+
+  it('quita los mal puestos y deja los buenos', () => {
+    const { out, fixes } = repairOutput(
+      'create_plan',
+      ctx,
+      plan([
+        { workouts: [easy('wed'), easy('sat')], extras: [x('mon', 'outdoor', 'antes del inicio'), x('sat', 'outdoor', 'mismo día que rodillo'), x('sun', 'skills', 'técnica'), x('sun', 'outdoor', 'segundo el domingo'), x('thu', 'gym', 'gym en jueves')] },
+        { workouts: [easy('wed')], extras: [x('sun', 'outdoor', 'domingo ocupado'), x('fri', 'outdoor', 'viernes no disponible')] },
+      ]),
+    );
+    expect(out.firstBlockWeeks[0].extras.map((e: { name: string }) => e.name)).toEqual(['técnica', 'gym en jueves']);
+    expect(out.firstBlockWeeks[1].extras).toEqual([]);
+    expect(fixes.filter((f) => f.includes('quitado'))).toHaveLength(5);
+    expect(fixes.some((f) => f.includes('ya hay rodillo'))).toBe(true);
+  });
+
+  it('weekly_eval: nextWeekExtras se revisa igual', () => {
+    const wctx = weeklyCtx();
+    const { out } = repairOutput('weekly_eval', wctx, weeklyOut([easy('tue')], { nextWeekExtras: [x('tue', 'outdoor', 'choca'), x('sun', 'outdoor', 'ok')] }));
+    expect(out.nextWeekExtras.map((e: { name: string }) => e.name)).toEqual(['ok']);
+  });
+});

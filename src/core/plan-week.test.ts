@@ -71,7 +71,7 @@ describe('scaleIntensity', () => {
 describe('rutinas en el borrador', () => {
   it('itemsFromWorkouts junta entrenamientos y rutinas de la semana, por día', async () => {
     const { itemsFromWorkouts: build, itemDate, itemId, movedItem } = await import('./plan-week');
-    const routine = { id: 'r1', kind: 'strength' as const, name: 'Fuerza', payload: { exercises: [{ name: 'a', dose: '1' }] }, scheduledDate: '2026-10-05' };
+    const routine = { id: 'r1', kind: 'strength' as const, name: 'Fuerza', payload: { exercises: [{ name: 'a', dose: '1' }] }, scheduledDate: '2026-10-05', source: 'coach' as const };
     const outside = { ...routine, id: 'r2', scheduledDate: '2026-10-20' };
     const items = build([workout('w', '2026-10-07')], '2026-10-05', [routine, outside]);
     expect(items.map(itemId)).toEqual(['r1', 'w']);
@@ -87,7 +87,7 @@ describe('IA del coach', () => {
     const m = await import('./plan-week');
     const monday = '2026-10-05';
     const today = '2026-10-07'; // miércoles
-    const routine = { id: 'r', kind: 'strength' as const, name: 'F', payload: { exercises: [] }, scheduledDate: '2026-10-09' };
+    const routine = { id: 'r', kind: 'strength' as const, name: 'F', payload: { exercises: [] }, scheduledDate: '2026-10-09', source: 'coach' as const };
     const items: import('./plan-week').PlanWeekItem[] = [
       { workout: workout('pasado', '2026-10-06'), origin: 'athlete', edited: false }, // pasado -> se queda
       { workout: workout('libre', '2026-10-08'), origin: 'athlete', edited: false }, // futuro sin editar -> lo reemplaza

@@ -938,6 +938,19 @@ create policy "planned_routines: coach lee las de sus atletas" on planned_routin
 
 create index if not exists planned_routines_athlete_date_idx on planned_routines (athlete_id, scheduled_date);
 
+-- Lo que agenda el coach de IA y no es rodillo (feedback de Joe): salida
+-- afuera (`outdoor`), técnica en montaña (`skills`) y la sugerencia de
+-- gimnasio del día (`strength` sin ejercicios). Los escribe coach-chat con
+-- el service role; `source` = 'ai' para que al reajustar una semana solo se
+-- reemplacen los suyos, nunca los de un coach humano. publish_plan_week
+-- sigue aceptando solo fuerza/movilidad/flexibilidad.
+alter table planned_routines drop constraint if exists planned_routines_kind_check;
+alter table planned_routines add constraint planned_routines_kind_check
+  check (kind in ('strength', 'mobility', 'flexibility', 'outdoor', 'skills'));
+alter table planned_routines add column if not exists source text not null default 'coach';
+alter table planned_routines drop constraint if exists planned_routines_source_check;
+alter table planned_routines add constraint planned_routines_source_check check (source in ('coach', 'ai'));
+
 -- Con qué elemento planeado (workout o rutina) se empata una sesión — por
 -- ahora lo llena Registrar al registrar una rutina agendada.
 alter table sessions add column if not exists planned_item_id uuid;

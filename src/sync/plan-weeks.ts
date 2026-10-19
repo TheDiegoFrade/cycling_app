@@ -2,7 +2,7 @@
 // lo agendado del atleta y escribe SOLO en plan_weeks; publicar pasa por la
 // función publish_plan_week de supabase/schema.sql, que es lo único que
 // escribe en `workouts` del atleta.
-import type { PlannedRoutine, RoutineKind, RoutinePayload } from '../core/coach-templates';
+import type { PlannedKind, PlannedRoutine, RoutinePayload } from '../core/coach-templates';
 import { addDaysKey, isoWeekLabel } from '../core/plan-week';
 import type { PlanWeekItem } from '../core/plan-week';
 import type { Workout } from '../core/types';
@@ -36,22 +36,26 @@ export async function fetchAthleteWeekWorkouts(athleteId: string, mondayKey: str
 
 interface RoutineRow {
   id: string;
-  kind: RoutineKind;
+  kind: PlannedKind;
   name: string;
   payload: unknown;
   scheduled_date: string;
+  source?: string;
 }
 
 function routineFromRow(r: RoutineRow): PlannedRoutine {
-  return { id: r.id, kind: r.kind, name: r.name, payload: r.payload as RoutinePayload, scheduledDate: r.scheduled_date };
+  const payload = { exercises: [], ...(r.payload as Partial<RoutinePayload>) } as RoutinePayload;
+  return { id: r.id, kind: r.kind, name: r.name, payload, scheduledDate: r.scheduled_date, source: r.source === 'ai' ? 'ai' : 'coach' };
 }
 
-/** Rutinas de fuerza/movilidad agendadas a un atleta entre dos fechas
- * (incluidas). Las lee el propio atleta o su coach (RLS). */
+/** Lo agendado a un atleta fuera del rodillo entre dos fechas (incluidas):
+ * rutinas del coach y sugerencias del coach de IA. Las lee el propio atleta
+ * o su coach (RLS). `*` y no la lista de columnas: `source` no existe hasta
+ * correr la migración de schema.sql, y sin ella esto no debe romper. */
 export async function fetchPlannedRoutines(athleteId: string, fromKey: string, toKey: string): Promise<PlannedRoutine[]> {
   const { data, error } = await client()
     .from('planned_routines')
-    .select('id, kind, name, payload, scheduled_date')
+    .select('*')
     .eq('athlete_id', athleteId)
     .gte('scheduled_date', fromKey)
     .lte('scheduled_date', toKey)

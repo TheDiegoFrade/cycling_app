@@ -135,7 +135,9 @@ export function itemsFromWorkouts(workouts: readonly Workout[], mondayKey: strin
   const days = new Set(weekDays(mondayKey));
   const items: PlanWeekItem[] = [
     ...workouts.filter((w) => w.scheduledDate && days.has(w.scheduledDate)).map((workout): PlanWeekItem => ({ workout, origin: 'athlete', edited: false })),
-    ...routines.filter((r) => days.has(r.scheduledDate)).map((routine): PlanWeekItem => ({ routine, origin: 'athlete', edited: false })),
+    // Las sugerencias del coach de IA no entran al borrador del coach humano:
+    // con coach, la IA ya no agenda extras y esas se quedan como estaban.
+    ...routines.filter((r) => days.has(r.scheduledDate) && r.source !== 'ai').map((routine): PlanWeekItem => ({ routine, origin: 'athlete', edited: false })),
   ];
   return items.sort((a, b) => (itemDate(a) ?? '').localeCompare(itemDate(b) ?? ''));
 }
