@@ -11,6 +11,7 @@ import { getUserId } from '../_shared/strava.ts';
 // La MISMA lista que coach-chat: antes tenía una copia propia sin dpcfrade,
 // que podía crear un plan pero no darlo de baja (403).
 import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
+import { localDateKey } from '../_shared/core.gen.js';
 
 function adminClient() {
   return createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -65,6 +66,26 @@ Deno.serve(async (req) => {
         if (delError) throw new Error(`no se pudieron limpiar los workouts sin entrenar: ${delError.message}`);
         deletedIds = (delData ?? []).map((w) => w.id as string);
       }
+    }
+
+    // Lo que el coach de IA puso en el calendario fuera del rodillo (salidas,
+    // técnica, gimnasio) y no se registró: misma agenda muerta. Lo de un coach
+    // humano (source 'coach') nunca se toca. Si la columna no existe todavía
+    // (schema sin migrar) solo se registra: dar de baja el plan sigue.
+    const today = localDateKey(new Date(), 'America/Mexico_City');
+    const { data: extras, error: exError } = await admin
+      .from('planned_routines')
+      .select('id')
+      .eq('athlete_id', userId)
+      .eq('source', 'ai')
+      .gte('scheduled_date', today);
+    if (exError) console.log(`[coach-retire-plan] no se pudieron leer los extras: ${exError.message}`);
+    const extraIds = (extras ?? []).map((r) => r.id as string);
+    if (extraIds.length > 0) {
+      const { data: logged } = await admin.from('sessions').select('planned_item_id').eq('user_id', userId).in('planned_item_id', extraIds);
+      const keep = new Set((logged ?? []).map((r) => r.planned_item_id));
+      const toDelete = extraIds.filter((id) => !keep.has(id));
+      if (toDelete.length > 0) await admin.from('planned_routines').delete().eq('athlete_id', userId).in('id', toDelete);
     }
 
     // El cliente trae su propio appState.workouts/IndexedDB en memoria —

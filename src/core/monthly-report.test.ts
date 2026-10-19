@@ -47,7 +47,7 @@ function workout(day: string): Workout {
   return { format_version: 1, id: `w-${day}`, name: 'Plan', intervals: [{ name: 'Z2', type: 'steady', duration_s: 3600, power_pct: 65 }], created_at: '', scheduledDate: day };
 }
 function routine(day: string, kind: PlannedRoutine['kind'] = 'strength'): PlannedRoutine {
-  return { id: `r-${day}`, kind, name: 'Fuerza', payload: { exercises: [] }, scheduledDate: day };
+  return { id: `r-${day}`, kind, name: 'Fuerza', payload: { exercises: [] }, scheduledDate: day, source: 'coach' };
 }
 
 describe('fechas del mes', () => {

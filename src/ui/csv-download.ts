@@ -3,7 +3,7 @@
 // descarga: sin servidor ni IA. El formato está en core/csv-export.ts.
 import { csvFileName, planCsv, sessionsCsv } from '../core/csv-export';
 import type { CsvPlanItem, CsvSession } from '../core/csv-export';
-import { TEMPLATE_KIND_LABELS, routineSummary } from '../core/coach-templates';
+import { plannedKindLabel, routineSummary } from '../core/coach-templates';
 import { dayKeyOf, todayKey } from '../core/day-key';
 import { NON_BIKE_KIND_LABELS, isNonBikeKind, wasTrained } from '../core/session-kind';
 import { sessionSourceOf } from '../core/session-source';
@@ -141,7 +141,7 @@ function planItems(workouts: readonly Workout[], routines: readonly PlannedRouti
     ...routines.map((r) => ({
       date: r.scheduledDate,
       name: r.name,
-      kind: TEMPLATE_KIND_LABELS[r.kind],
+      kind: plannedKindLabel(r),
       zone: null,
       minutes: r.payload.durationMin ?? null,
       tss: null,

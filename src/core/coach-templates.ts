@@ -20,6 +20,28 @@ export const TEMPLATE_KIND_LABELS: Record<TemplateKind, string> = {
   flexibility: 'Flexibilidad',
 };
 
+/** Lo que puede caer en el calendario fuera del rodillo: las rutinas de
+ * arriba (del coach humano o la sugerencia de gimnasio del coach de IA) y,
+ * solo del coach de IA, la salida afuera y la técnica en montaña. Esas dos
+ * se rueda: cuentan con la sesión de bici de ese día, no con Registrar. */
+export type PlannedKind = RoutineKind | 'outdoor' | 'skills';
+
+export const PLANNED_KIND_LABELS: Record<PlannedKind, string> = {
+  strength: 'Fuerza',
+  mobility: 'Movilidad',
+  flexibility: 'Flexibilidad',
+  outdoor: 'Salida afuera',
+  skills: 'Técnica en montaña',
+};
+
+/** Etiqueta en el calendario: el gimnasio del coach de IA es una sugerencia,
+ * no una rutina armada. */
+export function plannedKindLabel(r: Pick<PlannedRoutine, 'kind' | 'source'>): string {
+  return r.source === 'ai' && r.kind === 'strength' ? 'Gimnasio (sugerencia)' : PLANNED_KIND_LABELS[r.kind];
+}
+
+export const isRideKind = (kind: PlannedKind): kind is 'outdoor' | 'skills' => kind === 'outdoor' || kind === 'skills';
+
 export interface RoutineExercise {
   name: string;
   /** Dosis libre: "3 × 8 · tempo controlado", "30 s por lado"… */
@@ -48,14 +70,16 @@ export type SessionTemplate =
   | { id: string; name: string; kind: 'bike'; payload: BikePayload; updatedAt: string }
   | { id: string; name: string; kind: RoutineKind; payload: RoutinePayload; updatedAt: string };
 
-/** Una rutina de fuerza/movilidad agendada a un atleta (tabla
- * planned_routines) — la copia de la plantilla, con su propio id. */
+/** Algo agendado a un atleta fuera del rodillo (tabla planned_routines):
+ * la copia de una plantilla del coach, con su propio id, o una sugerencia
+ * del coach de IA (source 'ai', sin ejercicios). */
 export interface PlannedRoutine {
   id: string;
-  kind: RoutineKind;
+  kind: PlannedKind;
   name: string;
   payload: RoutinePayload;
   scheduledDate: string;
+  source: 'coach' | 'ai';
 }
 
 export const MAX_EXERCISES = 30;
@@ -135,6 +159,7 @@ export function routineFromTemplate(t: Extract<SessionTemplate, { kind: RoutineK
       exercises: t.payload.exercises.map((e) => ({ ...e, ...(e.videoUrl ? { videoUrl: safeVideoUrl(e.videoUrl) ?? undefined } : {}) })),
     },
     scheduledDate: dateKey,
+    source: 'coach',
   };
 }
 
@@ -156,8 +181,10 @@ export function personalWorkoutFromBikeTemplate(t: Extract<SessionTemplate, { ki
 
 /** "3 ejercicios · 45 min · RPE 6" */
 export function routineSummary(p: RoutinePayload): string {
+  const n = p.exercises.length;
   return [
-    `${p.exercises.length} ${p.exercises.length === 1 ? 'ejercicio' : 'ejercicios'}`,
+    // Sin ejercicios es una sugerencia del coach de IA: «0 ejercicios» no dice nada.
+    n ? `${n} ${n === 1 ? 'ejercicio' : 'ejercicios'}` : null,
     p.durationMin ? `${p.durationMin} min` : null,
     p.targetRpe ? `RPE ${p.targetRpe}` : null,
   ]

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  isRideKind,
+  plannedKindLabel,
   routineFromTemplate,
   routineSummary,
   safeVideoUrl,
@@ -93,5 +95,18 @@ describe('mensajes del .zwo', () => {
     expect(mine.scheduledDate).toBeUndefined();
     expect(mine.comments).toHaveLength(1);
     expect(mine.id).not.toBe('t');
+  });
+});
+
+describe('extras del coach de IA en el calendario', () => {
+  it('sin ejercicios no dice «0 ejercicios»', () => {
+    expect(routineSummary({ exercises: [], durationMin: 90 })).toBe('90 min');
+  });
+
+  it('el gimnasio de la IA es sugerencia; salida y técnica se ruedan', () => {
+    expect(plannedKindLabel({ kind: 'strength', source: 'ai' })).toBe('Gimnasio (sugerencia)');
+    expect(plannedKindLabel({ kind: 'strength', source: 'coach' })).toBe('Fuerza');
+    expect(plannedKindLabel({ kind: 'skills', source: 'ai' })).toBe('Técnica en montaña');
+    expect(['outdoor', 'skills', 'strength'].map((k) => isRideKind(k as 'outdoor'))).toEqual([true, true, false]);
   });
 });

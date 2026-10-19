@@ -237,8 +237,10 @@ function compliance(from, to, todayKey, bike, nonBike, workouts, routines) {
   let planned = 0;
   let done = 0;
   for (let key = from; key <= to; key = addDays(key, 1)) {
-    const plannedBike = workouts.filter((w) => w.scheduledDate === key).length;
-    const plannedOther = routines.filter((r) => r.scheduledDate === key).length;
+    const isRideKind = (k) => k === "outdoor" || k === "skills";
+    const dayRoutines = routines.filter((r) => r.scheduledDate === key);
+    const plannedBike = workouts.filter((w) => w.scheduledDate === key).length + dayRoutines.filter((r) => isRideKind(r.kind)).length;
+    const plannedOther = dayRoutines.filter((r) => !isRideKind(r.kind)).length;
     const dayBike = bike.filter((s) => dateOf(s) === key);
     const dayOther = nonBike.filter((s) => dateOf(s) === key);
     const trainedBike = dayBike.filter(wasTrained);

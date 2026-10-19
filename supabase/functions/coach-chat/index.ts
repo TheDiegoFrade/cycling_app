@@ -675,6 +675,72 @@ async function sendWeekToCoachDraft(admin: AdminClient, athleteId: string, coach
   }
 }
 
+// ─── Extras: lo que no es rodillo (feedback de Joe) ─────────────────────────
+// La salida afuera, la técnica en montaña y la sugerencia de gimnasio van al
+// calendario como rutinas (planned_routines) con source 'ai'. Al rehacer una
+// semana solo se reemplazan las de la IA que no se han registrado; nunca las
+// de un coach humano. Si la tabla todavía no tiene la columna `source` (falta
+// correr schema.sql), se loguea y el plan sigue sin extras.
+
+interface PlannedExtra {
+  dayOfWeek: string;
+  kind: 'outdoor' | 'skills' | 'gym';
+  name: string;
+  minutes: number;
+  description: string;
+}
+const EXTRA_ROUTINE_KIND = { outdoor: 'outdoor', skills: 'skills', gym: 'strength' } as const;
+
+async function materializeExtras(
+  admin: AdminClient,
+  userId: string,
+  startDate: string,
+  weekIndex: number,
+  extras: PlannedExtra[] | undefined,
+  coachId: string | null,
+): Promise<number> {
+  // Con coach humano, lo que no es bici lo agenda él.
+  if (coachId || !extras?.length) return 0;
+  const today = athleteToday();
+  const rows = extras
+    .map((x) => ({
+      id: crypto.randomUUID(),
+      athlete_id: userId,
+      coach_id: null,
+      scheduled_date: dateForWeek(startDate, weekIndex, x.dayOfWeek),
+      kind: EXTRA_ROUTINE_KIND[x.kind],
+      name: x.name.trim().slice(0, 80) || 'Fuera del rodillo',
+      payload: { description: x.description.trim().slice(0, 400), durationMin: x.minutes, exercises: [] },
+      source: 'ai',
+    }))
+    .filter((r) => r.scheduled_date >= today);
+  if (!rows.length) return 0;
+  const { error } = await admin.from('planned_routines').insert(rows);
+  if (error) {
+    console.log(`[coach-chat] extras no guardados: ${error.message}`);
+    return 0;
+  }
+  return rows.length;
+}
+
+/** Quita los extras de la IA entre dos fechas (incluidas) que no se han
+ * registrado. Sin `toDate`, todos desde `fromDate`. */
+async function clearAiExtras(admin: AdminClient, userId: string, fromDate: string, toDate?: string): Promise<void> {
+  let q = admin.from('planned_routines').select('id').eq('athlete_id', userId).eq('source', 'ai').gte('scheduled_date', fromDate);
+  if (toDate) q = q.lte('scheduled_date', toDate);
+  const { data, error } = await q;
+  if (error) {
+    console.log(`[coach-chat] no se pudieron leer los extras: ${error.message}`);
+    return;
+  }
+  const ids = (data ?? []).map((r: { id: string }) => r.id);
+  if (!ids.length) return;
+  const { data: logged } = await admin.from('sessions').select('planned_item_id').eq('user_id', userId).in('planned_item_id', ids);
+  const keep = new Set((logged ?? []).map((r: { planned_item_id: string }) => r.planned_item_id));
+  const toDelete = ids.filter((id: string) => !keep.has(id));
+  if (toDelete.length) await admin.from('planned_routines').delete().eq('athlete_id', userId).in('id', toDelete);
+}
+
 function dateForWeek(startDate: string, weekIndex: number, dayOfWeek: string): string {
   const start = new Date(`${startDate}T00:00:00Z`);
   // Ancla a lunes REAL de la semana calendario de startDate, no a
@@ -858,9 +924,12 @@ async function applyModeEffects(
 
     const occupiedDates = new Set((context.occupiedDates as string[] | undefined) ?? []);
     const weeks: { weekIndex: number; workoutIds: string[] }[] = [];
+    // Los extras del plan anterior (ya retirado) que no se hicieron se van.
+    if (!coachId) await clearAiExtras(admin, userId, athleteToday());
     for (let i = 0; i < output.firstBlockWeeks.length; i++) {
       const ids = await materializeWeek(admin, userId, startDate, i, output.firstBlockWeeks[i].workouts, occupiedDates, coachId);
       weeks.push({ weekIndex: i, workoutIds: ids });
+      await materializeExtras(admin, userId, startDate, i, output.firstBlockWeeks[i].extras, coachId);
     }
 
     const blocks = output.blocks.map((b: unknown, i: number) => ({ ...b, published: i === 0 }));
@@ -988,6 +1057,15 @@ async function applyModeEffects(
 
     const weeklyEvalOccupiedDates = new Set((context.occupiedDates as string[] | undefined) ?? []);
     const ids = await materializeWeek(admin, userId, planData.startDate, nextWeekIndex, output.nextWeekWorkouts, weeklyEvalOccupiedDates, coachId);
+    // Los extras de esa semana se rehacen igual que sus workouts (solo los de
+    // la IA, desde hoy y sin registrar).
+    if (!coachId) {
+      const monday = dateForWeek(planData.startDate, nextWeekIndex, 'mon');
+      const sunday = dateForWeek(planData.startDate, nextWeekIndex, 'sun');
+      const today = athleteToday();
+      await clearAiExtras(admin, userId, monday > today ? monday : today, sunday);
+    }
+    await materializeExtras(admin, userId, planData.startDate, nextWeekIndex, output.nextWeekExtras, coachId);
     // Semanas contiguas: si el atleta se saltó evaluaciones, las de en medio
     // quedan vacías (ya pasaron).
     const weeks = planData.weeks.slice();
@@ -1061,6 +1139,7 @@ async function applyModeEffects(
     const weekIndex = weeksBeforeBlock + i;
     const ids = await materializeWeek(admin, userId, planData.startDate, weekIndex, output.weeks[i].workouts, publishBlockOccupiedDates, coachId);
     newWeeks.push({ weekIndex, workoutIds: ids });
+    await materializeExtras(admin, userId, planData.startDate, weekIndex, output.weeks[i].extras, coachId);
   }
 
   const blocks = planData.blocks.map((b, i) => (i === nextBlockIdx ? { ...b, published: true } : b));

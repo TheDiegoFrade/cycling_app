@@ -5,7 +5,7 @@
 // un día vacío. Nada llega al atleta hasta que se publica su fila. El
 // guardado y la publicación son los mismos del editor de una semana
 // (sync/athlete-week.ts).
-import { TEMPLATE_KIND_LABELS, routineFromTemplate, workoutFromBikeTemplate } from '../../core/coach-templates';
+import { TEMPLATE_KIND_LABELS, plannedKindLabel, routineFromTemplate, workoutFromBikeTemplate } from '../../core/coach-templates';
 import type { SessionTemplate } from '../../core/coach-templates';
 import { addDaysKey, editedItem, itemDate, itemName, localDateKey, movedItem, scaleIntensity, weekDays, weekStartOf, workoutFromTemplate } from '../../core/plan-week';
 import type { PlanWeekItem } from '../../core/plan-week';
@@ -136,7 +136,7 @@ export function renderCoachWeeks(container: HTMLElement): void {
     const label = `${athleteName(r.athlete)}: ${itemName(item)}`;
     if (item.routine) {
       return `<button type="button" class="weeks-chip kind-${item.routine.kind}${isSel ? ' on' : ''}${mine ? ' mine' : ''}" data-sel-athlete="${r.athlete.userId}" data-sel-index="${index}" aria-pressed="${isSel}" aria-label="${escapeHtml(label)}">
-        <span class="week-routine-kind">${TEMPLATE_KIND_LABELS[item.routine.kind]}</span>
+        <span class="week-routine-kind">${plannedKindLabel(item.routine)}</span>
         <span class="weeks-chip-name">${escapeHtml(item.routine.name)}</span>
       </button>`;
     }

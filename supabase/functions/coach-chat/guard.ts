@@ -192,6 +192,52 @@ function checkText(f: Finding[], field: string, text: unknown) {
 
 // ─── Arreglos mecánicos ────────────────────────────────────────────────────
 
+/** Máximo de extras (lo que no es rodillo) por semana. */
+const MAX_EXTRAS_PER_WEEK = 4;
+const DAYS_ES: Record<string, string> = { mon: 'lunes', tue: 'martes', wed: 'miércoles', thu: 'jueves', fri: 'viernes', sat: 'sábado', sun: 'domingo' };
+const EXTRA_KIND_LABEL: Record<string, string> = { outdoor: 'salida afuera', skills: 'técnica', gym: 'gimnasio' };
+
+/** Los extras de cada semana (outdoor, skills, gym), en el mismo orden que weeksOf. */
+function extrasOf(mode: Mode, out: Any): Any[][] {
+  if (mode === 'create_plan') return (out.firstBlockWeeks ?? []).map((w: Any) => w.extras ?? []);
+  if (mode === 'weekly_eval') return [out.nextWeekExtras ?? []];
+  if (mode === 'publish_block') return (out.weeks ?? []).map((w: Any) => w.extras ?? []);
+  return [];
+}
+function setExtras(mode: Mode, out: Any, extras: Any[][]): void {
+  if (mode === 'create_plan') out.firstBlockWeeks.forEach((w: Any, i: number) => (w.extras = extras[i] ?? []));
+  else if (mode === 'weekly_eval') out.nextWeekExtras = extras[0] ?? [];
+  else if (mode === 'publish_block') out.weeks.forEach((w: Any, i: number) => (w.extras = extras[i] ?? []));
+}
+
+/** Extras mal puestos se quitan (nunca tumban el plan): día no disponible,
+ * ocupado o pasado; "outdoor"/"skills" el mismo día que un rodillo; dos el
+ * mismo día; más de MAX_EXTRAS_PER_WEEK. El gimnasio va en los días que el
+ * atleta declaró, que no tienen que ser sus días de bici. */
+function repairExtras(mode: Mode, out: Any, o: WeekOpts, fixes: string[]): void {
+  const weeks = weeksOf(mode, out);
+  const all = extrasOf(mode, out).slice(0, weeks.length);
+  const repaired = all.map((extras, wi) => {
+    const bikeDays = new Set((weeks[wi]?.workouts ?? []).map((w: Any) => w.dayOfWeek));
+    const used = new Set<string>();
+    const kept: Any[] = [];
+    for (const x of extras) {
+      const label = `S${wi + 1} ${EXTRA_KIND_LABEL[x.kind] ?? x.kind} «${x.name}»`;
+      const usable = dayUsable(x.dayOfWeek, wi, x.kind === 'gym' ? { ...o, days: undefined } : o);
+      if (!usable) fixes.push(`${label}: quitado (${DAYS_ES[x.dayOfWeek] ?? x.dayOfWeek} no está disponible)`);
+      else if (x.kind !== 'gym' && bikeDays.has(x.dayOfWeek)) fixes.push(`${label}: quitado (ese día ya hay rodillo)`);
+      else if (used.has(x.dayOfWeek)) fixes.push(`${label}: quitado (ya hay otro extra ese día)`);
+      else if (kept.length >= MAX_EXTRAS_PER_WEEK) fixes.push(`${label}: quitado (máximo ${MAX_EXTRAS_PER_WEEK} por semana)`);
+      else {
+        kept.push(x);
+        used.add(x.dayOfWeek);
+      }
+    }
+    return kept;
+  });
+  setExtras(mode, out, repaired);
+}
+
 /** Copia de `out` con lo mecánico arreglado, y qué se arregló. */
 export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes: string[] } {
   const fixed = structuredClone(out);
@@ -291,6 +337,7 @@ export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes:
     return { ...week, workouts: kept };
   });
   setWeeks(mode, fixed, weeks);
+  repairExtras(mode, fixed, o, fixes);
 
   return { out: fixed, fixes };
 }

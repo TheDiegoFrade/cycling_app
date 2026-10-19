@@ -15,7 +15,7 @@ import { wireDatePicker } from '../date-picker';
 import { getPreviousHash, getRouteParam, navigate } from '../router';
 import { appState } from '../state';
 import { escapeHtml } from '../workout-cover';
-import { TEMPLATE_KIND_LABELS, safeVideoUrl } from '../../core/coach-templates';
+import { isRideKind, plannedKindLabel, safeVideoUrl } from '../../core/coach-templates';
 import type { PlannedRoutine } from '../../core/coach-templates';
 import { humanCoachName } from '../coach-notice';
 
@@ -93,13 +93,13 @@ function formFrom(existing: SessionRecord | null): LogSessionForm {
  * (lado izquierdo de docs/coach-view/mockups/Registrar.dc.html). */
 function routineCardHtml(r: PlannedRoutine): string {
   const p = r.payload;
-  const coach = humanCoachName();
-  const pill = [TEMPLATE_KIND_LABELS[r.kind], p.durationMin ? `${p.durationMin} min` : null, p.targetRpe ? `RPE objetivo ${p.targetRpe}` : null]
+  const coach = r.source === 'ai' ? null : humanCoachName();
+  const pill = [plannedKindLabel(r), p.durationMin ? `${p.durationMin} min` : null, p.targetRpe ? `RPE objetivo ${p.targetRpe}` : null]
     .filter(Boolean)
     .join(' · ');
   return `
     <section class="panel log-card log-routine" data-log-kind="${r.kind}" aria-label="Rutina de tu coach">
-      <span class="live-col-label">${coach ? `Asignada por ${escapeHtml(coach)}` : 'Rutina asignada'}</span>
+      <span class="live-col-label">${r.source === 'ai' ? 'Sugerencia de tu coach de IA' : coach ? `Asignada por ${escapeHtml(coach)}` : 'Rutina asignada'}</span>
       <h2 class="perfil-h2" style="margin:0">${escapeHtml(r.name)}</h2>
       <span class="coach-pill log-routine-pill">${escapeHtml(pill)}</span>
       ${p.description ? `<p class="hint">${escapeHtml(p.description)}</p>` : ''}
@@ -352,6 +352,13 @@ export function renderLogSession(container: HTMLElement): void {
       return;
     }
     const r = routine;
+    // Salida afuera o técnica: se ruedan, no se registran aquí. Cuentan con
+    // la sesión de bici de ese día (.fit o Strava, desde Plan).
+    if (isRideKind(r.kind)) {
+      container.innerHTML = `<div class="screen"><h1>${escapeHtml(r.name)}</h1><p class="hint">Esta se rueda. Al terminar, sube el .fit de tu reloj o impórtala de Strava desde Plan y queda hecha.</p><a href="#/plan">Ir a Plan</a></div>`;
+      return;
+    }
+    const kind = r.kind;
     // ¿ya la registró? (local o en la nube) -> abre esa sesión para editarla
     void listSessions().then((local) => {
       const logged = local.find((s) => s.plannedItemId === r.id) ?? appState.cloudSessions.find((s) => s.plannedItemId === r.id);
@@ -362,8 +369,8 @@ export function renderLogSession(container: HTMLElement): void {
       }
       form = {
         ...formFrom(null),
-        kind: r.kind,
-        name: r.name === NON_BIKE_KIND_LABELS[r.kind] ? '' : r.name,
+        kind,
+        name: r.name === NON_BIKE_KIND_LABELS[kind] ? '' : r.name,
         dateKey: r.scheduledDate,
         minutes: r.payload.durationMin ?? null,
         plannedItemId: r.id,

@@ -7,7 +7,7 @@
 import { estimateWorkout } from '../../core/workout-estimate';
 import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import { editedItem, itemDate, itemName, localDateKey, movedItem, scaleIntensity, weekDays, weekStartOf, addDaysKey, workoutFromTemplate } from '../../core/plan-week';
-import { TEMPLATE_KIND_LABELS, routineFromTemplate, routineSummary, workoutFromBikeTemplate } from '../../core/coach-templates';
+import { TEMPLATE_KIND_LABELS, isRideKind, plannedKindLabel, routineFromTemplate, routineSummary, workoutFromBikeTemplate } from '../../core/coach-templates';
 import type { SessionTemplate } from '../../core/coach-templates';
 import { listTemplates } from '../../sync/session-templates';
 import { applyAiProposal, dateOfDayCode, dayCodeOf, isLockedForAi, openDayCodes } from '../../core/plan-week';
@@ -194,7 +194,7 @@ export function renderCoachWeek(container: HTMLElement): void {
       const r = item.routine;
       return `
       <div class="week-item week-item-routine kind-${r.kind}${mine ? ' week-item-coach' : ''}">
-        <div class="week-routine-kind">${TEMPLATE_KIND_LABELS[r.kind]}</div>
+        <div class="week-routine-kind">${plannedKindLabel(r)}</div>
         <div class="week-item-name">${escapeHtml(r.name)}</div>
         <div class="hint">${escapeHtml(routineSummary(r.payload))}</div>
         ${pill}
@@ -288,7 +288,8 @@ export function renderCoachWeek(container: HTMLElement): void {
           return {
             dayOfWeek: dayCodeOf(day, monday),
             name: itemName(i),
-            kind: i.workout ? ('bike' as const) : i.routine.kind,
+            // Salida o técnica (solo del coach de IA, nunca en un borrador del coach) se ruedan.
+            kind: i.workout || isRideKind(i.routine.kind) ? ('bike' as const) : i.routine.kind,
             minutes: est ? Math.round(est.durationS / 60) : (i.routine?.payload.durationMin ?? null),
             tss: est?.tss ?? null,
             reason: day < todayKey ? ('past' as const) : i.routine ? ('routine' as const) : ('coach_edit' as const),

@@ -31,7 +31,7 @@ import { openSessionDetail } from '../open-session';
 import { fmtClock, tipRow, tipTitle } from '../chart-hover';
 import { pendingScheduled } from '../../core/plan-done';
 import { downloadPlanCsv } from '../csv-download';
-import { TEMPLATE_KIND_LABELS, routineSummary } from '../../core/coach-templates';
+import { isRideKind, plannedKindLabel, routineSummary } from '../../core/coach-templates';
 import type { PlannedRoutine } from '../../core/coach-templates';
 
 const STRAVA_IMPORT_WINDOW_DAYS = 60;
@@ -241,8 +241,14 @@ export function renderCalendar(container: HTMLElement): () => void {
    * como pendientes, se ve la sesión registrada. */
   let loggedRoutineIds = new Set<string>();
   function pendingRoutines(key: string): PlannedRoutine[] {
-    return appState.plannedRoutines.filter((r) => r.scheduledDate === key && !loggedRoutineIds.has(r.id));
+    // Salida afuera o técnica (coach de IA): se ruedan, así que una sesión de
+    // bici ese día ya la cumple.
+    const rodeThatDay = (completedByDate.get(key) ?? []).some((c) => !c.nonBikeKind);
+    return appState.plannedRoutines.filter((r) => r.scheduledDate === key && !loggedRoutineIds.has(r.id) && !(rodeThatDay && isRideKind(r.kind)));
   }
+  /** El botón de un extra: los que se ruedan abren el .fit con esa fecha,
+   * los demás van a Registrar. */
+  const routineAttr = (r: PlannedRoutine) => (isRideKind(r.kind) ? `data-ride-date="${r.scheduledDate}"` : `data-routine-id="${r.id}"`);
   /** Evita re-pedir el .fit de una fecha ya intentada (con o sin éxito) cada
    * vez que se repinta — paint() llama a loadVisibleCloudCovers en cada
    * render, incluido el que dispara la propia descarga al terminar. */
@@ -371,7 +377,7 @@ export function renderCalendar(container: HTMLElement): () => void {
 
   function entryToken(entry: DayEntry): Token {
     if (entry.kind === 'scheduled') return tokenForWorkout(entry.workout);
-    if (entry.kind === 'routine') return 'fuerza';
+    if (entry.kind === 'routine') return isRideKind(entry.routine.kind) ? 'end' : 'fuerza';
     return doneToken(entry.done);
   }
 
@@ -400,10 +406,10 @@ export function renderCalendar(container: HTMLElement): () => void {
         const r = entry.routine;
         return `
           <div class="plan-day-entry">
-            <button class="plan-day-log plan-day-routine kind-${r.kind}" data-routine-id="${r.id}" title="Ver rutina y registrar">
+            <button class="plan-day-log plan-day-routine kind-${r.kind}" ${routineAttr(r)} title="${isRideKind(r.kind) ? 'Al terminar, sube el .fit' : 'Ver rutina y registrar'}">
               <span class="plan-day-name">${escapeHtml(r.name)}</span>
-              <span class="live-col-label">${TEMPLATE_KIND_LABELS[r.kind]} · ${escapeHtml(routineSummary(r.payload))}</span>
-              <span class="plan-routine-cta">Registrar</span>
+              <span class="live-col-label">${[plannedKindLabel(r), routineSummary(r.payload)].filter(Boolean).map(escapeHtml).join(' · ')}</span>
+              <span class="plan-routine-cta">${isRideKind(r.kind) ? 'Subir .fit' : 'Registrar'}</span>
             </button>
           </div>`;
       }
@@ -477,10 +483,19 @@ export function renderCalendar(container: HTMLElement): () => void {
         <button type="button" class="home-ride-btn small" data-train-id="${w.id}"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24"><path d="M6 4v16l14-8z" fill="currentColor"></path></svg><span>Entrenar</span></button>
         <button type="button" class="plan-sel-secondary plan-day-cover" data-workout-id="${w.id}">Ver detalle →</button>`;
     } else if (first?.kind === 'routine') {
-      name = first.routine.name;
-      meta = `${TEMPLATE_KIND_LABELS[first.routine.kind]} · ${routineSummary(first.routine.payload)}`;
-      note = 'Rutina de tu coach. Cuenta en tu cansancio aunque no sea bici.';
-      actions = `<button type="button" class="plan-sel-secondary" data-routine-id="${first.routine.id}">Registrar rutina →</button>`;
+      const r = first.routine;
+      name = r.name;
+      meta = [plannedKindLabel(r), routineSummary(r.payload)].filter(Boolean).join(' · ');
+      if (isRideKind(r.kind)) {
+        note = `${shortNote(r.payload.description)} Se rueda afuera, no en el rodillo: al terminar sube el .fit o impórtala de Strava.`.trim();
+        actions = `<button type="button" class="plan-sel-secondary" ${routineAttr(r)}>Subir .fit →</button>`;
+      } else {
+        note =
+          r.source === 'ai'
+            ? `${shortNote(r.payload.description)} Sugerencia de tu coach de IA: tú eliges los ejercicios. Cuenta en tu cansancio aunque no sea bici.`.trim()
+            : 'Rutina de tu coach. Cuenta en tu cansancio aunque no sea bici.';
+        actions = `<button type="button" class="plan-sel-secondary" ${routineAttr(r)}>Registrar →</button>`;
+      }
     } else if (first?.kind === 'completed') {
       const c = first.done;
       name = c.workoutName;
@@ -515,7 +530,7 @@ export function renderCalendar(container: HTMLElement): () => void {
         return `<button class="plan-month-cover plan-month-obj" data-workout-id="${w.id}" ${dragAttrs(entry)} title="${escapeHtml(w.name)} — Ver detalle">${tokenHtml(tokenForWorkout(w), 40)}<span class="plan-month-name">${escapeHtml(w.name)}</span></button>`;
       }
       if (entry.kind === 'routine') {
-        return `<button class="plan-month-done-label plan-month-log kind-${entry.routine.kind}" data-routine-id="${entry.routine.id}" title="${escapeHtml(entry.routine.name)} — registrar">${escapeHtml(entry.routine.name)}</button>`;
+        return `<button class="plan-month-done-label plan-month-log kind-${entry.routine.kind}" ${routineAttr(entry.routine)} title="${escapeHtml(entry.routine.name)} — ${isRideKind(entry.routine.kind) ? 'subir .fit' : 'registrar'}">${escapeHtml(entry.routine.name)}</button>`;
       }
       const c = entry.done;
       if (c.nonBikeKind) {
@@ -973,6 +988,12 @@ export function renderCalendar(container: HTMLElement): () => void {
     });
     container.querySelectorAll<HTMLButtonElement>('[data-routine-id]').forEach((btn) => {
       btn.addEventListener('click', () => navigate('log', `r-${btn.dataset.routineId!}`));
+    });
+    container.querySelectorAll<HTMLButtonElement>('[data-ride-date]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (manualDoneDate) manualDoneDate.value = btn.dataset.rideDate!;
+        doneFileInput.click();
+      });
     });
 
     container.querySelectorAll<HTMLButtonElement>('[data-create-date]').forEach((btn) => {
