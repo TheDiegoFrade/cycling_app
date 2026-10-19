@@ -210,21 +210,55 @@ function setExtras(mode: Mode, out: Any, extras: Any[][]): void {
   else if (mode === 'publish_block') out.weeks.forEach((w: Any, i: number) => (w.extras = extras[i] ?? []));
 }
 
+/** Minutos que declaró para su gimnasio ese día (45 si no se sabe). */
+function gymMinutes(ctx: Any, day: string): number {
+  const acts: Any[] = ctx?.profile?.otherActivities ?? [];
+  const a = acts.find((x) => x?.kind === 'strength' && (x.days ?? []).includes(day));
+  return Math.min(360, Math.max(15, Math.round(a?.minutes ?? 45)));
+}
+
+const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+/** Los días de gimnasio que declaró el atleta (otherActivities "strength"
+ * con días fijos), en orden de la semana. */
+function declaredGymDays(ctx: Any): string[] {
+  const acts: Any[] = ctx?.profile?.otherActivities ?? [];
+  const days = new Set(acts.filter((a) => a?.kind === 'strength').flatMap((a) => a.days ?? []));
+  return DAY_ORDER.filter((d) => days.has(d));
+}
+
+/** Sugerencia de gimnasio para un día que el modelo dejó vacío: según la bici
+ * de ese día y los de al lado (Joe: la sugerencia del día, nunca la rutina). */
+function gymSuggestion(day: string, hardDays: Set<string>): string {
+  const i = DAY_ORDER.indexOf(day);
+  if (hardDays.has(day)) return 'Tren superior y core: hoy también hay sesión dura en la bici, la pierna descansa.';
+  if (hardDays.has(DAY_ORDER[(i + 1) % 7])) return 'Tren superior y core, pierna ligera: mañana hay sesión dura en la bici.';
+  if (hardDays.has(DAY_ORDER[(i + 6) % 7])) return 'Pierna a RPE moderado y core: ayer fue sesión dura, sin llegar al fallo.';
+  return 'Pierna y core a RPE moderado, sin llegar al fallo.';
+}
+
 /** Extras mal puestos se quitan (nunca tumban el plan): día no disponible,
  * ocupado o pasado; "outdoor"/"skills" el mismo día que un rodillo; dos el
  * mismo día; más de MAX_EXTRAS_PER_WEEK. El gimnasio va en los días que el
- * atleta declaró, que no tienen que ser sus días de bici. */
-function repairExtras(mode: Mode, out: Any, o: WeekOpts, fixes: string[]): void {
+ * atleta declaró, que no tienen que ser sus días de bici: si declaró días,
+ * uno fuera de ellos se quita y uno de ellos que falte se agrega. */
+function repairExtras(mode: Mode, ctx: Any, out: Any, o: WeekOpts, fixes: string[]): void {
+  if (mode !== 'create_plan' && mode !== 'weekly_eval' && mode !== 'publish_block') return;
   const weeks = weeksOf(mode, out);
   const all = extrasOf(mode, out).slice(0, weeks.length);
+  while (all.length < weeks.length) all.push([]);
+  const gymDays = declaredGymDays(ctx);
+  const gymOpts = { ...o, days: undefined };
   const repaired = all.map((extras, wi) => {
-    const bikeDays = new Set((weeks[wi]?.workouts ?? []).map((w: Any) => w.dayOfWeek));
+    const workouts: Any[] = weeks[wi]?.workouts ?? [];
+    const bikeDays = new Set(workouts.map((w: Any) => w.dayOfWeek));
     const used = new Set<string>();
     const kept: Any[] = [];
     for (const x of extras) {
       const label = `S${wi + 1} ${EXTRA_KIND_LABEL[x.kind] ?? x.kind} «${x.name}»`;
-      const usable = dayUsable(x.dayOfWeek, wi, x.kind === 'gym' ? { ...o, days: undefined } : o);
+      const usable = dayUsable(x.dayOfWeek, wi, x.kind === 'gym' ? gymOpts : o);
       if (!usable) fixes.push(`${label}: quitado (${DAYS_ES[x.dayOfWeek] ?? x.dayOfWeek} no está disponible)`);
+      else if (x.kind === 'gym' && gymDays.length && !gymDays.includes(x.dayOfWeek)) fixes.push(`${label}: quitado (no es uno de sus días de gimnasio)`);
       else if (x.kind !== 'gym' && bikeDays.has(x.dayOfWeek)) fixes.push(`${label}: quitado (ese día ya hay rodillo)`);
       else if (used.has(x.dayOfWeek)) fixes.push(`${label}: quitado (ya hay otro extra ese día)`);
       else if (kept.length >= MAX_EXTRAS_PER_WEEK) fixes.push(`${label}: quitado (máximo ${MAX_EXTRAS_PER_WEEK} por semana)`);
@@ -233,6 +267,14 @@ function repairExtras(mode: Mode, out: Any, o: WeekOpts, fixes: string[]): void 
         used.add(x.dayOfWeek);
       }
     }
+    const hardDays = new Set(workouts.filter((w: Any) => isTest(w) || isHard(flat(w.segments ?? []))).map((w: Any) => w.dayOfWeek));
+    for (const day of gymDays) {
+      if (used.has(day) || kept.length >= MAX_EXTRAS_PER_WEEK || !dayUsable(day, wi, gymOpts)) continue;
+      kept.push({ dayOfWeek: day, kind: 'gym', name: 'Gimnasio', minutes: gymMinutes(ctx, day), description: gymSuggestion(day, hardDays) });
+      used.add(day);
+      fixes.push(`S${wi + 1} gimnasio del ${DAYS_ES[day]}: agregado (es uno de sus días de gimnasio)`);
+    }
+    kept.sort((a, b) => DAY_ORDER.indexOf(a.dayOfWeek) - DAY_ORDER.indexOf(b.dayOfWeek));
     return kept;
   });
   setExtras(mode, out, repaired);
@@ -337,7 +379,7 @@ export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes:
     return { ...week, workouts: kept };
   });
   setWeeks(mode, fixed, weeks);
-  repairExtras(mode, fixed, o, fixes);
+  repairExtras(mode, ctx, fixed, o, fixes);
 
   return { out: fixed, fixes };
 }
