@@ -132,3 +132,10 @@ export async function publishDraft(draftId: string): Promise<string> {
   if (error) throw new Error(error.message);
   return data as string;
 }
+
+/** Todo lo que el atleta tiene agendado (cualquier fecha), para el CSV del coach. */
+export async function fetchAthleteScheduledWorkouts(athleteId: string): Promise<Workout[]> {
+  const { data, error } = await client().from('workouts').select('data').eq('user_id', athleteId).not('data->>scheduledDate', 'is', null);
+  if (error) throw error;
+  return (data ?? []).map((r) => r.data as Workout).filter((w) => !!w.scheduledDate);
+}

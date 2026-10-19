@@ -32,6 +32,7 @@ import {
   errorMessage,
 } from '../coach-ui';
 import { getRouteParam } from '../router';
+import { downloadAthletePlanCsv, downloadAthleteSessionsCsv } from '../csv-download';
 import { appState } from '../state';
 import { escapeHtml } from '../workout-cover';
 import { drawFitnessFatigueChart } from './history';
@@ -179,7 +180,11 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
               <div class="coach-pills">${pillsHtml(athlete)}${summary.alerts.map(alertPillHtml).join('')}</div>
             </div>
           </div>
-          <div class="coach-head-actions"><a href="#/coach-week/${athlete.userId}" class="coach-btn coach-btn-primary">Ajustar semana</a></div>
+          <div class="coach-head-actions">
+            <button type="button" class="plan-import-link csv-download-btn" id="coach-csv-sessions" title="Todas sus sesiones (sin Strava), para Excel o Google Sheets">Sesiones CSV</button>
+            <button type="button" class="plan-import-link csv-download-btn" id="coach-csv-plan" title="Todo lo que tiene agendado, para Excel o Google Sheets">Plan CSV</button>
+            <a href="#/coach-week/${athlete.userId}" class="coach-btn coach-btn-primary">Ajustar semana</a>
+          </div>
         </header>
         ${athlete.injuries ? `<div class="panel coach-injuries"><span class="live-col-label">Lesiones o molestias que registró</span><span>${escapeHtml(athlete.injuries)}</span></div>` : ''}
 
@@ -253,6 +258,25 @@ export function renderCoachAthlete(container: HTMLElement): () => void {
           }
           <span class="hint">Toca una sesión para ver su detalle y descargar el .fit. La carga de fuerza y movilidad se mide como RPE × minutos y se muestra aparte: no se suma al TSS de la bici. Lo que llega por Strava no se muestra.</span>
         </section>`);
+
+      const csvButton = (id: string, run: () => Promise<number>) => {
+        const btn = container.querySelector<HTMLButtonElement>(id);
+        btn?.addEventListener('click', async () => {
+          const label = btn.textContent;
+          btn.disabled = true;
+          btn.textContent = 'Preparando…';
+          try {
+            await run();
+          } catch {
+            alert('No se pudo descargar el CSV. Intenta de nuevo.');
+          } finally {
+            btn.disabled = false;
+            btn.textContent = label;
+          }
+        });
+      };
+      csvButton('#coach-csv-sessions', () => downloadAthleteSessionsCsv(athleteId, athleteName(athlete)));
+      csvButton('#coach-csv-plan', () => downloadAthletePlanCsv(athleteId, athleteName(athlete), athlete.ftp ?? 0));
 
       void mountCoachEmails(container.querySelector<HTMLElement>('#coach-emails')!, athleteId);
       void mountRemovals(container.querySelector<HTMLElement>('#coach-removals')!, athleteId);

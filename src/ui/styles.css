@@ -2272,6 +2272,21 @@ a {
   font-size: 14px;
   cursor: pointer;
 }
+/* «Descargar CSV» (ui/csv-download.ts): mismo estilo de link, con un ícono */
+.csv-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 2px;
+  white-space: nowrap;
+}
+.csv-download-btn::before {
+  content: '↓';
+  font-weight: 700;
+}
+.csv-download-btn:hover {
+  text-decoration: underline;
+}
 .plan-lib-row {
   display: flex;
   align-items: center;

@@ -148,3 +148,23 @@ export async function fetchAthleteWorkout(athleteId: string, workoutId: string |
   if (error) return null;
   return (data?.data as Workout | undefined) ?? null;
 }
+
+/** Todas las sesiones de un atleta (bici y no bici, cualquier fecha) para
+ * el CSV del coach. Sin Strava, igual que el resto de la vista (RLS). */
+export async function listAthleteSessionsForExport(athleteId: string): Promise<CloudSessionSummary[]> {
+  if (!supabase) return [];
+  const rows: CloudSessionSummary[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from('sessions')
+      .select(SESSION_SUMMARY_COLUMNS)
+      .eq('user_id', athleteId)
+      .neq('source', 'strava')
+      .order('started_at', { ascending: false })
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    rows.push(...(data ?? []).map(rowToCloudSummary));
+    if (!data || data.length < PAGE) break;
+  }
+  return rows;
+}
