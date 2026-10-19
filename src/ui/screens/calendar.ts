@@ -30,6 +30,7 @@ import type { RemovalReason } from '../../sync/plan-removals';
 import { openSessionDetail } from '../open-session';
 import { fmtClock, tipRow, tipTitle } from '../chart-hover';
 import { pendingScheduled } from '../../core/plan-done';
+import { downloadPlanCsv } from '../csv-download';
 import { TEMPLATE_KIND_LABELS, routineSummary } from '../../core/coach-templates';
 import type { PlannedRoutine } from '../../core/coach-templates';
 
@@ -623,6 +624,7 @@ export function renderCalendar(container: HTMLElement): () => void {
             <button id="plan-prev" aria-label="Anterior">‹</button>
             <span class="live-col-label" style="width:170px;text-align:center;display:inline-block">${rangeLabel}</span>
             <button id="plan-next" aria-label="Siguiente">›</button>
+            <button type="button" class="plan-import-link csv-download-btn" id="plan-download-csv" title="Todo lo agendado, para abrir en Excel o Google Sheets">Descargar CSV</button>
           </div>
         </div>
         <div id="plan-import-errors"></div>
@@ -703,6 +705,7 @@ export function renderCalendar(container: HTMLElement): () => void {
       else weekStart.setDate(weekStart.getDate() + 7);
       paint();
     });
+    container.querySelector('#plan-download-csv')?.addEventListener('click', () => void downloadPlanCsv());
 
     container.querySelectorAll<HTMLButtonElement>('[data-select-date]').forEach((btn) => {
       btn.addEventListener('click', () => {

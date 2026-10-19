@@ -19,6 +19,7 @@ import { wireDatePicker } from '../date-picker';
 import { notifyPlanChange, planChangeNotice } from '../coach-notice';
 import { openSessionDetail } from '../open-session';
 import { dayKeyOf } from '../../core/day-key';
+import { downloadSessionsCsv } from '../csv-download';
 
 type LibraryTab = 'library' | 'activity';
 
@@ -310,6 +311,7 @@ export function renderLibrary(container: HTMLElement): () => void {
         <label class="live-col-label">Hasta<input type="date" id="lib-date-to" value="${dateTo}"></label>
         ${dateFrom || dateTo ? '<button id="lib-clear-filters" class="btn-light">Limpiar filtros</button>' : ''}
         <a href="#/log" class="plan-import-link" style="margin-left:auto;align-self:center">Registrar fuerza o movilidad</a>
+        <button type="button" class="plan-import-link csv-download-btn" id="lib-download-csv" title="${dateFrom || dateTo ? 'Las sesiones del rango de fechas' : 'Todas tus sesiones'}, para abrir en Excel o Google Sheets">Descargar CSV</button>
       </div>
     `;
     if (activityRows === null) return `${filterRow}<p class="hint">Cargando…</p>`;
@@ -533,6 +535,9 @@ export function renderLibrary(container: HTMLElement): () => void {
       dateFrom = '';
       dateTo = '';
       render();
+    });
+    container.querySelector('#lib-download-csv')?.addEventListener('click', () => {
+      void downloadSessionsCsv((day) => (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo));
     });
   }
 
