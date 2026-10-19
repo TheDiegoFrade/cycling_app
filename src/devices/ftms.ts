@@ -54,10 +54,11 @@ export class BleTrainerAdapter implements TrainerAdapter {
   async connect(): Promise<void> {
     this.manuallyDisconnected = false;
     this.setState('connecting');
-    this.device = await navigator.bluetooth.requestDevice({
-      filters: [{ services: ['fitness_machine'] }],
-      optionalServices: ['fitness_machine'],
-    });
+    // Todos los dispositivos cercanos, como la banda de pulso: un rodillo
+    // con FTMS no siempre lo pone en su anuncio (el Tacx Neo 2T salía con
+    // la lista vacía al filtrar por servicio). Si el que elige no trae FTMS,
+    // attachToDevice lo explica.
+    this.device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['fitness_machine'] });
     this.device.addEventListener('gattserverdisconnected', this.handleDisconnected);
     await this.attachToDevice();
   }
@@ -189,7 +190,10 @@ export class BleTrainerAdapter implements TrainerAdapter {
   private async attachToDevice(): Promise<void> {
     if (!this.device?.gatt) throw new Error('dispositivo sin GATT server');
     const server = await this.device.gatt.connect();
-    const service = await server.getPrimaryService('fitness_machine');
+    const service = await server.getPrimaryService('fitness_machine').catch(() => {
+      server.disconnect();
+      throw new Error('Ese dispositivo no es un rodillo con Bluetooth FTMS. Si es tu rodillo, actualiza su firmware en la app del fabricante (Tacx o Garmin, Wahoo…) y vuelve a intentar.');
+    });
 
     this.dataCharacteristic = await service.getCharacteristic('indoor_bike_data');
     this.dataCharacteristic.addEventListener('characteristicvaluechanged', this.handleDataChanged);
