@@ -22,6 +22,13 @@ const RECONNECT_DELAYS_MS = [1000, 2000, 4000, 8000, 16000];
  * sigue al pie de la letra SPEC.md § Dispositivos (banderas de
  * indoor_bike_data, secuencia de control point, reconexión). */
 export class BleTrainerAdapter implements TrainerAdapter {
+  /** showAll: el selector de Chrome muestra todos los dispositivos, para
+   * un rodillo que no anuncia FTMS ni se llama como esperamos. */
+  private readonly opts: { showAll?: boolean };
+  constructor(opts: { showAll?: boolean } = {}) {
+    this.opts = opts;
+  }
+
   state: ConnectionState = 'disconnected';
   private device: BluetoothDevice | null = null;
   private dataCharacteristic: BluetoothRemoteGATTCharacteristic | null = null;
@@ -54,13 +61,14 @@ export class BleTrainerAdapter implements TrainerAdapter {
   async connect(): Promise<void> {
     this.manuallyDisconnected = false;
     this.setState('connecting');
-    this.device = await navigator.bluetooth.requestDevice({
-      // Por servicio FTMS, y por nombre para los Tacx: un Neo 2T con FTMS no
-      // siempre lo pone en el anuncio, y sin esto la lista de Chrome sale
-      // vacía. Si el que elige no trae FTMS, attachToDevice lo explica.
-      filters: [{ services: ['fitness_machine'] }, { namePrefix: 'Tacx' }, { namePrefix: 'TACX' }],
-      optionalServices: ['fitness_machine'],
-    });
+    // Por servicio FTMS, y por nombre para los Tacx: un Neo 2T con FTMS no
+    // siempre lo pone en el anuncio, y sin esto la lista de Chrome sale
+    // vacía. Si el que elige no trae FTMS, attachToDevice lo explica.
+    this.device = await navigator.bluetooth.requestDevice(
+      this.opts.showAll
+        ? { acceptAllDevices: true, optionalServices: ['fitness_machine'] }
+        : { filters: [{ services: ['fitness_machine'] }, { namePrefix: 'Tacx' }, { namePrefix: 'TACX' }, { namePrefix: 'NEO' }, { namePrefix: 'Neo' }], optionalServices: ['fitness_machine'] },
+    );
     this.device.addEventListener('gattserverdisconnected', this.handleDisconnected);
     await this.attachToDevice();
   }
