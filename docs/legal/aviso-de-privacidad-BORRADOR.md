@@ -20,7 +20,8 @@
 | **Perfil deportivo** | Sexo, fecha de nacimiento (de ella solo se usa la edad), peso, estatura, disciplina, experiencia, años rodando, FTP, pulso máximo y en reposo, resultados, otras actividades | Armar y ajustar tu plan |
 | **Datos de salud (sensibles)** | Condiciones de salud, medicamentos (si los indicas), lesiones y limitaciones, sueño, estrés, tabaco y alcohol | Que tu plan sea seguro y adecuado. **Solo con tu consentimiento expreso** |
 | **Datos de entrenamiento** | Sesiones (potencia, cadencia, pulso, duración), RPE, notas, archivos .fit | Medir tu progreso y ajustar tu plan |
-| **Lo que escribes a Piñón o al coach** | Preguntas y notas | Contestarte y ajustar tu plan |
+| **Lo que escribes a Piñón, en tus notas o al coach** | Preguntas, notas de cada sesión y de la semana. **Pueden contener datos de salud** (cansancio, molestias, lesiones), y se tratan como tales | Contestarte y ajustar tu plan |
+| **Tu expediente de entrenamiento** | Un resumen que el coach IA actualiza con lo que observa de cómo respondes a los entrenamientos | Que los siguientes ajustes tomen en cuenta tu historia. **Lo puedes ver y borrar en Perfil** |
 | **Pago** | Lo gestiona Mercado Pago. Torq **no** guarda los datos de tu tarjeta; solo el estado de tu suscripción | Cobrar tu suscripción |
 | **Técnicos** | Dispositivo, navegador, fecha y hora de aceptación de estos documentos | Seguridad y evidencia de tu consentimiento |
 
@@ -53,7 +54,7 @@ Para que Torq funcione, usamos estos proveedores. Algunos están **fuera de Méx
 | **Strava, intervals.icu** (solo si los conectas) | Sincronizar actividades | Las sesiones que decidas subir o bajar |
 | **Tu coach** (solo si te vinculas) | Prepararte y seguir tu plan | Los datos de entrenamiento y del cuestionario que aceptes compartir |
 
-No vendemos tus datos personales.
+No vendemos tus datos personales. **Tus datos no se usan para entrenar modelos de IA de terceros:** los proveedores de IA los procesan solo para generar tu respuesta, según sus condiciones de servicio para empresas.
 
 ## 5. Consentimiento para datos de salud
 
@@ -81,7 +82,9 @@ Te avisaremos en la app y, si el cambio afecta tus datos de salud o con quién l
 ---
 
 ## Notas para el abogado
-1. **Transferencias internacionales:** Anthropic, Supabase, Resend y Cloudflare procesan datos en el extranjero. Revisar si son remisiones (encargados) o transferencias, y qué cláusulas hacen falta.
+1. **Transferencias internacionales:** Anthropic, Supabase, Resend y Cloudflare procesan datos en el extranjero (principalmente EE. UU.). Revisar si son remisiones (encargados) o transferencias, y qué cláusulas hacen falta. NUA Coach, como referencia, lista cada proveedor con su país y el mecanismo de transferencia (en su caso, el marco UE-EE. UU. o cláusulas contractuales tipo).
+5. **«No se usan para entrenar modelos»:** confirmar en las condiciones comerciales vigentes de Anthropic (API) antes de publicarlo.
+6. **Expediente y notas:** el expediente que actualiza la IA y las notas del atleta pueden contener datos de salud; NUA Coach los declara expresamente como datos de salud. Confirmar que el consentimiento expreso los cubre.
 2. **Datos sensibles:** el consentimiento expreso se da con una casilla separada en la app. Confirmar que basta.
 3. **Coaches:** revisar si el coach es encargado de Torq o responsable independiente de los datos de sus atletas.
 4. **Plazos de conservación** después de cancelar la cuenta, considerando las obligaciones fiscales del cobro.

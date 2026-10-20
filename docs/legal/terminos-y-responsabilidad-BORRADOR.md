@@ -40,6 +40,7 @@ Antes de participar en cualquier programa de ejercicio o actividad física, toma
 2. **Son una guía de entrenamiento, no consejo médico, nutricional ni de rehabilitación.** No sustituyen la valoración de un médico, fisioterapeuta o nutriólogo.
 3. **La IA puede equivocarse.** Si una sesión te parece demasiado intensa para tu condición del día, puedes bajarla o no hacerla. Tú decides si entrenas y con qué intensidad.
 4. **Lo que contesta depende de lo que le digas.** Que tu plan sea adecuado depende de que la información del cuestionario y de tus sesiones sea verdadera y esté al día.
+5. **No es un sistema médico.** Torq usa lo que declaras de tu salud para armar un plan más prudente, pero no es un dispositivo ni un servicio médico, y no puede garantizar que cada sesión respete una restricción médica. Si un profesional de la salud te indicó límites (por ejemplo, de pulso, de intensidad o de movimientos), valida tu plan con esa persona y respeta sus indicaciones por encima de las de Torq.
 
 ## 5. Si entrenas con un coach
 
@@ -47,11 +48,13 @@ Antes de participar en cualquier programa de ejercicio o actividad física, toma
 2. Torq le da a tu coach las herramientas para trabajar contigo y le muestra los datos de entrenamiento que aceptes compartir al aceptar su invitación.
 3. Tu coach puede pedirte aceptar sus propios términos además de estos.
 
-## 6. Liberación de responsabilidad
+## 6. Responsabilidad
 
-> **Nota para el abogado:** esta cláusula viene del texto de Joe y es la que más hay que revisar (ver notas al final).
+> **Nota para el abogado:** se cambió la renuncia total del texto de Joe por una estructura de tres partes, parecida a la de NUA Coach: asumir riesgos, tope de responsabilidad y excepciones de ley. Es más fácil de sostener ante la Profeco (ver notas al final).
 
-En la medida en que lo permita la ley, asumes la responsabilidad por las lesiones, daños o consecuencias que resulten de tu práctica deportiva al seguir los planes o sugerencias de Torq. Renuncias a reclamar a Torq, a sus fundadores y a los coaches que colaboraron en su desarrollo por esas consecuencias, salvo en los casos en que la ley no permita esta renuncia.
+1. **Asumes los riesgos de tu práctica deportiva.** En la medida en que lo permita la ley, eres responsable de las lesiones, daños o consecuencias que resulten de entrenar con los planes o sugerencias de Torq. Liberas de esa responsabilidad a Torq, a sus fundadores y a los coaches que colaboraron en su desarrollo.
+2. **Tope.** Si Torq llegara a ser responsable frente a ti, su responsabilidad total no excederá lo que le hayas pagado en los 12 meses anteriores al hecho, o [$2,000 MXN], lo que sea mayor. No incluye daños indirectos ni lucro cesante.
+3. **Lo que no se limita.** Nada de lo anterior limita la responsabilidad que, conforme a la ley, no pueda limitarse: por ejemplo, por dolo o por negligencia grave, ni tus derechos como consumidor ante la Profeco.
 
 ## 7. Suscripción y pagos (Torq Coach IA)
 
@@ -79,7 +82,7 @@ Si estos términos cambian, te avisaremos en la app y te pediremos aceptarlos de
 
 ## 11. Ley aplicable
 
-[Leyes federales de los Estados Unidos Mexicanos; tribunales de [ciudad], salvo lo que disponga la Ley Federal de Protección al Consumidor.]
+[Leyes federales de los Estados Unidos Mexicanos; tribunales de [ciudad], salvo lo que disponga la Ley Federal de Protección al Consumidor.] No se usa arbitraje obligatorio: frente a consumidores en México, la Profeco y sus derechos no se pueden renunciar.
 
 ---
 
@@ -104,7 +107,9 @@ Se envía una copia por correo.
 
 ## Notas para el abogado
 
-1. **Liberación de responsabilidad (§6).** El texto original dice «renuncio a cualquier reclamo o demanda». Con cobro de por medio, esto puede considerarse una cláusula abusiva ante la Profeco (LFPC). Conviene redactarla para que sea válida y proporcional.
+1. **Responsabilidad (§6).** El texto original de Joe dice «renuncio a cualquier reclamo o demanda». Con cobro de por medio, eso puede considerarse cláusula abusiva ante la Profeco (LFPC).
+   - Se propone: asumir riesgos + tope (lo pagado en 12 meses o un monto fijo) + excepciones de ley.
+   - NUA Coach usa la misma estructura con un tope de 12 meses o US$100, bajo ley española y con arbitraje. Revisar si el monto y la redacción sirven en México.
 2. **IA (§4).** Revisar si la advertencia sobre planes generados por IA es suficiente, y si hace falta algo sobre la responsabilidad de Torq por errores del sistema.
 3. **Coaches (§5 y §6).** Los coaches usan Torq gratis y cobran por su cuenta. Revisar que quede claro que la relación de entrenamiento es entre atleta y coach. Uno de los fundadores (Joe Hernández) también es coach: confirmar que §6 lo cubre en ambos papeles.
 4. **Aceptación electrónica.** Es un clic con dos casillas, con registro de fecha, versión, hash y dispositivo, más copia por correo. Confirmar que basta como consentimiento (Código de Comercio y LFPDPPP para los datos sensibles).
