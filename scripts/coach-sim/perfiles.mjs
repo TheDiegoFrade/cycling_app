@@ -21,7 +21,7 @@ const ids = args.filter((a) => /^p\d\d$/.test(a));
 const chosen = ids.length ? PERFILES.filter((p) => ids.includes(p.id)) : PERFILES;
 const DIR = path.join(path.dirname(new URL(import.meta.url).pathname), 'out', 'perfiles');
 // lib.mjs exige las credenciales al importarse: solo se carga si se va a correr.
-let DUMMY_ID, activePlan, fn, rest, resetCounters, sql, workoutsByIds;
+let DUMMY_ID, activePlan, fn, rest, workoutsByIds;
 const save = (dir, name, obj) => { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(path.join(dir, name), JSON.stringify(obj, null, 2)); };
 const REPORT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../docs/evaluaciones/planes-ia-para-joe.md');
 const log = (m) => console.log(`[${new Date().toISOString().slice(11, 19)}] ${m}`);
@@ -33,11 +33,13 @@ async function cleanDummy() {
     log(`  baja del plan anterior: HTTP ${r.status}`);
   }
   const today = todayKey();
-  await sql(
-    `delete from workouts where user_id='${DUMMY_ID}' and coalesce(data->>'scheduledDate','') >= '${today}';` +
-      ` delete from planned_routines where athlete_id='${DUMMY_ID}' and source='ai' and scheduled_date >= '${today}';`,
-  );
-  await resetCounters();
+  // Por la API REST con la llave de servicio (no hace falta la de administración).
+  await rest('DELETE', `workouts?user_id=eq.${DUMMY_ID}&data->>scheduledDate=gte.${today}`);
+  await rest('DELETE', `planned_routines?athlete_id=eq.${DUMMY_ID}&source=eq.ai&scheduled_date=gte.${today}`);
+  // Contadores anti-abuso y expediente del dummy (lo mismo que resetCounters de lib.mjs).
+  await rest('DELETE', `plan_actions?user_id=eq.${DUMMY_ID}`);
+  await rest('DELETE', `coach_usage?user_id=eq.${DUMMY_ID}`);
+  await rest('DELETE', `athlete_notes?athlete_id=eq.${DUMMY_ID}`);
 }
 
 async function runOne(p) {
@@ -279,7 +281,7 @@ async function main() {
   const results = {};
   for (const f of fs.existsSync(DIR) ? fs.readdirSync(DIR) : []) if (/^p\d\d\.json$/.test(f)) results[f.slice(0, 3)] = JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8'));
   if (!onlyReport) {
-    ({ DUMMY_ID, activePlan, fn, rest, resetCounters, sql, workoutsByIds } = await import('./lib.mjs'));
+    ({ DUMMY_ID, activePlan, fn, rest, workoutsByIds } = await import('./lib.mjs'));
     const [original] = await rest('GET', `profiles?user_id=eq.${DUMMY_ID}&select=*`);
     save(DIR, 'perfil-original-dummy.json', original);
     try {
