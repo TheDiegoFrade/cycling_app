@@ -7526,7 +7526,9 @@ body:has(.pinon-bubble-layer) .pinon-chat-launcher {
 @media (max-width: 760px) {
   .pinon-chat-launcher {
     right: 14px;
-    bottom: 14px;
+    /* arriba de la barra de pestañas (fija abajo, ~56px): si no, Piñón queda
+       medio tapado y en el celular casi no se ve la entrada al chat */
+    bottom: calc(72px + env(safe-area-inset-bottom));
     width: 64px;
     height: 64px;
   }
@@ -7550,5 +7552,23 @@ body:has(.pinon-bubble-layer) .pinon-chat-launcher {
   .pinon-chat-launcher:hover {
     transition: none;
     transform: none;
+  }
+}
+
+/* Cuestionario: el dato que falta queda marcado (ver flagMissing en onboarding.ts) */
+.ob-missing {
+  outline: 2px solid var(--danger, #ff5a4f);
+  outline-offset: 4px;
+  border-radius: var(--radius-md, 10px);
+  animation: ob-missing-pulse 0.6s ease 2;
+}
+@keyframes ob-missing-pulse {
+  50% {
+    outline-offset: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ob-missing {
+    animation: none;
   }
 }

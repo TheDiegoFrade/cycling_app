@@ -21,7 +21,7 @@ import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { tokenForIntervals, tokenForWorkout, tokenHtml } from '../workout-token';
 import type { Token } from '../workout-token';
 import { wireDatePicker } from '../date-picker';
-import { renderCoachSection } from '../coach';
+import { renderCoachSection, requestCoachCreate } from '../coach';
 import { isSupabaseConfigured } from '../../supabase/client';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
 import { notifyPlanChange, planChangeNotice } from '../coach-notice';
@@ -692,7 +692,11 @@ export function renderCalendar(container: HTMLElement): () => void {
     wireDragAndDrop();
     renderCoachSection(container, paint);
     container.querySelector('#plan-open-onboarding')?.addEventListener('click', () => {
-      openOnboardingForm(() => paint(), true);
+      // al guardarlo, directo a «Crear tu plan» (para eso se pidió)
+      openOnboardingForm(() => {
+        requestCoachCreate();
+        paint();
+      }, true);
     });
 
     container.querySelector('#view-week')?.addEventListener('click', () => {

@@ -14,7 +14,7 @@ export const PINON_QUICK: readonly { intent: Exclude<PinonIntent, 'change'>; lab
   { intent: 'week', label: '¿Cómo voy esta semana?' },
   { intent: 'form', label: '¿Cómo está mi forma?' },
   { intent: 'why', label: '¿Para qué sirve el entreno de hoy?' },
-  { intent: 'tired', label: 'Estoy cansado' },
+  { intent: 'tired', label: 'Ando sin energía' }, // neutro: «cansado/a» da por hecho el género
   { intent: 'cheer', label: 'Dame ánimo' },
 ];
 

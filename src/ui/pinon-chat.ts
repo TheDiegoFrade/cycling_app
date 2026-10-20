@@ -73,6 +73,7 @@ const ERROR_TEXT = {
   not_available: 'Por ahora el chat abierto todavía no está disponible para tu cuenta. Los botones sí funcionan.',
   daily_limit: 'Ya platicamos mucho hoy. Mañana seguimos; los botones funcionan siempre.',
   offline: 'Sin conexión no puedo pensar respuestas nuevas. Los botones funcionan sin internet.',
+  no_account: 'Para preguntas abiertas necesito que entres con tu cuenta de Torq. Los botones sí funcionan aquí.',
   failed: 'Se me trabó la cadena. Intenta otra vez en un momento.',
 } as const;
 

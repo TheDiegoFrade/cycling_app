@@ -47,6 +47,17 @@ function intervalBlockHtml(iv: Interval): string {
  * una sesión falsa que además se reanudaba sola). */
 export function renderConnect(container: HTMLElement): void {
   appState.demoSession = false;
+  // Los simuladores solo existen para la demo: si quedaron conectados de una
+  // demo anterior, «Empezar» se habilitaba y grababa la rodada simulada como
+  // sesión real. Volver aquí los suelta.
+  if (appState.trainer instanceof SimulatedTrainerAdapter) {
+    appState.trainer.disconnect();
+    appState.trainer = null;
+  }
+  if (appState.hr instanceof SimulatedHrAdapter) {
+    appState.hr.disconnect();
+    appState.hr = null;
+  }
   const workout = appState.selectedWorkout;
 
   if (!workout) {

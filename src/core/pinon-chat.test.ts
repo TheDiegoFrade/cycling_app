@@ -105,3 +105,12 @@ describe('pinonCacheKey', () => {
     expect(pinonCacheKey('¿Qué desayuno?', base)).not.toBe(pinonCacheKey('¿Qué desayuno?', { ...base, week: { done: 3, planned: 4 } }));
   });
 });
+
+describe('PINON_QUICK', () => {
+  it('cada botón, escrito a mano, cae en su misma respuesta', () => {
+    for (const q of PINON_QUICK) expect(matchIntent(q.label)).toBe(q.intent);
+  });
+  it('los botones no dan por hecho el género', () => {
+    for (const q of PINON_QUICK) expect(q.label).not.toMatch(/\b\w+(ado|ada)\b/);
+  });
+});

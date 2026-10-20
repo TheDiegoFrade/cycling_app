@@ -214,6 +214,25 @@ class AppState {
     void backfillMetricsFromLocal(userId, localSessions);
   }
 
+  /** Vuelve a leer los workouts de la nube. Para cuando el servidor los
+   * cambió por su cuenta (el coach IA al crear o ajustar el plan): sin esto el
+   * calendario sigue vacío hasta recargar la app. Misma regla que
+   * syncFromCloud: la nube manda. */
+  async reloadWorkoutsFromCloud(): Promise<void> {
+    if (!this.user) return;
+    const cloudWorkouts = await fetchCloudWorkouts(this.user.id);
+    if (!cloudWorkouts) return; // sin conexión o error: se queda lo que había
+    const cloudIds = new Set(cloudWorkouts.map((w) => w.id));
+    // Lo creado aquí hace un momento puede no haber terminado de subir
+    // (pushWorkoutToCloud no se espera): eso no se borra.
+    const justCreated = (w: Workout) => Date.now() - Date.parse(w.created_at) < 2 * 60_000;
+    const missing = this.workouts.filter((w) => !cloudIds.has(w.id));
+    const kept = missing.filter(justCreated);
+    await Promise.all(missing.filter((w) => !justCreated(w)).map((w) => deleteWorkout(w.id)));
+    this.workouts = [...cloudWorkouts, ...kept];
+    await Promise.all(cloudWorkouts.map((w) => saveWorkout(w)));
+  }
+
   async signOut(): Promise<void> {
     if (supabase) await supabase.auth.signOut();
     // No depende del evento onAuthStateChange para borrar lo local: ese

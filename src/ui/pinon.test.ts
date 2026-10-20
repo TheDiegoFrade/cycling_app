@@ -76,7 +76,7 @@ describe('pinonTip', () => {
 
   it('5 · sin plan → Crear plan', () => {
     const t = pinonTip({ ...base, hasPlan: false });
-    expect(t.text).toBe('¿Armamos tu plan? Te pregunto cuatro cosas y listo.');
+    expect(t.text).toBe('¿Armamos tu plan? Te hago unas preguntas sobre ti y tu bici, y el coach lo arma.');
     expect(t.action).toEqual({ label: 'Crear plan', href: '#/plan', kind: 'create' });
   });
 

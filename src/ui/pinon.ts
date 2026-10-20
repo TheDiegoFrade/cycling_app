@@ -76,6 +76,8 @@ export const GUIDES: Record<GuideScreen, string> = {
   library: 'Todo lo que has rodado. Toca una sesión para ver cómo te fue y ponerle tu RPE.',
   profile: 'Pon tu FTP y tu pulso máximo: con eso calculo tus zonas.',
 };
+/** Inicio sin nada agendado: la guía de siempre habla de un botón que no está. */
+export const HOME_EMPTY_GUIDE = 'Aquí te digo qué toca cada día. Hoy no hay nada: genera un workout abajo y ruedas ya, o arma tu plan en Plan.';
 
 /** ¿Explicar esta pantalla? Solo la primera vez y si no apagaste las guías. */
 export function shouldShowGuide(screen: Screen, seen: boolean, guidesOff: boolean): boolean {
@@ -182,7 +184,7 @@ export function pinonTip(ctx: PinonTipContext): PinonTip {
   if (ctx.isRestDay) return { text: 'Hoy descansas. Mañana rodamos con piernas frescas.' };
   if (!ctx.hasPlan && !ctx.humanCoach) {
     return {
-      text: '¿Armamos tu plan? Te pregunto cuatro cosas y listo.',
+      text: '¿Armamos tu plan? Te hago unas preguntas sobre ti y tu bici, y el coach lo arma.',
       action: { label: 'Crear plan', href: '#/plan', kind: 'create' },
     };
   }
@@ -386,7 +388,7 @@ export function schedulePinonGuide(screen: Screen, root: HTMLElement): () => voi
     openPinonBubble({
       pose: 'habla',
       title: 'TE CUENTO',
-      text: GUIDES[screen as GuideScreen],
+      text: screen === 'home' && !root.querySelector('.home-ride-btn[data-ride-id]') ? HOME_EMPTY_GUIDE : GUIDES[screen as GuideScreen],
       action: { label: 'Entendido' },
       dismissLabel: 'No mostrar más guías',
       onDismiss: () => setGuidesOff(true),

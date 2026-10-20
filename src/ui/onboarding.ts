@@ -319,6 +319,61 @@ function modalHtml(p: Profile): string {
     </div>`;
 }
 
+/** Qué parte del formulario corresponde a cada aviso de «falta…», en orden:
+ * lo más específico primero («años entrenando con estructura» antes que
+ * «entrenado con estructura»). */
+const MISSING_TARGETS: [RegExp, string][] = [
+  [/sexo/i, '#ob-sex'],
+  [/nacimiento/i, '#ob-birth-date'],
+  [/peso/i, '#ob-weight'],
+  [/altura/i, '#ob-height'],
+  [/condici[oó]n de salud|«Ninguna»/i, '#ob-conditions'],
+  [/¿cuál|cual es tu condición/i, '#ob-conditions-other'],
+  [/medicamento/i, '#ob-medication'],
+  [/cirug[ií]a/i, '#ob-recent-injury'],
+  [/te impida/i, '#ob-injury-limits'],
+  [/fumas/i, '#ob-smoking'],
+  [/alcohol/i, '#ob-alcohol'],
+  [/estr[eé]s/i, '#ob-stress'],
+  [/horas.*duermes|duermes.*horas/i, '#ob-sleep-hours'],
+  [/duermes/i, '#ob-sleep-quality'],
+  [/4 semanas/i, '#ob-recent-training'],
+  [/del 1 al 10/i, '#ob-rpe'],
+  [/esfuerzos al m[aá]ximo/i, '#ob-max-effort'],
+  [/pulso en reposo/i, '#ob-resting-hr'],
+  [/años llevas entrenando/i, '#ob-structured-years'],
+  [/años llevas andando/i, '#ob-years'],
+  [/entrenado con estructura/i, '#ob-experience'],
+  [/qu[eé] tan activo/i, '#ob-fitness'],
+  [/disciplina/i, '#ob-discipline'],
+  [/medidor de potencia/i, '#ob-outdoor-power'],
+  [/rodar afuera/i, '#ob-rides-outside'],
+  [/FTP/, '#ob-ftp'],
+  [/pulso m[aá]ximo/i, '#ob-hrmax'],
+  [/actividad/i, '#ob-other-add'],
+  [/categor[ií]a/i, '#ob-category'],
+  [/compites/i, '#ob-competes'],
+  [/mejor resultado/i, '#ob-best-result'],
+  [/lesiones o limitaciones/i, '#ob-injuries'],
+];
+
+/** Marca el campo que falta y lo pone a la vista: un texto al pie de un
+ * formulario largo no dice dónde está el problema. */
+function flagMissing(root: HTMLElement, message: string): void {
+  root.querySelectorAll('.ob-missing').forEach((el) => el.classList.remove('ob-missing'));
+  root.querySelectorAll('[aria-invalid="true"]').forEach((el) => el.removeAttribute('aria-invalid'));
+  const selector = MISSING_TARGETS.find(([re]) => re.test(message))?.[1];
+  const el = selector ? root.querySelector<HTMLElement>(selector) : null;
+  if (!el) return;
+  // el input de la fecha está oculto: se marca el selector visible que lo envuelve
+  const box = el.closest<HTMLElement>('.date-picker, .ob-toggle') ?? (el.matches('input, textarea, select') ? el.closest<HTMLElement>('.ob-field') : null) ?? el;
+  box.classList.add('ob-missing');
+  (el.matches('input, textarea, select') ? el : box).setAttribute('aria-invalid', 'true');
+  box.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  const focusable = box.matches('.date-picker') ? box.querySelector<HTMLElement>('[role=spinbutton]') : el.matches('input:not([type=checkbox]), textarea') ? el : null;
+  focusable?.focus({ preventScroll: true });
+}
+
 /** `allowSkip`: true en el primer aviso al llegar a la app (se puede
  * posponer); false cuando se abre porque el usuario ya intentó crear un
  * plan y hace falta esto primero — ahí no hay botón de saltar. */
@@ -563,6 +618,17 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     fitStatus.textContent = `${imported} sesión(es) importada(s).${errors.length > 0 ? ` ${errors.length} con error: ${errors.join(' · ')}` : ''}`;
   });
 
+  // en cuanto la persona toca lo marcado, la marca se quita
+  const clearFlag = (e: Event) => {
+    const box = (e.target as HTMLElement).closest('.ob-missing');
+    if (!box) return;
+    box.classList.remove('ob-missing');
+    box.querySelectorAll('[aria-invalid="true"]').forEach((el) => el.removeAttribute('aria-invalid'));
+    box.removeAttribute('aria-invalid');
+  };
+  backdrop.addEventListener('click', clearFlag);
+  backdrop.addEventListener('input', clearFlag);
+
   const close = () => backdrop.remove();
   backdrop.querySelector('#onboarding-close')?.addEventListener('click', close);
   backdrop.querySelector('#onboarding-skip')?.addEventListener('click', close);
@@ -634,6 +700,7 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     const missing = aboutYou ?? intakeRead.missing ?? before ?? ftpOrHrError() ?? coachProfileError(candidate);
     if (missing) {
       status.textContent = missing;
+      flagMissing(backdrop, missing);
       return;
     }
     appState.profile = candidate;

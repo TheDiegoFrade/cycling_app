@@ -4,6 +4,17 @@ import { navigate } from '../router';
 import { appState } from '../state';
 import { requestPasswordReset } from '../password-reset';
 
+/** Supabase contesta en inglés ("Invalid login credentials"…): a la persona
+ * se le dice en español qué pasó y qué hacer. */
+export function loginErrorText(error: { message: string; code?: string; status?: number }): string {
+  const m = `${error.code ?? ''} ${error.message}`.toLowerCase();
+  if (m.includes('invalid_credentials') || m.includes('invalid login')) return 'Correo o contraseña incorrectos. Revísalos o toca «¿Olvidaste tu contraseña?».';
+  if (m.includes('email_not_confirmed') || m.includes('not confirmed')) return 'Todavía no confirmas tu correo: abre el link que te mandamos y vuelve a entrar.';
+  if (m.includes('rate') || error.status === 429) return 'Demasiados intentos seguidos. Espera un minuto y vuelve a intentar.';
+  if (m.includes('fetch') || m.includes('network')) return 'No hay conexión con el servidor. Revisa tu internet y vuelve a intentar.';
+  return 'No se pudo entrar. Intenta de nuevo en un momento.';
+}
+
 function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supabase>): void {
   container.innerHTML = `
     <div class="hero${appState.settings.heroCharacter === 'woman' ? ' hero-woman' : ''}" style="min-height:100vh">
@@ -11,13 +22,13 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
         <div class="brand"><img class="brand-logo" src="/brand/logo-torq.webp" alt="torq" width="150" height="70"></div>
         <div class="tag">Entrena sin mirar la pantalla.</div>
         <button type="button" class="ghost-btn" id="entry-toggle">Entrar</button>
-        <div class="entry-fields" id="entry-fields">
-          <label>Correo<input type="email" id="login-email" placeholder="tucorreo@ejemplo.com"></label>
-          <label>Contraseña<input type="password" id="login-password"></label>
-          <button class="primary" id="login-password-btn">Entrar</button>
+        <form class="entry-fields" id="entry-fields" novalidate>
+          <label>Correo<input type="email" id="login-email" placeholder="tucorreo@ejemplo.com" autocomplete="email"></label>
+          <label>Contraseña<input type="password" id="login-password" autocomplete="current-password"></label>
+          <button type="submit" class="primary" id="login-password-btn">Entrar</button>
           <a href="#" class="hint" id="login-forgot" style="display:block;margin-top:8px">¿Olvidaste tu contraseña?</a>
-          <div id="login-result"></div>
-        </div>
+          <div id="login-result" aria-live="polite"></div>
+        </form>
       </div>
       <button type="button" class="music-toggle" id="music-toggle" title="Still Corners – The Trip (click para reproducir)">🔇</button>
       <button type="button" class="hero-toggle" id="hero-toggle" title="Cambiar apariencia">${appState.settings.heroCharacter === 'woman' ? '🚴‍♀️' : '🚴‍♂️'}</button>
@@ -69,7 +80,9 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
       : '<p class="hint">Si ese correo tiene cuenta, te llegó un link para poner una contraseña nueva. Ábrelo en este mismo navegador.</p>';
   });
 
-  container.querySelector('#login-password-btn')?.addEventListener('click', async () => {
+  // <form>: Enter en cualquier campo también entra, como en cualquier login.
+  fields.addEventListener('submit', async (e) => {
+    e.preventDefault();
     const emailInput = container.querySelector<HTMLInputElement>('#login-email')!;
     const passwordInput = container.querySelector<HTMLInputElement>('#login-password')!;
     const resultEl = container.querySelector<HTMLElement>('#login-result')!;
@@ -81,7 +94,7 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
     }
     resultEl.innerHTML = '<p class="hint">Entrando…</p>';
     const { error } = await client.auth.signInWithPassword({ email, password });
-    if (error) resultEl.innerHTML = `<div class="error-box">${error.message}</div>`;
+    if (error) resultEl.innerHTML = `<div class="error-box">${loginErrorText(error)}</div>`;
     // si no hay error, el refresh global (appState.onAuthChange) ya se
     // encarga de mostrar la app — no hace falta repintar acá.
   });

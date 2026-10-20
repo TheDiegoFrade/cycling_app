@@ -16,7 +16,8 @@ export async function requestPasswordReset(email: string): Promise<string | null
   if (!supabase) return 'la nube no está configurada';
   const redirectTo = `${location.origin}${location.pathname}?${RESET_PARAM}=1`;
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
-  return error ? error.message : null;
+  // el mensaje de Supabase viene en inglés: a la persona, en español
+  return error ? 'No se pudo mandar el correo. Revisa que esté bien escrito y vuelve a intentar en un minuto.' : null;
 }
 
 /** ¿Venimos del link de recuperación? (lo usa también handleStravaRedirect

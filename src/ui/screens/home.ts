@@ -18,6 +18,7 @@ import { montanasVideoHtml } from '../montanas-video';
 import { maybeCelebrateStreak, maybeCelebrateWeek, maybeWelcomeBack } from '../pinon';
 import { computeWeeklyStreak } from '../../engine/streaks';
 import { humanCoachName } from '../coach-notice';
+import { requestCoachCreate } from '../coach';
 import type { Token } from '../workout-token';
 import { isNonBikeKind } from '../../core/session-kind';
 import { wireDatePicker } from '../date-picker';
@@ -241,7 +242,12 @@ export function renderHome(container: HTMLElement): void {
   });
 
   container.querySelector('#home-open-onboarding')?.addEventListener('click', () => {
-    openOnboardingForm(() => refresh(), true);
+    // El cuestionario es «antes de tu plan»: al guardarlo se sigue directo
+    // a crearlo en Plan, en vez de volver a Inicio sin saber qué sigue.
+    openOnboardingForm(() => {
+      requestCoachCreate();
+      navigate('plan');
+    }, true);
   });
 
   function wireGenerate(): void {

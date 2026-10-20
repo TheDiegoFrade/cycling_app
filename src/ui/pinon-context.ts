@@ -151,7 +151,10 @@ export async function buildPinonChatData(): Promise<PinonChatData> {
   return {
     todayKey,
     humanCoach: humanCoachName() !== null,
-    hasPlan: knownCoachPlanState() ?? true,
+    // Hasta abrir Plan no se sabe si hay plan del coach: sin nada agendado de
+    // hoy en adelante, se trata como «sin plan» (si no, a alguien recién
+    // llegado se le dice «hoy toca descansar»).
+    hasPlan: knownCoachPlanState() ?? appState.workouts.some((w) => !!w.scheduledDate && w.scheduledDate >= todayKey),
     ftp: appState.profile.ftp,
     ...(todayWorkout
       ? {

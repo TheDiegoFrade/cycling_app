@@ -32,7 +32,9 @@ import type { CoachPlanContext, PlannedTest, StoredPlanData } from '../core/plan
 import type { RemovedWorkout } from '../sync/plan-removals';
 import { dayKeyOf, daysAgoKey, todayKey as localTodayKey } from '../core/day-key';
 
-const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'M', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
+// «X» para miércoles, como en los calendarios en español: dos «M» no se distinguen.
+const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'X', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
+const DAY_NAMES: Record<string, string> = { mon: 'Lunes', tue: 'Martes', wed: 'Miércoles', thu: 'Jueves', fri: 'Viernes', sat: 'Sábado', sun: 'Domingo' };
 const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 
 /** Sesiones que SÍ pueden entrar al contexto del coach de IA: todo menos lo
@@ -64,7 +66,7 @@ export async function aiEligibleSessions(bikeOnly: boolean): Promise<{
 // transmitir que sí está trabajando, no que se colgó.
 const THINKING_MESSAGES = [
   '🧠 Revisando tu historial…',
-  '📊 Calculando tu forma actual (CTL/ATL/TSB)…',
+  '📊 Calculando qué tan en forma y qué tan cansado vienes…',
   '🗓️ Armando la periodización del plan…',
   '💪 Concretando el primer bloque de entrenamientos…',
   '🔧 Armando los intervalos de cada sesión…',
@@ -206,6 +208,15 @@ function wireFtpOffer(root: HTMLElement): void {
       offer.remove();
     });
   });
+}
+
+/** Cuando la función no manda su propio error, supabase-js deja uno genérico
+ * en inglés ("Edge Function returned a non-2xx status code", "Failed to send
+ * a request…"): eso nunca se le muestra a la persona. */
+function fnErrorText(error: { message?: string } | null | undefined): string {
+  const m = (error?.message ?? '').toLowerCase();
+  if (m.includes('failed to send') || m.includes('fetch')) return 'no hay conexión con el servidor; revisa tu internet e intenta de nuevo';
+  return 'el servidor no respondió bien; intenta de nuevo en un momento';
 }
 
 const MAX_EVALS_PER_ISO_WEEK = 2; // mismo número que coach-chat/index.ts — la 2ª es un "refresh" de la misma semana
@@ -361,7 +372,7 @@ function wireAbandonButton(slot: HTMLElement, container: HTMLElement, onChange: 
       const { error, data } = await supabase.functions.invoke('coach-retire-plan', { body: { status: 'abandoned' } });
       if (error || data?.error) {
         if (errorEl) {
-          errorEl.textContent = `No se pudo dar de baja: ${data?.error ?? error?.message ?? 'error desconocido'}`;
+          errorEl.textContent = `No se pudo dar de baja: ${data?.error ?? fnErrorText(error)}`;
           errorEl.style.display = 'block';
         }
         return;
@@ -432,7 +443,7 @@ function wireWeeklyEvalButton(slot: HTMLElement, plan: ActivePlanRow, onChange: 
           // el body no era JSON — nos quedamos con error.message de abajo
         }
       }
-      status.textContent = `No se pudo evaluar la semana: ${serverMessage ?? error?.message ?? 'error desconocido'}`;
+      status.textContent = `No se pudo evaluar la semana: ${serverMessage ?? fnErrorText(error)}`;
       submitBtn.disabled = false;
       return;
     }
@@ -454,7 +465,12 @@ function wireWeeklyEvalButton(slot: HTMLElement, plan: ActivePlanRow, onChange: 
       'afterend',
       '<button class="btn-light" id="coach-eval-done" style="margin-top:12px">Entendido</button>',
     );
-    form.querySelector('#coach-eval-done')?.addEventListener('click', onChange);
+    // weekly_eval agenda (o reemplaza) la semana siguiente del lado del servidor
+    const reloaded = appState.reloadWorkoutsFromCloud().catch((err) => console.error('[coach] no se pudieron releer los workouts', err));
+    form.querySelector('#coach-eval-done')?.addEventListener('click', async () => {
+      await reloaded;
+      onChange();
+    });
   });
 }
 
@@ -516,7 +532,7 @@ function createCardHtml(actionsUsed: number): string {
 // onboarding.ts) — este modal solo pregunta lo específico de ESTE plan.
 // create_plan los lee directo de appState.profile al armar el context.
 function modalHtml(): string {
-  const days = DAY_ORDER.map((d) => `<button class="plan-chip" data-day="${d}">${DAY_LABELS[d]}</button>`).join('');
+  const days = DAY_ORDER.map((d) => `<button class="plan-chip" data-day="${d}" aria-label="${DAY_NAMES[d]}" title="${DAY_NAMES[d]}">${DAY_LABELS[d]}</button>`).join('');
   return `
     <div class="modal-backdrop" id="coach-modal-backdrop">
       <div class="panel plan-coach-modal" id="coach-modal">
@@ -1143,7 +1159,7 @@ function openCreateModal(onChange: () => void): void {
           // el body no era JSON — nos quedamos con error.message de abajo
         }
       }
-      status.textContent = `No se pudo crear el plan: ${serverMessage ?? error?.message ?? 'error desconocido'}`;
+      status.textContent = `No se pudo crear el plan: ${serverMessage ?? fnErrorText(error)}`;
       submitBtn.disabled = false;
       return;
     }
@@ -1168,7 +1184,11 @@ function openCreateModal(onChange: () => void): void {
       'afterend',
       '<button class="btn-light" id="coach-done" style="margin-top:12px">Entendido</button>',
     );
-    backdrop.querySelector('#coach-done')?.addEventListener('click', () => {
+    // El servidor ya agendó los entrenamientos: se traen ahora, mientras la
+    // persona lee la nota, para que el calendario no aparezca vacío.
+    const reloaded = appState.reloadWorkoutsFromCloud().catch((err) => console.error('[coach] no se pudieron releer los workouts', err));
+    backdrop.querySelector('#coach-done')?.addEventListener('click', async () => {
+      await reloaded;
       close();
       onChange();
     });
