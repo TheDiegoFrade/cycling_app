@@ -66,18 +66,24 @@ export async function login(page: Page, ux: Ux, u: MockUser, password = u.passwo
   await ux.click(page.locator('#login-password-btn'), 'Entrar');
 }
 
-/** Llena el cuestionario con lo mínimo obligatorio y guarda. Devuelve los
- * intentos de «Guardar» que necesitó (más de 1 = la validación lo regresó). */
+/** Llena el cuestionario paso a paso con lo mínimo obligatorio y guarda. */
 export async function fillOnboarding(page: Page, ux: Ux, p: Persona): Promise<void> {
   const m = page.locator('#onboarding-modal');
   await expect(m).toBeVisible();
   const chip = (group: string, text: string) => m.locator(`#${group} .ob-chip`, { hasText: text }).first();
   const option = (group: string, text: string) => m.locator(`#${group} .ob-option`, { hasText: text });
   const toggle = (id: string) => m.locator(`label.ob-toggle:has(#${id})`);
-  // las preguntas hay que leerlas antes de contestarlas
-  await ux.readText(m.locator('.ob-body'), 'Leer el cuestionario');
+  // Un paso a la vez: la persona lee lo que dice Piñón y las preguntas del
+  // paso, contesta y le da a «Siguiente».
+  const read = async (n: number) => {
+    await expect(m.locator(`.ob-section[data-step="${n}"]`)).toBeVisible();
+    await ux.readText(m.locator('#ob-guide-text'), `Piñón, paso ${n}`);
+    await ux.readText(m.locator(`.ob-section[data-step="${n}"]`), `Preguntas del paso ${n}`);
+  };
+  const next = (n: number) => ux.click(m.locator('#onboarding-next'), `Siguiente (paso ${n})`).then(() => read(n + 1));
 
   // 1. Sobre ti
+  await read(1);
   await ux.click(m.locator('#ob-sex .ob-chip', { hasText: p.sex }), `Sexo: ${p.sex}`);
   // Clic en el campo abre el calendario; quien teclea la fecha entra con Tab.
   await m.locator('[role=spinbutton][aria-label="Día"]').focus();
@@ -87,18 +93,21 @@ export async function fillOnboarding(page: Page, ux: Ux, p: Persona): Promise<vo
   ux.note('Fecha de nacimiento (teclado)');
   await ux.fill(m.locator('#ob-weight'), p.weight, 'Peso');
   await ux.fill(m.locator('#ob-height'), p.height, 'Altura');
+  await next(1);
   // 2. Salud
   await ux.click(chip('ob-conditions', 'Ninguna'), 'Condiciones: Ninguna');
   await ux.click(chip('ob-medication', 'No'), 'Medicamento: No');
   await ux.click(chip('ob-recent-injury', 'No'), 'Lesión reciente: No');
   await ux.click(chip('ob-injury-limits', 'No'), 'Lesión limita: No');
   await ux.click(toggle('ob-no-injuries'), 'No tengo lesiones');
+  await next(2);
   // 3. Hábitos
   await ux.click(chip('ob-smoking', 'No'), 'Fuma: No');
   await ux.click(chip('ob-alcohol', 'Nunca o rara vez'), 'Alcohol');
   await ux.click(chip('ob-stress', 'Medio'), 'Estrés');
   await ux.fill(m.locator('#ob-sleep-hours'), p.sleepHours, 'Horas de sueño');
   await ux.click(chip('ob-sleep-quality', 'Bien'), 'Calidad de sueño');
+  await next(3);
   // 4. Experiencia
   await ux.click(option('ob-experience', p.experience), `Experiencia: ${p.experience}`);
   await ux.click(option('ob-fitness', p.fitness), `Actividad: ${p.fitness}`);
@@ -107,18 +116,24 @@ export async function fillOnboarding(page: Page, ux: Ux, p: Persona): Promise<vo
   await ux.click(chip('ob-recent-training', p.recentTraining), 'Últimas 4 semanas');
   await ux.click(chip('ob-rpe', 'Más o menos'), 'RPE');
   await ux.click(chip('ob-max-effort', 'No'), 'Esfuerzos máximos');
+  await next(4);
   // 5. Bici
   await ux.click(m.locator('#ob-discipline .ob-chip', { hasText: p.discipline }), `Disciplina: ${p.discipline}`);
+  await next(5);
   // 6. Números
   if (p.ftp) await ux.fill(m.locator('#ob-ftp'), p.ftp, 'FTP');
   else await ux.click(toggle('ob-no-ftp'), 'No sé mi FTP');
   if (p.hrMax) await ux.fill(m.locator('#ob-hrmax'), p.hrMax, 'Pulso máx');
   else await ux.click(toggle('ob-no-hrmax'), 'No sé pulso máx');
   await ux.click(toggle('ob-no-resting-hr'), 'No sé pulso en reposo');
+  await next(6);
   // 7. Otras actividades
   await ux.click(toggle('ob-no-other'), 'No hago otra actividad');
+  await next(7);
   // 8. Metas
   await ux.fill(m.locator('#ob-best-result'), p.bestResult, 'Mejor resultado');
+  // 9. Entrenamientos recientes (opcional): no sube nada
+  await next(8);
   await ux.click(m.locator('#onboarding-submit'), 'Guardar');
   await expect(page.locator('#onboarding-modal')).toBeHidden();
 }

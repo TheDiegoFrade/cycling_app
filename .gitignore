@@ -35,3 +35,6 @@ scripts/coach-sim/report/
 
 # pruebas de UX (Playwright): resultados y trazas
 e2e/.out/
+
+# arnés de calidad de Piñón: resultados de cada corrida (el resumen va a docs/)
+scripts/pinon-eval/out/

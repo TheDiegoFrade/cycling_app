@@ -8,7 +8,7 @@ import { openChat } from '../support/flows';
  */
 
 const SCREENS = [
-  { hash: 'home', heading: /hoy toca|Nada agendado/i },
+  { hash: 'home', heading: /hoy toca|Nada agendado|empezamos/i },
   { hash: 'plan', heading: /Plan/ },
   { hash: 'library', heading: /Historial/ },
   { hash: 'form', heading: /Forma/ },

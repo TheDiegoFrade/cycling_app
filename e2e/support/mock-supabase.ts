@@ -176,8 +176,11 @@ export class MockSupabase {
 
     // ── storage ──
     if (path.startsWith('/storage/v1/')) {
-      this.log({ kind: 'storage', name: path, method, status: 200 });
-      return json(200, { Key: path });
+      // subir: OK; bajar (.fit): no hay archivos en el simulado → 404, y la
+      // app cae al resumen sin detalle segundo a segundo
+      const status = method === 'GET' ? 404 : 200;
+      this.log({ kind: 'storage', name: path, method, status });
+      return status === 404 ? json(404, { error: 'not_found', message: 'Object not found' }) : json(200, { Key: path });
     }
 
     // ── rest / rpc ──

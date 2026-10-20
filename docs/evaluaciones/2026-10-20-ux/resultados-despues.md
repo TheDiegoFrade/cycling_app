@@ -1,8 +1,8 @@
-# Resultados DESPUÉS de los arreglos
+# Resultados DESPUÉS de las dos rondas
 
-Generado por `npm run test:ux:report` el 2026-10-20 01:34 UTC.
+Generado por `npm run test:ux:report` el 2026-10-20 02:29 UTC.
 
-**77 pruebas:** 75 pasan · 0 fallan · 2 deuda conocida (se espera que fallen) · 0 inestables.
+**89 pruebas:** 88 pasan · 0 fallan · 1 deuda conocida (se espera que fallen) · 0 inestables.
 
 «Clics» y «campos» son lo que hizo la persona simulada; «esfuerzo» estima los segundos humanos (2.5 s por clic, 5 s por campo, 3 s por pausa a leer y 200 palabras/min en textos largos).
 
@@ -10,11 +10,13 @@ Generado por `npm run test:ux:report` el 2026-10-20 01:34 UTC.
 
 | Proyecto | Prueba | Resultado | Clics | Campos | Esfuerzo | Nota |
 |---|---|---|---:|---:|---:|---|
-| local | abrir la app por primera vez y rodar en modo demo: ≤ 5 clics | pasa | 3 | 0 | 11 s |  |
-| local | la guía de Inicio describe lo que sí hay en pantalla | pasa | 0 | 0 | 0 s |  |
+| local | abrir la app por primera vez y rodar en modo demo: ≤ 5 clics | pasa | 2 | 0 | 5 s |  |
+| local | primera vez sin cuenta: bienvenida con un solo camino (rodar), sin promesas de coach | pasa | 0 | 0 | 0 s |  |
+| local | ya con algo agendado, la guía de Inicio describe lo que sí hay en pantalla | pasa | 0 | 0 | 0 s |  |
 | local | después de la demo, volver a «Antes de empezar» no graba una sesión falsa | pasa | 2 | 0 | 5 s |  |
 | local | chat sin cuenta: los botones contestan y la pregunta libre explica por qué no hay IA (no «sin conexión») | pasa | 3 | 1 | 13 s |  |
 | local | Piñón sin cuenta y sin plan no receta «descansar»: propone empezar | pasa | 2 | 0 | 5 s |  |
+| local | sin cuenta, lo que creas sobrevive a recargar la página | pasa | 1 | 0 | 3 s |  |
 
 ## local/02-movil-y-recorrido.spec.ts
 
@@ -46,13 +48,15 @@ Generado por `npm run test:ux:report` el 2026-10-20 01:34 UTC.
 | nube | Entrar a la app › contraseña equivocada: el error está en español y dice qué hacer | pasa | 2 | 2 | 15 s |  |
 | nube | Entrar a la app › campos vacíos: avisa sin llamar al servidor | pasa | 2 | 0 | 5 s |  |
 | nube | Entrar a la app › un link profundo sin sesión muestra el login y, al entrar, vuelve a esa pantalla | pasa | 2 | 2 | 15 s |  |
-| nube | Bienvenida › la primera pantalla saluda por nombre, dice qué falta y la guía de Piñón no promete un botón que no existe | pasa | 2 | 2 | 15 s |  |
+| nube | Bienvenida › la primera pantalla da la bienvenida por nombre, con Piñón y dos caminos claros | pasa | 2 | 2 | 15 s |  |
+| nube | Bienvenida › «Rodar 30 min suave ahora»: de la bienvenida a «Antes de empezar» en 1 clic | pasa | 3 | 2 | 18 s |  |
 | nube | Bienvenida › las guías se pueden apagar en 1 clic y no vuelven | pasa | 3 | 2 | 18 s |  |
-| nube | Cuestionario inicial › Ana (novata, sin FTP): lo completa y queda claro qué sigue | pasa | 25 | 9 | 265 s |  |
-| nube | Cuestionario inicial › Beto (experimentado): lo completa y queda claro qué sigue | pasa | 23 | 11 | 270 s |  |
-| nube | Cuestionario inicial › meta dura: el cuestionario cuesta ≤ 90 s de esfuerzo | deuda | 25 | 9 | 265 s |  |
-| nube | Cuestionario inicial › si falta un dato, lo señala en el campo (no solo un texto al pie) | pasa | 6 | 2 | 28 s |  |
-| nube | Cuestionario inicial › «Saltar por ahora» no te deja atorada: la app sigue usable y el aviso sigue ahí | pasa | 5 | 2 | 26 s |  |
+| nube | Cuestionario inicial › Ana (novata, sin FTP): lo completa y queda claro qué sigue | pasa | 32 | 9 | 332 s |  |
+| nube | Cuestionario inicial › Beto (experimentado): lo completa y queda claro qué sigue | pasa | 30 | 11 | 337 s |  |
+| nube | Cuestionario inicial › guiado por Piñón: un paso a la vez, con progreso y ≤ 8 preguntas por pantalla | pasa | 33 | 9 | 335 s |  |
+| nube | Cuestionario inicial › Piñón cambia de tono al elegir el sexo y «Atrás» conserva lo contestado | pasa | 4 | 4 | 30 s |  |
+| nube | Cuestionario inicial › si falta un dato, lo señala en el campo (no solo un texto al pie) | pasa | 5 | 2 | 23 s |  |
+| nube | Cuestionario inicial › «Saltar por ahora» no te deja atorada: la app sigue usable y el camino al plan sigue ahí | pasa | 4 | 2 | 20 s |  |
 
 ## nube/02-pinon-chat.spec.ts
 
@@ -62,8 +66,8 @@ Generado por `npm run test:ux:report` el 2026-10-20 01:34 UTC.
 | nube | Llegar a Piñón › desde plan: ≤ 3 clics para empezar a hablar | pasa | 1 | 0 | 3 s |  |
 | nube | Llegar a Piñón › desde form: ≤ 3 clics para empezar a hablar | pasa | 1 | 0 | 3 s |  |
 | nube | Llegar a Piñón › desde library: ≤ 3 clics para empezar a hablar | pasa | 1 | 0 | 3 s |  |
-| nube | Llegar a Piñón › desde profile: ≤ 3 clics para empezar a hablar | pasa | 2 | 0 | 8 s | UX-PIN-1: En «profile» no hay botón de Piñón. |
-| nube | Llegar a Piñón › desde session: ≤ 3 clics para empezar a hablar | pasa | 2 | 0 | 8 s | UX-PIN-1: En «session» no hay botón de Piñón. |
+| nube | Llegar a Piñón › desde profile: ≤ 3 clics para empezar a hablar | pasa | 1 | 0 | 3 s |  |
+| nube | Llegar a Piñón › desde session: ≤ 3 clics para empezar a hablar | pasa | 1 | 0 | 3 s |  |
 | nube | Llegar a Piñón › el chat se ve completo y el saludo dice qué puede hacer Piñón | pasa | 1 | 0 | 3 s |  |
 | nube | Botones rápidos: al instante, con datos, sin gastar IA › nueva · «¿Qué toca hoy?» | pasa | 2 | 0 | 5 s |  |
 | nube | Botones rápidos: al instante, con datos, sin gastar IA › nueva · «¿Cómo voy esta semana?» | pasa | 2 | 0 | 5 s |  |
@@ -98,9 +102,9 @@ Generado por `npm run test:ux:report` el 2026-10-20 01:34 UTC.
 | nube | Crear mi plan › perfil completo: de Inicio a plan creado en ≤ 8 interacciones | pasa | 7 | 1 | 23 s |  |
 | nube | Crear mi plan › los días disponibles se distinguen (martes ≠ miércoles) | pasa | 1 | 0 | 3 s |  |
 | nube | Crear mi plan › mientras piensa no muestra siglas técnicas (CTL/ATL/TSB) | pasa | 3 | 1 | 13 s |  |
-| nube | Crear mi plan › perfil incompleto: el cuestionario se abre en medio y al guardar sigue directo a «Crear tu plan» | pasa | 22 | 7 | 244 s |  |
+| nube | Crear mi plan › perfil incompleto: el cuestionario se abre en medio y al guardar sigue directo a «Crear tu plan» | pasa | 30 | 7 | 317 s |  |
 | nube | Crear mi plan › cuenta sin acceso al coach: se avisa ANTES de pedirle el cuestionario | deuda | 0 | 0 | 0 s |  |
-| nube | Crear mi plan › cuenta sin acceso: mide el esfuerzo tirado hasta enterarse | pasa | 24 | 8 | 254 s | UX-08: Tras 32 interacciones (~254 s) la persona se entera de que su cuenta no tiene coach. |
+| nube | Crear mi plan › cuenta sin acceso: mide el esfuerzo tirado hasta enterarse | pasa | 32 | 8 | 327 s | UX-08: Tras 40 interacciones (~327 s) la persona se entera de que su cuenta no tiene coach. |
 | nube | Crear mi plan › servidor caído (502): mensaje en español y se puede reintentar sin re-escribir | pasa | 4 | 1 | 15 s |  |
 | nube | Crear mi plan › error sin cuerpo (500): mensaje en español y se puede reintentar sin re-escribir | pasa | 4 | 1 | 15 s |  |
 | nube | Crear mi plan › doble clic en «Crear plan» manda una sola petición (no gasta 2 de 3 del mes) | pasa | 2 | 1 | 10 s |  |
@@ -112,4 +116,17 @@ Generado por `npm run test:ux:report` el 2026-10-20 01:34 UTC.
 |---|---|---|---:|---:|---:|---|
 | nube | Beto vuelve con entreno hoy: Inicio → conectar rodillo en 1 clic | pasa | 1 | 0 | 3 s |  |
 | nube | Beto vuelve tras 6 días sin rodar: Piñón lo recibe sin regañar | pasa | 0 | 0 | 0 s |  |
+
+## nube/05-decisiones.spec.ts
+
+| Proyecto | Prueba | Resultado | Clics | Campos | Esfuerzo | Nota |
+|---|---|---|---:|---:|---:|---|
+| nube | Género según el perfil › ana: Piñón concuerda («Vienes cargada») | pasa | 2 | 0 | 5 s |  |
+| nube | Género según el perfil › beto: Piñón concuerda («Vienes cargado») | pasa | 2 | 0 | 5 s |  |
+| nube | Género según el perfil › la guía de Forma y la tarjeta de forma también concuerdan | pasa | 0 | 0 | 0 s |  |
+| nube | Piñón en el Resumen › comenta la sesión en el género del perfil, ofrece el chat y la sesión abre por enlace | pasa | 0 | 0 | 0 s |  |
+| nube | Lista de espera › sin invitación: se apunta en 2 campos y queda claro qué sigue | pasa | 2 | 1 | 10 s |  |
+| nube | Lista de espera › correo mal escrito: avisa en español y no manda nada | pasa | 2 | 1 | 10 s |  |
+| nube | Lista de espera › si ya estaba apuntado, la respuesta es la misma (no revela quién está) | pasa | 2 | 1 | 10 s |  |
+| nube | Lista de espera › desde la lista de espera se vuelve al login en 1 clic | pasa | 2 | 0 | 5 s |  |
 

@@ -65,25 +65,41 @@ test.describe('Entrar a la app', () => {
 });
 
 test.describe('Bienvenida', () => {
-  test('la primera pantalla saluda por nombre, dice qué falta y la guía de Piñón no promete un botón que no existe', async ({ page, backend, ux }) => {
+  test('la primera pantalla da la bienvenida por nombre, con Piñón y dos caminos claros', async ({ page, backend, ux }) => {
     const ana = user('ana');
     backend.users.push(ana);
     await login(page, ux, ana);
-    const guide = page.locator('.pinon-bubble-layer');
-    await expect(guide).toBeVisible({ timeout: 5000 });
-    // Para alguien nuevo no hay nada agendado: la guía no debe decir «Empezar a rodar»
-    // si ese botón no está en pantalla.
-    const guideText = await bubbleText(page);
+    const welcome = page.locator('.home-welcome');
+    await expect(welcome).toBeVisible();
+    // sin sexo en el perfil todavía: forma neutra, no «Bienvenido»
+    await expect(welcome).toContainText('Te damos la bienvenida, Ana');
+    await expect(welcome.locator('.pinon')).toBeVisible();
+    await expect(page.locator('#welcome-plan')).toBeVisible();
+    await expect(page.locator('#welcome-ride')).toBeVisible();
+    // la bienvenida ya trae a Piñón: no se encima la guía ni el aviso del cuestionario
+    await page.waitForTimeout(2000);
+    await expect(page.locator('.pinon-bubble-layer')).toHaveCount(0);
+    await expect(page.locator('#home-open-onboarding')).toHaveCount(0);
     await ux.shot('03-bienvenida');
-    const hasRideButton = await page.locator('.home-ride-btn[data-ride-id]').count();
-    if (/Empezar a rodar/.test(guideText)) expect(hasRideButton, 'la guía menciona «Empezar a rodar» y el botón no existe').toBeGreaterThan(0);
-    await expect(page.locator('#home-open-onboarding')).toBeVisible();
+  });
+
+  test('«Rodar 30 min suave ahora»: de la bienvenida a «Antes de empezar» en 1 clic', async ({ page, backend, ux }) => {
+    const ana = user('ana');
+    backend.users.push(ana);
+    await login(page, ux, ana);
+    const before = ux.milestone('inicio');
+    await ux.click(page.locator('#welcome-ride'), 'Rodar 30 min suave ahora');
+    await expect(page).toHaveURL(/#\/prepare/);
+    await expect(page.locator('body')).toContainText('Z2 aeróbico · 30 min');
+    expect(ux.clicks - before.clicks).toBe(1);
+    await expect.poll(() => backend.table('workouts').length).toBe(1);
   });
 
   test('las guías se pueden apagar en 1 clic y no vuelven', async ({ page, backend, ux }) => {
     const ana = user('ana');
     backend.users.push(ana);
     await login(page, ux, ana);
+    await page.goto('/#/form');
     await expect(page.locator('.pinon-bubble-layer')).toBeVisible({ timeout: 5000 });
     await ux.click(page.locator('.pinon-btn-later'), 'No mostrar más guías');
     await page.goto('/#/plan');
@@ -103,7 +119,7 @@ test.describe('Cuestionario inicial', () => {
       await login(page, ux, u);
       await dismissGuide(page, ux);
       const start = ux.milestone('antes-cuestionario');
-      await ux.click(page.locator('#home-open-onboarding'), 'Contestarlo ahora');
+      await ux.click(page.locator('#welcome-plan'), 'Armar mi plan con el coach');
       await ux.shot(`04-cuestionario-${u.id}`);
       await fillOnboarding(page, ux, persona);
       const end = ux.milestone('cuestionario');
@@ -121,18 +137,70 @@ test.describe('Cuestionario inicial', () => {
     });
   }
 
-  test('meta dura: el cuestionario cuesta ≤ 90 s de esfuerzo', async ({ page, backend, ux }) => {
-    test.info().annotations.push({ type: 'deuda-ux', description: 'UX-05: 28 preguntas obligatorias en un solo formulario (~2.5 min). Ver documento §Cuestionario.' });
-    test.fail(true, 'UX-05 conocido: el cuestionario es más largo que la meta; se documenta la propuesta en dos tiempos.');
+  // Decisión de producto (20-oct): todas las preguntas son necesarias y no se
+  // acorta. Lo que se exige es que sea guiado y ameno; el esfuerzo se mide y
+  // se reporta (~4 min), sin meta de tiempo.
+  test('guiado por Piñón: un paso a la vez, con progreso y ≤ 8 preguntas por pantalla', async ({ page, backend, ux }) => {
     const ana = user('ana');
     backend.users.push(ana);
     await login(page, ux, ana);
     await dismissGuide(page, ux);
     const start = ux.milestone('antes');
-    await ux.click(page.locator('#home-open-onboarding'), 'Contestarlo ahora');
+    await ux.click(page.locator('#welcome-plan'), 'Armar mi plan con el coach');
+    const m = page.locator('#onboarding-modal');
+    await expect(m.locator('.ob-section:visible')).toHaveCount(1);
+    await expect(m.locator('#ob-guide-text')).toContainText('Hola');
+    await expect(m.locator('.ob-step-dot[aria-current="step"]')).toHaveText('1');
+    await ux.shot('07-cuestionario-paso-1', m);
+    // cuántas preguntas tiene cada paso (grupos de opciones + campos visibles)
+    const perStep: number[] = [];
+    for (let n = 1; n <= 9; n++) {
+      const sec = m.locator(`.ob-section[data-step="${n}"]`);
+      perStep.push(await sec.evaluate((el) => {
+        el.removeAttribute('hidden');
+        const count = el.querySelectorAll('.ob-chips, .ob-options, input:not([type=checkbox]):not([type=file]), textarea, .ob-toggle').length;
+        el.setAttribute('hidden', '');
+        return count;
+      }));
+    }
+    await m.locator('.ob-section[data-step="1"]').evaluate((el) => el.removeAttribute('hidden'));
+    ux.metrics['preguntas-por-paso'] = perStep.join(' · ');
+    expect(Math.max(...perStep), `preguntas por paso: ${perStep.join(', ')}`).toBeLessThanOrEqual(8);
+    await page.locator('#onboarding-close').click();
+    await ux.click(page.locator('#welcome-plan'), 'Armar mi plan (de nuevo)');
     await fillOnboarding(page, ux, NOVATA);
     const end = ux.milestone('despues');
-    expect(end.humanSeconds - start.humanSeconds).toBeLessThanOrEqual(90);
+    ux.metrics['cuestionario.segundos'] = end.humanSeconds - start.humanSeconds;
+  });
+
+  test('Piñón cambia de tono al elegir el sexo y «Atrás» conserva lo contestado', async ({ page, backend, ux }) => {
+    const ana = user('ana');
+    backend.users.push(ana);
+    await login(page, ux, ana);
+    await dismissGuide(page, ux);
+    await ux.click(page.locator('#welcome-plan'), 'Armar mi plan con el coach');
+    const m = page.locator('#onboarding-modal');
+    await ux.click(m.locator('#ob-sex .ob-chip', { hasText: 'Mujer' }), 'Sexo');
+    await m.locator('[role=spinbutton][aria-label="Día"]').focus();
+    await page.keyboard.type('15031992', { delay: 30 });
+    await ux.fill(m.locator('#ob-weight'), '68', 'Peso');
+    await ux.fill(m.locator('#ob-height'), '165', 'Altura');
+    for (let n = 1; n < 8; n++) {
+      // salta rápido al paso 8 contestando lo mínimo de cada paso
+      if (n > 1) await m.evaluate((el, step) => {
+        const sec = el.querySelector(`.ob-section[data-step="${step}"]`)!;
+        sec.querySelectorAll('.ob-chips, .ob-options').forEach((g) => (g.querySelector('.ob-chip, .ob-option') as HTMLElement | null)?.click());
+        sec.querySelectorAll<HTMLInputElement>('input[type=number]:not(:disabled)').forEach((i) => { if (!i.closest('label')?.querySelector('.ob-optional')) { i.value = '1'; i.dispatchEvent(new Event('input', { bubbles: true })); } });
+        sec.querySelectorAll<HTMLInputElement>('#ob-no-injuries, #ob-no-ftp, #ob-no-hrmax, #ob-no-resting-hr, #ob-no-other').forEach((c) => { if (!c.checked) c.click(); });
+      }, n);
+      await m.locator('#onboarding-next').click();
+    }
+    await expect(m.locator('#ob-guide-text')).toContainText('¿Lista? Ya casi terminamos.');
+    await ux.shot('08-cuestionario-paso-8', m);
+    // volver al paso 1 por los puntitos: lo contestado sigue ahí
+    await m.locator('.ob-step-dot[data-go="1"]').click();
+    await expect(m.locator('#ob-weight')).toHaveValue('68');
+    await expect(m.locator('#ob-sex .ob-chip.on')).toHaveText('Mujer');
   });
 
   test('si falta un dato, lo señala en el campo (no solo un texto al pie)', async ({ page, backend, ux }) => {
@@ -140,10 +208,10 @@ test.describe('Cuestionario inicial', () => {
     backend.users.push(ana);
     await login(page, ux, ana);
     await dismissGuide(page, ux);
-    await ux.click(page.locator('#home-open-onboarding'), 'Contestarlo ahora');
+    await ux.click(page.locator('#welcome-plan'), 'Armar mi plan con el coach');
     const m = page.locator('#onboarding-modal');
     await ux.click(m.locator('#ob-sex .ob-chip', { hasText: 'Mujer' }), 'Sexo');
-    await ux.click(m.locator('#onboarding-submit'), 'Guardar (incompleto)');
+    await ux.click(m.locator('#onboarding-next'), 'Siguiente (incompleto)');
     await expect(page.locator('#onboarding-status')).not.toBeEmpty();
     await ux.shot('06-cuestionario-falta-dato');
     // El campo que falta queda marcado y a la vista.
@@ -152,15 +220,15 @@ test.describe('Cuestionario inicial', () => {
     await expect(flagged.first()).toBeInViewport();
   });
 
-  test('«Saltar por ahora» no te deja atorada: la app sigue usable y el aviso sigue ahí', async ({ page, backend, ux }) => {
+  test('«Saltar por ahora» no te deja atorada: la app sigue usable y el camino al plan sigue ahí', async ({ page, backend, ux }) => {
     const ana = user('ana');
     backend.users.push(ana);
     await login(page, ux, ana);
     await dismissGuide(page, ux);
-    await ux.click(page.locator('#home-open-onboarding'), 'Contestarlo ahora');
+    await ux.click(page.locator('#welcome-plan'), 'Armar mi plan con el coach');
     await ux.click(page.locator('#onboarding-skip'), 'Saltar por ahora');
     await expect(page.locator('#onboarding-modal')).toHaveCount(0);
-    await expect(page.locator('#home-open-onboarding')).toBeVisible();
+    await expect(page.locator('#welcome-plan')).toBeVisible();
     await expect(page.locator('#gen-create')).toBeEnabled();
   });
 });
