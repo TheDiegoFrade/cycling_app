@@ -14,6 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { PERFILES, createContext, fmtLong, profileRow, todayKey } from './perfiles-data.mjs';
+import { CORRIDA, GENERAL, POR_PERFIL } from './perfiles-analisis.mjs';
 
 const args = process.argv.slice(2);
 const onlyReport = args.includes('--reporte');
@@ -85,14 +86,31 @@ function stepText(iv, ftp) {
   const w = ftp ? ` (${iv.ramp_to_pct ? `${Math.round((ftp * iv.power_pct) / 100)}→${Math.round((ftp * iv.ramp_to_pct) / 100)}` : Math.round((ftp * iv.power_pct) / 100)} W)` : '';
   const cad = iv.cadence_min || iv.cadence_max ? ` · ${iv.cadence_min ?? ''}${iv.cadence_max ? '–' + iv.cadence_max : '+'} rpm` : '';
   const hr = iv.hr_ceiling ? ` · pulso < ${iv.hr_ceiling}` : '';
-  return iv.type === 'free' ? `${fmtMin(iv.duration_s)} libre (por sensación)${cad}` : `${fmtMin(iv.duration_s)} @ ${pct}${w}${cad}${hr}`;
+  return iv.type === 'free' ? `${fmtMin(iv.duration_s)} libre, por sensación y sin ERG (referencia ~${pct}${w})${cad}` : `${fmtMin(iv.duration_s)} @ ${pct}${w}${cad}${hr}`;
 }
 /** Agrupa repeticiones: [A,B,A,B,A,B] → 3× (A + B). */
+/** Escalera de rampa (6+ escalones iguales que suben lo mismo) en una línea. */
+function rampLine(intervals, i, ftp) {
+  let j = i + 1;
+  const d = intervals[i + 1] ? intervals[i + 1].power_pct - intervals[i].power_pct : 0;
+  while (j < intervals.length && intervals[j].type === intervals[i].type && intervals[j].duration_s === intervals[i].duration_s && Math.abs(intervals[j].power_pct - intervals[j - 1].power_pct - d) <= 1.5 && d > 0) j++;
+  if (j - i < 6) return null;
+  const a = intervals[i], b = intervals[j - 1];
+  const step = (b.power_pct - a.power_pct) / (j - i - 1);
+  const w = (pct) => (ftp ? ` (${Math.round((ftp * pct) / 100)} W)` : '');
+  return { next: j, text: `Rampa: escalones de ${fmtMin(a.duration_s)} subiendo ~${Math.round(step * 10) / 10}% cada uno, de ${a.power_pct}%${w(a.power_pct)} hasta ${b.power_pct}%${w(b.power_pct)} o hasta no poder más (${j - i} escalones como máximo)` };
+}
 function structure(intervals, ftp) {
   const key = (iv) => `${iv.type}|${iv.duration_s}|${iv.power_pct}|${iv.ramp_to_pct ?? ''}|${iv.cadence_min ?? ''}|${iv.cadence_max ?? ''}`;
   const out = [];
   let i = 0;
   while (i < intervals.length) {
+    const ramp = rampLine(intervals, i, ftp);
+    if (ramp) {
+      out.push(ramp.text);
+      i = ramp.next;
+      continue;
+    }
     let best = { len: 1, reps: 1 };
     for (let len = 1; len <= 3; len++) {
       let reps = 1;
@@ -144,7 +162,8 @@ function fichaMd(p, ctx) {
 
 function planMd(p, r) {
   if (r.status !== 200) return `> ❌ No se pudo crear el plan (HTTP ${r.status}): ${JSON.stringify(r.error).slice(0, 400)}`;
-  const ftp = p.ftp?.watts ?? null;
+  // Watts solo con FTP medido: con uno provisional el coach trabaja por sensación.
+  const ftp = p.ftp && p.ftp.source !== 'provisional' ? p.ftp.watts : null;
   const d = r.plan.data ?? {};
   const res = r.result ?? {};
   const byId = Object.fromEntries((r.workouts ?? []).map((w) => [w.id, w]));
@@ -159,14 +178,15 @@ function planMd(p, r) {
     L.push('', `**Próximo test:** ${typeof t === 'object' ? [t.type, t.date ? fmtLong(t.date) : null, t.reason].filter(Boolean).join(' · ') : t}`);
   }
   if (res.suggestedFtp) L.push('', `**FTP que propone:** ${Math.round(res.suggestedFtp)} W`);
-  if (res.coachNote) L.push('', '**Lo que le dice el coach al atleta:**', '', `> ${res.coachNote.replace(/\n+/g, '\n> ')}`);
+  if (res.coachNote) L.push('', '**Por qué, en palabras del coach IA** (su nota al atleta, textual):', '', `> ${res.coachNote.replace(/\n+/g, '\n> ')}`);
   for (const w of r.plan.weeks ?? []) {
     const ws = w.workoutIds.map((id) => byId[id]).filter(Boolean).sort((a, b) => (a.scheduledDate ?? '').localeCompare(b.scheduledDate ?? ''));
     const mins = ws.reduce((s, x) => s + minutesOf(x), 0);
-    const tss = ws.reduce((s, x) => s + tssOf(x), 0);
-    L.push('', `#### Semana ${w.weekIndex + 1} · ${ws.length} sesiones de rodillo · ${Math.round(mins / 6) / 10} h · TSS ≈ ${tss}`);
+    // Un test va hasta el fallo: su TSS «planeado» no dice nada y no se suma.
+    const tss = ws.filter((x) => x.kind !== 'test').reduce((s, x) => s + tssOf(x), 0);
+    L.push('', `#### Semana ${w.weekIndex + 1} · ${ws.length} sesiones de rodillo · ${Math.round(mins / 6) / 10} h · TSS ≈ ${tss}${ws.some((x) => x.kind === 'test') ? ' (sin contar el test)' : ''}`);
     for (const x of ws) {
-      L.push('', `- **${dayName(x.scheduledDate)} ${shortDate(x.scheduledDate)} — ${x.name}** · ${minutesOf(x)} min · TSS ≈ ${tssOf(x)}${x.kind === 'test' ? ' · 🧪 test' : ''}${x.erg === 'off' ? ' · por sensación (sin ERG)' : ''}`);
+      L.push('', `- **${dayName(x.scheduledDate)} ${shortDate(x.scheduledDate)} — ${x.name}** · ${minutesOf(x)} min · ${x.kind === 'test' ? '🧪 test hasta el fallo (la duración es el máximo posible)' : `TSS ≈ ${tssOf(x)}`}${x.erg === 'off' ? ' · por sensación (sin ERG)' : ''}`);
       for (const s of structure(x.intervals ?? [], ftp)) L.push(`  - ${s}`);
       if (x.description) L.push(`  - _${x.description.replace(/\s+/g, ' ').trim()}_`);
     }
@@ -210,10 +230,11 @@ function report(results) {
     '',
     '**Perfil de arranque:** antes de llamar a la IA, el código de Torq aplica tus reglas de la evaluación de salud y hábitos (`src/core/intake.ts`): si va primero el médico, si puede hacer un esfuerzo máximo, qué test toca y si arranca conservador. La IA está obligada a respetarlo. Va en cada perfil para que veas si la regla y el plan cuadran.',
     '',
-    '## Preguntas para Joe sobre las reglas',
+    '**Qué es de quién:** el plan, las sesiones y la nota al atleta los escribió el coach IA (textual). Las secciones «Por qué tomó estas decisiones» y «Hallazgos» son un análisis aparte, hecho leyendo cada plan contra el perfil: la IA no entrega un razonamiento propio además de su nota.',
     '',
-    '- **Alcohol 1–2 veces por semana.** Hoy cuenta igual que tomar seguido: sube el estrés un nivel y pone «base aeróbica antes de intensidad». Por eso Carlos (Master 40, con experiencia, duerme 7 h bien) arranca conservador y sin intensidad. ¿Así lo quieres, o solo debería contar a partir de 3 veces por semana? (La regla está marcada como provisional en el código.)',
-    '- **Sueño de 6 h exactas** no cuenta como «poco sueño» (el corte es menos de 6 h); sí cuenta si la calidad es mala. ¿El corte está bien?',
+    `## Hallazgos y preguntas (análisis de la corrida del ${CORRIDA})`,
+    '',
+    GENERAL,
     '',
     '## Resumen',
     '',
@@ -230,7 +251,7 @@ function report(results) {
       const ws = (r.plan.weeks?.[0]?.workoutIds ?? []).map((id) => byId[id]).filter(Boolean);
       return `${ws.length} sesiones · ${Math.round(ws.reduce((a, x) => a + minutesOf(x), 0) / 6) / 10} h`;
     })() : '❌ error';
-    L.push(`| ${p.id.slice(1)} | [${p.name}](#${p.id}) | ${p.resumen} | ${s ? startingSummary(s) : '—'} | ${r.result?.planName ?? (r.status === 200 ? '—' : '❌')} | ${w1} |`);
+    L.push(`| ${p.id.slice(1)} | [${p.name}](#${p.id}) | ${p.resumen} | ${s ? startingSummary(s) : '—'} | ${r.plan?.goal ?? (r.status === 200 ? '—' : '❌')} | ${w1} |`);
     bodies.push(
       `<a id="${p.id}"></a>`,
       `## ${p.id.slice(1)}. ${p.name} — ${p.resumen}`,
@@ -245,6 +266,18 @@ function report(results) {
       '',
       planMd(p, r),
       '',
+      ...(POR_PERFIL[p.id] && r.status === 200
+        ? [
+            '### Por qué tomó estas decisiones (análisis, no texto de la IA)',
+            '',
+            ...POR_PERFIL[p.id].porque.map((x) => `- ${x}`),
+            '',
+            '**Para revisar:**',
+            '',
+            ...POR_PERFIL[p.id].revisar.map((x) => `- ${x}`),
+            '',
+          ]
+        : []),
       EVAL,
       '',
       '---',
@@ -256,7 +289,8 @@ function report(results) {
     '## Cómo se generó',
     '',
     '- Perfiles: `scripts/coach-sim/perfiles-data.mjs` (cuestionario completo: salud y hábitos, otras actividades, FTP medido / provisional / sin dato).',
-    '- Corrida: `node scripts/coach-sim/perfiles.mjs` contra producción con la cuenta de pruebas. Respuestas completas en `scripts/coach-sim/out/perfiles/`.',
+    '- Corrida: `node scripts/coach-sim/perfiles.mjs` contra producción con la cuenta de pruebas. Todo lo que contestó la IA (contexto enviado, respuesta, plan y cada sesión con sus intervalos) está en `docs/evaluaciones/planes-ia-para-joe-datos/`.',
+    '- Análisis: `scripts/coach-sim/perfiles-analisis.mjs`.',
     '- Validación sin IA: `perfiles-check.ts` (mismo schema del servidor y perfil de arranque).',
   );
   return L.join('\n');

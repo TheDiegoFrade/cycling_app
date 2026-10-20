@@ -1,0 +1,1211 @@
+{
+  "perfil": "p09",
+  "at": "2026-10-20T18:15:43.246Z",
+  "context": {
+    "startDate": "2026-10-20",
+    "goal": "Copa Nacional de XCO (Master 50) el 15 de diciembre de 2026. Estoy a media temporada: corrí hace 2 semanas. Quiero llegar con más chispa en los arranques y en las subidas cortas.",
+    "experienceLevel": "experienced",
+    "generalFitnessLevel": "active_cyclist",
+    "discipline": "mountain",
+    "yearsRiding": 15,
+    "competes": true,
+    "category": "Master 50",
+    "availability": {
+      "hoursPerWeek": 9,
+      "days": [
+        "mon",
+        "tue",
+        "thu",
+        "sat",
+        "sun"
+      ],
+      "maxSessionMinutes": null
+    },
+    "occupiedDates": [],
+    "profile": {
+      "ftp": 265,
+      "provisionalFtp": null,
+      "ftpSource": "test_ramp",
+      "ftpUpdatedAt": "2026-10-10T18:14:23.648Z",
+      "hr_max": 176,
+      "sex": "M",
+      "name": "Fernando Ruiz",
+      "injuries": null,
+      "weightKg": 72,
+      "ageYears": 51,
+      "otherActivities": [],
+      "intake": {
+        "conditions": [],
+        "takesMedication": false,
+        "recentInjury": false,
+        "injuryLimitsIntensity": false,
+        "smoking": "no",
+        "alcohol": "rarely",
+        "stress": "low",
+        "sleepHours": 7,
+        "sleepQuality": "good",
+        "restingHr": 48,
+        "rpeLiteracy": "yes",
+        "maxEffortExperience": true,
+        "recentTraining": "with_intensity",
+        "recentHoursPerWeek": 9
+      },
+      "experienceLevel": "experienced",
+      "generalFitnessLevel": "active_cyclist",
+      "structuredTrainingYears": 8,
+      "rpeZones": null
+    },
+    "recentHistory": null,
+    "lastTest": null
+  },
+  "status": 200,
+  "ms": 79598,
+  "result": {
+    "planId": "f45c2aa3-8cbe-4993-bcc9-c96b5d71bf55",
+    "startDate": "2026-10-20",
+    "coachNote": "Fernando, vienes en plena temporada, así que no arrancamos desde base: la intensidad entra desde la semana 1. La demanda del XCO es repetir esfuerzos fuertes en 90 min, y tu límite son los arranques y las subidas cortas, por eso priorizo 40:20s y umbral. A los 51 dejo al menos 3 días entre las dos sesiones duras (martes y sábado) y una descarga cada 3 semanas. El rodillo no entrena la técnica: la agendo los jueves, afuera. Tu salida larga del domingo es la base de resistencia. Tu FTP de 265 W se queda tal cual hasta el retest de la semana 4.",
+    "weeks": [
+      {
+        "weekIndex": 0,
+        "workoutIds": [
+          "6d53dc39-9935-46ed-9bca-7a5e4c450d67",
+          "4818a0d3-3fcf-4c2d-aa92-610ec29e05f4"
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workoutIds": [
+          "9753f5e8-9ce4-42fd-b1b7-edfff37c0d9b",
+          "9c75016a-b827-4cd3-b0b0-cea3e546ecc5",
+          "1180244a-3760-4e11-b33b-3dd89d403b49"
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workoutIds": [
+          "bb7ab6a2-6eeb-4202-80ce-e103f7ef9d2b",
+          "1c085734-4ade-4cae-b014-f7e7e28ce0b7",
+          "9df3c18b-e7ff-41c1-bdee-ce41a028c08a"
+        ]
+      }
+    ],
+    "sentToCoach": false,
+    "suggestedFtp": null,
+    "nextTest": {
+      "weekIndex": 3,
+      "type": "test20",
+      "reason": "Será la semana de descarga y cae a 4 semanas de tu rampa del 10 de octubre: llegarás fresco, sabes dosificarte y el número ya servirá como retest al abrir el segundo bloque."
+    }
+  },
+  "error": null,
+  "plan": {
+    "goal": "Chispa para la Copa Nacional XCO",
+    "data": {
+      "form": {
+        "days": [
+          "mon",
+          "tue",
+          "thu",
+          "sat",
+          "sun"
+        ],
+        "goal": "Copa Nacional de XCO (Master 50) el 15 de diciembre de 2026. Estoy a media temporada: corrí hace 2 semanas. Quiero llegar con más chispa en los arranques y en las subidas cortas.",
+        "hoursPerWeek": 9
+      },
+      "blocks": [
+        {
+          "name": "Base específica XCO",
+          "focus": "Arranque con 2 sesiones clave por semana: 40:20s para los arranques y umbral para las subidas cortas. Salida larga afuera los domingos (2.5 h a 3 h). Semana de descarga con retest al final.",
+          "weeks": 3,
+          "published": true,
+          "targetHoursPerWeek": 7.5
+        },
+        {
+          "name": "Arranques y subidas cortas",
+          "focus": "Más trabajo por encima del umbral: 40:20s, salidas simuladas y umbral con picos. Salida larga de 2.5 h y una semana de descarga.",
+          "weeks": 3,
+          "published": false,
+          "targetHoursPerWeek": 8
+        },
+        {
+          "name": "Afinado",
+          "focus": "Calidad sobre cantidad: el mismo estímulo con menos volumen. Salida larga corta de 2 h y mucha frescura.",
+          "weeks": 2,
+          "published": false,
+          "targetHoursPerWeek": 7
+        },
+        {
+          "name": "Semana de carrera",
+          "focus": "Llegar fresco: activaciones cortas y descanso. Carrera el martes 15 de diciembre.",
+          "weeks": 1,
+          "published": false,
+          "targetHoursPerWeek": 4
+        }
+      ],
+      "nextTest": {
+        "type": "test20",
+        "reason": "Será la semana de descarga y cae a 4 semanas de tu rampa del 10 de octubre: llegarás fresco, sabes dosificarte y el número ya servirá como retest al abrir el segundo bloque.",
+        "weekIndex": 3
+      },
+      "startDate": "2026-10-20",
+      "startingPmc": null,
+      "ftpSuggestion": null,
+      "maxSessionMinutes": null
+    },
+    "weeks": [
+      {
+        "weekIndex": 0,
+        "workoutIds": [
+          "6d53dc39-9935-46ed-9bca-7a5e4c450d67",
+          "4818a0d3-3fcf-4c2d-aa92-610ec29e05f4"
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workoutIds": [
+          "9753f5e8-9ce4-42fd-b1b7-edfff37c0d9b",
+          "9c75016a-b827-4cd3-b0b0-cea3e546ecc5",
+          "1180244a-3760-4e11-b33b-3dd89d403b49"
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workoutIds": [
+          "bb7ab6a2-6eeb-4202-80ce-e103f7ef9d2b",
+          "1c085734-4ade-4cae-b014-f7e7e28ce0b7",
+          "9df3c18b-e7ff-41c1-bdee-ce41a028c08a"
+        ]
+      }
+    ]
+  },
+  "workouts": [
+    {
+      "id": "6d53dc39-9935-46ed-9bca-7a5e4c450d67",
+      "name": "40:20s: arranques",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 55,
+          "duration_s": 900,
+          "ramp_to_pct": 75
+        },
+        {
+          "name": "Fuerte 1/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 1/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 2/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 2/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 3/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 3/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 4/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 4/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 5/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 5/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 6/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 6/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Entre series",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 240
+        },
+        {
+          "name": "Fuerte 1/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 1/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 2/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 2/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 3/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 3/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 4/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 4/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 5/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 5/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 6/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 6/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 65,
+          "duration_s": 900
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 600,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:15:40.253Z",
+      "description": "Hoy toca trabajar la repetición de esfuerzos fuertes con arranques explosivos. Apaga el ERG y, en los 40 segundos fuertes, sal con potencia pero dosificada, en un esfuerzo que te deje con pocas palabras (RPE 8-9); los 20 segundos suaves son pedaleo tranquilo, sin parar. Si notas que la potencia cae mucho a mitad de la serie, saliste demasiado fuerte: la próxima vez arranca un poco más suave. Lo que sientas en las piernas en las últimas series es la señal de que el trabajo está haciendo su efecto.",
+      "scheduledDate": "2026-10-20",
+      "format_version": 1
+    },
+    {
+      "id": "4818a0d3-3fcf-4c2d-aa92-610ec29e05f4",
+      "name": "Umbral 3x10",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 55,
+          "duration_s": 900,
+          "ramp_to_pct": 75
+        },
+        {
+          "name": "Umbral 1/3",
+          "type": "interval",
+          "power_pct": 92,
+          "duration_s": 600
+        },
+        {
+          "name": "Recuperación 1/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Umbral 2/3",
+          "type": "interval",
+          "power_pct": 92,
+          "duration_s": 600
+        },
+        {
+          "name": "Recuperación 2/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Umbral 3/3",
+          "type": "interval",
+          "power_pct": 92,
+          "duration_s": 600
+        },
+        {
+          "name": "Recuperación 3/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 600,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:15:40.655Z",
+      "description": "Este es tu primer contacto con bloques sostenidos, y te recomiendo dejar el ERG prendido para que el rodillo sostenga el umbral conservador de estas dos semanas. Mantén una cadencia cómoda; los bloques deben sentirse duros pero controlados, cerca de un RPE 6-7, y puedes hablar con frases cortas. Si al tercer bloque no logras completarlo, baja 3 a 5 puntos y anótalo para tu coach. Terminar esta sesión bien te deja con buena base para lo que viene en la semana.",
+      "scheduledDate": "2026-10-24",
+      "format_version": 1
+    },
+    {
+      "id": "9753f5e8-9ce4-42fd-b1b7-edfff37c0d9b",
+      "name": "Fondo suave",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 62
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 65,
+          "duration_s": 2700
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 300,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:15:41.257Z",
+      "description": "Fernando, arrancamos la semana con una rodada tranquila para soltar las piernas del fin de semana. Deja el ERG prendido para que el rodillo sostenga los 65 % FTP del bloque central, y si lo prefieres puedes apagarlo, pero mantén la misma referencia. Ve a una cadencia que te salga natural y procura poder hablar en frases completas durante todo el rato; si no puedes, baja un poco. Al terminar vas a sentir las piernas más sueltas, no cansadas, y eso deja la base lista para el martes.",
+      "scheduledDate": "2026-10-26",
+      "format_version": 1
+    },
+    {
+      "id": "1180244a-3760-4e11-b33b-3dd89d403b49",
+      "name": "Umbral 3x12",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 55,
+          "duration_s": 900,
+          "ramp_to_pct": 75
+        },
+        {
+          "name": "Umbral 1/3",
+          "type": "interval",
+          "power_pct": 92,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 1/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 240
+        },
+        {
+          "name": "Umbral 2/3",
+          "type": "interval",
+          "power_pct": 92,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 2/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 240
+        },
+        {
+          "name": "Umbral 3/3",
+          "type": "interval",
+          "power_pct": 92,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 3/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 240
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 600,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:15:41.592Z",
+      "description": "Hoy toca un umbral con bloques más largos: tres de doce minutos a 92 % FTP, con cuatro de recuperación. La potencia es la misma que la semana pasada, así que el cambio está en aguantar más tiempo, no en apretar más. Deja el ERG prendido para que el rodillo marque la potencia y tú te concentras en sostener la cadencia. Busca un RPE 6-7 con respiración controlada; si llegas a sentir RPE 8, baja tres a cinco puntos de esfuerzo. Llega descansado de la semana para que el tercer bloque se sienta sólido y no a rastras.",
+      "scheduledDate": "2026-10-31",
+      "format_version": 1
+    },
+    {
+      "id": "bb7ab6a2-6eeb-4202-80ce-e103f7ef9d2b",
+      "name": "Fondo suave",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 62
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 65,
+          "duration_s": 2700
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 300,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:15:41.894Z",
+      "description": "Lunes de rodar tranquilo para soltar el fin de semana: 45 minutos de fondo cómodo al 65 % de tu FTP, con ERG prendido para que el rodillo mantenga la potencia pareja mientras tú disfrutas el pedaleo. La referencia es sencilla: puedes hablar en frases completas todo el tiempo; si no puedes, baja la potencia un poco. Hoy no hay que apretar, solo asimilar y sentir las piernas ligeras para la semana.",
+      "scheduledDate": "2026-11-02",
+      "format_version": 1
+    },
+    {
+      "id": "9df3c18b-e7ff-41c1-bdee-ce41a028c08a",
+      "name": "Umbral 3x12",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 55,
+          "duration_s": 900,
+          "ramp_to_pct": 75
+        },
+        {
+          "name": "Umbral 1/3",
+          "type": "interval",
+          "power_pct": 95,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 1/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 240
+        },
+        {
+          "name": "Umbral 2/3",
+          "type": "interval",
+          "power_pct": 95,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 2/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 240
+        },
+        {
+          "name": "Umbral 3/3",
+          "type": "interval",
+          "power_pct": 95,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 3/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 240
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 600,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:15:42.218Z",
+      "description": "Sábado de umbral con ERG prendido: 3 bloques de 12 minutos al 95 % de tu FTP, con 4 minutos de recuperación entre ellos. El rodillo marca la potencia y tú sostienes la cadencia; si las dos semanas pasadas las completaste sin pasar de RPE 7, este ya es tu umbral real. Si sientes que sufres demasiado, baja 3 a 5 puntos sin dudarlo. Terminar esta sesión deja las piernas listas para cargar bien el resto de la semana.",
+      "scheduledDate": "2026-11-07",
+      "format_version": 1
+    },
+    {
+      "id": "9c75016a-b827-4cd3-b0b0-cea3e546ecc5",
+      "name": "40:20s: arranques",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 55,
+          "duration_s": 900,
+          "ramp_to_pct": 75
+        },
+        {
+          "name": "Fuerte 1/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 1/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 2/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 2/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 3/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 3/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 4/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 4/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 5/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 5/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 6/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 6/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Entre series",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 240
+        },
+        {
+          "name": "Fuerte 1/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 1/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 2/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 2/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 3/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 3/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 4/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 4/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 5/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 5/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 6/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 6/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Entre series",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 240
+        },
+        {
+          "name": "Fuerte 1/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 1/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 2/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 2/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 3/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 3/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 4/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 4/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 5/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 5/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 6/6",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 6/6",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 65,
+          "duration_s": 900
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 600,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:15:41.436Z",
+      "description": "Hoy subimos una serie: tres bloques de seis repeticiones de 40 segundos fuertes con 20 suaves. Los 40 s van con el ERG apagado, a un esfuerzo fuerte pero parejo (RPE 8-9), sin salir disparado en el primero; medirte los primeros minutos te dará mejor promedio que arrancar explosivo y caer. Los 20 s suaves son de recuperación activa, sin parar a descansar. Espera que las últimas repeticiones pesen, con las piernas ardiendo pero la técnica firme; si sientes un dolor agudo o pierdes el control, baja y anótalo para tu coach. Tu potencia en la última serie es la mejor señal de cómo vas, así que guárdala.",
+      "scheduledDate": "2026-10-27",
+      "format_version": 1
+    },
+    {
+      "id": "1c085734-4ade-4cae-b014-f7e7e28ce0b7",
+      "name": "40:20s: 3x7",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 55,
+          "duration_s": 900,
+          "ramp_to_pct": 75
+        },
+        {
+          "name": "Fuerte 1/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 1/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 2/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 2/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 3/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 3/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 4/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 4/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 5/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 5/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 6/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 6/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 7/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 7/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Entre series",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 240
+        },
+        {
+          "name": "Fuerte 1/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 1/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 2/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 2/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 3/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 3/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 4/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 4/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 5/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 5/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 6/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 6/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 7/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 7/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Entre series",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 240
+        },
+        {
+          "name": "Fuerte 1/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 1/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 2/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 2/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 3/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 3/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 4/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 4/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 5/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 5/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 6/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 6/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Fuerte 7/7",
+          "type": "free",
+          "power_pct": 125,
+          "duration_s": 40
+        },
+        {
+          "name": "Suave 7/7",
+          "type": "recovery",
+          "power_pct": 50,
+          "duration_s": 20
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 600,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:15:42.063Z",
+      "description": "Martes de intervalos cortos y intensos: 3 bloques de 7 repeticiones de 40 segundos fuertes con 20 segundos suaves, con 4 minutos de descanso entre bloques. Aquí el esfuerzo lo regulas tú, así que el ERG va apagado durante los 40 segundos: sal fuerte pero parejo, cerca de RPE 9, y en los 20 segundos sigue pedaleando suave para recuperar. Lo que más cuenta es no salir como cohete en la primera serie; si en la tercera la potencia se cae mucho, anótalo para tu coach. Llega con buena energía y eso hará la diferencia.",
+      "scheduledDate": "2026-11-03",
+      "format_version": 1
+    }
+  ],
+  "extras": [
+    {
+      "scheduled_date": "2026-10-22",
+      "kind": "skills",
+      "name": "Técnica en montaña",
+      "payload": {
+        "exercises": [],
+        "description": "Bajadas, curvas, frenado y arrancadas en terreno técnico. Cardiovascularmente suave; el objetivo es soltura, no cansarte.",
+        "durationMin": 60
+      }
+    },
+    {
+      "scheduled_date": "2026-10-25",
+      "kind": "outdoor",
+      "name": "Salida larga",
+      "payload": {
+        "exercises": [],
+        "description": "Rodada afuera a RPE 3-4, de las que permiten platicar. Come desde el minuto 30.",
+        "durationMin": 150
+      }
+    },
+    {
+      "scheduled_date": "2026-10-29",
+      "kind": "skills",
+      "name": "Técnica en montaña",
+      "payload": {
+        "exercises": [],
+        "description": "Practica bajadas, curvas cerradas y arrancadas en pendiente. Suave de piernas y con la cabeza fresca.",
+        "durationMin": 75
+      }
+    },
+    {
+      "scheduled_date": "2026-11-01",
+      "kind": "outdoor",
+      "name": "Salida larga",
+      "payload": {
+        "exercises": [],
+        "description": "Rodada afuera a RPE 3-4 con la comida desde el minuto 30. Debes poder platicar todo el recorrido.",
+        "durationMin": 165
+      }
+    },
+    {
+      "scheduled_date": "2026-11-05",
+      "kind": "skills",
+      "name": "Técnica en montaña",
+      "payload": {
+        "exercises": [],
+        "description": "Bajadas, raíces y curvas, con énfasis en frenar tarde y salir rápido. Cardiovascularmente suave.",
+        "durationMin": 75
+      }
+    },
+    {
+      "scheduled_date": "2026-11-08",
+      "kind": "outdoor",
+      "name": "Salida larga",
+      "payload": {
+        "exercises": [],
+        "description": "Tu salida más larga del bloque, a RPE 3-4. Come desde el minuto 30 y cuida el ritmo en las subidas.",
+        "durationMin": 180
+      }
+    }
+  ]
+}
