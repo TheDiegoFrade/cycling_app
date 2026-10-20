@@ -207,8 +207,15 @@ export class MockSupabase {
     if (path.startsWith('/rest/v1/rpc/')) {
       const name = path.slice('/rest/v1/rpc/'.length);
       const fn = this.rpcs.get(name);
-      this.log({ kind: 'rpc', name, method, status: 200 });
-      return json(200, fn ? fn(reqBody) : null);
+      // Un handler que lanza = `raise exception` de Postgres: 400 con el mensaje.
+      try {
+        const out = fn ? fn(reqBody) : null;
+        this.log({ kind: 'rpc', name, method, status: 200 });
+        return json(200, out);
+      } catch (err) {
+        this.log({ kind: 'rpc', name, method, status: 400 });
+        return json(400, { code: 'P0001', message: (err as Error).message, details: null, hint: null });
+      }
     }
     if (path.startsWith('/rest/v1/')) {
       const name = path.slice('/rest/v1/'.length);

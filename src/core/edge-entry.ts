@@ -13,3 +13,4 @@ export { hasUnlimitedCoach } from './coach-testers';
 export { parsePinonRequest, pinonLimitReached, pinonUserMessage } from './pinon-chat-request';
 export { GRACE_DAYS, PRICE_MXN, FOUNDER_PRICE_MXN, aiAccess, priceForNewSubscription } from './access';
 export { applyPayment, subscriptionStatusOf, verifyMpSignature } from './mercadopago';
+export { DEFAULT_MAX_ATHLETES, clampMaxAthletes, normalizeCoachApplication, validateCoachApplication } from './coach-application';

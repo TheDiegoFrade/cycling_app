@@ -98,8 +98,10 @@ function sidebarHtml(active: SidebarScreen | null): string {
   const links =
     ITEMS.map(linkHtml).join('') +
     (appState.coach.isCoach ? `<div class="sidebar-group-title">Coach</div>${COACH_ITEMS.map(linkHtml).join('')}` : '') +
-    // Solo administradores: la lista de espera (ver screens/admin-waitlist.ts).
-    (appState.billing?.isAdmin ? `<div class="sidebar-group-title">Admin</div><a href="#/admin" class="sidebar-link">${ADMIN_ICON}Lista de espera</a>` : '');
+    // Solo administradores: lista de espera y coaches (ver screens/admin-*.ts).
+    (appState.billing?.isAdmin
+      ? `<div class="sidebar-group-title">Admin</div><a href="#/admin" class="sidebar-link">${ADMIN_ICON}Lista de espera</a><a href="#/admin/coaches" class="sidebar-link">${ADMIN_ICON}Coaches</a>`
+      : '');
   return `
     <nav class="sidebar" id="app-sidebar">
       <div class="sidebar-brand"><a href="#/home" class="sidebar-logo" aria-label="torq, ir a Inicio"><img src="/brand/logo-torq.webp" alt="torq" width="99" height="46"></a><button type="button" class="drawer-close" id="drawer-close" aria-label="Cerrar menú">✕</button></div>

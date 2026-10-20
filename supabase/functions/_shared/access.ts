@@ -1,6 +1,7 @@
 // ¿Este usuario tiene la IA? La única fuente de verdad (la app solo muestra lo
 // que esto decide). Reglas en src/core/access.ts: cortesía, coach, atleta con
-// coach vinculado o suscripción al corriente (con gracia si falló un cobro).
+// coach vinculado (que siga siendo coach) o suscripción al corriente (con
+// gracia si falló un cobro).
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { aiAccess } from './core.gen.js';
 import { COMP_USER_IDS } from './coach-access.ts';
@@ -14,15 +15,24 @@ export interface AccessResult {
 export async function loadAiAccess(admin: SupabaseClient, userId: string, now = new Date()): Promise<AccessResult> {
   const [profile, link, sub] = await Promise.all([
     admin.from('profiles').select('is_coach').eq('user_id', userId).maybeSingle(),
-    admin.from('coach_athletes').select('id').eq('athlete_id', userId).eq('status', 'active').limit(1),
+    admin.from('coach_athletes').select('coach_id').eq('athlete_id', userId).eq('status', 'active').limit(1),
     admin.from('subscriptions').select('status, price_mxn, paid_until, grace_until').eq('user_id', userId).maybeSingle(),
   ]);
   if (profile.error || link.error || sub.error) throw new Error(`no se pudo leer el acceso: ${(profile.error ?? link.error ?? sub.error)!.message}`);
   const s = sub.data;
+  // El vínculo solo cuenta si quien lo dio sigue siendo coach: si Torq le
+  // quita el permiso, sus atletas dejan de tener la IA incluida.
+  const coachId = (link.data ?? [])[0]?.coach_id as string | undefined;
+  let hasActiveCoach = false;
+  if (coachId) {
+    const { data: coach, error } = await admin.from('profiles').select('is_coach').eq('user_id', coachId).maybeSingle();
+    if (error) throw new Error(`no se pudo leer el acceso: ${error.message}`);
+    hasActiveCoach = Boolean(coach?.is_coach);
+  }
   const access = aiAccess({
     comp: COMP_USER_IDS.has(userId),
     isCoach: Boolean(profile.data?.is_coach),
-    hasActiveCoach: (link.data ?? []).length > 0,
+    hasActiveCoach,
     subscription: s ? { status: s.status, paidUntil: s.paid_until, graceUntil: s.grace_until, priceMxn: s.price_mxn } : null,
     now,
   });

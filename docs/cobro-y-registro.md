@@ -22,8 +22,8 @@ decide.
 | Quién | ¿IA? | Por qué |
 |---|---|---|
 | Cuentas de cortesía (`COMP_USER_IDS`) | Sí | Equipo y pruebas |
-| Coach (`profiles.is_coach`) | Sí, gratis | Torq no cobra a coaches |
-| Atleta con coach vinculado (activo) | Sí, gratis | «Torq va incluido por tu coach» |
+| Coach aprobado (`profiles.is_coach`) | Sí, gratis | Torq no cobra a coaches |
+| Atleta con coach vinculado (activo) **y que siga siendo coach** | Sí, gratis | «Torq va incluido por tu coach» |
 | Suscripción autorizada y pagada | Sí | `paid_until` en el futuro |
 | Cobro rechazado | Sí, 7 días | Gracia para actualizar la tarjeta |
 | Canceló | Sí, hasta `paid_until` | Conserva lo que pagó |
@@ -74,6 +74,39 @@ sequenceDiagram
   App->>U: Términos (2 casillas) → Inicio o invitación del coach
 ```
 
+## Coaches: solo por invitación y con solicitud aprobada
+
+Nadie se registra como coach ni se vuelve coach desde la app: `profiles.is_coach`
+lo protege un trigger y solo lo enciende el servidor al aprobar una solicitud
+(`supabase/functions/coach-apply`, tabla `coach_applications`).
+
+1. **Admin → Coaches → Invitar** (correo + máximo de atletas, default 20).
+   Sin cuenta, le llega la invitación de Supabase y, al crear su contraseña,
+   sigue a la solicitud. Con cuenta, le llega un correo (Resend) con el link.
+   El link también se le muestra al admin. Vence en 14 días.
+2. La persona abre `#/coach-apply/<token>` **con la cuenta de ese correo**
+   (con otra cuenta no sirve: no se puede pasar el link) y llena la
+   solicitud: nombre, teléfono, ciudad, años como coach, atletas que entrena
+   hoy, certificaciones, disciplinas, cómo arma y ajusta los planes (≥ 80
+   caracteres), dónde ver su trabajo, una referencia opcional, y tres
+   declaraciones (información verdadera, responsable del entrenamiento de
+   sus atletas y solo invitará a quien entrena, 18+). Puede corregirla
+   mientras nadie la revisa.
+3. **Admin → Coaches → Aprobar** (con su máximo de atletas) o **Rechazar**.
+
+**Para que nadie finja tener coach para no pagar:**
+
+| Hueco | Cómo se cierra |
+|---|---|
+| Volverse coach desde la app | Trigger en `profiles.is_coach`; solo la service role al aprobar. Probado en Postgres real. |
+| Crear un vínculo o un link de coach sin ser coach | RLS: `coach_athletes` no se escribe directo; `coach_invites` solo si `is_coach`. Probado. |
+| Pasar la invitación de coach a otra cuenta | La solicitud solo se abre con la cuenta del correo invitado. |
+| Un coach reparte links a conocidos | Máximo de atletas activos por coach (`coach_seat_limit`, default 20). `accept_coach_invite` rechaza al llegar al máximo; el coach ve «20 de 20 atletas» y un aviso. El admin ve cuántos tiene cada uno. |
+| Torq le quita el permiso a un coach | «Quitar como coach»: apaga `is_coach`, termina sus vínculos y borra sus links sin usar. Además, el acceso gratis solo cuenta si el coach **sigue** siendo coach, y un link de alguien que ya no es coach no se puede aceptar. |
+
+Los coaches que ya se dieron de alta a mano (Joe, Diego) siguen igual, con
+máximo de 20.
+
 ## Términos y mayores de 18
 
 - Pantalla «Antes de empezar» (`src/ui/terms-gate.ts`) antes de usar la app:
@@ -95,9 +128,12 @@ Nada de esto se pega en el chat: las claves van como **secretos de Supabase**
 
 ### 1. Base de datos
 
-Correr en el SQL editor la parte nueva de `supabase/schema.sql`
-(`subscriptions`, `billing_events`, `legal_acceptances` y
-`waitlist.invited_at`). Es idempotente.
+Correr en el SQL editor `supabase/schema.sql` completo: es idempotente. Lo
+nuevo: `subscriptions`, `billing_events`, `legal_acceptances`,
+`waitlist.invited_at`, `coach_applications`, `coach_seat_limit`,
+`my_coach_seats` y la versión nueva de `accept_coach_invite` (revisa que
+siga siendo coach y su máximo de atletas). El archivo completo se probó en
+un Postgres 16 limpio.
 
 ### 2. Secretos
 
@@ -114,6 +150,7 @@ Correr en el SQL editor la parte nueva de `supabase/schema.sql`
 supabase functions deploy billing
 supabase functions deploy billing-webhook --no-verify-jwt   # Mercado Pago no manda sesión; se valida la firma
 supabase functions deploy invite
+supabase functions deploy coach-apply
 # cambiaron por el acceso por plan:
 supabase functions deploy coach-chat pinon-chat coach-retire-plan monthly-self-report
 ```
@@ -154,17 +191,23 @@ supabase functions deploy coach-chat pinon-chat coach-retire-plan monthly-self-r
 
 - `COMP_USER_IDS` y `ADMIN_USER_IDS` en
   `supabase/functions/_shared/coach-access.ts` (redeploy al cambiarlos).
-- Coaches: `update profiles set is_coach = true where user_id = '…'` (solo a
-  mano, ver `schema.sql`).
+- Coaches: desde **Admin → Coaches** (invitar, aprobar, quitar). A mano en
+  SQL sigue funcionando para casos especiales.
 
 ## Cómo se prueba
 
 - Lógica: `src/core/access.test.ts`, `src/core/mercadopago.test.ts` (firma del
-  webhook, cobro aprobado/rechazado).
+  webhook, cobro aprobado/rechazado), `src/core/coach-application.test.ts`.
+- Base de datos: las reglas de coaches (no volverse coach, no escribir
+  vínculos, máximo de atletas, coach quitado) se corrieron como el rol
+  `authenticated` en un Postgres 16 local con `schema.sql` completo.
 - Flujos: `e2e/nube/06-cobro-y-registro.spec.ts` con backend simulado —
   términos, menor de 18, suscribirse/volver/cancelar, cobro no configurado,
   gracia, Piñón sin acceso, atleta con coach, lista de espera, alta desde link
-  de coach, link vencido. Capturas 70–75 en
+  de coach, link vencido; y `e2e/nube/07-coaches.spec.ts`: invitar coach,
+  solicitud con huecos y completa, link con otra cuenta, sin invitación,
+  aprobar con máximo, quitar como coach, coach al máximo, atleta con coach
+  lleno. Capturas 70–80 en
   `evaluaciones/2026-10-20-ux/img/`.
 - Pendiente con red real: un cobro de prueba de punta a punta con usuarios de
   prueba de Mercado Pago (desde este entorno no hay salida a Mercado Pago ni a

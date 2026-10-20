@@ -7,6 +7,7 @@ import { COACH_TIERS, COACH_TIER_LABELS, INVITE_TTL_DAYS, inviteLink } from '../
 import type { CoachTier } from '../../core/coach-invite';
 import { cancelInvite, countActiveAthletes, createInvite, listPendingInvites } from '../../sync/coach-link';
 import type { PendingInvite } from '../../sync/coach-link';
+import { fetchMySeats } from '../../sync/coach-apply';
 import { appState } from '../state';
 import { escapeHtml } from '../workout-cover';
 
@@ -36,6 +37,8 @@ export function renderCoachInvite(container: HTMLElement): void {
   let link: string | null = null;
   let pending: PendingInvite[] | null = null; // null mientras carga
   let athletes: number | null = null;
+  /** Máximo de atletas que Torq le dio a este coach (null si no se pudo leer). */
+  let seatLimit: number | null = null;
   let message = '';
   let busy = false;
 
@@ -62,8 +65,9 @@ export function renderCoachInvite(container: HTMLElement): void {
       <div class="screen invite-screen">
         <div class="plan-head">
           <h1>Invitar atleta</h1>
-          ${athletes !== null ? `<span class="live-col-label">${athletes === 1 ? '1 atleta vinculado' : `${athletes} atletas vinculados`}</span>` : ''}
+          ${athletes !== null ? `<span class="live-col-label" id="invite-seats">${seatLimit !== null ? `${athletes} de ${seatLimit} atletas` : athletes === 1 ? '1 atleta vinculado' : `${athletes} atletas vinculados`}</span>` : ''}
         </div>
+        ${seatLimit !== null && athletes !== null && athletes >= seatLimit ? `<div class="error-box">Llegaste a tu máximo de ${seatLimit} atletas: un link nuevo no se podrá aceptar. Si necesitas más, escríbenos.</div>` : ''}
         <p class="hint">Comparte el link con tu atleta. Al abrirlo ve qué podrás ver de su entrenamiento y decide si te acepta como coach.</p>
 
         <section class="panel invite-card">
@@ -152,7 +156,10 @@ export function renderCoachInvite(container: HTMLElement): void {
 
   async function loadPending(): Promise<void> {
     try {
-      [pending, athletes] = await Promise.all([listPendingInvites(coachId), countActiveAthletes(coachId)]);
+      let seats: { used: number; limit: number } | null;
+      [pending, athletes, seats] = await Promise.all([listPendingInvites(coachId), countActiveAthletes(coachId), fetchMySeats()]);
+      // used y limit vienen juntos del servidor (my_coach_seats): la misma cuenta que revisa accept_coach_invite.
+      if (seats) [athletes, seatLimit] = [seats.used, seats.limit];
     } catch (err) {
       pending = [];
       message = `No se pudieron cargar tus invitaciones: ${errorMessage(err)}`;

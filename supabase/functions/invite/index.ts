@@ -46,10 +46,13 @@ Deno.serve(async (req) => {
       if (!EMAIL_RE.test(email)) return json({ error: 'invalid_email' }, 400);
       const { data: inv } = await admin
         .from('coach_invites')
-        .select('id, used_by, expires_at')
+        .select('id, coach_id, used_by, expires_at')
         .eq('token_hash', await sha256Hex(token))
         .maybeSingle();
       if (!inv || inv.used_by || new Date(inv.expires_at) <= new Date()) return json({ error: 'invite_invalid' }, 400);
+      // Solo links de alguien que sigue siendo coach (ver accept_coach_invite).
+      const { data: coach } = await admin.from('profiles').select('is_coach').eq('user_id', inv.coach_id).maybeSingle();
+      if (!coach?.is_coach) return json({ error: 'invite_invalid' }, 400);
       const { error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo: signupUrl(appUrl, `invite.${token}`) });
       // Si ya tiene cuenta, no se dice: se le pide entrar con su contraseña.
       if (error && !/already|registered|exists/i.test(error.message)) throw error;

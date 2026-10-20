@@ -591,6 +591,59 @@ language sql stable security definer set search_path = public as $$
   );
 $$;
 
+-- Coaches: solo por invitación de Torq y solicitud aprobada (ver
+-- supabase/functions/coach-apply y docs/cobro-y-registro.md, «Coaches»).
+-- Torq invita por correo → la persona llena la solicitud → un administrador
+-- la aprueba (enciende profiles.is_coach) o la rechaza. Nadie escribe aquí
+-- desde la app: todo pasa por la función con la service role. Quien la llenó
+-- puede leer la suya.
+create table if not exists coach_applications (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  token_hash text not null unique,
+  invited_by uuid references auth.users (id) on delete set null,
+  invited_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  user_id uuid references auth.users (id) on delete cascade,
+  status text not null default 'invited' check (status in ('invited', 'submitted', 'approved', 'rejected', 'revoked')),
+  answers jsonb,
+  submitted_at timestamptz,
+  reviewed_by uuid references auth.users (id) on delete set null,
+  reviewed_at timestamptz,
+  review_note text,
+  max_athletes int not null default 20 check (max_athletes between 1 and 200)
+);
+
+alter table coach_applications enable row level security;
+
+drop policy if exists "coach_applications: leer la propia" on coach_applications;
+create policy "coach_applications: leer la propia" on coach_applications for select
+  using (auth.uid() = user_id);
+
+create index if not exists coach_applications_status_idx on coach_applications (status, invited_at desc);
+
+-- Máximo de atletas activos de un coach: el de su solicitud aprobada, o 20
+-- para los coaches que se dieron de alta a mano antes de las solicitudes.
+create or replace function coach_seat_limit(p_coach uuid) returns int
+language sql stable security definer set search_path = public as $$
+  select coalesce(
+    (select max_athletes from coach_applications
+      where user_id = p_coach and status = 'approved'
+      order by reviewed_at desc nulls last limit 1),
+    20);
+$$;
+
+-- Para el coach: cuántos atletas tiene y cuántos puede tener.
+create or replace function my_coach_seats() returns table (used int, seat_limit int)
+language sql stable security definer set search_path = public as $$
+  select (select count(*)::int from coach_athletes where coach_id = auth.uid() and status = 'active'),
+         coach_seat_limit(auth.uid());
+$$;
+
+revoke execute on function coach_seat_limit(uuid) from public, anon, authenticated;
+revoke execute on function my_coach_seats() from public, anon;
+grant execute on function my_coach_seats() to authenticated;
+
 -- Lo que ve el atleta al abrir el link, antes de aceptar. status:
 -- valid | invalid | used | expired | own (el coach abrió su propio link).
 create or replace function preview_coach_invite(p_token text)
@@ -649,6 +702,15 @@ begin
   end if;
   if inv.coach_id = uid then
     raise exception 'No puedes aceptar tu propia invitación.';
+  end if;
+  -- Que siga siendo coach (Torq puede quitarle el permiso) y que no pase
+  -- de su máximo de atletas (coach_seat_limit, lo pone Torq al aprobarlo):
+  -- así nadie reparte links para que otros usen la IA sin pagar.
+  if not exists (select 1 from profiles where user_id = inv.coach_id and is_coach) then
+    raise exception 'Este link ya no es válido: la cuenta ya no es coach en Torq.';
+  end if;
+  if (select count(*) from coach_athletes where coach_id = inv.coach_id and status = 'active') >= coach_seat_limit(inv.coach_id) then
+    raise exception 'Tu coach llegó a su máximo de atletas en Torq. Pídele que escriba a Torq.';
   end if;
   select coach_id into current_coach from coach_athletes where athlete_id = uid and status = 'active';
   if current_coach = inv.coach_id then

@@ -7931,3 +7931,37 @@ body:has(.pinon-bubble-layer) .pinon-chat-launcher {
   font-size: 14px;
   color: var(--text-muted);
 }
+
+/* Ser coach: solicitud (coach-apply.ts) y revisión (admin-coaches.ts) */
+.coach-apply-screen form .panel { margin-bottom: 16px; }
+.coach-apply-field { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.coach-apply-field input:not([type='checkbox']), .coach-apply-field textarea { width: 100%; }
+.coach-apply-field textarea {
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-control);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  font: inherit;
+  resize: vertical;
+}
+.coach-apply-field > .live-col-label { font-size: 13px; color: var(--text-muted); }
+.coach-apply-chips { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.coach-apply-chips .terms-check { margin-top: 4px; }
+.field-error { color: var(--danger, #ff6b6b); font-size: 13px; min-height: 0; }
+.field-error:empty { display: none; }
+.admin-invite-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.admin-invite-row input[type='email'] { min-width: 240px; }
+.admin-invite-row input[type='number'], .admin-review input[type='number'] { width: 80px; }
+.admin-invite-coach code { word-break: break-all; }
+.admin-app { margin-bottom: 12px; }
+.admin-app-head { margin-bottom: 4px; }
+.admin-status-pill { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--surface-sunken); }
+.admin-status-pill[data-status='submitted'] { background: var(--accent); color: #111; }
+.admin-answers { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 10px 0; font-size: 14px; }
+.admin-answers dt { color: var(--text-muted); }
+.admin-answers dd { margin: 0; white-space: pre-wrap; }
+.admin-review { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.admin-inline { flex-direction: row; align-items: center; gap: 8px; }
+.admin-full { color: var(--accent); font-weight: 600; }
+button.danger { background: var(--danger, #c0392b); color: #fff; }

@@ -1,6 +1,6 @@
 import './ui/styles.css';
 import type { Screen } from './ui/router';
-import { refresh, registerScreen, startRouter } from './ui/router';
+import { getRouteParam, refresh, registerScreen, startRouter } from './ui/router';
 import { installClickSound } from './ui/click-sound';
 import { schedulePinonGuide, schedulePinonPeek, startPinonBlink } from './ui/pinon';
 import { mountPinonChat } from './ui/pinon-chat-launcher';
@@ -37,6 +37,8 @@ import { renderInviteSignup } from './ui/screens/invite-signup';
 import { maybeCompleteSignup } from './ui/invite-signup';
 import { maybeConfirmBillingReturn } from './ui/pricing';
 import { renderAdminWaitlist } from './ui/screens/admin-waitlist';
+import { renderAdminCoaches } from './ui/screens/admin-coaches';
+import { renderCoachApply } from './ui/screens/coach-apply';
 
 type RenderFn = (container: HTMLElement) => (() => void) | void;
 
@@ -101,8 +103,11 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['review', withSidebar('profile', renderReview)],
   // Detalle de una sesión de un atleta, con descarga del .fit.
   ['coach-session', withSidebar('coach-athletes', renderCoachSession)],
-  // Lista de espera e invitaciones (solo administradores, ver admin-waitlist.ts).
-  ['admin', withSidebar(null, renderAdminWaitlist)],
+  // Solo administradores: #/admin (lista de espera) y #/admin/coaches
+  // (invitar y aprobar coaches), ver admin-waitlist.ts y admin-coaches.ts.
+  ['admin', withSidebar(null, (c) => (getRouteParam() === 'coaches' ? renderAdminCoaches(c) : renderAdminWaitlist(c)))],
+  // Solicitud para ser coach: solo con la invitación de Torq (#/coach-apply/:token).
+  ['coach-apply', withSidebar(null, renderCoachApply)],
 ];
 
 SCREENS_TO_GUARD.forEach(([screen, render]) => {

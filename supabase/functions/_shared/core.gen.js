@@ -825,7 +825,55 @@ async function verifyMpSignature(opts) {
   for (let i = 0; i < mac.length; i++) diff |= mac.charCodeAt(i) ^ v1.charCodeAt(i);
   return diff === 0;
 }
+
+// src/core/coach-application.ts
+var DEFAULT_MAX_ATHLETES = 20;
+var MAX_ATHLETES_LIMIT = 200;
+var COACH_DISCIPLINES = ["road", "mountain", "gravel", "track", "triathlon"];
+var METHODOLOGY_MIN = 80;
+var trim = (v) => typeof v === "string" ? v.trim() : "";
+var int = (v) => typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN;
+function normalizeCoachApplication(raw) {
+  const disciplines = Array.isArray(raw.disciplines) ? raw.disciplines : [];
+  return {
+    fullName: trim(raw.fullName).slice(0, 120),
+    phone: trim(raw.phone).slice(0, 30),
+    city: trim(raw.city).slice(0, 120),
+    yearsCoaching: int(raw.yearsCoaching),
+    certifications: trim(raw.certifications).slice(0, 1e3),
+    disciplines: [...new Set(disciplines.filter((d) => COACH_DISCIPLINES.includes(d)))],
+    currentAthletes: int(raw.currentAthletes),
+    methodology: trim(raw.methodology).slice(0, 3e3),
+    links: trim(raw.links).slice(0, 1e3),
+    references: trim(raw.references).slice(0, 1e3),
+    truthful: raw.truthful === true,
+    responsible: raw.responsible === true,
+    adult: raw.adult === true
+  };
+}
+function validateCoachApplication(a) {
+  const e = {};
+  if (a.fullName.length < 3) e.fullName = "Escribe tu nombre completo.";
+  if (a.phone.replace(/\D/g, "").length < 10) e.phone = "Un tel\xE9fono de 10 d\xEDgitos para contactarte.";
+  if (a.city.length < 2) e.city = "\xBFEn qu\xE9 ciudad entrenas?";
+  if (!Number.isInteger(a.yearsCoaching) || a.yearsCoaching < 0 || a.yearsCoaching > 60) e.yearsCoaching = "A\xF1os como coach, de 0 a 60.";
+  if (a.certifications.length < 3) e.certifications = "Tus certificaciones o formaci\xF3n (si no tienes, dilo y cu\xE9ntanos tu experiencia).";
+  if (a.disciplines.length === 0) e.disciplines = "Elige al menos una disciplina.";
+  if (!Number.isInteger(a.currentAthletes) || a.currentAthletes < 0 || a.currentAthletes > 500) e.currentAthletes = "\xBFCu\xE1ntos atletas entrenas hoy? (0 a 500)";
+  if (a.methodology.length < METHODOLOGY_MIN) e.methodology = `Cu\xE9ntanos c\xF3mo armas y ajustas los planes (al menos ${METHODOLOGY_MIN} caracteres).`;
+  if (a.links.length < 4) e.links = "Un lugar donde podamos ver tu trabajo: Instagram, sitio, Strava o club.";
+  if (!a.truthful) e.truthful = "Confirma que la informaci\xF3n es verdadera.";
+  if (!a.responsible) e.responsible = "Confirma que el entrenamiento de tus atletas es tu responsabilidad.";
+  if (!a.adult) e.adult = "Torq es solo para mayores de 18 a\xF1os.";
+  return e;
+}
+function clampMaxAthletes(v) {
+  const n = int(v);
+  if (!Number.isInteger(n) || n < 1) return DEFAULT_MAX_ATHLETES;
+  return Math.min(n, MAX_ATHLETES_LIMIT);
+}
 export {
+  DEFAULT_MAX_ATHLETES,
   FOUNDER_PRICE_MXN,
   GRACE_DAYS,
   PRICE_MXN,
@@ -833,6 +881,7 @@ export {
   aiAccess,
   applyPayment,
   buildMonthlyReport,
+  clampMaxAthletes,
   defaultReviewMonth,
   emailKpis,
   evalWeekTarget,
@@ -841,6 +890,7 @@ export {
   mondayOfWeek,
   monthEnd,
   monthStart,
+  normalizeCoachApplication,
   parsePinonRequest,
   pinonLimitReached,
   pinonUserMessage,
@@ -853,5 +903,6 @@ export {
   startPhase,
   startingProfile,
   subscriptionStatusOf,
+  validateCoachApplication,
   verifyMpSignature
 };

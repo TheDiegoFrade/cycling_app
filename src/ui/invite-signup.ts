@@ -2,7 +2,8 @@
 // plantilla «Invite user» de Supabase manda a
 // `<app>/?signup=1&next=…&token_hash=…&type=invite` (ver
 // docs/cobro-y-registro.md). Se canjea el token, se pide la contraseña y se
-// sigue a donde corresponda: la invitación del coach o Inicio.
+// sigue a donde corresponda: la invitación del coach, la solicitud para ser
+// coach o Inicio.
 import { supabase } from '../supabase/client';
 import { navigate } from './router';
 
@@ -11,9 +12,9 @@ function clearParams(): void {
 }
 
 /** A dónde ir después de crear la contraseña. */
-export function nextRoute(next: string | null): { screen: 'invite'; token: string } | { screen: 'home' } {
-  const m = /^invite\.([A-Za-z0-9_-]{43})$/.exec(next ?? '');
-  return m ? { screen: 'invite', token: m[1] } : { screen: 'home' };
+export function nextRoute(next: string | null): { screen: 'invite' | 'coach-apply'; token: string } | { screen: 'home' } {
+  const m = /^(invite|coach-apply)\.([A-Za-z0-9_-]{43})$/.exec(next ?? '');
+  return m ? { screen: m[1] as 'invite' | 'coach-apply', token: m[2] } : { screen: 'home' };
 }
 
 export async function maybeCompleteSignup(): Promise<void> {
@@ -54,7 +55,7 @@ export async function maybeCompleteSignup(): Promise<void> {
     const { error: pwError } = await client.auth.updateUser({ password: a });
     if (pwError) return void (status.textContent = 'No se pudo guardar. Intenta con otra contraseña.');
     document.getElementById('signup-backdrop')?.remove();
-    if (next.screen === 'invite') navigate('invite', next.token);
-    else navigate('home');
+    if (next.screen === 'home') navigate('home');
+    else navigate(next.screen, next.token);
   });
 }
