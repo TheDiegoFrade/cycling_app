@@ -155,13 +155,15 @@ no debe regresar `null`.
 ### 3. Funciones
 
 ```sh
-supabase functions deploy billing
-supabase functions deploy billing-webhook --no-verify-jwt   # Mercado Pago no manda sesión; se valida la firma
-supabase functions deploy invite
-supabase functions deploy coach-apply
-# cambiaron por el acceso por plan:
-supabase functions deploy coach-chat pinon-chat coach-retire-plan monthly-self-report
+npx supabase login              # una vez; abre el navegador
+./scripts/deploy-functions.sh   # publica las 8 con las banderas correctas
 ```
+
+El script publica `billing`, `billing-webhook` (`--no-verify-jwt`: Mercado
+Pago no manda sesión; se valida la firma), `invite`, `coach-apply`, y vuelve
+a publicar `coach-chat`, `pinon-chat`, `coach-retire-plan` y
+`monthly-self-report` (**`--no-verify-jwt`**: la llama el cron con
+`x-cron-secret`; sin esa bandera el reporte mensual deja de correr).
 
 > `invite` va con la verificación normal: sin sesión, la app llama con la
 > llave pública (anon). Las acciones de administrador exigen sesión y que la
