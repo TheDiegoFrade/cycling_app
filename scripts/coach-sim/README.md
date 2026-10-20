@@ -58,6 +58,19 @@ Cada corrida deja en `out/sNN-rK[-tag]/`:
 
 `out/` y `report/` no se suben al repo.
 
+## Planes para que Joe los evalúe (10 perfiles)
+
+`perfiles-data.mjs` trae 10 personas realistas con el cuestionario completo (salud y hábitos, otras actividades, FTP medido / provisional / sin dato). `perfiles.mjs` crea el plan de cada una con el coach real y escribe `docs/evaluaciones/planes-ia-para-joe.md`: ficha de la persona, perfil de arranque, plan con las sesiones de las primeras semanas y una tabla para que Joe califique.
+
+```sh
+npx --yes deno@2 run --no-lock --allow-read --allow-env scripts/coach-sim/perfiles-check.ts   # valida sin IA
+node scripts/coach-sim/perfiles.mjs            # los 10 (~15-20 min, ≈US$1-2 de IA)
+node scripts/coach-sim/perfiles.mjs p03 p07    # solo esos
+node scripts/coach-sim/perfiles.mjs --reporte  # rehace el reporte sin volver a correr
+```
+
+Mismas advertencias de arriba: escribe en producción en la cuenta dummy (manda la carta de cada plan a su correo). Al terminar da de baja el plan y le devuelve su perfil original.
+
 ## Evaluación y reporte
 
 1. Por cada escenario, un evaluador (persona o agente) sigue `EVAL_GUIDE.md`: método, rúbrica C1-C14 y formato de salida. `AGENT_PROMPT.md` es el prompt que se le dio a cada agente evaluador.
