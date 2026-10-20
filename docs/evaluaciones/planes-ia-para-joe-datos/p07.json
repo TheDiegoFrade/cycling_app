@@ -1,0 +1,510 @@
+{
+  "perfil": "p07",
+  "at": "2026-10-20T18:12:59.822Z",
+  "context": {
+    "startDate": "2026-10-20",
+    "goal": "Subir el Ajusco sin bajarme de la bici en las rodadas con mis amigas. Martes y jueves rodillo; el sábado salgo a rodar con ellas. No compito.",
+    "experienceLevel": "returning_or_new_to_app",
+    "generalFitnessLevel": "active_cyclist",
+    "discipline": "mountain",
+    "yearsRiding": 3,
+    "competes": false,
+    "category": null,
+    "availability": {
+      "hoursPerWeek": 4,
+      "days": [
+        "tue",
+        "thu",
+        "sat"
+      ],
+      "maxSessionMinutes": null
+    },
+    "occupiedDates": [],
+    "profile": {
+      "ftp": null,
+      "provisionalFtp": null,
+      "ftpSource": "default",
+      "ftpUpdatedAt": null,
+      "hr_max": null,
+      "sex": "F",
+      "name": "Lucía Fernández",
+      "injuries": null,
+      "weightKg": 64,
+      "ageYears": 46,
+      "otherActivities": [
+        {
+          "kind": "mobility",
+          "perWeek": 1,
+          "minutes": 60,
+          "days": [
+            "wed"
+          ]
+        }
+      ],
+      "intake": {
+        "conditions": [
+          "asthma"
+        ],
+        "takesMedication": true,
+        "recentInjury": false,
+        "injuryLimitsIntensity": false,
+        "smoking": "no",
+        "alcohol": "rarely",
+        "medicationNote": "Inhalador (salbutamol) antes de rodar",
+        "stress": "medium",
+        "sleepHours": 7,
+        "sleepQuality": "good",
+        "restingHr": null,
+        "rpeLiteracy": "no",
+        "maxEffortExperience": false,
+        "recentTraining": "easy",
+        "recentHoursPerWeek": 3
+      },
+      "experienceLevel": "returning_or_new_to_app",
+      "generalFitnessLevel": "active_cyclist",
+      "structuredTrainingYears": 0,
+      "rpeZones": null
+    },
+    "recentHistory": null,
+    "lastTest": null
+  },
+  "status": 200,
+  "ms": 33803,
+  "result": {
+    "planId": "f7f392d7-dc32-4b25-97c0-64947dc5cbf3",
+    "startDate": "2026-10-20",
+    "coachNote": "Lucía, tu meta es subir el Ajusco sin bajarte: la demanda es subida sostenida, así que priorizo base aeróbica y tempo suave por sensación. Como vives con asma y usas inhalador, antes de apretar conviene que tu médico te dé luz verde; mientras, construimos con cuidado y sin esfuerzos máximos ni test. Escala de esfuerzo: 3-4 = puedes platicar, 6-7 = solo frases cortas, 8-9 = pocas palabras, 10 = no puedes más. Tu yoga/movilidad de los miércoles cuenta en la carga y por eso martes y jueves quedan separados de él. El rodillo no entrena el manejo en montaña: las rodadas del sábado sí. Con 4 h a la semana y 3 días, lo que cabe son ~2 h el sábado más dos sesiones de ~1 h.",
+    "weeks": [
+      {
+        "weekIndex": 0,
+        "workoutIds": [
+          "eb5b2f72-22cb-464d-bb26-6f49e6828fc0",
+          "d4dc567e-e894-4ea4-9ebe-972e4b6829c4"
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workoutIds": [
+          "f167c621-91ea-4a9d-804b-3737db56bfa7",
+          "f4ec116f-807a-4d30-8f66-27586ddbdd2a"
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workoutIds": [
+          "8325b7e9-95e2-4ee1-9c69-f2146cc9ac17",
+          "534796ca-21bf-4cc0-9757-a2a4fa6de12b"
+        ]
+      }
+    ],
+    "sentToCoach": false,
+    "suggestedFtp": null,
+    "nextTest": null
+  },
+  "error": null,
+  "plan": {
+    "goal": "Subir el Ajusco con tus amigas",
+    "data": {
+      "form": {
+        "days": [
+          "tue",
+          "thu",
+          "sat"
+        ],
+        "goal": "Subir el Ajusco sin bajarme de la bici en las rodadas con mis amigas. Martes y jueves rodillo; el sábado salgo a rodar con ellas. No compito.",
+        "hoursPerWeek": 4
+      },
+      "blocks": [
+        {
+          "name": "Base y confianza",
+          "focus": "Fondo y tempo suave por sensación, aprendiendo la escala de esfuerzo. Rodillo martes y jueves de 55-60 min; el sábado salida con tus amigas.",
+          "weeks": 4,
+          "published": true,
+          "targetHoursPerWeek": 3.5
+        },
+        {
+          "name": "Construcción de subida",
+          "focus": "Bloques sostenidos de tempo y esfuerzos de 6-10 min a RPE 6-7 para sostener una subida larga. Rodillo de 60-70 min y salida del sábado.",
+          "weeks": 4,
+          "published": false,
+          "targetHoursPerWeek": 4
+        },
+        {
+          "name": "Específico Ajusco",
+          "focus": "Subidas largas simuladas en el rodillo y repeticiones por RPE; el sábado cada vez más tiempo subiendo constante. Descarga en la última semana.",
+          "weeks": 4,
+          "published": false,
+          "targetHoursPerWeek": 4
+        }
+      ],
+      "nextTest": null,
+      "startDate": "2026-10-20",
+      "startingPmc": null,
+      "ftpSuggestion": null,
+      "maxSessionMinutes": null
+    },
+    "weeks": [
+      {
+        "weekIndex": 0,
+        "workoutIds": [
+          "eb5b2f72-22cb-464d-bb26-6f49e6828fc0",
+          "d4dc567e-e894-4ea4-9ebe-972e4b6829c4"
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workoutIds": [
+          "f167c621-91ea-4a9d-804b-3737db56bfa7",
+          "f4ec116f-807a-4d30-8f66-27586ddbdd2a"
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workoutIds": [
+          "8325b7e9-95e2-4ee1-9c69-f2146cc9ac17",
+          "534796ca-21bf-4cc0-9757-a2a4fa6de12b"
+        ]
+      }
+    ]
+  },
+  "workouts": [
+    {
+      "id": "eb5b2f72-22cb-464d-bb26-6f49e6828fc0",
+      "erg": "off",
+      "name": "Fondo para aprender el esfuerzo",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 62
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 2400,
+          "cadence_max": 100,
+          "cadence_min": 60
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:12:57.455Z",
+      "description": "Martes es día de rodar tranquila para conocer tu rodillo. Son 55 minutos por sensación, sin ERG: va en calle plana y tú decides el ritmo. Si prefieres que el rodillo marque la potencia, lo prendes con el botón ⚡, pero hoy la idea es que sientas tu propio paso. Mantén un esfuerzo suave en el que puedas platicar en frases completas; si no puedes, baja un poco y anótalo para tu coach. La cadencia que te salga natural está bien, la app la irá observando. Antes de salir, usa tu inhalador como acostumbras. Te deja las piernas frescas y listas para el jueves.",
+      "scheduledDate": "2026-10-20",
+      "format_version": 1
+    },
+    {
+      "id": "f4ec116f-807a-4d30-8f66-27586ddbdd2a",
+      "erg": "off",
+      "name": "Tempo por sensación",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 62
+        },
+        {
+          "name": "Tempo suave 1/3",
+          "type": "steady",
+          "power_pct": 75,
+          "duration_s": 600,
+          "cadence_max": 100,
+          "cadence_min": 60
+        },
+        {
+          "name": "Recuperación 1/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo suave 2/3",
+          "type": "steady",
+          "power_pct": 75,
+          "duration_s": 600,
+          "cadence_max": 100,
+          "cadence_min": 60
+        },
+        {
+          "name": "Recuperación 2/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo suave 3/3",
+          "type": "steady",
+          "power_pct": 75,
+          "duration_s": 600,
+          "cadence_max": 100,
+          "cadence_min": 60
+        },
+        {
+          "name": "Recuperación 3/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 300
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:12:58.241Z",
+      "description": "Hoy subimos un poco el ritmo, pero sin pasarte: tres bloques de 10 minutos a ritmo de subida tranquila, con recuperaciones fáciles entre ellos. Ve por sensación con ERG apagado; si quieres que el rodillo marque la potencia, lo prendes con el botón ⚡, aunque aquí el esfuerzo lo regulas tú mejor. Tu referencia es hablar en frases cortas (RPE 5-6): si te cuesta, baja un poco sin culpa. Llega al jueves con las piernas frescas y disfruta el trabajo.",
+      "scheduledDate": "2026-10-29",
+      "format_version": 1
+    },
+    {
+      "id": "8325b7e9-95e2-4ee1-9c69-f2146cc9ac17",
+      "erg": "off",
+      "name": "Fondo estable",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 62
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 3000,
+          "cadence_max": 100,
+          "cadence_min": 60
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:12:58.885Z",
+      "description": "Hoy toca un fondo largo y tranquilo, de esos que construyen base sin desgastarte: unos 50 minutos constantes con cadencia suave entre 60 y 100 rpm. Va por sensación, así que puedes dejar el ERG apagado; si prefieres que el rodillo sostenga la potencia, lo prendes con el botón ⚡. Ritmo de conversación: deberías poder hablar en frases completas todo el tiempo. Si notas que la respiración se acelera, baja el ritmo sin culpa, que aquí lo importante es cuidar tu asma y sumar kilómetros de calidad. Al terminar sentirás las piernas con un trabajo parejo y sin pesadez, lo que deja buena base para lo que viene.",
+      "scheduledDate": "2026-11-03",
+      "format_version": 1
+    },
+    {
+      "id": "d4dc567e-e894-4ea4-9ebe-972e4b6829c4",
+      "erg": "off",
+      "name": "Fondo con cambios de ritmo",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 62
+        },
+        {
+          "name": "Tempo suave 1/3",
+          "type": "steady",
+          "power_pct": 75,
+          "duration_s": 480,
+          "cadence_max": 100,
+          "cadence_min": 60
+        },
+        {
+          "name": "Recuperación 1/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo suave 2/3",
+          "type": "steady",
+          "power_pct": 75,
+          "duration_s": 480,
+          "cadence_max": 100,
+          "cadence_min": 60
+        },
+        {
+          "name": "Recuperación 2/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo suave 3/3",
+          "type": "steady",
+          "power_pct": 75,
+          "duration_s": 480,
+          "cadence_max": 100,
+          "cadence_min": 60
+        },
+        {
+          "name": "Recuperación 3/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 600
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:12:57.605Z",
+      "description": "Hoy el jueves trae tres bloques más firmes dentro de un fondo. Son 64 minutos sin ERG, así que vas por sensación: en los bloques de tempo suave, la respiración debe quedarse en frases cortas pero sin ahogarte, sin llegar a un esfuerzo que te corte la plática. Entre bloques, pedalea fácil y recupera el aire antes del siguiente. Si quieres que el rodillo sostenga la potencia, puedes prender ERG con el botón ⚡, pero tú decides. Después del martes, esto pone a prueba tu ritmo y te deja con buenas sensaciones para el fin de semana.",
+      "scheduledDate": "2026-10-22",
+      "format_version": 1
+    },
+    {
+      "id": "f167c621-91ea-4a9d-804b-3737db56bfa7",
+      "erg": "off",
+      "name": "Fondo y cadencia libre",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 62
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 2700,
+          "cadence_max": 100,
+          "cadence_min": 60
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:12:58.104Z",
+      "description": "Hoy toca un fondo tranquilo para llenar el tanque: 45 minutos a ritmo cómodo, de esos en los que puedes platicar sin problema. Déjate la cadencia natural; la app la va observando y no tienes que forzarla. Con ERG apagado vas por sensación, y si prefieres que el rodillo marque la potencia, lo prendes con el botón ⚡. Tu referencia es el RPE 3-4: si puedes decir frases completas, vas perfecto. Es la base que hace que el resto de la semana rinda mejor.",
+      "scheduledDate": "2026-10-27",
+      "format_version": 1
+    },
+    {
+      "id": "534796ca-21bf-4cc0-9757-a2a4fa6de12b",
+      "erg": "off",
+      "name": "Tempo en bloques",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 62
+        },
+        {
+          "name": "Tempo 1/3",
+          "type": "steady",
+          "power_pct": 76,
+          "duration_s": 720,
+          "cadence_max": 100,
+          "cadence_min": 60
+        },
+        {
+          "name": "Recuperación 1/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo 2/3",
+          "type": "steady",
+          "power_pct": 76,
+          "duration_s": 720,
+          "cadence_max": 100,
+          "cadence_min": 60
+        },
+        {
+          "name": "Recuperación 2/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo 3/3",
+          "type": "steady",
+          "power_pct": 76,
+          "duration_s": 720,
+          "cadence_max": 100,
+          "cadence_min": 60
+        },
+        {
+          "name": "Recuperación 3/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 420
+        }
+      ],
+      "created_at": "2026-10-20T18:12:59.035Z",
+      "description": "Hoy te toca trabajo en bloques de tempo: tres tramos de 12 minutos con 5 de recuperación entre cada uno. Va por sensación, así que puedes dejar el ERG apagado; si prefieres que el rodillo sostenga la potencia, lo prendes con el botón ⚡. Busca un esfuerzo constante de principio a fin, RPE alrededor de 6, en el que puedas decir frases cortas. Lo más difícil va a ser no arrancar demasiado fuerte en el primer bloque: parejo gana. Espera sentir las piernas cargadas hacia el tercer bloque, eso es lo esperado; si aparece ahogo o dolor, para y avisa a tu coach. Este bloque largo te deja listo para el fin de semana con más aguante.",
+      "scheduledDate": "2026-11-05",
+      "format_version": 1
+    }
+  ],
+  "extras": [
+    {
+      "scheduled_date": "2026-10-24",
+      "kind": "outdoor",
+      "name": "Rodada con tus amigas",
+      "payload": {
+        "exercises": [],
+        "description": "Tu salida de siempre a ritmo cómodo, RPE 3-4 en lo plano y sin pasarte en las subidas. Come algo desde el minuto 30 y lleva tu inhalador.",
+        "durationMin": 120
+      }
+    },
+    {
+      "scheduled_date": "2026-10-31",
+      "kind": "outdoor",
+      "name": "Rodada con tus amigas",
+      "payload": {
+        "exercises": [],
+        "description": "Misma salida con un poco más de tiempo. Sube a tu ritmo, RPE 5-6 máximo en las subidas, y baja la intensidad antes de tener que bajarte.",
+        "durationMin": 130
+      }
+    },
+    {
+      "scheduled_date": "2026-11-07",
+      "kind": "outdoor",
+      "name": "Rodada con tus amigas",
+      "payload": {
+        "exercises": [],
+        "description": "Salida cómoda, RPE 3-4 en plano y RPE 5-6 en subidas. Come desde el minuto 30 y lleva tu inhalador.",
+        "durationMin": 140
+      }
+    }
+  ]
+}

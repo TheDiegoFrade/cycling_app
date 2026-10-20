@@ -1,0 +1,686 @@
+{
+  "perfil": "p02",
+  "at": "2026-10-20T18:07:48.855Z",
+  "context": {
+    "startDate": "2026-10-20",
+    "goal": "Correr el Chupacabras 60 km (MTB) el 12 de enero de 2027. Quiero terminar en menos de 4 horas y no tronarme en la subida final. Voy al gym lunes y miércoles.",
+    "experienceLevel": "experienced",
+    "generalFitnessLevel": "active_cyclist",
+    "discipline": "mountain",
+    "yearsRiding": 6,
+    "competes": true,
+    "category": "Master 40",
+    "availability": {
+      "hoursPerWeek": 6,
+      "days": [
+        "tue",
+        "thu",
+        "sat",
+        "sun"
+      ],
+      "maxSessionMinutes": null
+    },
+    "occupiedDates": [],
+    "profile": {
+      "ftp": 235,
+      "provisionalFtp": null,
+      "ftpSource": "manual",
+      "ftpUpdatedAt": "2026-09-29T18:06:15.481Z",
+      "hr_max": 182,
+      "sex": "M",
+      "name": "Carlos Méndez",
+      "injuries": null,
+      "weightKg": 84,
+      "ageYears": 42,
+      "otherActivities": [
+        {
+          "kind": "strength",
+          "perWeek": 2,
+          "minutes": 60,
+          "days": [
+            "mon",
+            "wed"
+          ]
+        }
+      ],
+      "intake": {
+        "conditions": [],
+        "takesMedication": false,
+        "recentInjury": false,
+        "injuryLimitsIntensity": false,
+        "smoking": "no",
+        "alcohol": "weekly",
+        "stress": "medium",
+        "sleepHours": 7,
+        "sleepQuality": "good",
+        "restingHr": 56,
+        "rpeLiteracy": "yes",
+        "maxEffortExperience": true,
+        "recentTraining": "easy",
+        "recentHoursPerWeek": 5
+      },
+      "experienceLevel": "experienced",
+      "generalFitnessLevel": "active_cyclist",
+      "structuredTrainingYears": 2,
+      "rpeZones": null
+    },
+    "recentHistory": null,
+    "lastTest": null
+  },
+  "status": 200,
+  "ms": 93372,
+  "result": {
+    "planId": "e36b40c4-2eca-4421-8d2b-92b4d8467d45",
+    "startDate": "2026-10-20",
+    "coachNote": "Carlos, la demanda de tu carrera es un maratón MTB de menos de 4 h: mucho tiempo en tempo y subidas sostenidas, así que priorizo base con tempo suave y salida larga afuera; el sweet spot llega en el segundo bloque. Tus 6 h incluyen salidas largas afuera los domingos, que el rodillo no sustituye (90 min de rodillo no equivalen a 3 h afuera). Tus lunes y miércoles de gym cuentan en la carga: por eso martes y jueves van suaves y la sesión clave de tempo cae el sábado. El rodillo no entrena técnica, así que usa las salidas del domingo para practicar bajadas. Vienes con 6 años en bici y 2 de estructura, y en cuanto vea tus primeras sesiones ajusto. Te pondré a prueba con un test de 20 min al abrir el segundo bloque.",
+    "weeks": [
+      {
+        "weekIndex": 0,
+        "workoutIds": [
+          "c3157135-bddd-4914-9287-670a05cd278f",
+          "6b978db1-44d3-4384-8c3c-6385fe839a9b",
+          "97cd97ff-76a5-4b1f-9571-b3e8394f3ac1"
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workoutIds": [
+          "6891956e-5081-4b88-87f8-e11a4668772c",
+          "d14b4ef5-e698-4a3e-a0ae-0d3b8e9d8b05",
+          "7b92954b-cfb6-496d-9b2c-20fa949e4496"
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workoutIds": [
+          "e0151faf-26e1-4ead-af96-ff2ce7040df8",
+          "78573cac-4ba2-49b1-a8f9-eb2d329ffc97",
+          "671cd1ae-22da-4c6f-8d37-0a7d2ad90a6e"
+        ]
+      }
+    ],
+    "sentToCoach": false,
+    "suggestedFtp": null,
+    "nextTest": {
+      "weekIndex": 4,
+      "type": "test20",
+      "reason": "Tienes FTP de 235 W y sabes dosificarte. Lo medimos al abrir el segundo bloque, después de una semana de descarga, para llegar fresco y revisar tus zonas."
+    }
+  },
+  "error": null,
+  "plan": {
+    "goal": "Chupacabras 60 km: base sólida y subida final con piernas",
+    "data": {
+      "form": {
+        "days": [
+          "tue",
+          "thu",
+          "sat",
+          "sun"
+        ],
+        "goal": "Correr el Chupacabras 60 km (MTB) el 12 de enero de 2027. Quiero terminar en menos de 4 horas y no tronarme en la subida final. Voy al gym lunes y miércoles.",
+        "hoursPerWeek": 6
+      },
+      "blocks": [
+        {
+          "name": "Base",
+          "focus": "Fondo y tempo suave, con bloques de tempo cada semana más largos. Salida larga afuera de 2 h a 2 h 30 min con comida desde el minuto 30. La semana 4 es de descarga.",
+          "weeks": 4,
+          "published": true,
+          "targetHoursPerWeek": 5.5
+        },
+        {
+          "name": "Construcción",
+          "focus": "Retest de 20 min al abrir el bloque. Sweet spot y umbral largos, tempo sostenido y fuerza a cadencia baja. Salida larga afuera de 2 h 30 min a 3 h.",
+          "weeks": 4,
+          "published": false,
+          "targetHoursPerWeek": 6
+        },
+        {
+          "name": "Específico",
+          "focus": "Ritmo de maratón MTB: bloques largos de tempo y umbral, subida final simulada al final de una sesión. Salida larga afuera de 3 h a 3 h 30 min, con descarga a mitad del bloque.",
+          "weeks": 4,
+          "published": false,
+          "targetHoursPerWeek": 6
+        },
+        {
+          "name": "Carrera",
+          "focus": "Descarga final: poco volumen, activaciones cortas y llegar fresco al martes 12 de enero.",
+          "weeks": 1,
+          "published": false,
+          "targetHoursPerWeek": 3
+        }
+      ],
+      "nextTest": {
+        "type": "test20",
+        "reason": "Tienes FTP de 235 W y sabes dosificarte. Lo medimos al abrir el segundo bloque, después de una semana de descarga, para llegar fresco y revisar tus zonas.",
+        "weekIndex": 4
+      },
+      "startDate": "2026-10-20",
+      "startingPmc": null,
+      "ftpSuggestion": null,
+      "maxSessionMinutes": null
+    },
+    "weeks": [
+      {
+        "weekIndex": 0,
+        "workoutIds": [
+          "c3157135-bddd-4914-9287-670a05cd278f",
+          "6b978db1-44d3-4384-8c3c-6385fe839a9b",
+          "97cd97ff-76a5-4b1f-9571-b3e8394f3ac1"
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workoutIds": [
+          "6891956e-5081-4b88-87f8-e11a4668772c",
+          "d14b4ef5-e698-4a3e-a0ae-0d3b8e9d8b05",
+          "7b92954b-cfb6-496d-9b2c-20fa949e4496"
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workoutIds": [
+          "e0151faf-26e1-4ead-af96-ff2ce7040df8",
+          "78573cac-4ba2-49b1-a8f9-eb2d329ffc97",
+          "671cd1ae-22da-4c6f-8d37-0a7d2ad90a6e"
+        ]
+      }
+    ]
+  },
+  "workouts": [
+    {
+      "id": "c3157135-bddd-4914-9287-670a05cd278f",
+      "name": "Fondo base",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 65
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 65,
+          "duration_s": 2700
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:07:45.873Z",
+      "description": "Arranca la semana con un fondo tranquilo: 60 minutos para rodar a gusto, con RPE 3-4 y la capacidad de sostener una charla completa en todo momento. Te recomiendo dejar el ERG prendido para que el rodillo mantenga los watts suaves mientras tú buscas una cadencia natural; si en algún momento no puedes hablar en frases completas, baja la potencia y no te preocupes por cumplir el número. Es una rodada para llegar fresco y con ganas, y para que las piernas se acostumbren otra vez al ritmo de la semana.",
+      "scheduledDate": "2026-10-20",
+      "format_version": 1
+    },
+    {
+      "id": "6b978db1-44d3-4384-8c3c-6385fe839a9b",
+      "name": "Tempo suave",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 55,
+          "duration_s": 600,
+          "ramp_to_pct": 70
+        },
+        {
+          "name": "Tempo 1/2",
+          "type": "interval",
+          "power_pct": 80,
+          "duration_s": 600
+        },
+        {
+          "name": "Recuperación 1/2",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo 2/2",
+          "type": "interval",
+          "power_pct": 80,
+          "duration_s": 600
+        },
+        {
+          "name": "Recuperación 2/2",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 65,
+          "duration_s": 900
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:07:46.266Z",
+      "description": "Hoy llega tu primer contacto con el tempo, la base de un maratón MTB, así que vamos con calma y control. Te recomiendo ERG prendido para sostener los dos bloques al 80 % sin salirte de ritmo: sentirás RPE 5, respiración agitada pero controlada, con frases cortas que no te ahoguen. Entre bloques baja de verdad en la recuperación, porque ahí se construye el siguiente esfuerzo. Esta sesión deja las piernas listas para el sábado.",
+      "scheduledDate": "2026-10-22",
+      "format_version": 1
+    },
+    {
+      "id": "97cd97ff-76a5-4b1f-9571-b3e8394f3ac1",
+      "name": "Tempo 3x10",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 720,
+          "ramp_to_pct": 70
+        },
+        {
+          "name": "Tempo 1/3",
+          "type": "interval",
+          "power_pct": 82,
+          "duration_s": 600
+        },
+        {
+          "name": "Recuperación 1/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo 2/3",
+          "type": "interval",
+          "power_pct": 82,
+          "duration_s": 600
+        },
+        {
+          "name": "Recuperación 2/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo 3/3",
+          "type": "interval",
+          "power_pct": 82,
+          "duration_s": 600
+        },
+        {
+          "name": "Recuperación 3/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 480
+        }
+      ],
+      "created_at": "2026-10-20T18:07:46.406Z",
+      "description": "Esta es la sesión clave de la semana, y la idea es construir base, no salir como cohete. Te recomiendo ERG prendido para tres bloques de 10 minutos al 82 %: busca un RPE de 5-6, con frases cortas pero sin perder el control, y mantén el mismo esfuerzo de principio a fin. Si al tercer bloque sientes que se te escapa la respiración, es señal de bajar un poco y no de aguantar a la fuerza. Llega descansado y con ganas, porque después de esto el resto de la semana va a sentirse más fácil.",
+      "scheduledDate": "2026-10-24",
+      "format_version": 1
+    },
+    {
+      "id": "6891956e-5081-4b88-87f8-e11a4668772c",
+      "name": "Fondo base",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 65
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 65,
+          "duration_s": 2700
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:07:46.687Z",
+      "description": "Fondo suave para sacudirte las piernas después del gym del lunes. Ve con RPE 3-4, de los que te dejan hablar en frases completas, y con cadencia natural, sin forzar. ERG lo puedes prender si quieres que el rodillo sostenga los watts, pero para este fondo va bien con tu sensación: si las piernas vienen pesadas, baja un poco la potencia. Al final sales con las piernas un poco más sueltas para lo que viene en la semana.",
+      "scheduledDate": "2026-10-27",
+      "format_version": 1
+    },
+    {
+      "id": "d14b4ef5-e698-4a3e-a0ae-0d3b8e9d8b05",
+      "name": "Tempo 2x12",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 55,
+          "duration_s": 600,
+          "ramp_to_pct": 70
+        },
+        {
+          "name": "Tempo 1/2",
+          "type": "interval",
+          "power_pct": 80,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 1/2",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo 2/2",
+          "type": "interval",
+          "power_pct": 80,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 2/2",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 65,
+          "duration_s": 900
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:07:47.034Z",
+      "description": "Misma sesión de tempo que ya conoces, pero con bloques más largos de 12 minutos; ese es el único cambio, así que el ritmo es el de siempre. Te recomiendo dejar el ERG prendido para sostener el 80 % en cada bloque sin salirte. Busca un RPE 5-6, constante de principio a fin, y no arranques fuerte en el primer bloque. Si al cierre de los bloques sientes que puedes hablar con frases cortas, vas bien; si no, es señal de aflojar un poco. Llegas al jueves con buen trabajo de umbral sin sentirte destrozado.",
+      "scheduledDate": "2026-10-29",
+      "format_version": 1
+    },
+    {
+      "id": "7b92954b-cfb6-496d-9b2c-20fa949e4496",
+      "name": "Tempo 3x12",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 720,
+          "ramp_to_pct": 70
+        },
+        {
+          "name": "Tempo 1/3",
+          "type": "interval",
+          "power_pct": 82,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 1/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo 2/3",
+          "type": "interval",
+          "power_pct": 82,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 2/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo 3/3",
+          "type": "interval",
+          "power_pct": 82,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 3/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 480
+        }
+      ],
+      "created_at": "2026-10-20T18:07:47.356Z",
+      "description": "Aquí el reto son los tres bloques de 12 minutos al 82 %, con RPE 5-6. Te recomiendo ERG prendido para que el rodillo mantenga la potencia y tú te concentres en la cadencia. Los últimos 3 minutos del tercer bloque son los que cuentan, así que guarda algo de energía y no salgas fuerte en los primeros; un arranque explosivo que luego cae deja peor promedio. Si no logras completar el tercer bloque, baja 3-5 puntos de potencia y anótalo para tu coach. Cuando termines, tendrás una base sólida de tempo para el resto de la semana.",
+      "scheduledDate": "2026-10-31",
+      "format_version": 1
+    },
+    {
+      "id": "e0151faf-26e1-4ead-af96-ff2ce7040df8",
+      "name": "Fondo base",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 65
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 65,
+          "duration_s": 2700
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:07:47.636Z",
+      "description": "Martes de fondo suave para soltar las piernas después del gym y preparar la semana. Déjalo en ERG prendido si quieres que el rodillo marque el ritmo, o apágalo y rueda por sensación; los dos sirven hoy. Tu referencia es poder hablar en frases completas durante casi toda la hora. Cadencia natural, sin forzar: si terminas sintiéndote mejor que al empezar, el objetivo está cumplido.",
+      "scheduledDate": "2026-11-03",
+      "format_version": 1
+    },
+    {
+      "id": "78573cac-4ba2-49b1-a8f9-eb2d329ffc97",
+      "name": "Tempo 2x15",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 55,
+          "duration_s": 600,
+          "ramp_to_pct": 70
+        },
+        {
+          "name": "Tempo 1/2",
+          "type": "interval",
+          "power_pct": 80,
+          "duration_s": 900
+        },
+        {
+          "name": "Recuperación 1/2",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo 2/2",
+          "type": "interval",
+          "power_pct": 80,
+          "duration_s": 900
+        },
+        {
+          "name": "Recuperación 2/2",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 65,
+          "duration_s": 600
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:07:47.769Z",
+      "description": "Jueves de tempo: dos bloques de 15 minutos al 80 % con 5 minutos suaves de recuperación entre ellos. Te recomiendo ERG prendido para sostener un ritmo parejo, como lo harás en la carrera; tú solo mantén la cadencia. Los bloques deben sentirse fuertes pero controlados, RPE 5-6, y los 5 minutos suaves son de verdad para recuperar, no para acelerar. Llegas con buenas piernas para el fin de semana.",
+      "scheduledDate": "2026-11-05",
+      "format_version": 1
+    },
+    {
+      "id": "671cd1ae-22da-4c6f-8d37-0a7d2ad90a6e",
+      "name": "Tempo 2x20",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 720,
+          "ramp_to_pct": 70
+        },
+        {
+          "name": "Tempo 1/2",
+          "type": "interval",
+          "power_pct": 82,
+          "duration_s": 1200
+        },
+        {
+          "name": "Recuperación 1/2",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 360
+        },
+        {
+          "name": "Tempo 2/2",
+          "type": "interval",
+          "power_pct": 82,
+          "duration_s": 1200
+        },
+        {
+          "name": "Recuperación 2/2",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 360
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 480
+        }
+      ],
+      "created_at": "2026-10-20T18:07:47.904Z",
+      "description": "Sábado de tempo largo: dos bloques de 20 minutos al 82 %, parecidos a una subida sostenida. Te recomiendo ERG prendido para que el rodillo sostenga el ritmo mientras tú trabajas la cadencia y la respiración. Busca un esfuerzo parejo, RPE 5-6; el segundo bloque se va a sentir más pesado, y es normal si tu pulso sube, pero si se dispara, baja un poco y anótalo en tu nota para tu coach. Aguantar el bloque largo y parejo es lo que te va a servir en la subida final.",
+      "scheduledDate": "2026-11-07",
+      "format_version": 1
+    }
+  ],
+  "extras": [
+    {
+      "scheduled_date": "2026-10-21",
+      "kind": "strength",
+      "name": "Gym: pierna ligera",
+      "payload": {
+        "exercises": [],
+        "description": "Pierna sin llevarla al límite y core. El jueves rodamos tempo y el sábado hay tempo largo, así que llega con piernas.",
+        "durationMin": 60
+      }
+    },
+    {
+      "scheduled_date": "2026-10-25",
+      "kind": "outdoor",
+      "name": "Salida larga afuera",
+      "payload": {
+        "exercises": [],
+        "description": "Rodada en ruta o montaña a RPE 3-4, platicando. Come algo desde el minuto 30 y cada 30-40 min.",
+        "durationMin": 120
+      }
+    },
+    {
+      "scheduled_date": "2026-10-26",
+      "kind": "strength",
+      "name": "Gym: tren superior y core",
+      "payload": {
+        "exercises": [],
+        "description": "Enfoca tren superior y core. Mañana toca fondo, así que no vacíes la pierna.",
+        "durationMin": 60
+      }
+    },
+    {
+      "scheduled_date": "2026-10-28",
+      "kind": "strength",
+      "name": "Gym: pierna ligera",
+      "payload": {
+        "exercises": [],
+        "description": "Pierna ligera, sin llegar a la falla. El jueves hay tempo y el sábado tempo largo.",
+        "durationMin": 60
+      }
+    },
+    {
+      "scheduled_date": "2026-11-01",
+      "kind": "outdoor",
+      "name": "Salida larga afuera",
+      "payload": {
+        "exercises": [],
+        "description": "Salida de 2 h 15 min a RPE 3-4, platicando. Come desde el minuto 30. Si sube el pulso, baja el ritmo.",
+        "durationMin": 135
+      }
+    },
+    {
+      "scheduled_date": "2026-11-02",
+      "kind": "strength",
+      "name": "Gym: tren superior y core",
+      "payload": {
+        "exercises": [],
+        "description": "Tren superior y core. Mañana fondo suave y la pierna debe estar fresca.",
+        "durationMin": 60
+      }
+    },
+    {
+      "scheduled_date": "2026-11-04",
+      "kind": "strength",
+      "name": "Gym: pierna ligera",
+      "payload": {
+        "exercises": [],
+        "description": "Pierna ligera, sin dejar las piernas vacías. El sábado hay tempo largo.",
+        "durationMin": 60
+      }
+    },
+    {
+      "scheduled_date": "2026-11-08",
+      "kind": "outdoor",
+      "name": "Salida larga afuera",
+      "payload": {
+        "exercises": [],
+        "description": "Salida de 2 h 30 min a RPE 3-4, de preferencia con algo de subida a ritmo cómodo. Come cada 30-40 min.",
+        "durationMin": 150
+      }
+    }
+  ]
+}

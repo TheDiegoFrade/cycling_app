@@ -255,13 +255,6 @@ function modalHtml(p: Profile): string {
                 <span class="ob-input-unit"><input type="number" id="ob-structured-years" value="${esc(p.structuredTrainingYears)}" placeholder="0 si nunca" min="0" max="60" inputmode="numeric"><span>años</span></span>
               </label>
             </div>
-            <p class="ob-q">¿Cómo has entrenado las últimas 4 semanas?</p>
-            ${chipGroupHtml('ob-recent-training', [['little', 'Poco o nada'], ['easy', 'Rodadas suaves'], ['with_intensity', 'Con intensidad (series, carreras, salidas fuertes)']], intake?.recentTraining)}
-            <div class="ob-grid">
-              <label class="ob-field"><span>Horas por semana, más o menos <span class="ob-optional">opcional</span></span>
-                <span class="ob-input-unit"><input type="number" id="ob-recent-hours" value="${esc(intake?.recentHoursPerWeek ?? '')}" min="0" max="40" step="0.5" inputmode="decimal"><span>h</span></span>
-              </label>
-            </div>
             <p class="ob-q">¿Sabes medir qué tan duro vas del 1 al 10 (RPE)?</p>
             <p class="ob-note" style="margin-top:0">3-4: puedes platicar · 6-7: solo frases cortas · 8-9: pocas palabras · 10: no puedes más.</p>
             ${chipGroupHtml('ob-rpe', [['yes', 'Sí'], ['somewhat', 'Más o menos'], ['no', 'No']], intake?.rpeLiteracy)}
@@ -288,6 +281,19 @@ function modalHtml(p: Profile): string {
             <div class="ob-toggles">
               ${toggleHtml('ob-rides-outside', !!p.ridesOutside, 'Salgo a rodar afuera', 'Aunque sea de vez en cuando.')}
               ${toggleHtml('ob-outdoor-power', !!p.hasOutdoorPowerMeter, 'Tengo medidor de potencia afuera', '', `id="ob-outdoor-power-label" style="display:${p.ridesOutside ? 'flex' : 'none'}"`)}
+            </div>
+            <p class="ob-q">¿Cómo has entrenado las últimas 4 semanas?</p>
+            ${chipGroupHtml('ob-recent-training', [['little', 'Poco o nada'], ['easy', 'Rodadas suaves'], ['with_intensity', 'Con intensidad (series, carreras, salidas fuertes)']], intake?.recentTraining)}
+            <div class="ob-grid">
+              <label class="ob-field"><span>Horas por semana, más o menos <span class="ob-optional">opcional</span></span>
+                <span class="ob-input-unit"><input type="number" id="ob-recent-hours" value="${esc(intake?.recentHoursPerWeek ?? '')}" min="0" max="40" step="0.5" inputmode="decimal"><span>h</span></span>
+              </label>
+            </div>
+            <div id="ob-recent-note-box"${intake?.recentTraining && intake.recentTraining !== 'little' ? '' : ' hidden'}>
+              <label class="ob-field">¿Cómo es una semana típica de tu entrenamiento?
+                <textarea id="ob-recent-note" rows="3" maxlength="500" placeholder="Ej.: martes y jueves rodillo 1 h con series de 8 min, sábado salida larga de 3 h, domingo suave">${esc(intake?.recentTrainingNote ?? '')}</textarea>
+              </label>
+              <p class="ob-note" style="margin-top:0">Con esto el coach parte de lo que ya haces, no de cero.</p>
             </div>`,
           )}
 
@@ -382,6 +388,7 @@ const MISSING_TARGETS: [RegExp, string][] = [
   [/estr[eé]s/i, '#ob-stress'],
   [/horas.*duermes|duermes.*horas/i, '#ob-sleep-hours'],
   [/duermes/i, '#ob-sleep-quality'],
+  [/semana t[ií]pica/i, '#ob-recent-note'],
   [/4 semanas/i, '#ob-recent-training'],
   [/del 1 al 10/i, '#ob-rpe'],
   [/esfuerzos al m[aá]ximo/i, '#ob-max-effort'],
@@ -595,6 +602,8 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     const recentTraining = picked('ob-recent-training');
     if (!recentTraining) return { missing: 'Dinos cómo has entrenado las últimas 4 semanas.' };
     const recentHoursRaw = backdrop.querySelector<HTMLInputElement>('#ob-recent-hours')!.value.trim();
+    const recentNote = backdrop.querySelector<HTMLTextAreaElement>('#ob-recent-note')!.value.trim();
+    if (recentTraining !== 'little' && recentNote.length < 10) return { missing: 'Cuéntanos cómo es una semana típica de tu entrenamiento.' };
     const rpe = picked('ob-rpe');
     if (!rpe) return { missing: 'Dinos si sabes medir tu esfuerzo del 1 al 10.' };
     const maxEffort = picked('ob-max-effort');
@@ -614,6 +623,7 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
         injuryLimitsIntensity: injuryLimits === 'yes',
         recentTraining: recentTraining as HealthIntake['recentTraining'],
         recentHoursPerWeek: recentHoursRaw ? Number(recentHoursRaw) : null,
+        ...(recentNote ? { recentTrainingNote: recentNote.slice(0, 500) } : {}),
         smoking: smoking as HealthIntake['smoking'],
         alcohol: alcohol as HealthIntake['alcohol'],
         stress: stress as HealthIntake['stress'],
@@ -712,6 +722,15 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     }
     fitStatus.textContent = `${imported} sesión(es) importada(s).${errors.length > 0 ? ` ${errors.length} con error: ${errors.join(' · ')}` : ''}`;
   });
+
+  // La semana típica aparece solo si viene entrenando (no «Poco o nada»).
+  const recentNoteBox = backdrop.querySelector<HTMLElement>('#ob-recent-note-box')!;
+  backdrop.querySelector('#ob-recent-training')!.addEventListener('click', () =>
+    queueMicrotask(() => {
+      const v = backdrop.querySelector('#ob-recent-training .on')?.getAttribute('data-value');
+      recentNoteBox.hidden = !v || v === 'little';
+    }),
+  );
 
   // en cuanto la persona toca lo marcado, la marca se quita
   const clearFlag = (e: Event) => {

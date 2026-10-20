@@ -1,0 +1,595 @@
+{
+  "perfil": "p08",
+  "at": "2026-10-20T18:14:19.798Z",
+  "context": {
+    "startDate": "2026-10-20",
+    "goal": "Bajar 12 kg y volver a estar en forma. Jugaba fútbol hasta hace 2 años y dejé de hacer ejercicio.",
+    "experienceLevel": "new_to_cycling",
+    "generalFitnessLevel": "sedentary",
+    "discipline": "other",
+    "yearsRiding": 0,
+    "competes": false,
+    "category": null,
+    "availability": {
+      "hoursPerWeek": 4,
+      "days": [
+        "mon",
+        "tue",
+        "thu",
+        "sat"
+      ],
+      "maxSessionMinutes": 60
+    },
+    "occupiedDates": [],
+    "profile": {
+      "ftp": null,
+      "provisionalFtp": null,
+      "ftpSource": "default",
+      "ftpUpdatedAt": null,
+      "hr_max": null,
+      "sex": "M",
+      "name": "Daniel Ortiz",
+      "injuries": "Molestia en la rodilla derecha: me operaron el menisco hace 4 años y me duele al subir escaleras rápido.",
+      "weightKg": 98,
+      "ageYears": 31,
+      "otherActivities": [],
+      "intake": {
+        "conditions": [],
+        "takesMedication": false,
+        "recentInjury": false,
+        "injuryLimitsIntensity": false,
+        "smoking": "occasional",
+        "alcohol": "weekly",
+        "stress": "medium",
+        "sleepHours": 6.5,
+        "sleepQuality": "fair",
+        "restingHr": 78,
+        "rpeLiteracy": "no",
+        "maxEffortExperience": true,
+        "recentTraining": "little",
+        "recentHoursPerWeek": 0
+      },
+      "experienceLevel": "new_to_cycling",
+      "generalFitnessLevel": "sedentary",
+      "structuredTrainingYears": 0,
+      "rpeZones": null
+    },
+    "recentHistory": null,
+    "lastTest": null
+  },
+  "status": 200,
+  "ms": 74147,
+  "result": {
+    "planId": "5e4a2fec-975a-4e6c-b177-bd74c26bace3",
+    "startDate": "2026-10-20",
+    "coachNote": "Daniel, vienes con motor de futbolista pero sin oficio en la bici ni rodaje reciente: construimos base con calma y ajusto en cuanto vea tus primeras sesiones. Tu meta de 12 kg es realista a mediano plazo si sumamos constancia semana a semana; lo medimos con tus sesiones cumplidas, tu RPE y cómo baja tu pulso a la misma sensación, y del peso y la alimentación que se encargue un nutriólogo. Tu rodilla operada manda: cadencia cómoda, nada de fuerza a cadencia baja ni arrancadas, y si el dolor altera el pedaleo, para y que la vea un fisioterapeuta. Con 4 h declaradas y tope de 60 min por sesión, cuatro días caben pero empezamos con 3 sesiones (unas 2 h) y sumamos tiempo de a poco. Aún no mides tu esfuerzo, así que aprende la escala: RPE 3-4 puedes platicar, 6-7 solo frases cortas, 8-9 pocas palabras, 10 no puedes más. No hay test ni número de FTP por ahora: todo va por sensación (RPE), metiendo esfuerzos un poco más altos de a poco.",
+    "weeks": [
+      {
+        "weekIndex": 0,
+        "workoutIds": [
+          "46bbfe30-3c23-42ec-bb54-87383fcc8834",
+          "f8a38c53-f833-4e15-ba52-c278a8be9777",
+          "961be3cf-0020-4f15-9618-713f3ec11682"
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workoutIds": [
+          "fbc7bac1-7ede-46fa-ae39-8ab24cee7f41",
+          "220346a2-8765-4fd8-adf8-821e3d5bed05",
+          "29ee2826-bcb5-4fdc-a314-ef908aeff96c"
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workoutIds": [
+          "e962523a-8796-4c9e-85d0-e44dd3239ec9",
+          "3815a5cd-7df2-499f-9927-bbc50c268b2b",
+          "813c5957-8a24-4cc5-8a8e-2b36d9b622b4"
+        ]
+      }
+    ],
+    "sentToCoach": false,
+    "suggestedFtp": null,
+    "nextTest": null
+  },
+  "error": null,
+  "plan": {
+    "goal": "Volver a moverte: base y peso",
+    "data": {
+      "form": {
+        "days": [
+          "mon",
+          "tue",
+          "thu",
+          "sat"
+        ],
+        "goal": "Bajar 12 kg y volver a estar en forma. Jugaba fútbol hasta hace 2 años y dejé de hacer ejercicio.",
+        "hoursPerWeek": 4
+      },
+      "blocks": [
+        {
+          "name": "Base 1: acostumbrar el cuerpo",
+          "focus": "Rodadas suaves por sensación, 3 sesiones de 40-50 min y un día extra de descanso. Aprendemos la escala de esfuerzo (RPE) y cuidamos la rodilla derecha.",
+          "weeks": 4,
+          "published": true,
+          "targetHoursPerWeek": 2.3
+        },
+        {
+          "name": "Base 2: más volumen",
+          "focus": "Subimos duración de a poco, 4 sesiones de hasta 60 min y primeros cambios de ritmo suaves por RPE.",
+          "weeks": 4,
+          "published": false,
+          "targetHoursPerWeek": 3.2
+        },
+        {
+          "name": "Construcción",
+          "focus": "Esfuerzos de RPE 7 por bloques cortos, una sola sesión exigente por semana, descarga cada 3 semanas.",
+          "weeks": 4,
+          "published": false,
+          "targetHoursPerWeek": 3.8
+        }
+      ],
+      "nextTest": null,
+      "startDate": "2026-10-20",
+      "startingPmc": null,
+      "ftpSuggestion": null,
+      "maxSessionMinutes": 60
+    },
+    "weeks": [
+      {
+        "weekIndex": 0,
+        "workoutIds": [
+          "46bbfe30-3c23-42ec-bb54-87383fcc8834",
+          "f8a38c53-f833-4e15-ba52-c278a8be9777",
+          "961be3cf-0020-4f15-9618-713f3ec11682"
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workoutIds": [
+          "fbc7bac1-7ede-46fa-ae39-8ab24cee7f41",
+          "220346a2-8765-4fd8-adf8-821e3d5bed05",
+          "29ee2826-bcb5-4fdc-a314-ef908aeff96c"
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workoutIds": [
+          "e962523a-8796-4c9e-85d0-e44dd3239ec9",
+          "3815a5cd-7df2-499f-9927-bbc50c268b2b",
+          "813c5957-8a24-4cc5-8a8e-2b36d9b622b4"
+        ]
+      }
+    ]
+  },
+  "workouts": [
+    {
+      "id": "46bbfe30-3c23-42ec-bb54-87383fcc8834",
+      "erg": "off",
+      "name": "Rodada suave 1",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 60
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 60,
+          "duration_s": 1500
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:14:17.335Z",
+      "description": "Tu primera rodada en el rodillo, para tomarle la medida con calma. Pedalea por sensación, con la cadencia que te salga natural; no hace falta forzar nada. Te recomiendo dejar el ERG apagado para que tú controles la resistencia, y si prefieres ver la potencia fija, lo prendes con el botón ⚡. Ve a un ritmo en el que puedas platicar en frases completas: si no puedes, baja un poco y anótalo para tu coach. Con esto arrancas el martes sin prisa, con las piernas despiertas para lo que sigue.",
+      "scheduledDate": "2026-10-20",
+      "format_version": 1
+    },
+    {
+      "id": "f8a38c53-f833-4e15-ba52-c278a8be9777",
+      "erg": "off",
+      "name": "Rodada suave 2",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 60
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 60,
+          "duration_s": 1800
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:14:17.498Z",
+      "description": "Misma sensación que el martes, pero un poco más larga. Mantén un esfuerzo suave, RPE 3-4, con una conversación fácil. Te recomiendo dejar el ERG apagado y rodar por sensación; si prefieres ERG, lo prendes con el botón ⚡. Si la rodilla derecha te molesta, baja la resistencia y avísalo en tu nota, sin aguantarte. Es una rodada para sumar kilómetros de base y dejar las piernas listas para el fin de semana.",
+      "scheduledDate": "2026-10-22",
+      "format_version": 1
+    },
+    {
+      "id": "fbc7bac1-7ede-46fa-ae39-8ab24cee7f41",
+      "erg": "off",
+      "name": "Rodada suave 1",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 60
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 60,
+          "duration_s": 1800
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:14:18.000Z",
+      "description": "Martes, rodada suave para arrancar la semana con las piernas sueltas. Son 45 minutos a ritmo tranquilo, sin ERG: vas por sensación y ajustas tú, y si prefieres ERG lo prendes con el botón ⚡. Busca un RPE de 3 a 4, con respiración tranquila y una cadencia que salga natural. Si puedes charlar sin esfuerzo, vas exactamente donde debes. Es igual que la semana pasada, con 5 minutos más de fondo, así que disfruta la constancia y sal con ganas de repetirla el jueves.",
+      "scheduledDate": "2026-10-27",
+      "format_version": 1
+    },
+    {
+      "id": "29ee2826-bcb5-4fdc-a314-ef908aeff96c",
+      "erg": "off",
+      "name": "Rodada con cambios suaves",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 60
+        },
+        {
+          "name": "Firme 1/5",
+          "type": "steady",
+          "power_pct": 72,
+          "duration_s": 180
+        },
+        {
+          "name": "Fácil 1/5",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Firme 2/5",
+          "type": "steady",
+          "power_pct": 72,
+          "duration_s": 180
+        },
+        {
+          "name": "Fácil 2/5",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Firme 3/5",
+          "type": "steady",
+          "power_pct": 72,
+          "duration_s": 180
+        },
+        {
+          "name": "Fácil 3/5",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Firme 4/5",
+          "type": "steady",
+          "power_pct": 72,
+          "duration_s": 180
+        },
+        {
+          "name": "Fácil 4/5",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Firme 5/5",
+          "type": "steady",
+          "power_pct": 72,
+          "duration_s": 180
+        },
+        {
+          "name": "Fácil 5/5",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 60,
+          "duration_s": 600
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:14:18.517Z",
+      "description": "Sábado, rodada con cambios suaves para despertar las piernas sin cansarlas. Son 55 minutos sin ERG: vas por sensación y los cambios son de 3 minutos firmes a RPE 5 seguidos de 3 minutos fáciles, cinco veces. Si prefieres ERG, lo prendes con el ⚡ y lo usas para sostener los cambios. Lo que buscas es sentir el esfuerzo firme sin que se vuelva pesado, y terminar con ganas de más, no vacío. Así cierras la semana con buen volumen y frescura.",
+      "scheduledDate": "2026-10-31",
+      "format_version": 1
+    },
+    {
+      "id": "3815a5cd-7df2-499f-9927-bbc50c268b2b",
+      "erg": "off",
+      "name": "Rodada suave 2",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 60
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 60,
+          "duration_s": 2400
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:14:19.023Z",
+      "description": "Jueves con un fondo un poco más largo, pero el ritmo sigue siendo suave. Va en modo calle plana, sin ERG, y mantienes un esfuerzo que te permita hablar en frases completas, RPE 3-4. Si notas que el pulso se va subiendo o ya no puedes hablar, baja la resistencia y rueda más suave; ese es tu control. Así llegas con buenas piernas al fin de semana.",
+      "scheduledDate": "2026-11-05",
+      "format_version": 1
+    },
+    {
+      "id": "961be3cf-0020-4f15-9618-713f3ec11682",
+      "erg": "off",
+      "name": "Rodada con cambios suaves",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 60
+        },
+        {
+          "name": "Firme 1/4",
+          "type": "steady",
+          "power_pct": 72,
+          "duration_s": 180
+        },
+        {
+          "name": "Fácil 1/4",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Firme 2/4",
+          "type": "steady",
+          "power_pct": 72,
+          "duration_s": 180
+        },
+        {
+          "name": "Fácil 2/4",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Firme 3/4",
+          "type": "steady",
+          "power_pct": 72,
+          "duration_s": 180
+        },
+        {
+          "name": "Fácil 3/4",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Firme 4/4",
+          "type": "steady",
+          "power_pct": 72,
+          "duration_s": 180
+        },
+        {
+          "name": "Fácil 4/4",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 60,
+          "duration_s": 600
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:14:17.627Z",
+      "description": "Aquí empiezas a sentir la diferencia entre esfuerzos. Alternarás tramos de 3 minutos un poco más firmes, RPE 5, con frases cortas pero cómodas, y tramos fáciles para recuperar. No aprietes de más: la idea es aprender a sentir el cambio, no a sufrir. Te recomiendo dejar el ERG apagado para regular tú los cambios; si prefieres ERG, lo prendes con el botón ⚡. Mantén la resistencia ligera y una cadencia alta, sobre todo por tu rodilla. Si en los tramos firmes sientes que no puedes hablar ni en frases cortas, baja y anótalo para tu coach.",
+      "scheduledDate": "2026-10-24",
+      "format_version": 1
+    },
+    {
+      "id": "220346a2-8765-4fd8-adf8-821e3d5bed05",
+      "erg": "off",
+      "name": "Rodada suave 2",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 60
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 60,
+          "duration_s": 2100
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:14:18.127Z",
+      "description": "Jueves, fondo continuo por sensación. Son 50 minutos sin ERG: tú marcas el ritmo y, si quieres el control del rodillo, lo prendes con el ⚡. La clave es que puedas hablar en frases completas durante casi todo el rodaje; si lo logras, vas bien. Al terminar, anota tu RPE para que tu coach vea cómo se sintió. Sentirás las piernas trabajando de forma pareja, sin picos, y eso deja la base lista para el sábado.",
+      "scheduledDate": "2026-10-29",
+      "format_version": 1
+    },
+    {
+      "id": "e962523a-8796-4c9e-85d0-e44dd3239ec9",
+      "erg": "off",
+      "name": "Rodada suave 1",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 60
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 60,
+          "duration_s": 2100
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:14:18.871Z",
+      "description": "Martes de fondo tranquilo, de esos que construyen base sin desgastarte. Vas en modo calle plana, por sensación, con cadencia natural y hombros y manos sueltos; si prefieres ERG lo prendes con el botón ⚡, pero hoy no lo necesitas. La referencia es poder hablar en frases completas, con RPE 3-4. Si lo haces así, llegas fresco y listo para lo que sigue en la semana.",
+      "scheduledDate": "2026-11-03",
+      "format_version": 1
+    },
+    {
+      "id": "813c5957-8a24-4cc5-8a8e-2b36d9b622b4",
+      "erg": "off",
+      "name": "Rodada con cambios de ritmo",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 60
+        },
+        {
+          "name": "Firme 1/4",
+          "type": "steady",
+          "power_pct": 74,
+          "duration_s": 240
+        },
+        {
+          "name": "Fácil 1/4",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Firme 2/4",
+          "type": "steady",
+          "power_pct": 74,
+          "duration_s": 240
+        },
+        {
+          "name": "Fácil 2/4",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Firme 3/4",
+          "type": "steady",
+          "power_pct": 74,
+          "duration_s": 240
+        },
+        {
+          "name": "Fácil 3/4",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Firme 4/4",
+          "type": "steady",
+          "power_pct": 74,
+          "duration_s": 240
+        },
+        {
+          "name": "Fácil 4/4",
+          "type": "recovery",
+          "power_pct": 58,
+          "duration_s": 180
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 60,
+          "duration_s": 600
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 300
+        }
+      ],
+      "created_at": "2026-10-20T18:14:19.347Z",
+      "description": "Sábado con cambios de ritmo: cuatro bloques firmes a RPE 5-6, donde deberías poder decir frases cortas, separados por tres minutos fáciles para recuperar. Va en modo calle plana, por sensación, sin ERG; si prefieres ERG, lo prendes con el botón ⚡. Dosifica desde el primer bloque, porque el último debe salir igual que el primero. Este trabajo deja las piernas listas para rodar con soltura la semana que viene.",
+      "scheduledDate": "2026-11-07",
+      "format_version": 1
+    }
+  ],
+  "extras": []
+}

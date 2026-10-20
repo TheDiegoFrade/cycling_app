@@ -7965,3 +7965,10 @@ body:has(.pinon-bubble-layer) .pinon-chat-launcher {
 .admin-inline { flex-direction: row; align-items: center; gap: 8px; }
 .admin-full { color: var(--accent); font-weight: 600; }
 button.danger { background: var(--danger, #c0392b); color: #fff; }
+
+/* Un botón deshabilitado se tiene que ver deshabilitado (p. ej. «Suscribirme»
+   mientras el cobro no está activo). Los que ya tienen su estilo lo conservan. */
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
