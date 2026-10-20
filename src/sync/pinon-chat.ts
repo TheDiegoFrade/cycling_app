@@ -4,7 +4,7 @@ import { supabase } from '../supabase/client';
 import type { PinonChatData } from '../core/pinon-chat';
 import type { PinonTurn } from '../core/pinon-chat-request';
 
-export type PinonChatError = 'not_available' | 'daily_limit' | 'offline' | 'no_account' | 'failed';
+export type PinonChatError = 'not_available' | 'subscription_required' | 'daily_limit' | 'offline' | 'no_account' | 'failed';
 
 /** Lo más que se espera a la IA: después de esto Piñón avisa y se puede
  * volver a preguntar (sin tope, el indicador de «escribiendo» se queda para
@@ -24,7 +24,7 @@ export async function askPinon(message: string, history: PinonTurn[], context: P
         .then((j: { error?: string }) => j?.error)
         .catch(() => undefined);
     }
-    if (code === 'not_available' || code === 'daily_limit') return { error: code };
+    if (code === 'not_available' || code === 'daily_limit' || code === 'subscription_required') return { error: code };
     return { error: 'failed' };
   } catch {
     return { error: 'failed' };

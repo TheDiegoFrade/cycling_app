@@ -74,6 +74,7 @@ const ERROR_TEXT = {
   daily_limit: 'Ya platicamos mucho hoy. Mañana seguimos; los botones funcionan siempre.',
   offline: 'Sin conexión no puedo pensar respuestas nuevas. Los botones funcionan sin internet.',
   no_account: 'Para preguntas abiertas necesito que entres con tu cuenta de Torq. Los botones sí funcionan aquí.',
+  subscription_required: 'Las preguntas abiertas vienen con Torq Coach IA. Los botones sí funcionan siempre.',
   failed: 'Se me trabó la cadena. Intenta otra vez en un momento.',
 } as const;
 
@@ -180,7 +181,7 @@ export function openPinonChat(opts: { onClose?: () => void; onNavigate?: () => v
     push({ role: 'user', text });
     const intent = matchIntent(text);
     if (intent) return answerLocal(intent);
-    if (aiUnavailable) return reply({ text: ERROR_TEXT.not_available });
+    if (aiUnavailable) return reply({ text: ERROR_TEXT.subscription_required, action: { label: 'Conocer Torq Coach IA', href: '#/profile' } });
     setBusy(true);
     try {
       const data: PinonChatData = await buildPinonChatData();
@@ -198,8 +199,8 @@ export function openPinonChat(opts: { onClose?: () => void; onNavigate?: () => v
         cacheReply(key, res.reply);
         reply({ text: res.reply });
       } else {
-        if (res.error === 'not_available') aiUnavailable = true;
-        reply({ text: ERROR_TEXT[res.error] });
+        if (res.error === 'not_available' || res.error === 'subscription_required') aiUnavailable = true;
+        reply(res.error === 'subscription_required' ? { text: ERROR_TEXT.subscription_required, action: { label: 'Conocer Torq Coach IA', href: '#/profile' } } : { text: ERROR_TEXT[res.error] });
       }
     } finally {
       setBusy(false);

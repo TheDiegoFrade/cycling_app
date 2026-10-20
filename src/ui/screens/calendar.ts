@@ -577,6 +577,8 @@ export function renderCalendar(container: HTMLElement): () => void {
   }
 
   function paint(): void {
+    // Con coach, el plan es «de» su coach: Torq es su herramienta.
+    const coachBrand = appState.coach.myCoach?.coachName ?? null;
     const isMonth = viewMode === 'month';
     const days = isMonth ? monthGridDays(monthAnchor) : Array.from({ length: 7 }, (_, i) => new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i));
 
@@ -630,6 +632,7 @@ export function renderCalendar(container: HTMLElement): () => void {
         <div id="coach-slot"></div>
         <div class="plan-head">
           <h1>Plan</h1>
+          ${coachBrand ? `<span class="plan-coach-brand">Plan de ${escapeHtml(coachBrand)}</span>` : ''}
           <div class="row-actions" style="align-items:center;margin:0;flex-wrap:wrap">
             <div class="plan-view-toggle">
               <button class="plan-view-btn${!isMonth ? ' on' : ''}" id="view-week">Semana</button>

@@ -13,7 +13,7 @@
 //   (con monthKey se corre a mano, fuera de la ventana del 1 al 5)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Anthropic from 'npm:@anthropic-ai/sdk@0';
-import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
+import { loadAiAccess } from '../_shared/access.ts';
 import { appUrl, EMAIL_TEST_RECIPIENT, sendEmail } from '../_shared/mailer.ts';
 import { addDays, buildMonthlyReport, emailKpis, localDateKey, monthEnd, monthStart, mondayOfWeek, reviewAiContext, shiftMonth, startPhase } from '../_shared/core.gen.js';
 import { callCoach, readResponse } from '../coach-chat/coach-call.ts';
@@ -225,7 +225,10 @@ async function candidates(admin: Admin, monthKey: string): Promise<string[]> {
   if (error) throw new Error(`candidatos: ${error.message}`);
   const reported = new Set(((done ?? []) as { athlete_id: string }[]).map((r) => r.athlete_id));
   const trained = new Set(((rows ?? []) as { user_id: string }[]).map((r) => r.user_id));
-  return [...trained].filter((u) => ALLOWED_USER_IDS.has(u) && !reported.has(u));
+  const pending = [...trained].filter((u) => !reported.has(u));
+  // solo quien tiene la IA (suscripción, coach o atleta con coach)
+  const allowed = await Promise.all(pending.map((u) => loadAiAccess(admin, u).then((a) => a.ai).catch(() => false)));
+  return pending.filter((_, i) => allowed[i]);
 }
 
 /** Lo que la IA sabe del arranque del atleta (ver SELF_MONTHLY_REVIEW_HEADER). */

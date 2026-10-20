@@ -5,6 +5,8 @@ import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import type { WorkoutTemplate } from '../../core/workout-templates';
 import { byGender, genderOf } from '../../core/gender';
 import { pinonFigureHtml } from '../pinon';
+import { hasAi, openPricingModal } from '../pricing';
+import { FOUNDER_PRICE_MXN } from '../../core/access';
 import { computeSessionAnalytics } from '../../engine/analytics';
 import { isBikeSession } from '../../core/session-kind';
 import { clearDraft, listDrafts } from '../../storage/session-draft';
@@ -134,7 +136,9 @@ export function renderHome(container: HTMLElement): void {
   }
 
   function heroContentHtml(): string {
-    const hello = `${greeting()}${name ? `, ${escapeHtml(name)}` : ''}`;
+    const coachName = appState.coach.myCoach?.coachName;
+    // Con coach, se dice de quién es el plan: Torq es la herramienta del coach.
+    const hello = `${greeting()}${name ? `, ${escapeHtml(name)}` : ''}${coachName ? ` · plan de ${escapeHtml(coachName)}` : ''}`;
     if (todayWorkouts.length > 1) {
       // Hoy puede tener hasta 2 agendados (MAX_PER_DAY en calendar.ts): cada uno con su botón.
       return `
@@ -174,6 +178,7 @@ export function renderHome(container: HTMLElement): void {
           </div>
           <div class="home-scene-cta home-welcome-cta">
             ${coach ? `<button type="button" class="home-ride-btn" id="welcome-plan">Armar mi plan con el coach</button>` : ''}
+            ${coach && !hasAi() && appState.billing ? `<span class="home-scene-hint">Torq Coach IA · $${appState.billing.priceMxn} al mes${appState.billing.priceMxn === FOUNDER_PRICE_MXN ? ' (fundador)' : ''}</span>` : ''}
             <button type="button" class="${coach ? 'home-welcome-alt' : 'home-ride-btn'}" id="welcome-ride">Rodar 30 min suave ahora</button>
           </div>
         </div>`;
@@ -368,6 +373,8 @@ export function renderHome(container: HTMLElement): void {
   wireGenerate();
 
   container.querySelector('#welcome-plan')?.addEventListener('click', () => {
+    // el precio va antes del cuestionario, nunca después del esfuerzo
+    if (!hasAi()) return openPricingModal();
     // perfil completo: directo a crear el plan; si no, Piñón guía el
     // cuestionario y al guardarlo se sigue a «Crear tu plan»
     if (isCoachProfileComplete(appState.profile)) {

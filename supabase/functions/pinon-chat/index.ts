@@ -12,7 +12,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Anthropic from 'npm:@anthropic-ai/sdk@0';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
-import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
+import { loadAiAccess } from '../_shared/access.ts';
 import { hasUnlimitedCoach, parsePinonRequest, pinonLimitReached, pinonUserMessage } from '../_shared/core.gen.js';
 import { callRow, logCalls } from '../coach-chat/usage-log.ts';
 import { PINON_SYSTEM_PROMPT } from './prompt.ts';
@@ -29,13 +29,13 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
     const userId = await getUserId(req);
-    // Mismo lanzamiento controlado que el coach: rechazar aquí cuesta $0.
-    if (!ALLOWED_USER_IDS.has(userId)) return json({ error: 'not_available' }, 403);
+    const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    // El chat abierto viene con la IA (suscripción, coach o atleta con
+    // coach): rechazar aquí cuesta $0. Los botones de Piñón no pasan por aquí.
+    if (!(await loadAiAccess(admin, userId)).ai) return json({ error: 'subscription_required' }, 403);
 
     const parsed = parsePinonRequest(await req.json().catch(() => null));
     if (!parsed.ok) return json({ error: parsed.error }, 400);
-
-    const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const since = new Date(Date.now() - WINDOW_MS).toISOString();
     const { count, error: countError } = await admin
       .from('coach_calls')

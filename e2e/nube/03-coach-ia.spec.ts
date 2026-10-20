@@ -96,33 +96,27 @@ test.describe('Crear mi plan', () => {
     ux.metrics['interacciones-hasta-poder-pedir-plan'] = m.interactions;
   });
 
-  test('cuenta sin acceso al coach: se avisa ANTES de pedirle el cuestionario', async ({ page, backend, ux }) => {
-    test.info().annotations.push({ type: 'deuda-ux', description: 'UX-08: la lista de cuentas con coach vive solo en el servidor; la app no lo sabe hasta el final.' });
-    test.fail(true, 'UX-08 conocido: requiere un endpoint/consulta de acceso (propuesta en el documento).');
-    const u = await enterAs(page, backend, 'carla', false);
-    backend.functions.set('coach-chat', () => ({ status: 403, body: { error: 'el coach todavía no está disponible para tu cuenta' } }));
+  test('cuenta sin acceso al coach: ve el precio ANTES de pedirle el cuestionario', async ({ page, backend, ux }) => {
+    await enterAs(page, backend, 'carla', false);
+    backend.billingStatus = { ai: false, reason: 'none', subscription: null, priceMxn: 299, billingReady: true, isAdmin: false };
     await page.goto('/#/plan');
-    // la persona no debería llegar al cuestionario de 28 preguntas para enterarse
-    await expect(page.locator('#coach-open-create')).toBeDisabled();
-    void u;
+    // en lugar de «Crear mi plan» (que abriría 29 preguntas), el precio
+    await expect(page.locator('#coach-slot [data-pricing]')).toBeVisible();
+    await expect(page.locator('#coach-slot')).toContainText('$299');
+    await expect(page.locator('#coach-open-create')).toHaveCount(0);
+    await ux.shot('70-plan-sin-acceso-precio');
   });
 
-  test('cuenta sin acceso: mide el esfuerzo tirado hasta enterarse', async ({ page, backend, ux }) => {
-    const u = await enterAs(page, backend, 'carla', false);
-    backend.functions.set('coach-chat', () => ({ status: 403, body: { error: 'el coach todavía no está disponible para tu cuenta' } }));
-    await page.goto('/#/plan');
-    await ux.click(page.locator('#coach-open-create'), 'Crear mi plan');
-    await fillOnboarding(page, ux, NOVATA);
-    await ux.fill(page.locator('#coach-goal'), 'Prepararme para un gran fondo', 'Meta');
-    await ux.click(page.locator('#coach-days [data-day=sat]'), 'Sábado');
-    await ux.click(page.locator('#coach-submit'), 'Crear plan');
-    await expect(page.locator('#coach-status')).toContainText('no está disponible', { timeout: 10_000 });
-    await ux.shot('23-coach-sin-acceso', page.locator('#coach-modal'));
-    const m = ux.milestone('rechazo');
-    ux.finding('UX-08', `Tras ${m.interactions} interacciones (~${m.humanSeconds} s) la persona se entera de que su cuenta no tiene coach.`);
-    // al menos: el mensaje ofrece algo que sí puede hacer
-    expect(await ux.englishIn(page.locator('#coach-modal'))).toEqual([]);
-    void u;
+  test('cuenta sin acceso: cuánto esfuerzo cuesta enterarse (antes: ~4 min)', async ({ page, backend, ux }) => {
+    await enterAs(page, backend, 'carla', false);
+    backend.billingStatus = { ai: false, reason: 'none', subscription: null, priceMxn: 399, billingReady: true, isAdmin: false };
+    await page.goto('/#/home');
+    await ux.click(page.locator('#welcome-plan'), 'Armar mi plan con el coach');
+    await expect(page.locator('#pricing-backdrop [data-pricing]')).toBeVisible();
+    await expect(page.locator('#onboarding-modal')).toHaveCount(0);
+    const m = ux.milestone('precio');
+    expect(m.interactions, 'interacciones hasta ver el precio').toBeLessThanOrEqual(1);
+    expect(backend.fnCalls('coach-chat')).toHaveLength(0);
   });
 
   for (const c of [

@@ -1318,3 +1318,61 @@ alter table waitlist enable row level security;
 drop policy if exists "waitlist: cualquiera se apunta" on waitlist;
 create policy "waitlist: cualquiera se apunta" on waitlist for insert
   to anon, authenticated with check (true);
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Suscripción Torq Coach IA (Mercado Pago). Solo para atletas sin coach: los
+-- coaches y sus atletas no pagan (ver src/core/access.ts). Una fila por
+-- usuario; la escriben solo las Edge Functions billing-* con service role
+-- (el atleta la puede leer, nunca escribir).
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists subscriptions (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  status text not null default 'pending' check (status in ('pending', 'authorized', 'paused', 'cancelled')),
+  -- precio fijado al suscribirse: 399, o 299 si fue antes de la fecha de fundador
+  price_mxn integer not null check (price_mxn > 0),
+  mp_preapproval_id text unique,
+  -- hasta cuándo está pagado y, si el último cobro falló, hasta cuándo hay gracia
+  paid_until timestamptz,
+  grace_until timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table subscriptions enable row level security;
+drop policy if exists "subscriptions: leer la propia" on subscriptions;
+create policy "subscriptions: leer la propia" on subscriptions for select using (auth.uid() = user_id);
+
+-- Cada aviso de Mercado Pago que ya se procesó (los reenvía si no contestamos
+-- a tiempo): evita aplicar dos veces el mismo cobro.
+create table if not exists billing_events (
+  id text primary key,
+  kind text not null,
+  user_id uuid references auth.users (id) on delete set null,
+  received_at timestamptz not null default now()
+);
+alter table billing_events enable row level security;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Aceptación de términos y del uso de datos de salud (docs/legal/). Es la
+-- evidencia: quién, qué versión (con la huella SHA-256 del texto), cuándo y
+-- desde qué navegador. Solo se inserta: nadie la edita ni la borra desde la
+-- app. Un coach puede tener sus propios términos (doc = 'coach:<coach_id>').
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists legal_acceptances (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  doc text not null check (doc = 'torq' or doc like 'coach:%'),
+  version text not null,
+  text_sha256 text not null check (text_sha256 ~ '^[0-9a-f]{64}$'),
+  consents jsonb not null default '{}'::jsonb,
+  user_agent text,
+  accepted_at timestamptz not null default now()
+);
+create index if not exists legal_acceptances_user_idx on legal_acceptances (user_id, doc, version);
+alter table legal_acceptances enable row level security;
+drop policy if exists "legal_acceptances: aceptar" on legal_acceptances;
+create policy "legal_acceptances: aceptar" on legal_acceptances for insert to authenticated with check (auth.uid() = user_id);
+drop policy if exists "legal_acceptances: leer las propias" on legal_acceptances;
+create policy "legal_acceptances: leer las propias" on legal_acceptances for select using (auth.uid() = user_id);
+
+-- Lista de espera: cuándo se invitó a cada quien (lo marca admin-waitlist).
+alter table waitlist add column if not exists invited_at timestamptz;

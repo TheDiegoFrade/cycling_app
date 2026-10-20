@@ -80,6 +80,8 @@ const COACH_ITEMS: typeof ITEMS = [
   },
 ];
 
+const ADMIN_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="2"/></svg>';
+
 /** Misma inicial que el círculo de Inicio y Perfil (la del correo). */
 function profileInitial(): string {
   return (appState.user?.email ?? '?').charAt(0).toUpperCase();
@@ -95,7 +97,9 @@ function sidebarHtml(active: SidebarScreen | null): string {
     <a href="#/${i.route}" class="sidebar-link${i.screen === active ? ' active' : ''}">${i.icon}${i.label}</a>`;
   const links =
     ITEMS.map(linkHtml).join('') +
-    (appState.coach.isCoach ? `<div class="sidebar-group-title">Coach</div>${COACH_ITEMS.map(linkHtml).join('')}` : '');
+    (appState.coach.isCoach ? `<div class="sidebar-group-title">Coach</div>${COACH_ITEMS.map(linkHtml).join('')}` : '') +
+    // Solo administradores: la lista de espera (ver screens/admin-waitlist.ts).
+    (appState.billing?.isAdmin ? `<div class="sidebar-group-title">Admin</div><a href="#/admin" class="sidebar-link">${ADMIN_ICON}Lista de espera</a>` : '');
   return `
     <nav class="sidebar" id="app-sidebar">
       <div class="sidebar-brand"><a href="#/home" class="sidebar-logo" aria-label="torq, ir a Inicio"><img src="/brand/logo-torq.webp" alt="torq" width="99" height="46"></a><button type="button" class="drawer-close" id="drawer-close" aria-label="Cerrar menú">✕</button></div>

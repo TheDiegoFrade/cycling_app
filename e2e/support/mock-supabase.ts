@@ -77,10 +77,18 @@ export class MockSupabase {
   readonly calls: CallLog[] = [];
   readonly users: MockUser[] = [];
   readonly t0 = Date.now();
+  /** Por defecto la persona ya aceptó los términos (las pruebas que no son de
+   * términos no pasan por esa pantalla). false = tabla real: hay que aceptar. */
+  autoAcceptTerms = true;
+  /** Correo de quien llega del correo de invitación (verifyOtp). */
+  invitedEmail: string | null = null;
+  /** Lo que contesta `billing` → status. Por defecto, cuenta con acceso. */
+  billingStatus: Record<string, unknown> = { ai: true, reason: 'comp', subscription: null, priceMxn: 299, billingReady: true, isAdmin: false };
 
   constructor(users: MockUser[] = []) {
     this.users.push(...users);
     this.rpcs.set('my_coach', () => null);
+    this.functions.set('billing', (body) => (body?.action === 'status' || !body?.action ? { body: this.billingStatus } : { status: 400, body: { error: 'acción no simulada' } }));
   }
 
   table(name: string): Record<string, unknown>[] {
@@ -146,7 +154,7 @@ export class MockSupabase {
         const u = this.users[0];
         return json(200, sessionFor(u));
       }
-      if (name === 'user') {
+      if (name === 'user' && method !== 'PUT') {
         const auth = req.headers()['authorization'] ?? '';
         const sub = (() => {
           try {
@@ -159,6 +167,18 @@ export class MockSupabase {
         return u ? json(200, sessionFor(u).user) : json(401, { msg: 'no user' });
       }
       if (name === 'logout') return json(204, undefined);
+      // Canjear el token del correo de invitación (verifyOtp type=invite):
+      // la persona invitada queda con sesión.
+      if (name === 'verify' && method === 'POST') {
+        const u = this.users.find((x) => x.email === this.invitedEmail) ?? this.users[0];
+        this.log({ kind: 'auth', name: 'verify', method, status: u && reqBody?.token_hash ? 200 : 400 });
+        if (!u || !reqBody?.token_hash) return json(400, { msg: 'invalid' });
+        return json(200, sessionFor(u));
+      }
+      if (name === 'user' && method === 'PUT') {
+        this.log({ kind: 'auth', name: 'update_user', method, status: 200, body: reqBody?.password ? { password: '***' } : reqBody });
+        return json(200, sessionFor(this.users.find((x) => x.email === this.invitedEmail) ?? this.users[0]).user);
+      }
       if (name === 'recover' || name === 'otp') return json(200, {});
       this.log({ kind: 'auth', name, method, status: 404 });
       return json(404, { msg: 'not mocked' });
@@ -218,7 +238,11 @@ export class MockSupabase {
         if (method !== 'GET' && !prefer.includes('return=representation')) return json(201, undefined);
         return json(200, data, { 'content-range': `0-${Math.max(0, data.length - 1)}/${data.length}` });
       };
-      if (method === 'GET' || method === 'HEAD') return respond(rows.filter(matches));
+      if (method === 'GET' || method === 'HEAD') {
+        const found = rows.filter(matches);
+        if (name === 'legal_acceptances' && this.autoAcceptTerms && found.length === 0) return respond([{ id: 0 }]);
+        return respond(found);
+      }
       if (method === 'POST') {
         const incoming = (Array.isArray(reqBody) ? reqBody : [reqBody]) as Record<string, unknown>[];
         const conflict = url.searchParams.get('on_conflict')?.split(',');

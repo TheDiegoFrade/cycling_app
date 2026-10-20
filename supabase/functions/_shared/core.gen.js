@@ -754,8 +754,84 @@ ${req.message}
 </pregunta>`
   ].filter(Boolean).join("\n\n");
 }
+
+// src/core/access.ts
+var PRICE_MXN = 399;
+var FOUNDER_PRICE_MXN = 299;
+var GRACE_DAYS = 7;
+var after = (iso, now) => !!iso && new Date(iso).getTime() > now.getTime();
+function aiAccess(i) {
+  if (i.comp) return { ai: true, reason: "comp" };
+  if (i.isCoach) return { ai: true, reason: "coach" };
+  if (i.hasActiveCoach) return { ai: true, reason: "coached" };
+  const s = i.subscription;
+  if (s) {
+    if (s.status === "authorized" && (s.paidUntil === null || after(s.paidUntil, i.now))) return { ai: true, reason: "subscription" };
+    if (after(s.graceUntil, i.now)) return { ai: true, reason: "grace" };
+    if ((s.status === "cancelled" || s.status === "paused") && after(s.paidUntil, i.now)) return { ai: true, reason: "subscription" };
+  }
+  return { ai: false, reason: "none" };
+}
+function priceForNewSubscription(now, founderUntil) {
+  if (!founderUntil || !/^\d{4}-\d{2}-\d{2}$/.test(founderUntil)) return PRICE_MXN;
+  return now.getTime() < (/* @__PURE__ */ new Date(`${founderUntil}T23:59:59-06:00`)).getTime() ? FOUNDER_PRICE_MXN : PRICE_MXN;
+}
+
+// src/core/mercadopago.ts
+var STATUSES = ["pending", "authorized", "paused", "cancelled"];
+function subscriptionStatusOf(mpStatus) {
+  return STATUSES.includes(mpStatus) ? mpStatus : "pending";
+}
+function addDaysIso(iso, days) {
+  const d = new Date(iso);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString();
+}
+function addMonthIso(iso) {
+  const d = new Date(iso);
+  d.setUTCMonth(d.getUTCMonth() + 1);
+  return d.toISOString();
+}
+function applyPayment(p, now) {
+  const paymentStatus = p.payment?.status ?? null;
+  const when = p.debit_date ?? p.date_created ?? now.toISOString();
+  if (paymentStatus === "approved") return { paidUntil: addDaysIso(addMonthIso(when), 2), graceUntil: null };
+  if (paymentStatus === "rejected" || p.status === "recycling") return { graceUntil: addDaysIso(now.toISOString(), GRACE_DAYS) };
+  return null;
+}
+function hex(buf) {
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+async function verifyMpSignature(opts) {
+  if (!opts.signature || !opts.dataId || !opts.secret) return false;
+  const parts = Object.fromEntries(
+    opts.signature.split(",").map((kv) => {
+      const [k, ...v] = kv.split("=");
+      return [k.trim(), v.join("=").trim()];
+    })
+  );
+  const ts = parts.ts;
+  const v1 = parts.v1;
+  if (!ts || !v1) return false;
+  const tsMs = Number(ts) > 1e12 ? Number(ts) : Number(ts) * 1e3;
+  const nowMs = (opts.now ?? /* @__PURE__ */ new Date()).getTime();
+  if (!Number.isFinite(tsMs) || Math.abs(nowMs - tsMs) > (opts.maxAgeS ?? 600) * 1e3) return false;
+  const id = /^[a-z0-9]+$/i.test(opts.dataId) ? opts.dataId.toLowerCase() : opts.dataId;
+  const manifest = `id:${id};${opts.requestId ? `request-id:${opts.requestId};` : ""}ts:${ts};`;
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(opts.secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = hex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(manifest)));
+  if (mac.length !== v1.length) return false;
+  let diff = 0;
+  for (let i = 0; i < mac.length; i++) diff |= mac.charCodeAt(i) ^ v1.charCodeAt(i);
+  return diff === 0;
+}
 export {
+  FOUNDER_PRICE_MXN,
+  GRACE_DAYS,
+  PRICE_MXN,
   addDays,
+  aiAccess,
+  applyPayment,
   buildMonthlyReport,
   defaultReviewMonth,
   emailKpis,
@@ -770,9 +846,12 @@ export {
   pinonUserMessage,
   planTotalWeeks,
   planWeekOf,
+  priceForNewSubscription,
   reviewAiContext,
   rpeRampIntervals,
   shiftMonth,
   startPhase,
-  startingProfile
+  startingProfile,
+  subscriptionStatusOf,
+  verifyMpSignature
 };

@@ -47,7 +47,8 @@ export function ageFromBirthDate(birthDate: string | undefined, today: Date = ne
 
 /** Rangos válidos de los datos corporales: fuera de ellos es un error de
  * captura que el coach leería como dato real. */
-export const BODY_LIMITS = { ageYears: [8, 100], weightKg: [30, 200], heightCm: [100, 230] } as const;
+// Edad: Torq es solo para mayores de 18 (términos §2, ver core/access.ts).
+export const BODY_LIMITS = { ageYears: [18, 100], weightKg: [30, 200], heightCm: [100, 230] } as const;
 
 const inRange = (v: number | null | undefined, [lo, hi]: readonly [number, number]) => v != null && Number.isFinite(v) && v >= lo && v <= hi;
 
@@ -58,7 +59,9 @@ export function bodyDataError(
   p: { birth_date?: string; weight_kg?: number; height_cm?: number },
   today: Date = new Date(),
 ): string | null {
-  if (!inRange(ageFromBirthDate(p.birth_date, today), BODY_LIMITS.ageYears)) return 'Escribe tu fecha de nacimiento (de 8 a 100 años).';
+  const age = ageFromBirthDate(p.birth_date, today);
+  if (age !== null && age < BODY_LIMITS.ageYears[0]) return 'Torq es solo para mayores de 18 años. Revisa tu fecha de nacimiento.';
+  if (!inRange(age, BODY_LIMITS.ageYears)) return 'Escribe tu fecha de nacimiento (de 18 a 100 años).';
   if (!inRange(p.weight_kg, BODY_LIMITS.weightKg)) return 'Escribe tu peso (de 30 a 200 kg).';
   if (!inRange(p.height_cm, BODY_LIMITS.heightCm)) return 'Escribe tu altura (de 100 a 230 cm).';
   return null;

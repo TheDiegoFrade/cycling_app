@@ -1,6 +1,6 @@
-export type Screen = 'home' | 'plan' | 'library' | 'prepare' | 'train' | 'session' | 'form' | 'profile' | 'limits' | 'login' | 'log' | 'invite' | 'coach-invite' | 'coach-athletes' | 'coach-athlete' | 'coach-week' | 'coach-library' | 'coach-weeks' | 'coach-review' | 'review' | 'coach-session';
+export type Screen = 'home' | 'plan' | 'library' | 'prepare' | 'train' | 'session' | 'form' | 'profile' | 'limits' | 'login' | 'log' | 'invite' | 'coach-invite' | 'coach-athletes' | 'coach-athlete' | 'coach-week' | 'coach-library' | 'coach-weeks' | 'coach-review' | 'review' | 'coach-session' | 'admin';
 
-const SCREENS: readonly Screen[] = ['home', 'plan', 'library', 'prepare', 'train', 'session', 'form', 'profile', 'limits', 'login', 'log', 'invite', 'coach-invite', 'coach-athletes', 'coach-athlete', 'coach-week', 'coach-library', 'coach-weeks', 'coach-review', 'review', 'coach-session'];
+const SCREENS: readonly Screen[] = ['home', 'plan', 'library', 'prepare', 'train', 'session', 'form', 'profile', 'limits', 'login', 'log', 'invite', 'coach-invite', 'coach-athletes', 'coach-athlete', 'coach-week', 'coach-library', 'coach-weeks', 'coach-review', 'review', 'coach-session', 'admin'];
 
 /** Rutas viejas → nuevas, ver TORQ_DESIGN.md ("Rutas: de la app actual a la
  * nueva"). Cualquier hash viejo se reescribe al nuevo antes de resolver la

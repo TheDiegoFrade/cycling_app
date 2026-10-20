@@ -4,6 +4,7 @@
 import { supabase, isSupabaseConfigured } from '../supabase/client';
 import { appState } from './state';
 import { byGender, genderOf } from '../core/gender';
+import { hasAi, openPricingModal, pricingPanelHtml, wirePricing } from './pricing';
 import { isCoachProfileComplete, openOnboardingForm } from './onboarding';
 import { computePmc } from '../engine/pmc';
 import { listSessions } from '../storage/session-store';
@@ -570,7 +571,11 @@ export function renderCoachSection(container: HTMLElement, onChange: () => void)
     fetchMonthlyWeeklyEvalsUsed(appState.user.id),
   ]).then(([plan, actionsUsed, weeklyEvalsUsed]) => {
     knownHasPlan = !!plan;
-    slot.innerHTML = plan ? planSummaryHtml(plan, weeklyEvalsUsed, actionsUsed) : createCardHtml(actionsUsed);
+    // Sin acceso a la IA (ni suscripción, ni coach): el precio va aquí, antes
+    // del cuestionario. Si tenía plan y dejó de pagar, el plan se sigue viendo.
+    const pricing = hasAi() ? '' : pricingPanelHtml();
+    slot.innerHTML = plan ? planSummaryHtml(plan, weeklyEvalsUsed, actionsUsed) + pricing : pricing || createCardHtml(actionsUsed);
+    wirePricing(slot);
     // Con coach humano: recordatorio visible (no bloquea) de platicar con
     // él antes de pedirle cambios a la IA — ver ui/coach-notice.ts.
     const humanCoach = humanCoachName();
@@ -581,6 +586,7 @@ export function renderCoachSection(container: HTMLElement, onChange: () => void)
       );
     }
     slot.querySelector('#coach-open-create')?.addEventListener('click', () => {
+      if (!hasAi()) return openPricingModal();
       if (!confirmAiWithHumanCoach()) return;
       // El cuestionario inicial llena el Perfil persistente — si ya está
       // completo (de esta vez o de una anterior), no se vuelve a preguntar.
@@ -592,7 +598,8 @@ export function renderCoachSection(container: HTMLElement, onChange: () => void)
     });
     if (pendingCreate) {
       pendingCreate = false;
-      slot.querySelector<HTMLButtonElement>('#coach-open-create:not([disabled])')?.click();
+      if (!hasAi()) openPricingModal();
+      else slot.querySelector<HTMLButtonElement>('#coach-open-create:not([disabled])')?.click();
     }
     if (plan) {
       wireFtpOffer(slot);
@@ -1159,6 +1166,14 @@ function openCreateModal(onChange: () => void): void {
         } catch {
           // el body no era JSON — nos quedamos con error.message de abajo
         }
+      }
+      if (serverMessage === 'subscription_required') {
+        // el acceso cambió desde que se abrió la pantalla (p. ej. venció)
+        status.textContent = 'Para crear tu plan necesitas Torq Coach IA.';
+        submitBtn.disabled = false;
+        void appState.refreshBilling();
+        openPricingModal();
+        return;
       }
       status.textContent = `No se pudo crear el plan: ${serverMessage ?? fnErrorText(error)}`;
       submitBtn.disabled = false;
