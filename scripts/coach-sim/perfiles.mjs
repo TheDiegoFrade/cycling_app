@@ -78,7 +78,7 @@ const ALC = { rarely: 'nunca o rara vez', weekly: '1–2 veces por semana', freq
 const RPE = { yes: 'sí', somewhat: 'más o menos', no: 'no' };
 const RECENT = { little: 'poco o nada', easy: 'rodadas suaves', with_intensity: 'con intensidad' };
 const COND = { hypertension: 'hipertensión', diabetes: 'diabetes', metabolic: 'metabólica', asthma: 'asma', heart: 'cardiaca', dysautonomia: 'disautonomía', vertigo: 'vértigo', other: 'otra' };
-const FTPSRC = { manual: 'lo escribió (medido)', test_20min: 'test de 20 min', test_ramp: 'test de rampa', provisional: 'provisional (estimado)' };
+const FTPSRC = { manual: 'lo escribió la persona (sin confirmar en Torq)', test_20min: 'test de 20 min', test_ramp: 'test de rampa', provisional: 'provisional (estimado)' };
 
 const fmtMin = (s) => { const m = s / 60; return m >= 1 ? `${Math.round(m * 10) / 10}'` : `${s}"`; };
 function stepText(iv, ftp) {
@@ -151,6 +151,7 @@ function fichaMd(p, ctx) {
     `| **FTP** | ${ftp} |`,
     `| **FC máxima** | ${p.hrMax ? `${p.hrMax} lpm (medida)` : 'No la sabe'} · reposo: ${i.restingHr ? `${i.restingHr} lpm` : 'no sabe'} |`,
     `| **Últimas 4 semanas** | ${RECENT[i.recentTraining]}${i.recentHoursPerWeek != null ? `, ~${i.recentHoursPerWeek} h/sem` : ''} |`,
+    ...(i.recentTrainingNote ? [`| **Su semana típica (textual)** | «${i.recentTrainingNote}» |`] : []),
     `| **Salud** | Condiciones: ${cond}${i.takesMedication ? ` · medicamento: ${i.medicationNote}` : ''} · lesión reciente: ${i.recentInjury ? 'sí' : 'no'}${p.injuries ? ` · molestias: ${p.injuries}` : ''} |`,
     `| **Hábitos** | Duerme ${i.sleepHours} h (calidad ${SLEEPQ[i.sleepQuality]}) · estrés ${LVL[i.stress]} · fuma: ${SMOKE[i.smoking]} · alcohol: ${ALC[i.alcohol]} |`,
     `| **Esfuerzo** | ¿Sabe usar RPE?: ${RPE[i.rpeLiteracy]} · ¿ha hecho esfuerzos máximos?: ${i.maxEffortExperience ? 'sí' : 'no'} |`,
@@ -272,6 +273,7 @@ function report(results) {
             '',
             ...POR_PERFIL[p.id].porque.map((x) => `- ${x}`),
             '',
+            ...(POR_PERFIL[p.id].cambio ? [`**Qué cambió desde la corrida 1:** ${POR_PERFIL[p.id].cambio}`, ''] : []),
             '**Para revisar:**',
             '',
             ...POR_PERFIL[p.id].revisar.map((x) => `- ${x}`),
@@ -289,7 +291,7 @@ function report(results) {
     '## Cómo se generó',
     '',
     '- Perfiles: `scripts/coach-sim/perfiles-data.mjs` (cuestionario completo: salud y hábitos, otras actividades, FTP medido / provisional / sin dato).',
-    '- Corrida: `node scripts/coach-sim/perfiles.mjs` contra producción con la cuenta de pruebas. Todo lo que contestó la IA (contexto enviado, respuesta, plan y cada sesión con sus intervalos) está en `docs/evaluaciones/planes-ia-para-joe-datos/`.',
+    '- Corrida: `node scripts/coach-sim/perfiles.mjs` contra producción con la cuenta de pruebas. Todo lo que contestó la IA (contexto enviado, respuesta, plan y cada sesión con sus intervalos) está en `docs/evaluaciones/planes-ia-para-joe-datos/` (corrida 2) y `…-datos/v1/` (corrida 1, antes de los cambios de #54).',
     '- Análisis: `scripts/coach-sim/perfiles-analisis.mjs`.',
     '- Validación sin IA: `perfiles-check.ts` (mismo schema del servidor y perfil de arranque).',
   );

@@ -7,47 +7,49 @@
 
 **Qué es de quién:** el plan, las sesiones y la nota al atleta los escribió el coach IA (textual). Las secciones «Por qué tomó estas decisiones» y «Hallazgos» son un análisis aparte, hecho leyendo cada plan contra el perfil: la IA no entrega un razonamiento propio además de su nota.
 
-## Hallazgos y preguntas (análisis de la corrida del 20 de octubre de 2026)
+## Hallazgos y preguntas (análisis de la corrida del 20 de octubre de 2026 (corrida 2))
 
-**Lo que hace bien en los 10:**
+**Qué cambió desde la corrida 1** (esa misma tarde, después de la revisión de producto):
 
-- **Respeta las reglas de arranque.** Las tres personas con condición de salud (Roberto, Lucía y Paola) no tienen test ni esfuerzos máximos: nada pasa de ~76% de FTP y todo va por sensación, con la indicación de ir con su médico. Ana y Daniel, que vienen de estar sedentarios y no saben usar RPE, van sin test, por sensación y con la escala de esfuerzo explicada. Los que vienen entrenando con intensidad (Mariana y Fernando) arrancan con umbral y arranques desde la semana 1, sin rehacer base.
-- **Nunca se pasa de la disponibilidad**, ni de días ni de minutos por sesión, y cuenta las otras actividades (gym, carrera, natación, yoga) para no poner un día duro junto a ellas.
-- **Usa la salida larga afuera** cuando el objetivo es largo y hay fin de semana (Carlos, Sofía, Javier, Fernando, Lucía, y Roberto desde la semana 3). Agenda técnica afuera para XCO (Fernando).
-- **Pone el test donde tiene sentido:** de 20 min para quien sabe dosificarse (Carlos, Sofía, Mariana, Fernando), casi siempre después de una descarga; rampa para Javier; nada para los demás.
-- **Explica sus decisiones** en la nota al atleta: demanda del evento, por qué esos días, qué cuenta en la carga.
+- **Ya no promete resultados.** A Carlos: «La meta de menos de 4 h la juzgamos tras el test y las primeras semanas; por ahora la meta del plan es llegar entero a la subida final». A Roberto: «se ve alcanzable con 15 semanas, pero con tus primeras semanas vamos a ver qué ritmo es realista». A Lucía: «aún no sé qué tiempo es realista». A Ana y Daniel: «no prometo kilos».
+- **El FTP que escribió la persona se confirma pronto.** Carlos y Sofía hacen su test de 20 min en la semana 2 (antes, en las semanas 5 y 6). Fernando, que hizo un test hace 10 días, lo repite hasta la semana 4.
+- **Parte de lo que ya hace cada quien.** Fernando: «respeto tu semana… y cambio solo la progresión». Carlos: «la salida larga del domingo, que ya haces, se queda». Mariana: «partimos de tu semana real». Lucía: «parto de lo que ya haces». Sofía: arranca en 3 h 20 min de bici, «máximo +10 % sobre lo que ya haces».
+- **El alcohol ocasional ya no frena.** Carlos ahora arranca normal: sweet spot hasta 89–90% desde la semana 1 (antes, nada arriba de 82% en 3 semanas).
+- **Mariana ahora tiene salida larga afuera** (3 h 30 min los sábados, con el equipo), como la que ya hacía.
+- **Género:** antes había 8 errores (7 a mujeres); ahora hay 1, al revés: a Roberto le dice «lista».
+- **Paola:** ya no aparece el extra «Sin gimnasio hoy» ni la frase de técnica de montaña.
 
-**Problemas que encontré (para corregir en Torq, no para Joe):**
+**Se mantiene bien:** las reglas de salud (Roberto, Lucía y Paola sin test, por sensación y con la indicación de ir al médico; nada arriba de ~78%). Nunca se pasa de la disponibilidad y cuenta gym, carrera, natación y yoga.
 
-1. **Género en las descripciones de las sesiones.** A 4 de las 5 mujeres les habla en masculino en algunas sesiones: «listo para el fin de semana», «sentirte cómodo», «llegar entero» (Ana, Sofía, Lucía y Paola). Las notas del coach están bien. El error viene del redactor de descripciones (Haiku), que sí recibe el sexo.
-2. **Un extra sin sentido:** a Paola le agenda «Sin gimnasio hoy» (15 min).
-3. **Frases que no aplican:** a Paola (que no es de montaña) le dice que «el rodillo no entrena técnica de montaña», y que «ve una prueba sin competencia».
-4. **Consejo médico:** a Paola, con metformina, le dice «come antes de rodar y lleva algo dulce». Es prudente, pero es una indicación médica.
+**Pendientes para Torq:**
 
-**Limitación de la prueba:** las fechas de los eventos caen en martes porque los calculé como «hoy + N semanas» y hoy es martes. Es un error mío en los datos de prueba, no de la IA.
+1. **Género al revés:** una descripción de Roberto dice «lista para descansar».
+2. **Tope de 90 min en rodillo:** a Mariana le dice «tu sesión indoor llega a 90 min… si quieres rodillo más largo, súbelo en tu formulario», pero ella no puso tope: es el límite general del coach y se lo presenta como si fuera suyo.
+3. **Contenido del gym:** a Carlos y Mariana les agenda qué hacer en su gym («pierna moderada», «tren superior y core»), aunque solo dijeron que van.
 
 **Preguntas para Joe:**
 
-- **Volumen corto.** El plan siempre se queda por debajo de lo disponible: Mariana (élite, venía de 12 h) arranca con 6.3 h de 11 posibles; Fernando ~7 de 9; Sofía ~4 de 5; Ana 2 de 2.5. ¿Así arrancarías, o está siendo demasiado prudente?
-- **Tope de 90 min en rodillo.** Aunque la persona no ponga límite, la IA no pasa de 90 min por sesión de rodillo. A Mariana (ruta) no le pone salida larga afuera: su sesión más larga es de 90 min. ¿Está bien para una élite de ruta?
-- **Alcohol 1–2 veces por semana.** Hoy cuenta igual que tomar seguido: sube el estrés un nivel y pone «base antes de intensidad». Por eso Carlos (Master 40, con experiencia, duerme bien) pasa 3 semanas sin nada arriba de tempo (82%). ¿Así lo quieres, o solo a partir de 3 veces por semana? (La regla está marcada como provisional.)
-- **Sueño de 6 h exactas** no cuenta como «poco sueño» (el corte es menos de 6 h); sí cuenta si la calidad es mala. ¿El corte está bien?
-- **Test en semana 1 con sueño malo.** Javier duerme mal y tiene estrés alto (arranque conservador), pero como sí puede dar un máximo, le toca la rampa el jueves de la primera semana. ¿Lo harías tan pronto?
+- **Volumen.** Sigue por debajo de lo disponible, ahora con razones explícitas: Sofía 3 h 20 min de bici de 5 («máximo +10 % sobre lo que ya haces»), Mariana ~4.7–5.9 h de rodillo más 3.5 h afuera de 11, Fernando 6.7–7.8 h de 9 contando técnica y salida larga (la semana 3 es de descarga). ¿Estás de acuerdo?
+- **Javier** (duerme mal, estrés alto) sigue con la rampa el jueves de la semana 1. ¿Tan pronto?
+- **Paola** tiene descarga en la semana 3 (baja a 1.6 h), cuando apenas lleva 2 semanas de 2.1–2.2 h. ¿Hace falta tan pronto?
+- **Ana** (34, sana, sedentaria): le recomienda chequeo médico antes de subir intensidad. ¿Lo pedirías a todo sedentario?
+- **Metformina:** a Paola le dice «come algo antes de rodar y lleva algo dulce». Es una regla escrita en el prompt (método de Joe). ¿La mantenemos así?
+- **Contenido del gym:** ¿quieres que la IA le diga a la persona qué hacer en su gym, o solo que lo tome en cuenta?
 
 ## Resumen
 
 | # | Persona | Objetivo | Arranque (reglas de Torq) | Plan | Semana 1 |
 |---|---|---|---|---|---|
-| 01 | [Ana López](#p01) | Oficinista sin experiencia, quiere bajar de peso y tener energía | sin test · arranque conservador · base primero | Primeros pedales: base y hábito | 2 sesiones · 1.3 h |
-| 02 | [Carlos Méndez](#p02) | MTB Master 40, primera carrera larga (Chupacabras 60 km) | test de 20 min · arranque conservador · base primero | Chupacabras 60 km: base sólida y subida final con piernas | 3 sesiones · 3.1 h |
-| 03 | [Sofía Ramírez](#p03) | Triatleta: la bici es su punto débil para un 70.3 | test de 20 min · en temporada | Camino a Cozumel 70.3: bici fuerte para correr bien | 2 sesiones · 1.8 h |
-| 04 | [Roberto García](#p04) | Retoma después de 3 años, hipertensión controlada, gran fondo 80 km | médico primero · sin test · arranque conservador · base primero | Gran fondo 80 km: de vuelta a la bici con calma | 3 sesiones · 2.3 h |
-| 05 | [Mariana Torres](#p05) | Ciclista élite, selectivo nacional en 8 semanas | test de 20 min · en temporada | Selectivo nacional: más umbral y mejores arranques | 5 sesiones · 6.3 h |
+| 01 | [Ana López](#p01) | Oficinista sin experiencia, quiere bajar de peso y tener energía | sin test · arranque conservador | Empezando con el rodillo: energía y constancia | 2 sesiones · 1.2 h |
+| 02 | [Carlos Méndez](#p02) | MTB Master 40, primera carrera larga (Chupacabras 60 km) | test de 20 min | Chupacabras 60 km: llegar fuerte a la subida final | 3 sesiones · 3 h |
+| 03 | [Sofía Ramírez](#p03) | Triatleta: la bici es su punto débil para un 70.3 | test de 20 min · en temporada | Hacia Cozumel 70.3: bici con piernas para correr | 2 sesiones · 1.7 h |
+| 04 | [Roberto García](#p04) | Retoma después de 3 años, hipertensión controlada, gran fondo 80 km | médico primero · sin test | Vuelta a la bici: gran fondo de 80 km | 3 sesiones · 2.5 h |
+| 05 | [Mariana Torres](#p05) | Ciclista élite, selectivo nacional en 8 semanas | test de 20 min · en temporada | Selectivo de ruta: umbral y arranques hacia el 20 de diciembre | 4 sesiones · 4.7 h |
 | 06 | [Javier Hernández](#p06) | Papá con poco tiempo, gravel de 100 km, FTP provisional | test de rampa · arranque conservador | Gravel Sierra Gorda 100 km | 3 sesiones · 2.1 h |
-| 07 | [Lucía Fernández](#p07) | MTB recreativa con asma, quiere subir el Ajusco sin bajarse | médico primero · sin test | Subir el Ajusco con tus amigas | 2 sesiones · 2 h |
-| 08 | [Daniel Ortiz](#p08) | Exfutbolista con sobrepeso y molestia de rodilla | sin test · arranque conservador · base primero | Volver a moverte: base y peso | 3 sesiones · 2.2 h |
-| 09 | [Fernando Ruiz](#p09) | XCO Master 50 a media temporada, Copa Nacional en 8 semanas | test de 20 min · en temporada | Chispa para la Copa Nacional XCO | 2 sesiones · 2.1 h |
-| 10 | [Paola Jiménez](#p10) | Diabetes tipo 2 controlada, entrena por salud y diversión | médico primero · sin test · arranque conservador · metabólico primero | Movimiento constante para tu glucosa y tu calma | 3 sesiones · 2.2 h |
+| 07 | [Lucía Fernández](#p07) | MTB recreativa con asma, quiere subir el Ajusco sin bajarse | médico primero · sin test | Ajusco sin bajarte | 2 sesiones · 1.9 h |
+| 08 | [Daniel Ortiz](#p08) | Exfutbolista con sobrepeso y molestia de rodilla | sin test · base primero | Volver a rodar: base y constancia | 3 sesiones · 2.2 h |
+| 09 | [Fernando Ruiz](#p09) | XCO Master 50 a media temporada, Copa Nacional en 8 semanas | test de 20 min · en temporada | Copa Nacional XCO: chispa en arranques y subidas cortas | 2 sesiones · 2.2 h |
+| 10 | [Paola Jiménez](#p10) | Diabetes tipo 2 controlada, entrena por salud y diversión | médico primero · sin test · arranque conservador · metabólico primero | Base y energía: rodar con gusto | 3 sesiones · 2.1 h |
 
 ---
 
@@ -71,90 +73,90 @@
 | **Disponibilidad** | 2.5 h/sem · lunes, miércoles, viernes · máx 45 min por sesión |
 | **Su objetivo (textual)** | «Quiero bajar 5 kg y tener más energía. Trabajo en oficina todo el día y nunca he entrenado en serio. Compré un rodillo para hacer ejercicio en casa.» |
 
-**Perfil de arranque (reglas de Torq):** sin test: por sensación, subiendo de a poco · arranque conservador · base aeróbica antes de intensidad (tabaco/alcohol) · enseñarle a usar RPE · no hace máximos porque: viene de estar sedentario; todavía no sabe medir su esfuerzo (RPE) · estrés ajustado: alto
+**Perfil de arranque (reglas de Torq):** sin test: por sensación, subiendo de a poco · arranque conservador · enseñarle a usar RPE · no hace máximos porque: viene de estar sedentario; todavía no sabe medir su esfuerzo (RPE) · estrés ajustado: alto
 
 ### Lo que armó el coach IA
 
-**Plan:** Primeros pedales: base y hábito · empieza el 20 de octubre de 2026
+**Plan:** Empezando con el rodillo: energía y constancia · empieza el 20 de octubre de 2026
 
 **Estructura completa (bloques):**
 
 | Bloque | Semanas | h/sem | Enfoque |
 |---|---|---|---|
-| Base 1: hábito y sensación | 4 | 1.8 | Tres rodadas de 30-40 min por sensación (RPE 3-4) para que el rodillo se vuelva rutina y aprendas a medir tu esfuerzo. Sube el volumen poco a poco, con una semana de descarga al final. |
-| Base 2: más tiempo, primeros cambios de ritmo | 4 | 2.1 | Rodadas de 40-45 min con cambios de ritmo suaves y un primer esfuerzo un poco más alto por sensación (RPE 6-7) hacia la semana 7, siempre subiendo de a poco. |
-| Construcción: constancia y energía | 4 | 2.3 | Un día de calidad por sensación a la semana (intervalos cortos RPE 7) y dos de fondo. Repasamos cómo vas con tu meta, todo guiado por sensación. |
+| Base y hábito | 4 | 2 | Tres rodadas por semana de 35-45 min, por sensación y a un ritmo en el que puedas platicar (RPE 3-4). Sin intensidad; en la semana 3 entran cambios suaves de ritmo. |
+| Construcción suave | 4 | 2.25 | Subimos el tiempo de los bloques constantes y metemos el primer esfuerzo por sensación (RPE 7) en una sesión a la semana. Las otras dos siguen suaves. |
+| Consolidación | 4 | 2.25 | Sesiones de 45 min con un bloque de calidad por sensación y dos de fondo. Al cerrar, revisamos cómo respondiste y decidimos cuándo medir tu punto de partida en watts. |
 
 **Por qué, en palabras del coach IA** (su nota al atleta, textual):
 
-> Ana, para tu meta de bajar peso y tener más energía lo que más importa es la constancia: tres rodadas suaves por semana, de 30 a 40 min, caben en tu tiempo (3 días × 45 min es tu tope, y tus 2.5 h no entran completas, así que planeo lo que sí cabe). Vienes de vida sedentaria y sin bici, así que arrancamos construyendo base y aprendiendo a medir el esfuerzo: 3-4 = puedes platicar, 6-7 = solo frases cortas, 8-9 = pocas palabras, 10 = no puedes más. Todo es por sensación, sin ERG y sin test: metemos esfuerzos un poco más altos poco a poco. Como duermes algo justo y tu estrés es alto, vamos conservadores. Como tu pérdida de peso depende también de la comida, eso se ve mejor con un nutriólogo; yo me ocupo de que pedalees con constancia y sin lesionarte.
+> Ana, arrancamos con prudencia: vienes de una vida sedentaria, con mucho estrés y 6.5 h de sueño, así que primero hábito y base. Tus 2.5 h por semana no caben en 3 días de 45 min (3 × 45 = 135 min = 2.25 h), así que planeo 3 sesiones de 35-45 min. Escala del esfuerzo: RPE 3-4 es poder platicar, 6-7 solo frases cortas, 8-9 pocas palabras y 10 es no poder más; en las primeras semanas casi todo va en 3-4. Como quieres bajar de peso, te recomiendo un chequeo médico antes de subir la intensidad y que un nutriólogo vea tu alimentación; yo no prometo kilos, sí constancia y un proceso medible. Medimos tu avance con cómo se siente cada sesión (RPE) y la regularidad. Sin test por ahora: todo va por sensación y lo intenso entra poco a poco hacia la semana 3.
 
-#### Semana 1 · 2 sesiones de rodillo · 1.3 h · TSS ≈ 41
+#### Semana 1 · 2 sesiones de rodillo · 1.2 h · TSS ≈ 40
 
-- **miércoles 21 oct — Rodada suave 1: conocer el rodillo** · 35 min · TSS ≈ 19 · por sensación (sin ERG)
-  - Calentamiento 7' @ 50→60%
-  - Constante 23' @ 60%
-  - Enfriamiento 5' @ 55→45%
-  - _Hoy es un día para subirte a la bici sin presión: 35 minutos de rodada suave para conocer el rodillo. Déjalo con ERG apagado y elige una resistencia que te permita platicar en frases completas; la cadencia que te salga natural está bien, la app la va a observar. Tu referencia es el RPE 3-4, un esfuerzo cómodo en el que la respiración va pareja. Si sientes que no puedes hablar, baja la resistencia sin dudarlo. Así arrancas la semana con las piernas despiertas para lo que viene._
+- **miércoles 21 oct — Primera rodada suave** · 33 min · TSS ≈ 18 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→58%
+  - Constante 20' @ 60%
+  - Enfriamiento 5' @ 50%
+  - _Esta es tu primera rodada para conocer el rodillo y pedalear a gusto, sin presión. Va con ERG apagado, así que pedalea con la cadencia que te salga natural y ajusta la resistencia para que puedas hablar en frases completas; si no puedes, bájala sin dudarlo. Si prefieres ERG, puedes prenderlo con el botón ⚡, pero para esta primera vez te recomiendo rodar por sensación. Lo que vas a sentir es un ritmo parejo, con las piernas sueltas y la respiración tranquila. Es una sesión para arrancar la semana con buena energía y dejar la bici lista para lo que viene._
 
-- **viernes 23 oct — Rodada suave 2: platicando** · 40 min · TSS ≈ 22 · por sensación (sin ERG)
-  - Calentamiento 7' @ 50→60%
-  - Constante 28' @ 60%
-  - Enfriamiento 5' @ 55→45%
-  - _Hoy repites la idea de la rodada anterior, pero un poquito más larga: 40 minutos a ritmo tranquilo. Deja el ERG apagado y pedalea por sensación, manteniéndote en RPE 3-4, donde puedes platicar sin problema. Si el ritmo empieza a sentirse como frases cortas o pocas palabras, es señal de bajar un poco. Al terminar, marca tu RPE en la app para que el coach pueda ajustar mejor tus próximas sesiones. Es una buena forma de cerrar la semana con sensaciones claras._
-
-#### Semana 2 · 3 sesiones de rodillo · 2 h · TSS ≈ 68
-
-- **lunes 26 oct — Fondo 1** · 42 min · TSS ≈ 24 · por sensación (sin ERG)
-  - Calentamiento 7' @ 50→60%
-  - Constante 30' @ 60%
-  - Enfriamiento 5' @ 55→45%
-  - _Arranca la semana con una rodada tranquila, de esas que se disfrutan sin prisa. Va por sensación, sin ERG: deja que la bici marque el ritmo y pedalea a una cadencia natural. Tu referencia es poder hablar en frases completas todo el tiempo; si te falta el aire, baja la resistencia un poco. Con esto las piernas se despiertan suave para lo que viene el miércoles._
-
-- **miércoles 28 oct — Fondo con cambios suaves** · 39 min · TSS ≈ 23 · por sensación (sin ERG)
-  - Calentamiento 7' @ 50→60%
-  - 3× (2' @ 70% + 7' @ 60%)
-  - Enfriamiento 5' @ 55→45%
-  - _Una rodada de fondo con unos cambios de ritmo suaves para despertar las piernas sin apretar de más. Va sin ERG, por sensación: en cada cambio sube a un ritmo más vivo, donde todavía puedes hablar, aunque con frases más cortas, y luego vuelve a un ritmo cómodo antes del siguiente. Si sientes que los cambios se te van de las manos, bájalos un poco y listo. Esto te deja con buenas piernas para el viernes._
-
-- **viernes 30 oct — Fondo 2** · 37 min · TSS ≈ 21 · por sensación (sin ERG)
-  - Calentamiento 7' @ 50→60%
+- **viernes 23 oct — Rodada suave constante** · 40 min · TSS ≈ 22 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→58%
   - Constante 25' @ 60%
-  - Enfriamiento 5' @ 55→45%
-  - _Cierra la semana con una rodada tranquila, pensada para sumar kilómetros de calidad sin desgastarte. Va sin ERG, a tu cadencia natural y con sensación cómoda: que puedas hablar en frases completas durante todo el recorrido. No busques velocidad, lo que vale aquí es la constancia de estos tres días._
+  - Enfriamiento 7' @ 50%
+  - _Hoy toca un poco más de tiempo al mismo esfuerzo suave, para que el cuerpo se acostumbre a pedalear sin prisa. Va con ERG apagado: elige una resistencia a la que puedas platicar todo el rato y deja que la cadencia sea la que te salga cómoda. Si prefieres ERG, puedes prenderlo con el botón ⚡, aunque aquí lo que buscas es sentirte bien, no forzar. Al terminar, marca en la app qué tan duro se sintió, porque con eso ajusto tu siguiente semana. Lo que esperas es respirar tranquila y terminar con ganas de más, no agotada._
 
-#### Semana 3 · 3 sesiones de rodillo · 2.1 h · TSS ≈ 72
+#### Semana 2 · 3 sesiones de rodillo · 2.1 h · TSS ≈ 69
 
-- **lunes 2 nov — Fondo 1** · 40 min · TSS ≈ 23 · por sensación (sin ERG)
-  - Calentamiento 7' @ 50→60%
-  - Constante 29' @ 60%
-  - Enfriamiento 4' @ 55→45%
-  - _Hoy toca una rodada tranquila de 40 minutos, sin ERG: sales por sensación, a un ritmo en el que puedas platicar todo el rato. Si prefieres ERG, lo prendes con el botón ⚡, pero aquí lo que manda es tu cuerpo, no el rodillo. Es la base que sostiene tu energía de todos los días, así que no te preocupes por ir rápido. Sientes las piernas sueltas y la respiración tranquila; si empiezas a jadear, baja un poco. Este entreno te deja fresca para el resto de la semana._
+- **lunes 26 oct — Fondo suave** · 40 min · TSS ≈ 22 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→58%
+  - Constante 25' @ 60%
+  - Enfriamiento 7' @ 50%
+  - _Arrancamos la semana con una rodada tranquila para agarrarle el gusto a la bici. Vas a rodar parejo, con ERG apagado y por sensación: si prefieres ERG, lo prendes con el botón ⚡, pero aquí manda cómo te sientes más que un número. La referencia es poder platicar en frases completas, con respiración tranquila. Si llegas cansada o con poco sueño, baja un poco el ritmo sin culpa y listo. Con esto ya te estás creando el hábito, y eso vale más que cualquier esfuerzo heroico._
 
-- **miércoles 4 nov — Fondo con cambios de ritmo** · 43 min · TSS ≈ 26 · por sensación (sin ERG)
-  - Calentamiento 7' @ 50→60%
-  - 4× (2' @ 70% + 6' @ 60%)
-  - Enfriamiento 4' @ 55→45%
-  - _Hoy vienen cuatro cambios de ritmo de 2 minutos entre rodada tranquila, sin ERG, así que tú controlas cada esfuerzo. En los cambios sube a un ritmo en el que puedas decir frases cortas, y en la rodada vuelve a bajar hasta sentirte cómodo. Si prefieres ERG, lo prendes con el botón ⚡, aunque aquí se trata de regular tú la intensidad. Espera sentir las piernas calientes y la respiración más marcada en los cambios, pero que se recupere en cada fondo. Si en el último cambio ya te cuesta hablar, bájale un poco y anótalo para tu coach._
+- **miércoles 28 oct — Fondo suave** · 40 min · TSS ≈ 22 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→58%
+  - Constante 25' @ 60%
+  - Enfriamiento 7' @ 50%
+  - _Es la misma sesión del lunes, pero esta vez buscamos que se sienta un poco más fácil. Ruédala con ERG apagado, cadencia natural y a un ritmo en el que puedas platicar sin esfuerzo. Si al principio se siente pesada, es normal: el cuerpo se va acomodando. Cuida que la respiración se mantenga tranquila durante los 25 minutos fuertes del fondo. Con este entreno llegas al viernes con las piernas ya más sueltas para la rodada larga._
 
-- **viernes 6 nov — Fondo 2** · 40 min · TSS ≈ 23 · por sensación (sin ERG)
-  - Calentamiento 7' @ 50→60%
-  - Constante 29' @ 60%
-  - Enfriamiento 4' @ 55→45%
-  - _Hoy es otra rodada de 40 minutos en ritmo cómodo, sin ERG, para sumar constancia. Sales por sensación y te mantienes en un esfuerzo en el que puedas platicar sin problema. Si esta semana ha sido pesada o dormiste poco, quédate en la parte baja del esfuerzo; no hace falta exigirte. Si quieres ERG, lo prendes con el botón ⚡, pero la referencia sigue siendo cómo respiras. Terminas con buenas sensaciones y listo para el fin de semana._
+- **viernes 30 oct — Fondo suave largo** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→58%
+  - Constante 30' @ 60%
+  - Enfriamiento 7' @ 50%
+  - _Hoy es la rodada más larga de la semana, 45 minutos para disfrutar la bici con calma. Va con ERG apagado, así que ruédala por sensación: si quieres ERG, lo prendes con el botón ⚡. Mantén un ritmo en el que puedas platicar en frases completas, y no tengas prisa en la segunda mitad; ahí es donde se nota el trabajo de base. Al terminar, marca tu RPE para que tu coach vea cómo te fue. Así cierras la semana con buen ritmo y con ganas de más._
+
+#### Semana 3 · 3 sesiones de rodillo · 2.2 h · TSS ≈ 74
+
+- **lunes 2 nov — Fondo suave** · 40 min · TSS ≈ 22 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→58%
+  - Constante 25' @ 60%
+  - Enfriamiento 7' @ 50%
+  - _Arrancamos la semana con una rodada tranquila de 40 minutos, de esas en las que puedes ir platicando. Va con ERG apagado, en calle plana y por sensación: pedalea con cadencia natural y sin presionar. Si prefieres ERG, lo prendes con el botón ⚡, pero para este día no hace falta. Lo que tienes que sentir es RPE 3-4, con frases completas sin esfuerzo. Es un buen comienzo para soltar las piernas y entrar con ganas al resto de la semana._
+
+- **miércoles 4 nov — Cambios de ritmo suaves** · 45 min · TSS ≈ 27 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→58%
+  - 5× (3' @ 70% + 3' @ 58%)
+  - Enfriamiento 7' @ 50%
+  - _Hoy toca aprender a cambiar de ritmo sin cansarte de más: 5 bloques de 3 minutos un poco más firmes, alternados con 3 minutos suaves. Va con ERG apagado, así que regulas tú con la sensación, sin que sea un esfuerzo duro. En los tramos firmes deberías estar en RPE 5, con frases un poco más cortas pero sin ahogarte; en los suaves, vuelves a respirar con calma. Si en algún momento sientes que te pasaste, baja un poco y listo. Esto prepara tus piernas para el viernes._
+
+- **viernes 6 nov — Fondo suave largo** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→58%
+  - Constante 30' @ 60%
+  - Enfriamiento 7' @ 50%
+  - _Rodada larga de 45 minutos para asimilar el trabajo del miércoles. Va con ERG apagado, en calle plana y por sensación, y si prefieres ERG lo prendes con el botón ⚡. Mantén RPE 3-4, con la capacidad de hablar en frases completas durante todo el recorrido. Si las piernas vienen pesadas, baja la resistencia sin problema: lo que cuenta hoy es la constancia y terminar sintiéndote bien. Así llegas al fin de semana con el cuerpo asentado y entera para lo que sigue._
 
 ### Por qué tomó estas decisiones (análisis, no texto de la IA)
 
-- **Sin test, sin ERG y por sensación (RPE 3–4):** viene de estar sedentaria y no sabe usar RPE, así que las reglas la marcan como «no puede dar un máximo» y «hay que enseñarle RPE». El coach le explica la escala en la nota.
-- **Arranque conservador:** estrés alto (sube por el alcohol semanal) y sueño de 6.5 h regular.
-- **Volumen:** 1.2 h → 2.0 h → 2.0 h, contra 2.5 h disponibles. Le explica que 3 días de 45 min (2.25 h) no alcanzan las 2.5 h que puso.
-- **Intensidad:** solo fondo al 60% y, desde la semana 2, cambios de 2 min al 70%. Lo más alto (RPE 6–7) llega hasta la semana 7.
-- **Peso:** no promete kilos; manda la parte de la comida con un nutriólogo.
+- **Sin test, sin ERG, por sensación (RPE 3–4):** sedentaria y no sabe usar RPE. Le explica la escala.
+- **Arranque conservador:** estrés alto y 6.5 h de sueño regular (el alcohol semanal ya no suma).
+- **Volumen:** 1.2 → 2.1 → 2.2 h; explica que 3 × 45 min (2.25 h) no alcanzan sus 2.5 h.
+- **Meta:** «no prometo kilos, sí constancia y un proceso medible»; la alimentación, con nutriólogo. Además le recomienda un chequeo médico antes de subir intensidad.
+
+**Qué cambió desde la corrida 1:** Casi igual. Ahora dice explícitamente que no promete kilos y agrega el chequeo médico. Ya no hay errores de género.
 
 **Para revisar:**
 
-- Para alguien que quiere bajar de peso, ¿meterías más estímulo antes de la semana 7?
-- Las descripciones le hablan en masculino («sentirte cómodo», «listo»).
+- ¿Chequeo médico para toda persona sedentaria, o solo con alguna señal?
 
 **Evaluación de Joe** (llenar):
 
@@ -184,120 +186,120 @@
 | **Edad · sexo · peso** | 42 años · hombre · 84 kg |
 | **Disciplina** | Montaña · compite (Master 40) |
 | **Experiencia** | Con experiencia · Ciclista activo · 6 años rodando · 2 con plan estructurado |
-| **FTP** | 235 W — lo escribió (medido), hace 21 días (2.8 W/kg) |
+| **FTP** | 235 W — lo escribió la persona (sin confirmar en Torq), hace 21 días (2.8 W/kg) |
 | **FC máxima** | 182 lpm (medida) · reposo: 56 lpm |
 | **Últimas 4 semanas** | rodadas suaves, ~5 h/sem |
+| **Su semana típica (textual)** | «Martes y jueves rodillo 1 h (uno suave y otro con series de 10 min), y el sábado o domingo salida de montaña de 2.5 a 3 h con amigos. Gym lunes y miércoles.» |
 | **Salud** | Condiciones: Ninguna · lesión reciente: no |
 | **Hábitos** | Duerme 7 h (calidad buena) · estrés medio · fuma: no · alcohol: 1–2 veces por semana |
 | **Esfuerzo** | ¿Sabe usar RPE?: sí · ¿ha hecho esfuerzos máximos?: sí |
 | **Otras actividades** | Gym / fuerza 2×/sem de 60 min (lunes, miércoles) |
 | **Disponibilidad** | 6 h/sem · martes, jueves, sábado, domingo |
-| **Su objetivo (textual)** | «Correr el Chupacabras 60 km (MTB) el 12 de enero de 2027. Quiero terminar en menos de 4 horas y no tronarme en la subida final. Voy al gym lunes y miércoles.» |
+| **Su objetivo (textual)** | «Correr el Chupacabras 60 km (MTB) el 17 de enero de 2027. Quiero terminar en menos de 4 horas y no tronarme en la subida final. Voy al gym lunes y miércoles.» |
 
-**Perfil de arranque (reglas de Torq):** test de 20 min · arranque conservador · base aeróbica antes de intensidad (tabaco/alcohol) · estrés ajustado: alto
+**Perfil de arranque (reglas de Torq):** test de 20 min · estrés ajustado: medio
 
 ### Lo que armó el coach IA
 
-**Plan:** Chupacabras 60 km: base sólida y subida final con piernas · empieza el 20 de octubre de 2026
+**Plan:** Chupacabras 60 km: llegar fuerte a la subida final · empieza el 20 de octubre de 2026
 
 **Estructura completa (bloques):**
 
 | Bloque | Semanas | h/sem | Enfoque |
 |---|---|---|---|
-| Base | 4 | 5.5 | Fondo y tempo suave, con bloques de tempo cada semana más largos. Salida larga afuera de 2 h a 2 h 30 min con comida desde el minuto 30. La semana 4 es de descarga. |
-| Construcción | 4 | 6 | Retest de 20 min al abrir el bloque. Sweet spot y umbral largos, tempo sostenido y fuerza a cadencia baja. Salida larga afuera de 2 h 30 min a 3 h. |
-| Específico | 4 | 6 | Ritmo de maratón MTB: bloques largos de tempo y umbral, subida final simulada al final de una sesión. Salida larga afuera de 3 h a 3 h 30 min, con descarga a mitad del bloque. |
-| Carrera | 1 | 3 | Descarga final: poco volumen, activaciones cortas y llegar fresco al martes 12 de enero. |
+| Base y tempo | 4 | 5.5 | Reconfirmar el FTP con un test de 20 min en la semana 2 y construir tempo y sweet spot cortos. La salida larga de montaña del domingo sube de 2.5 h a 2 h 45 min y baja en la semana 4 (descarga). |
+| Construcción | 4 | 6 | Sweet spot y umbral largos, con tempo largo para la demanda de maratón. La salida larga llega a 3 h con comida desde el minuto 30. Semana 8 de descarga. |
+| Específico | 4 | 6 | Umbral largo, subidas sostenidas y bloques de tempo al final de la salida larga para la subida final. Retest al abrir el bloque y descarga en la semana 12. |
+| Carrera | 1 | 3 | Semana de la carrera (17 de enero): volumen bajo, activaciones cortas y llegar fresco. |
 
-**Próximo test:** test20 · Tienes FTP de 235 W y sabes dosificarte. Lo medimos al abrir el segundo bloque, después de una semana de descarga, para llegar fresco y revisar tus zonas.
+**Próximo test:** test20 · Tu FTP de 235 W es manual y sabes dosificarte; tras dos rodadas de rodillo lo confirmamos en la semana 2, con el viernes sin bici.
 
 **Por qué, en palabras del coach IA** (su nota al atleta, textual):
 
-> Carlos, la demanda de tu carrera es un maratón MTB de menos de 4 h: mucho tiempo en tempo y subidas sostenidas, así que priorizo base con tempo suave y salida larga afuera; el sweet spot llega en el segundo bloque. Tus 6 h incluyen salidas largas afuera los domingos, que el rodillo no sustituye (90 min de rodillo no equivalen a 3 h afuera). Tus lunes y miércoles de gym cuentan en la carga: por eso martes y jueves van suaves y la sesión clave de tempo cae el sábado. El rodillo no entrena técnica, así que usa las salidas del domingo para practicar bajadas. Vienes con 6 años en bici y 2 de estructura, y en cuanto vea tus primeras sesiones ajusto. Te pondré a prueba con un test de 20 min al abrir el segundo bloque.
+> Carlos, tu prueba es un maratón MTB de 60 km: mucho tiempo en tempo y subidas sostenidas, así que priorizo base, tempo, sweet spot y la salida larga del domingo, que ya haces y se queda. Arrancamos con tus 235 W y los confirmamos con el test de 20 min el sábado de la semana 2; hasta entonces nada intenso a más del 90 %. Con 6 h por semana y el gimnasio lunes y miércoles contados, la bici dura va en sábado, lejos de tus días de fuerza. El rodillo no entrena técnica de montaña: lo bajamos al cerro en tus salidas. La meta de menos de 4 h la juzgamos tras el test y las primeras semanas; por ahora la meta del plan es llegar entero a la subida final.
 
-#### Semana 1 · 3 sesiones de rodillo · 3.1 h · TSS ≈ 137
+#### Semana 1 · 3 sesiones de rodillo · 3 h · TSS ≈ 144
 
-- **martes 20 oct — Fondo base** · 60 min · TSS ≈ 39
+- **martes 20 oct — Fondo base** · 60 min · TSS ≈ 39 · por sensación (sin ERG)
   - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 45' @ 65% (153 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Arranca la semana con un fondo tranquilo: 60 minutos para rodar a gusto, con RPE 3-4 y la capacidad de sostener una charla completa en todo momento. Te recomiendo dejar el ERG prendido para que el rodillo mantenga los watts suaves mientras tú buscas una cadencia natural; si en algún momento no puedes hablar en frases completas, baja la potencia y no te preocupes por cumplir el número. Es una rodada para llegar fresco y con ganas, y para que las piernas se acostumbren otra vez al ritmo de la semana._
+  - Constante 40' @ 65% (153 W)
+  - Enfriamiento 10' @ 55% (129 W)
+  - _Martes de rodada de fondo, de esas que te dejan la cabeza despejada después del gimnasio. Va por sensación, con ERG apagado: sal suave, cadencia la que te salga natural y mantén RPE 3-4, de forma que puedas hablar en frases completas. Si de pronto no puedes, baja el ritmo sin pena. Es un buen momento para ver cómo llegas tras el gimnasio, y la idea es terminar con ganas de más, no vacío._
 
-- **jueves 22 oct — Tempo suave** · 60 min · TSS ≈ 46
-  - Calentamiento 10' @ 55→70% (129→165 W)
-  - 2× (10' @ 80% (188 W) + 5' @ 55% (129 W))
-  - Constante 15' @ 65% (153 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Hoy llega tu primer contacto con el tempo, la base de un maratón MTB, así que vamos con calma y control. Te recomiendo ERG prendido para sostener los dos bloques al 80 % sin salirte de ritmo: sentirás RPE 5, respiración agitada pero controlada, con frases cortas que no te ahoguen. Entre bloques baja de verdad en la recuperación, porque ahí se construye el siguiente esfuerzo. Esta sesión deja las piernas listas para el sábado._
-
-- **sábado 24 oct — Tempo 3x10** · 65 min · TSS ≈ 52
-  - Calentamiento 12' @ 50→70% (118→165 W)
-  - 3× (10' @ 82% (193 W) + 5' @ 55% (129 W))
-  - Enfriamiento 8' @ 50% (118 W)
-  - _Esta es la sesión clave de la semana, y la idea es construir base, no salir como cohete. Te recomiendo ERG prendido para tres bloques de 10 minutos al 82 %: busca un RPE de 5-6, con frases cortas pero sin perder el control, y mantén el mismo esfuerzo de principio a fin. Si al tercer bloque sientes que se te escapa la respiración, es señal de bajar un poco y no de aguantar a la fuerza. Llega descansado y con ganas, porque después de esto el resto de la semana va a sentirse más fácil._
-- _Fuera del rodillo:_ **miércoles 21 oct — Gym: pierna ligera** (60 min): Pierna sin llevarla al límite y core. El jueves rodamos tempo y el sábado hay tempo largo, así que llega con piernas.
-- _Fuera del rodillo:_ **domingo 25 oct — Salida larga afuera** (120 min): Rodada en ruta o montaña a RPE 3-4, platicando. Come algo desde el minuto 30 y cada 30-40 min.
-
-#### Semana 2 · 3 sesiones de rodillo · 3.3 h · TSS ≈ 147
-
-- **martes 27 oct — Fondo base** · 60 min · TSS ≈ 39
-  - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 45' @ 65% (153 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Fondo suave para sacudirte las piernas después del gym del lunes. Ve con RPE 3-4, de los que te dejan hablar en frases completas, y con cadencia natural, sin forzar. ERG lo puedes prender si quieres que el rodillo sostenga los watts, pero para este fondo va bien con tu sensación: si las piernas vienen pesadas, baja un poco la potencia. Al final sales con las piernas un poco más sueltas para lo que viene en la semana._
-
-- **jueves 29 oct — Tempo 2x12** · 64 min · TSS ≈ 50
-  - Calentamiento 10' @ 55→70% (129→165 W)
-  - 2× (12' @ 80% (188 W) + 5' @ 55% (129 W))
-  - Constante 15' @ 65% (153 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Misma sesión de tempo que ya conoces, pero con bloques más largos de 12 minutos; ese es el único cambio, así que el ritmo es el de siempre. Te recomiendo dejar el ERG prendido para sostener el 80 % en cada bloque sin salirte. Busca un RPE 5-6, constante de principio a fin, y no arranques fuerte en el primer bloque. Si al cierre de los bloques sientes que puedes hablar con frases cortas, vas bien; si no, es señal de aflojar un poco. Llegas al jueves con buen trabajo de umbral sin sentirte destrozado._
-
-- **sábado 31 oct — Tempo 3x12** · 71 min · TSS ≈ 58
-  - Calentamiento 12' @ 50→70% (118→165 W)
-  - 3× (12' @ 82% (193 W) + 5' @ 55% (129 W))
-  - Enfriamiento 8' @ 50% (118 W)
-  - _Aquí el reto son los tres bloques de 12 minutos al 82 %, con RPE 5-6. Te recomiendo ERG prendido para que el rodillo mantenga la potencia y tú te concentres en la cadencia. Los últimos 3 minutos del tercer bloque son los que cuentan, así que guarda algo de energía y no salgas fuerte en los primeros; un arranque explosivo que luego cae deja peor promedio. Si no logras completar el tercer bloque, baja 3-5 puntos de potencia y anótalo para tu coach. Cuando termines, tendrás una base sólida de tempo para el resto de la semana._
-- _Fuera del rodillo:_ **lunes 26 oct — Gym: tren superior y core** (60 min): Enfoca tren superior y core. Mañana toca fondo, así que no vacíes la pierna.
-- _Fuera del rodillo:_ **miércoles 28 oct — Gym: pierna ligera** (60 min): Pierna ligera, sin llegar a la falla. El jueves hay tempo y el sábado tempo largo.
-- _Fuera del rodillo:_ **domingo 1 nov — Salida larga afuera** (135 min): Salida de 2 h 15 min a RPE 3-4, platicando. Come desde el minuto 30. Si sube el pulso, baja el ritmo.
-
-#### Semana 3 · 3 sesiones de rodillo · 3.3 h · TSS ≈ 153
-
-- **martes 3 nov — Fondo base** · 60 min · TSS ≈ 39
-  - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 45' @ 65% (153 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Martes de fondo suave para soltar las piernas después del gym y preparar la semana. Déjalo en ERG prendido si quieres que el rodillo marque el ritmo, o apágalo y rueda por sensación; los dos sirven hoy. Tu referencia es poder hablar en frases completas durante casi toda la hora. Cadencia natural, sin forzar: si terminas sintiéndote mejor que al empezar, el objetivo está cumplido._
-
-- **jueves 5 nov — Tempo 2x15** · 65 min · TSS ≈ 53
+- **jueves 22 oct — Tempo 2x15** · 60 min · TSS ≈ 49
   - Calentamiento 10' @ 55→70% (129→165 W)
   - 2× (15' @ 80% (188 W) + 5' @ 55% (129 W))
-  - Constante 10' @ 65% (153 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Jueves de tempo: dos bloques de 15 minutos al 80 % con 5 minutos suaves de recuperación entre ellos. Te recomiendo ERG prendido para sostener un ritmo parejo, como lo harás en la carrera; tú solo mantén la cadencia. Los bloques deben sentirse fuertes pero controlados, RPE 5-6, y los 5 minutos suaves son de verdad para recuperar, no para acelerar. Llegas con buenas piernas para el fin de semana._
+  - Enfriamiento 10' @ 55% (129 W)
+  - _Jueves de tempo para aprender a sostener un ritmo parejo, como en un maratón de MTB. Te recomiendo ERG prendido con el botón ⚡ para que el rodillo marque los dos bloques de 15 min al 80 %, y tú cuidas la cadencia. Busca RPE 5-6, con frases cortas. Si el miércoles de gimnasio te dejó las piernas pesadas, baja 3-5 puntos sin dudarlo; llegar fuerte a la recuperación de los bloques es lo que cuenta._
 
-- **sábado 7 nov — Tempo 2x20** · 72 min · TSS ≈ 61
-  - Calentamiento 12' @ 50→70% (118→165 W)
-  - 2× (20' @ 82% (193 W) + 6' @ 55% (129 W))
-  - Enfriamiento 8' @ 50% (118 W)
-  - _Sábado de tempo largo: dos bloques de 20 minutos al 82 %, parecidos a una subida sostenida. Te recomiendo ERG prendido para que el rodillo sostenga el ritmo mientras tú trabajas la cadencia y la respiración. Busca un esfuerzo parejo, RPE 5-6; el segundo bloque se va a sentir más pesado, y es normal si tu pulso sube, pero si se dispara, baja un poco y anótalo en tu nota para tu coach. Aguantar el bloque largo y parejo es lo que te va a servir en la subida final._
-- _Fuera del rodillo:_ **lunes 2 nov — Gym: tren superior y core** (60 min): Tren superior y core. Mañana fondo suave y la pierna debe estar fresca.
-- _Fuera del rodillo:_ **miércoles 4 nov — Gym: pierna ligera** (60 min): Pierna ligera, sin dejar las piernas vacías. El sábado hay tempo largo.
-- _Fuera del rodillo:_ **domingo 8 nov — Salida larga afuera** (150 min): Salida de 2 h 30 min a RPE 3-4, de preferencia con algo de subida a ritmo cómodo. Come cada 30-40 min.
+- **sábado 24 oct — Sweet spot 3x10** · 60 min · TSS ≈ 56
+  - Calentamiento 10' @ 55→70% (129→165 W)
+  - 3× (10' @ 89% (209 W) + 5' @ 55% (129 W))
+  - Enfriamiento 5' @ 55% (129 W)
+  - _Sábado para tu primer contacto con sweet spot. Te recomiendo ERG prendido con el botón ⚡: el rodillo sostiene los tres bloques de 10 min al 89 %, y tú mantienes la cadencia firme. Busca RPE 6-7; es un esfuerzo sostenido y cómodamente duro. Como todavía no confirmamos tu FTP, si no logras completar los bloques o pasas de RPE 8, baja 3-5 puntos y anótalo para tu coach. Terminar bien esta sesión te deja con buenas piernas para la semana siguiente._
+- _Fuera del rodillo:_ **miércoles 21 oct — Gimnasio: pierna moderada** (60 min): Mañana toca tempo en el rodillo: cuida la pierna y no la lleves al límite. Que termines con ganas de pedalear.
+- _Fuera del rodillo:_ **domingo 25 oct — Salida larga de montaña** (150 min): Salida con tus amigos a RPE 3-4, de las que puedes platicar. Come desde el minuto 30 y no te enganches en las subidas.
+
+#### Semana 2 · 3 sesiones de rodillo · 2.9 h · TSS ≈ 72 (sin contar el test)
+
+- **martes 27 oct — Fondo con cadencia libre** · 60 min · TSS ≈ 39 · por sensación (sin ERG)
+  - Calentamiento 10' @ 50→65% (118→153 W)
+  - Constante 40' @ 65% (153 W)
+  - Enfriamiento 10' @ 55% (129 W)
+  - _Martes de fondo por sensación: 40 minutos de rodada cómoda con RPE 3-4, sin forzar cadencia, para que la bici se sienta fácil y tú te sientas fresco. Va con ERG apagado, así que tú marcas el ritmo; si prefieres ERG, actívalo con el botón ⚡, pero aquí lo que cuenta es rodar suelto. Si puedes hablar en frases completas, vas bien. Esto te deja con buenas piernas para el sábado, así que no hace falta apretar._
+
+- **jueves 29 oct — Fondo suave** · 60 min · TSS ≈ 33 · por sensación (sin ERG)
+  - Calentamiento 10' @ 50→60% (118→141 W)
+  - Constante 40' @ 60% (141 W)
+  - Enfriamiento 10' @ 50% (118 W)
+  - _Jueves de rodada suave para soltar las piernas antes del test. Va con ERG apagado y a sensación: busca un ritmo tan cómodo que puedas platicar sin esfuerzo, RPE 3. Si al hablar te cuesta armar frases completas, baja un poco y anótalo para tu coach. Es un entrenamiento tranquilo que llega justo para dejarte listo para el sábado._
+
+- **sábado 31 oct — Test de 20 minutos** · 53 min · 🧪 test hasta el fallo (la duración es el máximo posible) · por sensación (sin ERG)
+  - Calentamiento 10' @ 45→70% (106→165 W)
+  - 3× (1' @ 100% (235 W) + 1' @ 50% (118 W))
+  - Recuperación 5' @ 50% (118 W)
+  - 20' libre, por sensación y sin ERG (referencia ~100% (235 W))
+  - Enfriamiento 12' @ 50% (118 W)
+  - _Sábado es día de test: vas a confirmar tu FTP. Ve con ERG apagado, porque el esfuerzo de 20 minutos tienes que regularlo tú. Llega descansado, con ventilador y bien comido. Los primeros 5 minutos del bloque principal deben sentirse contenidos, y después sostén el máximo que puedas. Si al cierre sientes que te pasaste, no pasa nada: anótalo para tu coach. Al terminar, actualiza tu perfil con el número que te dé el test._
+- _Fuera del rodillo:_ **lunes 26 oct — Gimnasio: tren superior y core** (60 min): Esta semana hay test el sábado: carga ligera en pierna y enfócate en tren superior y core.
+- _Fuera del rodillo:_ **miércoles 28 oct — Gimnasio: pierna ligera** (60 min): Pierna ligera, sin llegar al límite: quiero que llegues fresco al test del sábado.
+- _Fuera del rodillo:_ **domingo 1 nov — Salida larga de montaña** (150 min): Salida a RPE 3-4 con comida desde el minuto 30. Después del test, que sea tranquila.
+
+#### Semana 3 · 3 sesiones de rodillo · 3.1 h · TSS ≈ 156
+
+- **martes 3 nov — Fondo** · 60 min · TSS ≈ 39 · por sensación (sin ERG)
+  - Calentamiento 10' @ 50→65% (118→153 W)
+  - Constante 40' @ 65% (153 W)
+  - Enfriamiento 10' @ 55% (129 W)
+  - _Arrancamos la semana con un fondo tranquilo para soltar las piernas después del gimnasio del lunes. Va por sensación, sin ERG: rueda a un ritmo en el que puedas hablar en frases completas, con RPE 3-4. Si prefieres ERG, lo prendes con el botón ⚡, pero aquí no hace falta. Al terminar vas a sentir que te fuiste con energía, no con cansancio, y eso deja el cuerpo listo para lo que viene el jueves._
+
+- **jueves 5 nov — Tempo 2x18** · 60 min · TSS ≈ 52
+  - Calentamiento 8' @ 55→70% (129→165 W)
+  - 2× (18' @ 80% (188 W) + 5' @ 55% (129 W))
+  - Enfriamiento 6' @ 55% (129 W)
+  - _Hoy toca un tempo largo para aprender a sostener un ritmo parejo. Te recomiendo prender el ERG con el botón ⚡ para que el rodillo marque los dos bloques de 18 min al 80 % de tu FTP, y tú solo cuidas la cadencia. Busca un esfuerzo de RPE 5-6, cómodo pero que se note. Si ves que el pulso se va subiendo poco a poco, baja un par de puntos sin problema. Así llegas al sábado con buenas piernas._
+
+- **sábado 7 nov — Sweet spot 3x12** · 66 min · TSS ≈ 65
+  - Calentamiento 10' @ 55→70% (129→165 W)
+  - 3× (12' @ 90% (212 W) + 5' @ 55% (129 W))
+  - Enfriamiento 5' @ 55% (129 W)
+  - _Sweet spot de tres bloques de 12 minutos, con un umbral conservador por ser de las primeras semanas después del test. Te recomiendo ERG prendido con el botón ⚡: el rodillo sostiene el 90 % de tu FTP y tú mantienes la cadencia. Anda por RPE 6-7; si llegas a RPE 8 o no logras completar algún bloque, baja 3-5 puntos y no pasa nada. Cuando termines vas a sentir las piernas trabajadas pero con control, y eso te deja bien preparado para la semana que sigue._
+- _Fuera del rodillo:_ **lunes 2 nov — Gimnasio: tren superior y core** (60 min): Enfoca tren superior y core: el martes toca fondo, pero la semana trae sweet spot y quiero tus piernas frescas.
+- _Fuera del rodillo:_ **miércoles 4 nov — Gimnasio: pierna moderada** (60 min): Pierna moderada: mañana toca tempo en el rodillo y no quiero que llegues vacío.
+- _Fuera del rodillo:_ **domingo 8 nov — Salida larga de montaña** (165 min): Salida de 2 h 45 min a RPE 3-4, con comida desde el minuto 30. Tras el sweet spot del sábado, ritmo conversacional.
 
 ### Por qué tomó estas decisiones (análisis, no texto de la IA)
 
-- **Base antes de intensidad:** la regla del alcohol (1–2 veces por semana) lo pone en «base primero» y arranque conservador. Por eso nada pasa de 82% en 3 semanas; el sweet spot llega hasta el bloque 2.
-- **Tempo progresivo los sábados:** 3×10 → 3×12 → 2×20 min a ~80%, para la demanda de maratón MTB (tempo y subidas sostenidas).
-- **Gym lunes y miércoles respetado:** martes fondo y jueves tempo suave; la sesión clave es el sábado. Además le agenda contenido para el gym («pierna ligera», «tren superior y core»).
-- **Salida larga afuera los domingos:** 2 h → 2 h 15 → 2 h 30, con comida desde el minuto 30.
-- **Test de 20 min en la semana 5,** después de la descarga: tiene FTP medido y sabe dosificarse.
+- **Su FTP es de partida:** «arrancamos con tus 235 W y los confirmamos con el test de 20 min el sábado de la semana 2; hasta entonces nada intenso a más del 90 %».
+- **No promete el «menos de 4 h»:** lo juzga después del test; mientras, la meta es llegar entero a la subida final.
+- **Parte de su semana:** la salida larga de montaña del domingo «que ya haces, se queda» (2 h 30 → 2 h 45); gym lunes y miércoles contado, lo duro el sábado.
+- **Sin freno por alcohol:** sweet spot hasta 89–90% desde la semana 1.
+
+**Qué cambió desde la corrida 1:** Antes: aceptaba «menos de 4 h» como la demanda, 3 semanas sin nada arriba de 82% por la regla del alcohol y test hasta la semana 5. Ahora: meta por evaluar, test en la semana 2, sweet spot desde la semana 1 y parte de su salida del domingo.
 
 **Para revisar:**
 
-- Con 12 semanas y experiencia, ¿3 semanas sin nada arriba de tempo es demasiado? Es efecto de la regla del alcohol.
-- ¿Está bien que la IA le diga qué hacer en su gym?
+- Le agenda contenido para su gym («pierna moderada», «tren superior y core»). ¿Debe?
 
 **Evaluación de Joe** (llenar):
 
@@ -327,93 +329,93 @@
 | **Edad · sexo · peso** | 29 años · mujer · 58 kg |
 | **Disciplina** | Ruta · compite (Grupos de edad 25-29) |
 | **Experiencia** | Con experiencia · Ciclista activo · 3 años rodando · 3 con plan estructurado |
-| **FTP** | 190 W — lo escribió (medido), hace 40 días (3.3 W/kg) |
+| **FTP** | 190 W — lo escribió la persona (sin confirmar en Torq), hace 40 días (3.3 W/kg) |
 | **FC máxima** | 189 lpm (medida) · reposo: 50 lpm |
 | **Últimas 4 semanas** | con intensidad, ~9 h/sem |
+| **Su semana típica (textual)** | «Bici: miércoles rodillo 1 h con tempo y sábado salida larga de 2 h. Corro martes (series), jueves (rodaje) y domingo (largo de 1 h 15). Nado lunes y viernes 1 h.» |
 | **Salud** | Condiciones: Ninguna · lesión reciente: no |
 | **Hábitos** | Duerme 7.5 h (calidad buena) · estrés medio · fuma: no · alcohol: nunca o rara vez |
 | **Esfuerzo** | ¿Sabe usar RPE?: sí · ¿ha hecho esfuerzos máximos?: sí |
 | **Otras actividades** | Correr 3×/sem de 50 min (martes, jueves, domingo); Natación 2×/sem de 60 min (lunes, viernes) |
 | **Disponibilidad** | 5 h/sem · miércoles, viernes, sábado |
-| **Su objetivo (textual)** | «Medio Ironman 70.3 en Cozumel el 9 de febrero de 2027. Corro y nado bien; la bici (90 km) es mi punto débil y quiero llegar a correr el medio maratón sin morirme.» |
+| **Su objetivo (textual)** | «Medio Ironman 70.3 en Cozumel el 14 de febrero de 2027. Corro y nado bien; la bici (90 km) es mi punto débil y quiero llegar a correr el medio maratón sin morirme.» |
 
 **Perfil de arranque (reglas de Torq):** test de 20 min · viene entrenando con intensidad: no arranca desde cero · estrés ajustado: medio
 
 ### Lo que armó el coach IA
 
-**Plan:** Camino a Cozumel 70.3: bici fuerte para correr bien · empieza el 20 de octubre de 2026
+**Plan:** Hacia Cozumel 70.3: bici con piernas para correr · empieza el 20 de octubre de 2026
 
 **Estructura completa (bloques):**
 
 | Bloque | Semanas | h/sem | Enfoque |
 |---|---|---|---|
-| Base y tempo | 5 | 4 | Base aeróbica con tempo sostenido en rodillo y salida larga afuera que sube de 2 h a 2.5 h (descarga en la semana 4). Las 3 carreras y 2 nataciones semanales cuentan en la carga. |
-| Construcción | 5 | 4.5 | Sweet spot y tempo largo, con retest de 20 min al abrir el bloque. Salida larga de 2.5 a 3 h con comida. |
-| Específico 70.3 | 5 | 5 | Ritmo de carrera de 75-85 % en bloques largos, brick corto (bici + trote) y salida larga de hasta 3 h. |
-| Afinación | 2 | 3 | Volumen a la baja, ritmo de carrera corto y llegar fresca. La última semana contiene el 9 de febrero. |
+| Base específica | 4 | 3.5 | Semanas 1 a 4: ordenar tus 3 días de bici alrededor de la carrera y la natación. Miércoles de tempo en rodillo, viernes suave y sábado de salida larga afuera, de 1 h 40 min a 2 h 15 min. Test de 20 min el viernes de la semana 2. |
+| Construcción | 5 | 4.2 | Semanas 5 a 9: más tiempo sostenido a ritmo de 70.3 (tempo y sweet spot largos) el miércoles. Salida larga de 2 h 15 min a 2 h 45 min con comida desde el minuto 30. Retest al abrir el bloque. |
+| Específico 70.3 | 6 | 4.8 | Semanas 10 a 15: bloques largos al 80-88 % de tu FTP. Salida larga de hasta 3 h a ritmo de carrera, con un brick corto de trote al final. Descarga cada 3-4 semanas. |
+| Afinación y carrera | 2 | 3 | Semanas 16 y 17: el volumen baja al 50-60 % y se conserva algo de ritmo de carrera. La semana 17 es la del 70.3 en Cozumel, el domingo 14 de febrero. |
 
-**Próximo test:** test20 · Al abrir el segundo bloque, tras 5 semanas con estructura y con tu FTP manual de septiembre como referencia; llegas fresca tras la descarga.
+**Próximo test:** test20 · Traes un FTP escrito por ti y sabes dosificarte (compites, 3 años con estructura); tras dos rodadas para conocer el rodillo y con jueves suave, el viernes de la semana 2 es el momento de confirmarlo.
 
 **Por qué, en palabras del coach IA** (su nota al atleta, textual):
 
-> Sofía, la demanda de un 70.3 es ritmo sostenido largo en bici sin vaciar las piernas para el medio maratón; por eso priorizo tempo y salida larga afuera, no intervalos cortos. Traes motor de nadadora y corredora y 3 años de estructura: partimos de tu FTP de 190 W con el umbral conservador las primeras 2 semanas y retest de 20 min en la semana 6. Tus 5 h no caben en rodillo de 3 días (3 × 90 min = 4.5 h), así que la salida larga de sábado va afuera y completa las horas; tus carreras (mar, jue, dom) y nataciones (lun, vie) cuentan en la carga, y por eso el viernes es suave. Dime qué días de carrera son fuertes o largas para ajustar el miércoles, que hoy queda entre dos carreras.
+> Sofía, tu demanda es un 70.3: ritmo sostenido de 75-85 % durante muchos minutos y llegar con piernas para correr, así que priorizo tempo largo y la salida larga afuera. Vienes de otro entrenamiento con intensidad y de 9 h por semana en total; tu carrera y tu natación cuentan en la carga, por eso el miércoles queda en tempo (día después de tus series del martes, nada de intensidad alta) y el viernes, día de natación, va suave. Tus 5 h declaradas no caben con rodillo en tus 3 días sin pasarte de lo que ya haces, así que arranco en unas 3 h 20 min de bici (máximo +10 % sobre lo que ya haces) y subimos poco a poco. El FTP de 190 W es el que escribiste: arrancamos con él y lo confirmamos con un test de 20 min el viernes 30 de octubre (semana 2); después del test, actualiza tu perfil. Cuéntame qué día corres fuerte y si alguna de las salidas largas incluye brick corto de trote más adelante.
 
-#### Semana 1 · 2 sesiones de rodillo · 1.8 h · TSS ≈ 82
+#### Semana 1 · 2 sesiones de rodillo · 1.7 h · TSS ≈ 71
 
-- **miércoles 21 oct — Tempo en bloques** · 65 min · TSS ≈ 55
+- **miércoles 21 oct — Tempo en rodillo 2x15** · 60 min · TSS ≈ 45
   - Calentamiento 10' @ 50→65% (95→124 W)
-  - 3× (12' @ 82% (156 W) + 4' @ 55% (105 W))
-  - Enfriamiento 7' @ 55→45% (105→86 W)
-  - _Hoy toca tempo en bloques: tres tramos de 12 minutos a ritmo sostenido, con 4 minutos suaves entre cada uno para recuperar. Deja el ERG prendido y deja que el rodillo marque la potencia; tu trabajo es sostener la cadencia y mantener el esfuerzo parejo de principio a fin, en un RPE de 5 a 6, con frases cortas. Es un buen momento para construir ritmo sin cargar las piernas, que llegan con margen para la carrera del jueves. Las dos primeras semanas el número va conservador, así que no te preocupes si al principio se siente fácil._
+  - 2× (15' @ 78% (148 W) + 5' @ 55% (105 W))
+  - Enfriamiento 10' @ 50% (95 W)
+  - _Hoy es tu primer contacto con el rodillo y con tu FTP de 190 W, así que vamos con calma pero con ganas: dos bloques de 15 min a ritmo de tempo con el ERG prendido, que el rodillo marque la potencia mientras tú sostienes una cadencia que te salga natural. Lo que vas a sentir es un esfuerzo cómodamente exigente, RPE 5-6, donde puedes decir frases cortas pero no cantar; si en el segundo bloque te cuesta mucho, no pasa nada, bájale un poco y sigue. Mañana es jueves de rodaje, así que no te aprietes de más hoy y deja algo de gasolina para entonces._
 
-- **viernes 23 oct — Rodada suave** · 45 min · TSS ≈ 27 · por sensación (sin ERG)
-  - Calentamiento 5' @ 50→60% (95→114 W)
-  - Constante 35' @ 62% (118 W)
-  - Enfriamiento 5' @ 55→45% (105→86 W)
-  - _Rodada suave para soltar las piernas el mismo día de la natación. Va sin ERG, en modo calle plana, así que pedalea por sensación y ajusta tú los cambios; si prefieres ERG, actívalo con el botón ⚡. Busca una cadencia que te salga natural y un RPE de 3 a 4: deberías poder hablar en frases completas durante toda la rodada. Si notas que no puedes hablar, baja la potencia un poco y sigue rodando._
-- _Fuera del rodillo:_ **sábado 24 oct — Salida larga afuera** (120 min): Ruta a RPE 3-4, platicando. Come desde el minuto 30 (carbohidrato cada 20-30 min) y ensaya tu hidratación de carrera.
-
-#### Semana 2 · 2 sesiones de rodillo · 2.1 h · TSS ≈ 95
-
-- **miércoles 28 oct — Tempo en bloques largos** · 74 min · TSS ≈ 65
-  - Calentamiento 10' @ 50→65% (95→124 W)
-  - 3× (15' @ 82% (156 W) + 4' @ 55% (105 W))
-  - Enfriamiento 7' @ 55→45% (105→86 W)
-  - _Sofía, esta semana el tempo se alarga: mismos bloques de siempre, pero cada uno dura 15 minutos. Tu objetivo es sostener el 82 % de tu FTP sin arrancar fuerte; progresamos en tiempo, no en intensidad. Te recomiendo ERG prendido para que el rodillo mantenga la potencia y tú solo cuides la cadencia, cómoda y constante. Sientes un esfuerzo de RPE 5-6, con respiración que te deja hablar en frases cortas pero no cantar, y si al tercer bloque las piernas empiezan a pesar, es normal: lo que importa es que termines parejo. Llegarás al jueves con las piernas trabajadas pero listas para descansar bien._
-
-- **viernes 30 oct — Rodada suave** · 50 min · TSS ≈ 30 · por sensación (sin ERG)
-  - Calentamiento 5' @ 50→60% (95→114 W)
+- **viernes 23 oct — Rodada suave** · 40 min · TSS ≈ 26 · por sensación (sin ERG)
   - Constante 40' @ 62% (118 W)
-  - Enfriamiento 5' @ 55→45% (105→86 W)
-  - _Rodada suave para soltar las piernas antes de la salida larga. Va por sensación, así que el ERG viene apagado: ve a tu ritmo y, si prefieres que el rodillo marque la potencia, lo prendes con el botón ⚡. La idea es rodar a RPE 3-4, con respiración tranquila y sin meterte en tempo, aunque te sientas con energía. Si al final te sientes con las piernas pesadas en vez de sueltas, baja un poco más y anótalo para tu coach. Con esto llegas fresca al fin de semana._
-- _Fuera del rodillo:_ **sábado 31 oct — Salida larga afuera** (135 min): RPE 3-4 constante, con comida desde el minuto 30. Procura terreno parejo para pedalear sin pausas largas.
+  - _Viernes de rodada suave para soltar las piernas después de la natación. Puedes hacerla con el ERG apagado, por sensación, y si prefieres tenerlo prendido lo activas con el botón ⚡. Va a sentirse fácil, RPE 3-4, con la respiración tranquila como para platicar en frases completas; si no puedes hablar así, baja el ritmo sin dudarlo. Es un rodaje de recuperación que te deja lista para el resto de la semana._
+- _Fuera del rodillo:_ **sábado 24 oct — Salida larga afuera** (100 min): Rodada continua a RPE 3-4, de modo que puedas platicar todo el tiempo. Come algo desde el minuto 30 y practica tu hidratación de carrera.
 
-#### Semana 3 · 2 sesiones de rodillo · 2 h · TSS ≈ 92
+#### Semana 2 · 2 sesiones de rodillo · 1.9 h · TSS ≈ 49 (sin contar el test)
 
-- **miércoles 4 nov — Tempo alto** · 67 min · TSS ≈ 62
+- **miércoles 28 oct — Tempo en rodillo 2x18** · 60 min · TSS ≈ 49
   - Calentamiento 10' @ 50→65% (95→124 W)
-  - 2× (20' @ 85% (162 W) + 5' @ 55% (105 W))
-  - Enfriamiento 7' @ 55→45% (105→86 W)
-  - _Hoy toca subirle un poco al ritmo del tempo: dos bloques de 20 minutos sostenidos con una recuperación corta entre ellos. Prende el ERG para que el rodillo marque la potencia y tú te concentres en mantener la cadencia. Te vas a sentir cargado, pero en tempo debes poder decir frases cortas sin ahogarte; si en el último bloque ya no te alcanza, baja 3 a 5 puntos de esfuerzo y avísame para ajustar. Esta sesión deja buenas piernas para el fondo del fin de semana._
+  - 2× (18' @ 78% (148 W) + 4' @ 55% (105 W))
+  - Enfriamiento 6' @ 50% (95 W)
+  - _Este miércoles toca subir los bloques de tempo de 15 a 18 minutos, y es lo único que cambia respecto a la semana pasada. Deja el ERG prendido para que el rodillo marque el ritmo y tú solo sostengas la cadencia. Esfuerzo de RPE 5-6: debe sentirse firme pero controlado, con respiración que puedas mantener. Si al último minuto de cada bloque te cuesta hablar en frases cortas, baja un poco y anótalo para tu coach. Con esto llegas al jueves con las piernas trabajadas pero sin cansancio acumulado._
 
-- **viernes 6 nov — Rodada suave** · 50 min · TSS ≈ 30 · por sensación (sin ERG)
-  - Calentamiento 5' @ 50→60% (95→114 W)
-  - Constante 40' @ 62% (118 W)
-  - Enfriamiento 5' @ 55→45% (105→86 W)
-  - _Una rodada tranquila para soltar el cuerpo después de natación. Va en modo calle plana, sin ERG: rueda por sensación, con cadencia natural y un RPE de 3 a 4. Si prefieres usar ERG, lo prendes con el botón ⚡, pero no hace falta. La referencia es poder hablar en frases completas todo el tiempo; si no puedes, baja el ritmo y anótalo para tu coach. Sales con las piernas más ligeras y listo para descansar bien._
-- _Fuera del rodillo:_ **sábado 7 nov — Salida larga afuera** (150 min): RPE 3-4, comiendo desde el minuto 30. Es tu sesión principal de la semana: llega descansada y sin forzar.
+- **viernes 30 oct — Test de 20 minutos** · 53 min · 🧪 test hasta el fallo (la duración es el máximo posible) · por sensación (sin ERG)
+  - Calentamiento 10' @ 45→70% (86→133 W)
+  - 3× (1' @ 100% (190 W) + 1' @ 50% (95 W))
+  - Constante 5' @ 50% (95 W)
+  - 20' libre, por sensación y sin ERG (referencia ~100% (190 W))
+  - Enfriamiento 12' @ 50% (95 W)
+  - _El viernes es tu test de 20 minutos para confirmar tu FTP, y te recomiendo dejarlo con el ERG apagado para regular el esfuerzo por sensación. Llega descansada, con el jueves de rodaje suave y bien comida. Los primeros 5 minutos deben sentirse contenidos; después ve subiendo poco a poco hasta lo máximo que puedas sostener, sin arrancar al límite. Esperas una respiración intensa pero rítmica y piernas que aguantan la subida; si sientes mareo o ahogo, para y avísale a tu coach. Es tu primer test aquí, así que tómalo como familiarización, y haz la natación del viernes ligera._
+- _Fuera del rodillo:_ **sábado 31 oct — Salida larga afuera** (110 min): Rodada continua a RPE 3-4, sin picar con nadie. Es el día después del test: ve suelta, con comida desde el minuto 30.
+
+#### Semana 3 · 2 sesiones de rodillo · 1.8 h · TSS ≈ 84
+
+- **miércoles 4 nov — Tempo en rodillo 2x20** · 65 min · TSS ≈ 55
+  - Calentamiento 10' @ 50→65% (95→124 W)
+  - 2× (20' @ 80% (152 W) + 5' @ 55% (105 W))
+  - Enfriamiento 5' @ 50% (95 W)
+  - _Sofía, hoy toca tempo en rodillo: dos bloques de 20 minutos en zona tempo, con recuperación suave entre ellos. Te recomiendo prender el ERG para que el rodillo marque la potencia y tú solo sostengas la cadencia; si ya actualizaste tu FTP tras el test, los porcentajes se ajustan solos. Arranca conservadora, sobre todo en estas primeras semanas con el FTP nuevo: tu referencia es un RPE de 5 a 6, con piernas firmes pero respiración controlada. Si sientes que pasas de RPE 7, baja un poco la potencia sin culpa. Llegar bien aquí deja las piernas listas para el jueves._
+
+- **viernes 6 nov — Rodada suave** · 45 min · TSS ≈ 29 · por sensación (sin ERG)
+  - Constante 45' @ 62% (118 W)
+  - _Hoy es día de soltar piernas después de natación: una rodada suave de 45 minutos por sensación, sin presión. Va con ERG apagado, así que busca la cadencia que te salga natural y ajusta tú la intensidad. Anda en un RPE de 3 a 4, cómoda y con la respiración tranquila, como si fuera una plática larga. Si prefieres usar ERG, lo puedes prender con el botón ⚡, pero para hoy el objetivo es aflojar, no apretar._
+- _Fuera del rodillo:_ **sábado 7 nov — Salida larga afuera** (120 min): Dos horas continuas a RPE 3-4, con comida desde el minuto 30. Mañana corres tu largo, así que no la endurezcas.
 
 ### Por qué tomó estas decisiones (análisis, no texto de la IA)
 
-- **Tempo y salida larga, no intervalos cortos:** la demanda de un 70.3 es ritmo sostenido largo sin vaciar las piernas para la carrera a pie. Aunque viene entrenando con intensidad, no le mete umbral todavía.
-- **Encaja la bici entre carrera y natación:** miércoles tempo (entre dos días de carrera), viernes suave (día de natación) y sábado largo afuera, 2 h → 2.5 h. Le pregunta qué días de carrera son fuertes para ajustar el miércoles.
-- **FTP 190 W con umbral conservador** las primeras semanas; test de 20 min en la semana 6.
-- **Volumen:** ~3.8–4.4 h de bici de 5 disponibles, más sus 5 sesiones de carrera y natación.
+- **Demanda del 70.3:** tempo largo y salida larga, sin vaciar las piernas para la carrera a pie.
+- **Su FTP se confirma:** test de 20 min el viernes de la semana 2.
+- **Parte de su carga real:** venía de 9 h en total (bici, carrera y natación); arranca en 3 h 20 min de bici, «máximo +10 % sobre lo que ya haces». Miércoles tempo (después de sus series del martes), viernes suave (natación), sábado largo afuera 1 h 40 → 2 h.
+- **Pregunta lo que le falta:** qué día corre fuerte y si quiere brick más adelante (el brick entra en el bloque específico).
+
+**Qué cambió desde la corrida 1:** Antes: test en la semana 6 y no hablaba de su carga actual. Ahora: test en la semana 2, volumen calculado desde lo que ya hace y brick planeado.
 
 **Para revisar:**
 
-- ¿Meterías un brick (bici + trote) antes del bloque específico?
-- Una descripción le dice «listo».
+- 3 h 20 min de 5 h disponibles: ¿la regla del +10 % sobre su carga total te parece bien para una triatleta?
 
 **Evaluación de Joe** (llenar):
 
@@ -451,94 +453,99 @@
 | **Esfuerzo** | ¿Sabe usar RPE?: más o menos · ¿ha hecho esfuerzos máximos?: no |
 | **Otras actividades** | Ninguna |
 | **Disponibilidad** | 4 h/sem · lunes, miércoles, viernes, sábado · máx 60 min por sesión |
-| **Su objetivo (textual)** | «Rodar un gran fondo de 80 km el 26 de enero de 2027 con mis amigos. Dejé la bici hace 3 años y subí de peso. Tengo la presión alta controlada con medicamento.» |
+| **Su objetivo (textual)** | «Rodar un gran fondo de 80 km el 31 de enero de 2027 con mis amigos. Dejé la bici hace 3 años y subí de peso. Tengo la presión alta controlada con medicamento.» |
 
-**Perfil de arranque (reglas de Torq):** primero su médico (condición o medicamento) · sin test: por sensación, subiendo de a poco · arranque conservador · base aeróbica antes de intensidad (tabaco/alcohol) · enseñarle a usar RPE · no hace máximos porque: tiene una condición de salud: primero que lo vea su médico; viene de estar sedentario · estrés ajustado: alto
+**Perfil de arranque (reglas de Torq):** primero su médico (condición o medicamento) · sin test: por sensación, subiendo de a poco · enseñarle a usar RPE · no hace máximos porque: tiene una condición de salud: primero que lo vea su médico; viene de estar sedentario · estrés ajustado: medio
 
 ### Lo que armó el coach IA
 
-**Plan:** Gran fondo 80 km: de vuelta a la bici con calma · empieza el 20 de octubre de 2026
+**Plan:** Vuelta a la bici: gran fondo de 80 km · empieza el 20 de octubre de 2026
 
 **Estructura completa (bloques):**
 
 | Bloque | Semanas | h/sem | Enfoque |
 |---|---|---|---|
-| Base | 6 | 2.5 | Volver al rodillo con constancia: 3 a 4 sesiones de 45-60 min en fondo suave por sensación. Desde la semana 3 sumamos una salida larga afuera de unos 75 min, que va creciendo. |
-| Construcción | 5 | 3.5 | Subimos el volumen despacio. La salida larga afuera pasa de 90 min a 2 h. Entran bloques de tempo suave y los primeros esfuerzos por sensación, cuando tu médico dé luz verde. |
-| Específico | 3 | 4 | Ritmo de gran fondo: salida larga afuera de 2 a 2.5 h con comida desde el minuto 30, y en rodillo tempo sostenido de 60 min. |
-| Descarga y evento | 1 | 2 | Bajamos volumen para llegar fresco. Dos rodadas suaves cortas y el gran fondo el martes 26 de enero. |
+| Base y hábito | 6 | 2.5 | Volver a la bici con constancia: 3 rodadas por semana de 45-60 min en fondo, por sensación (RPE 3-4). Los cambios de ritmo suaves entran poco a poco y el primer esfuerzo a RPE 7 llega en la semana 3. |
+| Construcción | 5 | 3.5 | Subir volumen despacio hasta 4 h por semana. Salida larga afuera de 1.5 h a 2.5 h, con tempo suave y algunos intervalos por sensación. |
+| Específico gran fondo | 3 | 4 | Ritmo de evento: bloques largos de tempo y salida larga afuera de hasta 3 h con comida desde el minuto 30. |
+| Descarga y evento | 1 | 2 | Semana del 31 de enero: poco volumen, piernas frescas y una salida suave el día antes del gran fondo. |
 
 **Por qué, en palabras del coach IA** (su nota al atleta, textual):
 
-> Roberto, tu meta de 80 km el 26 de enero es muy alcanzable: traes 10 años de oficio en bici y vamos a reconstruir el motor. Antes de apretar, que tu médico te dé luz verde por la presión y el losartán; mientras, construimos con cuidado y sin esfuerzos fuertes. Un gran fondo pide base aeróbica y ritmo sostenido, así que priorizo fondo y una salida larga afuera, porque en rodillo no conviene pasar de 60 min (tu tope). La intensidad va por sensación: RPE 3-4 es poder platicar, 6-7 solo frases cortas, 8-9 pocas palabras, 10 no puedes más. No hay test por ahora y no hay FTP: hasta nuevo aviso todo va por sensación. Con tus 4 días y 60 min, 4 horas por semana es el techo y solo llegaremos ahí poco a poco.
+> Roberto, tienes 10 años de bici y eso cuenta, pero hoy partes casi de cero en condición y vamos a construir juntos. Como tomas medicación para la presión, antes de apretar pásate por tu médico y que te dé luz verde para esfuerzos fuertes; mientras construimos con cuidado. Un gran fondo de 80 km el 31 de enero se ve alcanzable con 15 semanas, pero con tus primeras semanas vamos a ver qué ritmo es realista; la meta es llegar entero. Hasta el momento todo va por sensación (RPE: 3-4 puedes platicar, 6-7 solo frases cortas, 8-9 pocas palabras, 10 no puedes más) y no hay test por ahora. Con 4 días disponibles y 60 min por sesión caben unas 4 h como máximo; empezamos con 3 sesiones y el viernes de descanso, y más adelante la salida larga va afuera.
 
-#### Semana 1 · 3 sesiones de rodillo · 2.3 h · TSS ≈ 76
+#### Semana 1 · 3 sesiones de rodillo · 2.5 h · TSS ≈ 86
 
-- **miércoles 21 oct — Rodada suave 1** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
+- **miércoles 21 oct — Rodada de reencuentro** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
   - Calentamiento 8' @ 50→60%
-  - Constante 29' @ 60%
-  - Enfriamiento 8' @ 55→45%
-  - _Hoy es tu primer contacto con el rodillo, así que la idea es simple: pedalear cómodo y disfrutar. Va por sensación, con ERG apagado; si prefieres prenderlo, usa la potencia que ya conoces de tu perfil. El control es tu respiración: deberías poder hablar en frases completas. Si no puedes, baja un poco. Usa la cadencia que te salga natural, la app la va a observar para conocerte mejor. Con esto arrancas la semana con buen pie._
-
-- **viernes 23 oct — Rodada suave 2** · 40 min · TSS ≈ 23 · por sensación (sin ERG)
-  - Calentamiento 5' @ 50→60%
   - Constante 30' @ 60%
-  - Enfriamiento 5' @ 55→45%
-  - _Una rodada corta y cómoda para que el cuerpo se vaya acostumbrando al ritmo de la semana. Ve por sensación, sin perseguir números: respiración tranquila y capaz de hablar en frases completas. Pedalea con la cadencia que te salga natural. Sal con ganas, pero sin forzar, y deja que el cuerpo se acomode._
+  - Enfriamiento 7' @ 50%
+  - _Roberto, esta es tu primera rodada de reencuentro con el rodillo, así que sin prisa: 45 minutos para sentir la bici y tomarle el ritmo. Va con ERG apagado, por sensación; si prefieres, puedes prenderlo con el botón ⚡, pero la idea es que la cadencia te salga natural. Tu referencia es RPE 3-4: debes poder hablar en frases completas, y si no puedes, baja la potencia sin pena. Al terminar vas a sentir las piernas sueltas y con ganas de más, y eso es justo lo que buscamos para llegar fuerte al resto de la semana._
 
-- **sábado 24 oct — Fondo del sábado** · 50 min · TSS ≈ 28 · por sensación (sin ERG)
+- **viernes 23 oct — Fondo cómodo** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→60%
+  - Constante 30' @ 60%
+  - Enfriamiento 7' @ 50%
+  - _Otro fondo tranquilo, Roberto, para seguir agarrando confianza con el rodillo. Va con ERG apagado y por sensación: si quieres ERG, lo prendes con el botón ⚡. Mantén RPE 3-4, conversacional, como el miércoles. Hidrátate bien y ventila el cuarto para que el rodaje sea cómodo. Cuando termines, anota tu RPE; me sirve mucho para ajustar la semana que sigue._
+
+- **sábado 24 oct — Fondo de 60 min** · 60 min · TSS ≈ 36 · por sensación (sin ERG)
+  - Calentamiento 10' @ 50→62%
+  - Constante 40' @ 63%
+  - Enfriamiento 10' @ 50%
+  - _Esta es la rodada más larga de la semana, Roberto, así que tómala con calma: RPE 3-4, sin forzar en ningún momento. Va con ERG apagado, por sensación; si prefieres ERG, lo prendes con el botón ⚡. Como guía, si la segunda mitad se siente igual de fácil que la primera, vas muy bien; si empiezas a necesitar frases cortas (RPE 6-7), baja un poco. Sales con las piernas trabajadas pero frescas, y eso te deja una base sólida para las siguientes semanas._
+
+#### Semana 2 · 3 sesiones de rodillo · 2.6 h · TSS ≈ 93
+
+- **lunes 26 oct — Fondo con cambios suaves** · 45 min · TSS ≈ 26 · por sensación (sin ERG)
   - Calentamiento 10' @ 50→60%
-  - Constante 30' @ 62%
-  - Enfriamiento 10' @ 55→45%
-  - _Una salida un poco más larga, pero siempre a ritmo conversacional. Tu referencia es poder hablar en frases completas durante todo el fondo. Toma agua desde el inicio y mantén el ritmo parejo; si notas que el pulso se va subiendo, baja la potencia sin pena. Terminar fresco y constante vale más que apretar al final. Esto deja las piernas listas para la semana que viene._
+  - 4× (2' @ 72% + 5' @ 58%)
+  - Enfriamiento 7' @ 50%
+  - _Rodada suave para sentir la bici sin pelearla: fondo a RPE 3-4 con cuatro cambios cortos de ritmo, de unos 2 minutos, donde subes un poco pero sin forzar, y luego vuelves a un fondo cómodo. Va sin ERG, así que tú decides el ritmo por sensación y la cadencia natural; si prefieres trabajar con ERG, lo puedes prender con el botón ⚡. Lo que esperas es poder hablar, aunque sea entrecortado, incluso en los cambios; si te cuesta mucho respirar, baja y anótalo para tu coach. Es el tipo de sesión que te deja las piernas frescas para lo que viene, sin robarte energía._
 
-#### Semana 2 · 3 sesiones de rodillo · 2.6 h · TSS ≈ 89
-
-- **lunes 26 oct — Fondo suave** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
-  - Calentamiento 8' @ 50→60%
-  - Constante 32' @ 60%
-  - Enfriamiento 5' @ 55→45%
-  - _Lunes de rodada tranquila: 45 minutos para salir a pedalear sin prisa, a un ritmo en el que puedas platicar sin esfuerzo. Va por sensación, así que el ERG está apagado; si prefieres ERG lo prendes con el botón ⚡, pero aquí lo que manda es cómo te sientes. Si notas que el pulso se va subiendo en la segunda mitad, baja un poco y listo. Con esto arrancas la semana con las piernas frescas y sin prisa._
-
-- **miércoles 28 oct — Cambios de ritmo suaves** · 50 min · TSS ≈ 29 · por sensación (sin ERG)
-  - Calentamiento 8' @ 50→60%
-  - 5× (3' @ 68% + 3' @ 55%)
-  - Constante 7' @ 60%
-  - Enfriamiento 5' @ 55→45%
-  - _Miércoles de cambios de ritmo suaves: la idea es que tu cuerpo aprenda a subir y bajar de ritmo sin cansarse. Alterna 3 minutos un poco más firmes, con esfuerzo de 4 a 5 sobre 10 y todavía con aire para hablar, con 3 minutos muy suaves para recuperarte. El ERG va apagado, así que regula tú los cambios; si prefieres ERG lo prendes con el botón ⚡. Si en los firmes ya no puedes hablar, baja un poco. Esto te deja con buenas piernas para el fin de semana._
-
-- **sábado 31 oct — Fondo del sábado** · 60 min · TSS ≈ 35 · por sensación (sin ERG)
+- **miércoles 28 oct — Fondo constante** · 52 min · TSS ≈ 30 · por sensación (sin ERG)
   - Calentamiento 10' @ 50→60%
-  - Constante 40' @ 62%
-  - Enfriamiento 10' @ 55→45%
-  - _Sábado de fondo largo: hoy es tu rodada más larga hasta ahora, una hora completa. Busca un ritmo parejo, con esfuerzo suave de 3 a 4 sobre 10, y mantén el agua a la mano. La cadencia que te salga natural. El ERG va apagado, así que vas por sensación; si prefieres ERG lo prendes con el botón ⚡. Si puedes hablar en frases completas, vas bien. Es un buen cierre de semana para ganar resistencia._
+  - Constante 35' @ 62%
+  - Enfriamiento 7' @ 50%
+  - _Fondo parejo y conversacional, de los que se disfrutan: busca un ritmo constante a RPE 3-4 durante 35 minutos, el tipo de rodada en la que puedes platicar sin problema. Lo importante es que tu pulso no se vaya subiendo con los minutos; si lo notas, afloja un poco. Va sin ERG, así que lo manejas por sensación; si quieres usar ERG, lo prendes con el botón ⚡. Si terminas con ganas de más y la respiración tranquila, hiciste bien tu parte._
 
-#### Semana 3 · 2 sesiones de rodillo · 1.7 h · TSS ≈ 59
+- **sábado 31 oct — Fondo de 60 min** · 60 min · TSS ≈ 37 · por sensación (sin ERG)
+  - Calentamiento 10' @ 50→62%
+  - Constante 40' @ 64%
+  - Enfriamiento 10' @ 50%
+  - _Fondo largo de sábado, un poco más sostenido que el de la semana pasada: 40 minutos a un ritmo firme pero platicado, a RPE 3-4. Va sin ERG, así que tú marcas el paso por sensación; si prefieres ERG, lo prendes con el botón ⚡. Tu referencia es poder hablar en frases completas; si empiezas a cortar las frases, baja un poco y sigue. Terminas con las piernas trabajadas pero sin desgaste, lista para descansar bien el resto del fin de semana._
 
-- **lunes 2 nov — Fondo suave** · 50 min · TSS ≈ 28 · por sensación (sin ERG)
-  - Calentamiento 8' @ 50→60%
-  - Constante 37' @ 60%
-  - Enfriamiento 5' @ 55→45%
-  - _Hoy toca rodar largo y cómodo: 50 minutos de fondo para construir base sin desgastarte. Déjalo en modo calle plana, sin ERG, y ve por sensación; si prefieres ERG, lo prendes con el botón ⚡. Anda en un ritmo donde puedas hablar en frases completas, y si se siente fácil, no subas la potencia, porque la ganancia viene de la constancia. Lo esperable es ir con RPE 3-4, piernas sueltas y respiración tranquila; si notas que te cuesta hablar, baja un poco. Sales con buenas piernas para encarar la semana._
+#### Semana 3 · 3 sesiones de rodillo · 2.7 h · TSS ≈ 95
 
-- **miércoles 4 nov — Cambios de ritmo suaves** · 53 min · TSS ≈ 31 · por sensación (sin ERG)
-  - Calentamiento 8' @ 50→60%
-  - 5× (3' @ 68% + 3' @ 55%)
+- **lunes 2 nov — Fondo suave** · 52 min · TSS ≈ 30 · por sensación (sin ERG)
+  - Calentamiento 10' @ 50→60%
+  - Constante 35' @ 62%
+  - Enfriamiento 7' @ 50%
+  - _Lunes de rodar suave para aflojar las piernas: 52 minutos a ritmo cómodo, con RPE 3-4 y cadencia natural, sin buscar nada. Va por sensación, así que deja el ERG apagado; si prefieres usarlo, lo prendes con el botón ⚡, pero aquí lo que manda es cómo te sientes. Hablando en frases completas vas bien. Con este día llegas al miércoles fresco para tu primer esfuerzo de la semana._
+
+- **miércoles 4 nov — Primer esfuerzo por sensación** · 51 min · TSS ≈ 28 · por sensación (sin ERG)
+  - Calentamiento 10' @ 50→62%
+  - 3× (4' libre, por sensación y sin ERG (referencia ~85%) + 4' @ 50%)
   - Constante 10' @ 60%
-  - Enfriamiento 5' @ 55→45%
-  - _Hoy hay cambios de ritmo suaves con un poco más de fondo al final. Va sin ERG, en modo calle plana: ve por sensación y, si prefieres ERG, lo prendes con el botón ⚡. En los tramos firmes mantén RPE 4-5 y frases cortas pero cómodas; en los suaves, recupera de verdad. Lo que debes sentir es un esfuerzo parejo y controlado, sin llegar a ahogarte. Si en algún tramo no puedes ni decir una frase corta, baja y anótalo para tu coach. Es una buena forma de sumar trabajo sin cargarte de más antes del fin de semana._
-- _Fuera del rodillo:_ **sábado 7 nov — Primera salida afuera** (75 min): Rueda por ruta llana y tranquila, RPE 3-4, de modo que puedas platicar todo el camino. Lleva agua y algo de comer, y empieza a tomar desde el minuto 30.
+  - Enfriamiento 7' @ 50%
+  - _Miércoles para tu primer esfuerzo por sensación: tres bloques de 4 minutos a RPE 7, firmes pero repetibles, con 4 minutos suaves de verdad entre cada uno. El ERG va apagado, así que tú regulas el ritmo; en el primer bloque no salgas de más, que los tres tienen que salir parejos. Sentirás las piernas trabajar y la respiración más marcada, pero si puedes decir solo frases cortas en los esfuerzos, vas en el punto. Si algún bloque te queda muy arriba, baja y anótalo para tu coach. Esto deja las piernas listas para el fin de semana._
+
+- **sábado 7 nov — Fondo de 60 min** · 60 min · TSS ≈ 37 · por sensación (sin ERG)
+  - Calentamiento 10' @ 50→62%
+  - Constante 40' @ 64%
+  - Enfriamiento 10' @ 50%
+  - _Sábado de fondo largo para cerrar la semana: 60 minutos a RPE 3-4, con un ritmo que se sienta fácil y fluido, sobre todo después del esfuerzo del miércoles. El ERG va apagado, así que rueda por sensación y, si prefieres ERG, lo prendes con el botón ⚡. Si las piernas están pesadas desde el inicio, baja un poco la intensidad sin problema. La referencia es poder hablar en frases completas durante todo el recorrido._
 
 ### Por qué tomó estas decisiones (análisis, no texto de la IA)
 
-- **Médico primero:** hipertensión con losartán. Sin test, sin FTP, todo por sensación y nada arriba de 68%. Le pide luz verde de su médico «antes de apretar».
-- **Tope de 60 min respetado:** sesiones de 40–60 min. Como en rodillo no puede pasar de 60, para el gran fondo usa una salida larga afuera desde la semana 3 (75 min), que crece en los bloques siguientes.
-- **Volumen:** 2.2 h → 2.6 h de rodillo. En la semana 3 quita el viernes y deja 2 de rodillo más la primera salida afuera.
+- **Médico primero:** hipertensión con losartán. Sin test, sin FTP, todo por sensación, nada arriba de 72%.
+- **Meta realista sin prometer:** «se ve alcanzable con 15 semanas, pero con tus primeras semanas vamos a ver qué ritmo es realista; la meta es llegar entero».
+- **3 sesiones de 45–60 min** (su tope es 60), viernes libre; la salida larga afuera llega en el bloque 2.
+
+**Qué cambió desde la corrida 1:** Antes: en la semana 3 bajaba a 2 sesiones sin explicar. Ahora: 3 sesiones estables (2.5 → 2.7 h) y una evaluación explícita de la meta.
 
 **Para revisar:**
 
-- ¿Le pedirías valoración médica (o prueba de esfuerzo) antes de empezar, no solo antes de subir la intensidad?
-- ¿Por qué baja a 2 sesiones de rodillo en la semana 3? No lo explica.
+- Una descripción le dice «lista para descansar» (error de género, para Torq).
 
 **Evaluación de Joe** (llenar):
 
@@ -571,162 +578,158 @@
 | **FTP** | 235 W — test de 20 min, hace 14 días (4.2 W/kg) |
 | **FC máxima** | 196 lpm (medida) · reposo: 46 lpm |
 | **Últimas 4 semanas** | con intensidad, ~12 h/sem |
+| **Su semana típica (textual)** | «Lunes suave o descanso, martes series de umbral, miércoles fondo de 2 h, jueves VO2 (5×4 min), sábado salida larga de 3-4 h con el equipo y domingo criterium o fondo. Gym lunes y jueves.» |
 | **Salud** | Condiciones: Ninguna · lesión reciente: no |
 | **Hábitos** | Duerme 8 h (calidad buena) · estrés bajo · fuma: no · alcohol: nunca o rara vez |
 | **Esfuerzo** | ¿Sabe usar RPE?: sí · ¿ha hecho esfuerzos máximos?: sí |
 | **Otras actividades** | Gym / fuerza 2×/sem de 45 min (lunes, jueves) |
 | **Disponibilidad** | 11 h/sem · lunes, martes, miércoles, jueves, sábado, domingo |
-| **Su objetivo (textual)** | «Selectivo nacional de ruta (criterium y contrarreloj) el 15 de diciembre de 2026. Quiero mejorar mis arranques y aguantar más tiempo en umbral.» |
+| **Su objetivo (textual)** | «Selectivo nacional de ruta (criterium y contrarreloj) el 20 de diciembre de 2026. Quiero mejorar mis arranques y aguantar más tiempo en umbral.» |
 
 **Perfil de arranque (reglas de Torq):** test de 20 min · viene entrenando con intensidad: no arranca desde cero · estrés ajustado: bajo
 
 ### Lo que armó el coach IA
 
-**Plan:** Selectivo nacional: más umbral y mejores arranques · empieza el 20 de octubre de 2026
+**Plan:** Selectivo de ruta: umbral y arranques hacia el 20 de diciembre · empieza el 20 de octubre de 2026
 
 **Estructura completa (bloques):**
 
 | Bloque | Semanas | h/sem | Enfoque |
 |---|---|---|---|
-| Construcción de umbral | 3 | 7 | Semanas 1 a 3: umbral en ERG (3×8 min, luego 3×10 y 3×12 min) y arranques de 10 s con recuperación completa. Unas 6.3 a 7.7 h de bici por semana, más tus dos sesiones de fuerza. La semana 4 es de descarga con retest. |
-| Específico de criterium y CRI | 4 | 8 | Semanas 4 a 7: umbral largo con picos, salidas simuladas, anaeróbico de 30 s a 1 min y un bloque de ritmo de contrarreloj. Una descarga a mitad del bloque. |
-| Semana de carrera | 1 | 4 | Semana 8: llegar fresca el martes 15 de diciembre con activaciones cortas y mucho descanso. |
+| Construcción específica | 3 | 9.5 | Umbral sostenido (de 3×10 a 4×10 min) y arranques cortos cada domingo, con la salida larga del sábado afuera de 3 a 3.5 h. La semana 4 será de descarga y cierra con retest de 20 min. |
+| Específico de selectivo | 3 | 10 | Bloques de umbral más largos para la contrarreloj y 40:20s, over/unders y sprints repetidos para el criterium. Salida larga de 3 h afuera, con una semana de descarga dentro del bloque. |
+| Afinación | 2 | 8 | Se mantiene la calidad con menos volumen: ritmo de contrarreloj y salidas explosivas. Las piernas llegan frescas, sin fatiga acumulada. |
+| Semana del selectivo | 1 | 5 | Activaciones cortas, descanso y la carrera el domingo 20 de diciembre. |
 
-**Próximo test:** test20 · Será al final de la semana 4, que es de descarga, con 4 semanas desde tu último test y fresca, para ajustar tus zonas al abrir el bloque específico.
+**Próximo test:** test20 · Se hace al abrir el siguiente bloque, fresca después de la semana de descarga y con más de 4 semanas desde tu test del 6 de octubre.
 
 **Por qué, en palabras del coach IA** (su nota al atleta, textual):
 
-> Mariana, aterrizo tu perfil: vienes de unas 12 h semanales con intensidad, así que no arrancamos desde base y entramos con umbral y arranques desde la semana 1. La prueba pide dos cosas: aguantar en umbral para la contrarreloj y repetir arranques de 10 s para el criterium; eso priorizo. Con 6 días × 90 min caben 9 h; planeo 6.3 a 7.7 h de bici para que sumadas a tu fuerza del lunes y jueves (que cuenta en la carga) lleguen bien. Por eso lunes y jueves van suaves y las sesiones duras son el miércoles y el sábado. Tu FTP de 235 W, medido el 6 de octubre, se queda así: lo revisamos en un retest al final de la semana 4, después de una descarga.
+> Mariana, partimos de tu semana real: umbral el martes, fondo el miércoles, salida larga el sábado y criterium o arranques el domingo. La demanda de un selectivo de criterium y contrarreloj es umbral sostenido más arranques repetidos, y eso es lo que priorizo. Arrancamos con tus 235 W, con el umbral al 95 % las dos primeras semanas, y el retest de 20 min va en la semana 4, después de la descarga. Tus gimnasios del lunes y el jueves cuentan en la carga: por eso el lunes es de bici muy suave y el jueves de piernas sueltas. Como tu sesión indoor llega a 90 min, la salida larga del sábado afuera (3 h 30 min) completa las horas; si quieres rodillo más largo, súbelo en tu formulario.
 
-#### Semana 1 · 5 sesiones de rodillo · 6.3 h · TSS ≈ 262
+#### Semana 1 · 4 sesiones de rodillo · 4.7 h · TSS ≈ 192
 
-- **martes 20 oct — Fondo suave** · 75 min · TSS ≈ 46 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 60' @ 62% (146 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Mariana, este es un fondo para volver a sentir el ritmo después de tu fin de semana. Va con ERG apagado, así que ve por sensación: RPE 3-4, con plática en frases completas. Si sientes que el pulso se va subiendo, baja un poco la potencia y no persigas números. Si prefieres ERG, lo prendes con el botón ⚡, pero aquí manda la sensación. Lo que ganas hoy son piernas listas para lo que viene en la semana._
-
-- **miércoles 21 oct — Umbral 3×8** · 58 min · TSS ≈ 55
-  - Calentamiento 12' @ 50→75% (118→176 W)
-  - 3× (8' @ 96% (226 W) + 4' @ 55% (129 W))
-  - Enfriamiento 10' @ 55→45% (129→106 W)
-  - _Hoy empieza el trabajo de umbral del bloque, y te lo recomiendo con ERG prendido al 96 %: el rodillo marca el ritmo y tú sostienes la cadencia en cada intervalo. Va algo conservador estas dos primeras semanas a propósito, así que no tienes que ir al límite. Debe sentirse RPE 7, con frases cortas. Si no logras completar el último intervalo o te pasas de RPE 8, baja 3-5 puntos y anótalo para tu coach. Esta sesión te enseña cómo se siente el umbral antes de que se ponga más difícil._
-
-- **jueves 22 oct — Fondo suave** · 75 min · TSS ≈ 46 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 60' @ 62% (146 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Jueves de fuerza: la bici va suave para que tus piernas lleguen frescas al sábado. Va con ERG apagado, por sensación, a RPE 3-4 y sin forzar la cadencia. Platica en frases completas y deja que el ritmo salga solo. Si prefieres ERG, lo prendes con el botón ⚡, pero la idea es rodar tranquila. Piensa en esta rodada como la que cuida lo que viene después._
-
-- **sábado 24 oct — Arranques y umbral** · 81 min · TSS ≈ 56
-  - Calentamiento 15' @ 50→75% (118→176 W)
-  - 8× (10" libre, por sensación y sin ERG (referencia ~150% (353 W)) + 3.8' @ 50% (118 W))
-  - 2× (8' @ 95% (223 W) + 4' @ 55% (129 W))
-  - Enfriamiento 10' @ 55→45% (129→106 W)
-  - _Este es el día fuerte de la semana, y tiene dos partes distintas. Los arranques van sin ERG y a tope: ocho de 10 segundos, sentada o parada como en carrera, con casi 4 minutos de recuperación completa. Cuida que la última salida salga igual que la primera, porque eso es lo que de verdad importa. Después vienen dos bloques de umbral con ERG prendido al 95 %, donde el rodillo marca el ritmo y tú sostienes la cadencia. Llega descansada y con la cabeza puesta en cada arranque._
-
-- **domingo 25 oct — Fondo largo** · 90 min · TSS ≈ 59 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 70' @ 65% (153 W)
+- **martes 20 oct — Umbral 3×10** · 67 min · TSS ≈ 64
+  - Calentamiento 12' @ 50→70% (118→165 W)
+  - 3× (10' @ 95% (223 W) + 5' @ 55% (129 W))
   - Enfriamiento 10' @ 50% (118 W)
-  - _Esta es tu rodada larga de la semana: 90 minutos a RPE 3-4, con ERG apagado y por sensación. Ve cómoda, con frases completas, y procura que la FC no se vaya subiendo en la segunda mitad; si pasa, baja la potencia un poco. Come y toma líquido durante la sesión, que aquí el combustible importa tanto como las piernas. Terminar fresca y con ganas de repetir es la meta, no llegar agotada._
-- _Fuera del rodillo:_ **jueves 22 oct — Fuerza: pierna ligera** (45 min): Mañana no hay bici dura y el sábado toca arranques, así que mantén la pierna ligera y enfócate en core y tren superior. Debes salir con energía, no vacía.
+  - _Hoy toca tu primer contacto con el umbral, al 95 % de tu FTP. Va un poco conservador porque tu test es de hace dos semanas, así que mantén el ERG encendido: el rodillo marca la potencia y tú sostienes la cadencia. Los últimos 2 minutos de cada bloque deben sentirse exigentes pero sostenibles, alrededor de RPE 7-8. Si no logras completar el último bloque, baja 3-5 puntos la próxima vez. Esto deja las piernas listas para el jueves, aunque sea un día de rodada suave._
 
-#### Semana 2 · 6 sesiones de rodillo · 7.5 h · TSS ≈ 314
-
-- **lunes 26 oct — Fondo suave** · 60 min · TSS ≈ 36 · por sensación (sin ERG)
+- **miércoles 21 oct — Fondo 90 min** · 90 min · TSS ≈ 65 · por sensación (sin ERG)
   - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 45' @ 62% (146 W)
+  - Constante 75' @ 68% (160 W)
   - Enfriamiento 5' @ 50% (118 W)
-  - _Lunes de rodar suave para activar las piernas: 60 minutos a RPE 3-4, sin ERG, a tu ritmo y con sensación. Si hoy te toca pierna pesada, hazla después de la rodada, no antes. Vas a terminar con las piernas despiertas y sin cansancio de más, lista para lo que sigue._
+  - _Fondo aeróbico tranquilo para construir base. Te recomiendo ERG apagado y pedalear por sensación, con tu cadencia natural y sin forzar. El ritmo ideal es RPE 3-4, de los que te permiten hablar en frases completas. Si prefieres ERG, puedes prenderlo con el botón ⚡ con tu FTP de perfil, pero el control aquí es tu respiración. Disfruta los 75 minutos del medio, que son los que más suman._
 
-- **martes 27 oct — Fondo suave** · 75 min · TSS ≈ 46 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 60' @ 62% (146 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Martes de recuperación activa antes del umbral. Son 75 minutos sin ERG, a RPE 3-4, en un ritmo en el que puedas platicar sin cortar la frase. Si al rodar sientes que te estás esforzando de más, baja un poco; el objetivo es llegar fresca al miércoles._
+- **jueves 22 oct — Rodada suave** · 60 min · TSS ≈ 31 · por sensación (sin ERG)
+  - Calentamiento 10' @ 45→55% (106→129 W)
+  - Constante 45' @ 58% (136 W)
+  - Enfriamiento 5' @ 45% (106 W)
+  - _Rodada suave para soltar las piernas el día de gimnasio. Va con ERG apagado y sin mirar los watts: pedalea a RPE 2-3, cómodo y relajado. El objetivo es que llegues fresca el sábado, cuando toca salida larga, así que no te dejes llevar por el ritmo. Si sientes las piernas pesadas, es buena señal de que todavía tienes margen para ir más suave._
 
-- **miércoles 28 oct — Umbral 3×10** · 64 min · TSS ≈ 65
-  - Calentamiento 12' @ 50→75% (118→176 W)
-  - 3× (10' @ 97% (228 W) + 4' @ 55% (129 W))
-  - Enfriamiento 10' @ 55→45% (129→106 W)
-  - _Hoy subimos el umbral a 10 minutos por bloque. Prende el ERG para que el rodillo marque los 97 % y tú sostengas la cadencia. En los bloques deberías sentir RPE 7, fuerte pero controlado. Si en el último bloque te pasas de RPE 8, la próxima vez baja 3-5 puntos. Es un día duro, pero bien hecho te deja muy bien parada para el fin de semana._
-
-- **jueves 29 oct — Fondo suave** · 75 min · TSS ≈ 46 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 60' @ 62% (146 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Jueves de rodada suave, 75 minutos a RPE 3-4 y sin ERG. Va por sensación, en un ritmo cómodo que te permita ir platicando. La idea es que el sábado llegues con piernas frescas, así que no te exijas de más._
-
-- **sábado 31 oct — Arranques y umbral 2×10** · 85 min · TSS ≈ 62
-  - Calentamiento 15' @ 50→75% (118→176 W)
-  - 8× (10" libre, por sensación y sin ERG (referencia ~150% (353 W)) + 3.8' @ 50% (118 W))
-  - 2× (10' @ 95% (223 W) + 4' @ 55% (129 W))
-  - Enfriamiento 10' @ 55→45% (129→106 W)
-  - _Sábado de arranques y umbral. Después de calentar, haz ocho arranques de 10 segundos al máximo, sin ERG, con recuperación completa entre cada uno; dales todo, pero sin pasarte de tu control. Luego prende el ERG para los dos bloques de 10 minutos al 95 %: el rodillo marca el ritmo y tú sostienes la cadencia. Si sientes que el primer bloque sale muy cargado, respira y lleva el segundo parejo. Llegar con ganas al final es la meta._
-
-- **domingo 1 nov — Fondo largo** · 90 min · TSS ≈ 59 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 70' @ 65% (153 W)
+- **domingo 25 oct — Arranques y 30/30** · 65 min · TSS ≈ 32 · por sensación (sin ERG)
+  - Calentamiento 15' @ 50→70% (118→165 W)
+  - 8× (30" libre, por sensación y sin ERG (referencia ~130% (306 W)) + 30" @ 50% (118 W))
+  - Recuperación 3' @ 50% (118 W)
+  - 8× (30" libre, por sensación y sin ERG (referencia ~130% (306 W)) + 30" @ 50% (118 W))
+  - Recuperación 3' @ 50% (118 W)
+  - 6× (12" libre, por sensación y sin ERG (referencia ~160% (376 W)) + 2.8' @ 50% (118 W))
   - Enfriamiento 10' @ 50% (118 W)
-  - _Domingo de rodada larga: 90 minutos a RPE 3-4, sin ERG, con comida e hidratación a la mano. Va por sensación y puedes ir platicando durante todo el recorrido. Terminas cuando sientas que todavía podrías seguir, y eso es justo lo que buscamos para cerrar la semana._
-- _Fuera del rodillo:_ **lunes 26 oct — Fuerza: pierna moderada** (45 min): El martes y el jueves van suaves, así que puedes cargar pierna con control. Evita llegar a la falla.
-- _Fuera del rodillo:_ **jueves 29 oct — Fuerza: tren superior y core** (45 min): El sábado hay arranques, así que hoy enfócate en tren superior y core. Pierna muy ligera.
+  - _Sesión para entrenar el criterium: series de 30 segundos fuertes con 30 segundos suaves y luego sprints de 12 segundos con recuperación completa. Va con ERG apagado, así que sal a sensación. Si la potencia cae mucho a mitad de la serie, saliste demasiado fuerte, así que dosifica desde el inicio. Para los sprints, da todo al máximo, sentada o parada como en carrera. Llegarás con las piernas encendidas, y eso es exactamente lo que buscamos._
+- _Fuera del rodillo:_ **jueves 22 oct — Gimnasio: pierna ligera** (45 min): Pierna ligera y core: el sábado hay salida larga y no quieres llegar con las piernas cargadas. Que termines con ganas de más.
+- _Fuera del rodillo:_ **sábado 24 oct — Salida larga con el equipo** (210 min): Rodada de 3 h 30 min afuera a RPE 3-4, comiendo desde el minuto 30. Deja los esfuerzos fuertes para otros días.
 
-#### Semana 3 · 6 sesiones de rodillo · 7.7 h · TSS ≈ 329
+#### Semana 2 · 5 sesiones de rodillo · 5.7 h · TSS ≈ 225
 
-- **lunes 2 nov — Fondo suave** · 60 min · TSS ≈ 36 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 45' @ 62% (146 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Hoy toca rodar sin prisa para activar las piernas, un día de fuerza de por medio. Va sin ERG, en modo calle plana: ve por sensación y sube o baja según cómo te sientas. Si prefieres ERG, prende el botón ⚡ cuando quieras. La referencia es poder platicar en frases completas, con RPE 3-4. No te preocupes por el ritmo; el objetivo es terminar con las piernas ligeras._
+- **lunes 26 oct — Rodada de recuperación** · 45 min · TSS ≈ 19
+  - Constante 45' @ 50% (118 W)
+  - _Hoy toca rodar suave para soltar las piernas después de la salida larga y el criterium. Déjalo en RPE 1-2, sin pelearle a nadie ni mirar números: que sea un paseo que te deje lista para lo que viene. Puedes dejar el ERG prendido para que el rodillo te marque el ritmo bajo, o apagarlo si prefieres ir por sensación; tú decides. Si al final te sientes con más energía de la que esperabas, no la conviertas en esfuerzo, la idea es recuperar._
 
-- **martes 3 nov — Fondo suave** · 75 min · TSS ≈ 46 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 60' @ 62% (146 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Una rodada tranquila para recuperar antes del umbral de mañana. Va sin ERG, así que maneja por sensación y, si prefieres ERG, lo prendes con el botón ⚡. Mantén una conversación fluida todo el tiempo, con RPE 3-4: si te cuesta hablar, baja el ritmo. Llega con la cabeza tranquila y disfruta el rodar._
-
-- **miércoles 4 nov — Umbral 3×12** · 70 min · TSS ≈ 74
-  - Calentamiento 12' @ 50→75% (118→176 W)
-  - 3× (12' @ 97% (228 W) + 4' @ 55% (129 W))
-  - Enfriamiento 10' @ 55→45% (129→106 W)
-  - _Es la sesión clave de umbral de la semana, así que llega descansada y con ganas. Te recomiendo prender el ERG: el rodillo marca la potencia en los bloques de 12 min y tú sostienes la cadencia. Reparte el esfuerzo desde el primer bloque y no arranques fuerte, porque el último intervalo es el que más pesa. Debe sentirse RPE 7, con respiración controlada y piernas firmes pero estables._
-
-- **jueves 5 nov — Fondo suave** · 75 min · TSS ≈ 46 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 60' @ 62% (146 W)
-  - Enfriamiento 5' @ 50% (118 W)
-  - _Rodada suave en día de fuerza para soltar las piernas y prepararte para el sábado. Va sin ERG: rueda por sensación y, si quieres usar ERG, prende el botón ⚡. La referencia es RPE 3-4, con frases completas sin jadear. Entre más relajado salgas de aquí, mejor llegas al fin de semana._
-
-- **sábado 7 nov — Arranques y umbral 2×12** · 89 min · TSS ≈ 68
-  - Calentamiento 15' @ 50→75% (118→176 W)
-  - 8× (10" libre, por sensación y sin ERG (referencia ~150% (353 W)) + 3.8' @ 50% (118 W))
-  - 2× (12' @ 95% (223 W) + 4' @ 55% (129 W))
-  - Enfriamiento 10' @ 55→45% (129→106 W)
-  - _Hoy combinamos explosividad y umbral, y la clave está en los arranques. Los ocho sprints de 10 s van sin ERG y al máximo, con recuperación completa; no los hagas a medias. Después, los dos bloques de 12 min al 95 % los haces con ERG prendido, así que tú sostienes la cadencia y el rodillo marca la potencia. Debe sentirse RPE 7 en el umbral, con piernas pesadas pero controladas._
-
-- **domingo 8 nov — Fondo largo** · 90 min · TSS ≈ 59 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→65% (118→153 W)
-  - Constante 70' @ 65% (153 W)
+- **martes 27 oct — Umbral 3×12** · 70 min · TSS ≈ 72
+  - Calentamiento 12' @ 50→70% (118→165 W)
+  - 3× (12' @ 95% (223 W) + 4' @ 55% (129 W))
   - Enfriamiento 10' @ 50% (118 W)
-  - _Hoy es la rodada larga de la semana: 90 minutos a RPE 3-4, sin prisa y comiendo y tomando líquido durante el recorrido. Va sin ERG, así que ve por sensación; si prefieres ERG, prende el botón ⚡. La referencia es poder hablar en frases completas todo el tiempo. Termina con la sensación de haber trabajado sin desgastarte, porque después de esta semana viene la descarga._
-- _Fuera del rodillo:_ **lunes 2 nov — Fuerza: pierna moderada** (45 min): El martes es suave, así que puedes trabajar pierna con control. Termina con energía.
-- _Fuera del rodillo:_ **jueves 5 nov — Fuerza: tren superior y core** (45 min): El sábado toca arranques y umbral, así que hoy tren superior y core, con la pierna muy ligera.
+  - _Esta es la misma sesión de umbral de la semana pasada, pero con bloques de 12 minutos en vez de los de antes. Lo que vas a ganar es aguantar más tiempo, así que no busques más watts. Te recomiendo dejar el ERG prendido para sostener el 95 % FTP parejo, y tú solo cuida la cadencia. Los primeros 6 minutos de cada bloque van con respiración controlada; si al final de los bloques sientes RPE 7-8, vas exactamente como debe ser. Llegas al martes con mucho trabajo hecho, así que cuida la recuperación entre bloques._
+
+- **miércoles 28 oct — Fondo 90 min** · 90 min · TSS ≈ 65 · por sensación (sin ERG)
+  - Calentamiento 10' @ 50→65% (118→153 W)
+  - Constante 75' @ 68% (160 W)
+  - Enfriamiento 5' @ 50% (118 W)
+  - _Miércoles de fondo aeróbico, de esos que se disfrutan platicando. Aquí no hay watts que perseguir: va por sensación, RPE 3-4, con la respiración tranquila. Te recomiendo dejar el ERG apagado y rodar en calle plana, y si prefieres el control del rodillo lo prendes con el botón ⚡. Si notas que el pulso sube en la segunda mitad, estás yendo fuerte: baja un poco hasta volver a platicar. Esto te deja una base sólida para el resto de la semana._
+
+- **jueves 29 oct — Rodada suave** · 60 min · TSS ≈ 31 · por sensación (sin ERG)
+  - Calentamiento 10' @ 45→55% (106→129 W)
+  - Constante 45' @ 58% (136 W)
+  - Enfriamiento 5' @ 45% (106 W)
+  - _Jueves de rodada suave para soltar las piernas el día de gimnasio. Va en RPE 2-3, sin prisa y sin forzar nada. Lo tienes en calle plana con ERG apagado, así que ajusta tú el ritmo por sensación; si prefieres el ERG, lo prendes con el botón ⚡. Si las piernas se sienten pesadas, no te preocupes, es justo para eso. Lo que buscas es llegar al fin de semana fresca, porque viene una carga importante._
+
+- **domingo 1 nov — Arranques y 30/30 (3 series)** · 76 min · TSS ≈ 38 · por sensación (sin ERG)
+  - Calentamiento 15' @ 50→70% (118→165 W)
+  - 8× (30" libre, por sensación y sin ERG (referencia ~130% (306 W)) + 30" @ 50% (118 W))
+  - Recuperación 3' @ 50% (118 W)
+  - 8× (30" libre, por sensación y sin ERG (referencia ~130% (306 W)) + 30" @ 50% (118 W))
+  - Recuperación 3' @ 50% (118 W)
+  - 8× (30" libre, por sensación y sin ERG (referencia ~130% (306 W)) + 30" @ 50% (118 W))
+  - Recuperación 3' @ 50% (118 W)
+  - 6× (12" libre, por sensación y sin ERG (referencia ~160% (376 W)) + 2.8' @ 50% (118 W))
+  - Enfriamiento 10' @ 50% (118 W)
+  - _Domingo de arranques y 30/30, con una serie más que la semana pasada y los mismos sprints. Va con ERG apagado y tú regulas el esfuerzo: la idea es que la potencia se mantenga pareja hasta el final de cada serie, sin irte al máximo al principio. En los sprints sí dales todo, con recuperación completa para que el último también salga fuerte. Si notas que te pasaste en una serie, baja un poco en la siguiente y anótalo para tu coach. Terminas la semana con trabajo de calidad y con la satisfacción de haber cerrado bien._
+- _Fuera del rodillo:_ **lunes 26 oct — Gimnasio: tren superior y core** (45 min): Enfócate en tren superior y core: mañana hay umbral y las piernas deben llegar frescas.
+- _Fuera del rodillo:_ **jueves 29 oct — Gimnasio: pierna ligera** (45 min): Pierna ligera y core, porque el sábado hay salida larga. Termina con energía.
+- _Fuera del rodillo:_ **sábado 31 oct — Salida larga con el equipo** (210 min): 3 h 30 min afuera a RPE 3-4, comiendo desde el minuto 30. Si el grupo sube el ritmo, no te quemes.
+
+#### Semana 3 · 5 sesiones de rodillo · 5.9 h · TSS ≈ 238
+
+- **lunes 2 nov — Rodada de recuperación** · 45 min · TSS ≈ 19
+  - Constante 45' @ 50% (118 W)
+  - _Hoy toca soltar las piernas, no sumar kilómetros. Prende el ERG y deja que el rodillo marque un ritmo suave al 50 % de tu FTP; tu única tarea es pedalear sin pelear con nada. Si te sientes pesada al arrancar, eso es normal y se va en unos minutos. Puedes hablar en frases completas durante toda la rodada. Es una buena forma de empezar la semana con las piernas listas para lo que viene._
+
+- **martes 3 nov — Umbral 4×10** · 78 min · TSS ≈ 82
+  - Calentamiento 12' @ 50→70% (118→165 W)
+  - 4× (10' @ 97% (228 W) + 4' @ 55% (129 W))
+  - Enfriamiento 10' @ 50% (118 W)
+  - _Hoy es el día de sostener el umbral, y ya llevas dos semanas construyéndolo. Prende el ERG: el rodillo lleva la potencia de cada bloque de 10 minutos al 97 % y tú cuidas la cadencia. Los bloques deben sentirse sostenibles, alrededor de RPE 7-8: exigentes, pero controlados, con respiración agitada y frases cortas. Si en algún bloque no alcanzas la potencia, no te obligues; baja 3-5 puntos y anótalo para que lo platiquemos. Llega con las piernas descansadas y verás que el cuarto bloque se siente mejor de lo que esperas._
+
+- **miércoles 4 nov — Fondo 90 min** · 90 min · TSS ≈ 65 · por sensación (sin ERG)
+  - Calentamiento 10' @ 50→65% (118→153 W)
+  - Constante 75' @ 68% (160 W)
+  - Enfriamiento 5' @ 50% (118 W)
+  - _Hoy es un fondo tranquilo para recuperar el trabajo de umbral de ayer. Va por sensación, con el ERG apagado: pedalea cómoda a RPE 3-4, con la respiración tranquila y la posibilidad de hablar en frases completas. Si el ritmo empieza a subir solo, bájalo; el objetivo es salir con la sensación de que pudiste más. Si prefieres usar ERG, puedes prenderlo con el botón ⚡, pero no hace falta. Es un día para rodar sin prisa y sin querer demostrar nada._
+
+- **jueves 5 nov — Rodada suave** · 60 min · TSS ≈ 31 · por sensación (sin ERG)
+  - Calentamiento 10' @ 45→55% (106→129 W)
+  - Constante 45' @ 58% (136 W)
+  - Enfriamiento 5' @ 45% (106 W)
+  - _Rodada suave antes del gimnasio, sin ERG y por sensación. Pedalea con las piernas sueltas a RPE 2-3, en un ritmo en el que puedas platicar sin esfuerzo. Si quieres usar ERG para mantener el ritmo, prende el botón ⚡, aunque la idea es que te sientas ligera y con buena cadencia. Es un día para moverte, calentar bien el cuerpo y llegar al gimnasio con energía._
+
+- **domingo 8 nov — Arranques y 30/30 + 8 sprints** · 82 min · TSS ≈ 41 · por sensación (sin ERG)
+  - Calentamiento 15' @ 50→70% (118→165 W)
+  - 8× (30" libre, por sensación y sin ERG (referencia ~130% (306 W)) + 30" @ 50% (118 W))
+  - Recuperación 3' @ 50% (118 W)
+  - 8× (30" libre, por sensación y sin ERG (referencia ~130% (306 W)) + 30" @ 50% (118 W))
+  - Recuperación 3' @ 50% (118 W)
+  - 8× (30" libre, por sensación y sin ERG (referencia ~130% (306 W)) + 30" @ 50% (118 W))
+  - Recuperación 3' @ 50% (118 W)
+  - 8× (12" libre, por sensación y sin ERG (referencia ~160% (376 W)) + 2.8' @ 50% (118 W))
+  - Enfriamiento 10' @ 50% (118 W)
+  - _Hoy cierras la semana con la sesión más intensa: arranques y 30/30, y al final ocho sprints más. Va sin ERG, así que regulas tú la potencia; si quieres la referencia del rodillo, prende el botón ⚡, pero el control es tuyo. En los 30 fuertes busca un esfuerzo alto pero parejo, y en los sprints de 12 segundos da todo al máximo con recuperación completa. Si notas que pierdes potencia, para y descansa sin culpa, porque cada sprint limpio vale más que uno forzado. Al terminar sentirás las piernas pesadas, y eso es lo esperado después de una semana de carga._
+- _Fuera del rodillo:_ **lunes 2 nov — Gimnasio: tren superior y core** (45 min): Tren superior y core: mañana hay umbral y las piernas tienen que estar frescas.
+- _Fuera del rodillo:_ **jueves 5 nov — Gimnasio: pierna ligera** (45 min): Pierna ligera y core: el sábado hay salida larga. Cuida las piernas.
+- _Fuera del rodillo:_ **sábado 7 nov — Salida larga con el equipo** (210 min): 3 h 30 min afuera a RPE 3-4, comiendo desde el minuto 30. Es la última salida larga antes de la descarga.
 
 ### Por qué tomó estas decisiones (análisis, no texto de la IA)
 
-- **En temporada:** venía de 12 h con intensidad, así que entra directo con umbral (3×8 → 3×10 → 3×12 min al 95–97%) y arranques de 10 s a tope sin ERG (referencia ~150%), sin rehacer base.
-- **2 sesiones duras por semana:** miércoles y sábado. Lunes y jueves suaves por sus días de fuerza.
-- **Volumen:** 6.3 → 7.5 → 7.7 h de 11 disponibles. Le dice que es para que sume bien con la fuerza.
-- **Test de 20 min al final de la semana 4 (descarga):** 4 semanas después de su último test.
-- **Sin salida larga afuera:** su sesión más larga es un fondo de 90 min en rodillo.
+- **Parte de su semana real:** umbral el martes, fondo el miércoles, salida larga el sábado, arranques el domingo.
+- **En temporada:** umbral (3×10 → 4×10 min al 95–97%) y arranques desde la semana 1.
+- **Salida larga afuera con el equipo:** 3 h 30 min los sábados, que completa las horas que el rodillo no da.
+- **Retest de 20 min en la semana 4** (su último test fue hace 2 semanas).
+
+**Qué cambió desde la corrida 1:** Antes: todo en rodillo (máximo 90 min) y sin salida larga. Ahora: respeta su salida del sábado y su estructura.
 
 **Para revisar:**
 
-- ¿Bajarías de 12 h a 6.3 h la primera semana de una élite a 8 semanas del selectivo?
-- ¿Le falta una salida larga en ruta?
-- Los arranques de 10 s están desde la semana 1, pero los esfuerzos de 30 s a 1 min (clave en criterium) llegan hasta el bloque 2. ¿Es tarde?
+- Rodillo 4.7–5.9 h + 3.5 h afuera = ~8–9.5 h, de 11 disponibles y 12 que venía haciendo. ¿Bien a 8 semanas del selectivo?
+- Le presenta el tope general de 90 min como si ella lo hubiera puesto (para Torq).
 
 **Evaluación de Joe** (llenar):
 
@@ -759,12 +762,13 @@
 | **FTP** | 250 W — provisional (estimado), hace 3 días (3.2 W/kg) |
 | **FC máxima** | No la sabe · reposo: 60 lpm |
 | **Últimas 4 semanas** | rodadas suaves, ~3 h/sem |
+| **Su semana típica (textual)** | «Martes y jueves 40 min de rodillo suave antes de que despierten mis hijos; el sábado salgo 1.5 h de gravel cuando puedo.» |
 | **Salud** | Condiciones: Ninguna · lesión reciente: no |
 | **Hábitos** | Duerme 6 h (calidad mala) · estrés alto · fuma: no · alcohol: nunca o rara vez |
 | **Esfuerzo** | ¿Sabe usar RPE?: más o menos · ¿ha hecho esfuerzos máximos?: sí |
 | **Otras actividades** | Ninguna |
 | **Disponibilidad** | 4 h/sem · martes, miércoles, jueves, sábado · máx 120 min por sesión |
-| **Su objetivo (textual)** | «Gravel de 100 km en la Sierra Gorda el 12 de enero de 2027. Tengo dos hijos chicos: entre semana solo puedo 40 minutos temprano y el sábado hasta 2 horas. Duermo mal.» |
+| **Su objetivo (textual)** | «Gravel de 100 km en la Sierra Gorda el 17 de enero de 2027. Tengo dos hijos chicos: entre semana solo puedo 40 minutos temprano y el sábado hasta 2 horas. Duermo mal.» |
 
 **Perfil de arranque (reglas de Torq):** test de rampa · arranque conservador · enseñarle a usar RPE · estrés ajustado: alto
 
@@ -776,89 +780,90 @@
 
 | Bloque | Semanas | h/sem | Enfoque |
 |---|---|---|---|
-| Base y rampa | 5 | 3.3 | Base aeróbica con 1 sesión por RPE a la semana. Salida larga afuera del sábado: de 1 h 30 a 2 h. Descarga en la semana 4. |
-| Construcción gravel | 4 | 3.8 | Tempo y sweet spot en bloques con los watts de la rampa. Salida larga de 2 h el sábado, con comida desde el minuto 30. Descarga en la semana 8. |
-| Específico gravel | 3 | 4 | Ritmo sostenido con cambios de ritmo. Sábado de 2 h afuera, con comida y el ritmo del evento. |
-| Descarga y carrera | 1 | 2 | Volumen bajo y piernas frescas. El martes 12 de enero es el gravel de 100 km. |
+| Base | 4 | 3.5 | Constancia con poco tiempo: 40 min entre semana y salida larga afuera el sábado de 1.5 h a 2 h. La semana 4 es de descarga. Test de rampa en la semana 1. |
+| Construcción | 4 | 4 | Tempo y sweet spot en bloques cortos entre semana, y salida larga de 2 h a 2.5 h con comida. Retest al abrir el bloque. |
+| Específico gravel | 3 | 4 | Ritmo sostenido con cambios de ritmo (repechos y grupos) y salida larga de hasta 3 h afuera, con descarga cada 3 semanas. |
+| Afinación y carrera | 2 | 3 | Bajamos volumen, conservamos algo de calidad y llegamos fresco al domingo 17 de enero. |
 
-**Próximo test:** ramp · Después de 2 rodadas por sensación y con un día suave antes, el jueves de la semana 1 es el mejor momento para medir tus zonas con la rampa.
+**Próximo test:** ramp · Ya tienes experiencia con esfuerzos máximos; el jueves de la semana 1 llegas con dos rodadas suaves previas y el día anterior tranquilo.
 
 **Por qué, en palabras del coach IA** (su nota al atleta, textual):
 
-> Javier, con 4 h a la semana y 40 min entre semana, cada sesión cuenta: 3 de rodillo de 40 min y el sábado largo afuera, que va en tu calendario. La demanda del gravel de 100 km es ritmo sostenido largo con cambios de ritmo, así que priorizo la salida larga y la base antes que muchos intervalos. Traes 5 años en bici y 1 de entrenamiento estructurado: eso es buen oficio y vamos a construir la estructura juntos. Con el sueño y el estrés en contra, arranco prudente y voy ajustando con tus primeras sesiones. Hasta el test del jueves 22 la intensidad va por sensación (RPE); el test te da tus zonas en watts. Nada de números provisionales.
+> Javier, la demanda de un gravel de 100 km es ritmo sostenido muchas horas con repechos, así que priorizo base y salida larga afuera, luego tempo y sweet spot. Con tus 4 h reales (3 sesiones de 40 min más 2 h el sábado) sumamos 4 h; ese es tu techo y lo respetamos. Tu sueño corto y el estrés alto pesan: arrancamos conservadores, con una sola sesión de intensidad por semana y el RPE como guía. Hasta el test la intensidad va por sensación; el jueves de la semana 1 haces la rampa de 2 min por escalón, que te da tus zonas en watts. Sube a la bici de rodillo solo para trabajo de calidad: la salida larga del sábado va afuera.
 
-#### Semana 1 · 3 sesiones de rodillo · 2.1 h · TSS ≈ 46 (sin contar el test)
+#### Semana 1 · 3 sesiones de rodillo · 2.1 h · TSS ≈ 47 (sin contar el test)
 
-- **martes 20 oct — Rodada suave por sensación** · 40 min · TSS ≈ 23 · por sensación (sin ERG)
+- **martes 20 oct — Rodada suave** · 40 min · TSS ≈ 24 · por sensación (sin ERG)
+  - Calentamiento 5' @ 55%
+  - Constante 30' @ 62%
+  - Enfriamiento 5' @ 50%
+  - _Javier, esta es una rodada para soltar las piernas y reconocer el rodillo antes del test. Va por sensación, así que arranca sin ERG y tú marcas el ritmo con tus cambios; si prefieres usar ERG, lo prendes con el botón ⚡. Mantente en un esfuerzo donde puedas hablar en frases completas, y si no puedes, baja y anótalo para tu coach. Con esto llegas con las piernas listas para el miércoles._
+
+- **miércoles 21 oct — Rodada suave** · 40 min · TSS ≈ 23 · por sensación (sin ERG)
   - Calentamiento 5' @ 55%
   - Constante 30' @ 60%
   - Enfriamiento 5' @ 50%
-  - _Javier, este es tu primer contacto con el rodillo, así que hoy va por sensación y con ERG apagado: pedalea con la cadencia que te salga natural, que la app la va a observar. Busca un esfuerzo en el que puedas platicar en frases completas, un RPE de 3 a 4. Si prefieres tenerlo prendido, activa el botón ⚡ y el rodillo marcará la potencia. Si en algún momento no puedes hablar en frases completas, baja el ritmo sin pena. Es una rodada tranquila para agarrarle la mano a la bici._
-
-- **miércoles 21 oct — Rodada suave por sensación** · 40 min · TSS ≈ 23 · por sensación (sin ERG)
-  - Calentamiento 5' @ 55%
-  - Constante 30' @ 60%
-  - Enfriamiento 5' @ 50%
-  - _Rodada suave de preparación con ERG apagado, por sensación. Mantén un esfuerzo en el que puedas platicar en frases completas, con RPE de 3 a 4, y pedalea con la cadencia que te salga natural. Mañana es el test, así que la idea es llegar fresco y sin cansancio extra. Si prefieres ERG, puedes prenderlo con el botón ⚡. Si no puedes hablar cómodo, baja la intensidad y anótalo para tu coach._
+  - _Hoy va muy suave: a platicar sin problema, con RPE 3-4 y la cadencia que te salga natural, que es justo lo que necesitas el día antes del test. Arranca sin ERG, así que vas por sensación; si quieres ERG, lo prendes con el botón ⚡. Lo importante es llegar descansado, así que no lo conviertas en un día de más esfuerzo. Si sientes las piernas pesadas, baja un poco más._
 
 - **jueves 22 oct — Test de rampa** · 48 min · 🧪 test hasta el fallo (la duración es el máximo posible)
   - Rampa: escalones de 2' subiendo ~12.5% cada uno, de 25% hasta 313% o hasta no poder más (24 escalones como máximo)
-  - _Hoy toca tu primer test de rampa, con ERG prendido: el rodillo sube la potencia cada 2 minutos y tú sostienes la cadencia. Llega descansado y con ventilador, porque el objetivo es darle todo lo que tengas en cada escalón. Al final de cada escalón te va a preguntar tu RPE: contesta con honestidad y detente en RPE 8, no en 10. Es un test de familiarización, así que aprender cómo se siente y cómo responder va a ayudarte a que el siguiente salga mejor. Este test deja tu referencia lista para la semana._
-- _Fuera del rodillo:_ **sábado 24 oct — Salida larga afuera** (90 min): Rodada continua en ruta o gravel a RPE 3-4, platicando todo el tiempo. Come algo desde el minuto 30.
+  - _Hoy es tu primer test de rampa y el objetivo es familiarizarte con cómo sube la potencia. Prende ERG: el rodillo sube 25 W cada 2 minutos y tú sostienes la cadencia mientras puedas. Llega descansado y con ventilador, y contesta el RPE con honestidad: para en 8, no en 10. Cuando la cadencia empiece a caerse, esa es tu señal de cierre. No te preocupes si no sale perfecto, porque el siguiente saldrá mejor._
+- _Fuera del rodillo:_ **sábado 24 oct — Salida de gravel** (90 min): Rueda tus 1.5 h de gravel a RPE 3-4, platicando sin problema. Come algo desde el minuto 30.
 
-#### Semana 2 · 3 sesiones de rodillo · 2 h · TSS ≈ 68
+#### Semana 2 · 3 sesiones de rodillo · 2 h · TSS ≈ 72
 
-- **martes 27 oct — Intervalos por RPE 7** · 40 min · TSS ≈ 22 · por sensación (sin ERG)
-  - Calentamiento 8' @ 55%
-  - 3× (5' libre, por sensación y sin ERG (referencia ~90%) + 3' @ 50%)
+- **martes 27 oct — Intervalos por sensación** · 40 min · TSS ≈ 22 · por sensación (sin ERG)
+  - Calentamiento 8' @ 58%
+  - 3× (5' libre, por sensación y sin ERG (referencia ~95%) + 4' @ 50%)
+  - Enfriamiento 5' @ 50%
+  - _Hoy es tu primer contacto con intensidad en el plan, así que va despacio y con cabeza: tres bloques de 5 minutos a RPE 7, donde solo te salen frases cortas. Va por sensación, sin ERG, y dosifica para que el último bloque salga igual que el primero. Las recuperaciones son suaves, sin parar del todo. Si al tercero sientes que se te va la respiración, baja un poco y listo; lo importante es terminar parejo._
+
+- **miércoles 28 oct — Fondo suave** · 40 min · TSS ≈ 24 · por sensación (sin ERG)
+  - Calentamiento 5' @ 55%
+  - Constante 30' @ 62%
+  - Enfriamiento 5' @ 50%
+  - _Hoy toca absorber el trabajo del martes con un fondo tranquilo, a RPE 3-4, donde puedas platicar en frases completas y con cadencia natural. Va sin ERG, por sensación. Si dormiste mal, hazlo todavía más suave: el objetivo es llegar fresco al jueves, no exprimirte hoy._
+
+- **jueves 29 oct — Fondo con cambios de ritmo** · 40 min · TSS ≈ 26 · por sensación (sin ERG)
+  - Calentamiento 7' @ 55%
+  - 4× (2' @ 78% + 4' @ 62%)
+  - Enfriamiento 9' @ 50%
+  - _Fondo a RPE 3-4 con cuatro cambios suaves de ritmo de 2 minutos a RPE 5, como los repechos de gravel. Va sin ERG: regula tú los cambios según cómo te sientas. Entre cambio y cambio vuelve a hablar en frases completas antes del siguiente. Te deja las piernas activas después del trabajo del martes sin cargarlas de más._
+- _Fuera del rodillo:_ **sábado 31 oct — Salida larga de gravel** (105 min): Salida larga a RPE 3-4, platicando sin problema. Come desde el minuto 30 y practica tu comida de carrera.
+
+#### Semana 3 · 3 sesiones de rodillo · 2 h · TSS ≈ 74
+
+- **martes 3 nov — Intervalos por sensación** · 40 min · TSS ≈ 23 · por sensación (sin ERG)
+  - Calentamiento 7' @ 58%
+  - 3× (6' libre, por sensación y sin ERG (referencia ~95%) + 4' @ 50%)
+  - Enfriamiento 3' @ 50%
+  - _Hoy toca subirle a la intensidad con tres bloques de 6 minutos a RPE 7, y como ya tienes zonas de tu test, el truco es que los tres salgan parejos: regula tú la potencia, sin ERG, y que cada bloque se sienta igual que el anterior en lugar de arrancar fuerte y apagarte. Piensa en frases cortas mientras pedaleas. Entre bloques recupera suave sin parar del todo, así llegas al tercero con las piernas todavía frescas. Si el tercer bloque se siente igual de controlado que el primero, vas muy bien; si cae mucho, es señal de bajar un poco la potencia la próxima vez._
+
+- **miércoles 4 nov — Fondo suave** · 40 min · TSS ≈ 24 · por sensación (sin ERG)
+  - Calentamiento 5' @ 55%
+  - Constante 30' @ 62%
+  - Enfriamiento 5' @ 50%
+  - _Hoy es día de rodar tranquilo: 30 minutos de fondo a RPE 3-4, de los que puedes platicar sin problema. Sin ERG, a tu sensación, y si la frecuencia cardiaca empieza a subir de más, baja un poco y déjala asentarse. Es un entreno para soltar las piernas y sumar base, no para medirte, así que disfrútalo y deja que el ritmo sea cómodo de principio a fin._
+
+- **jueves 5 nov — Fondo con tempo suave** · 40 min · TSS ≈ 27 · por sensación (sin ERG)
+  - Calentamiento 7' @ 55%
+  - Constante 10' @ 78%
+  - Constante 15' @ 62%
   - Enfriamiento 8' @ 50%
-  - _Martes es día de intervalos por sensación, así que apágale al ERG y deja que el esfuerzo lo marque tu cuerpo: tres bloques de 5 minutos a RPE 7, duros pero sostenibles, con recuperaciones suaves entre cada uno. Durante los intervalos piensa en frases cortas; si ya no puedes decir ni eso, baja un poco. Empieza el primero más contenido de lo que te pide el cuerpo, porque si el último sale mucho más flojo que el primero, saliste demasiado fuerte. Si sientes las piernas pesadas desde el segundo bloque, es normal; lo importante es terminar el tercero con control. Este trabajo le da a tus piernas el estímulo que necesitan para los días de rodaje que siguen, Javier._
-
-- **miércoles 28 oct — Fondo suave** · 40 min · TSS ≈ 23 · por sensación (sin ERG)
-  - Calentamiento 5' @ 55%
-  - Constante 30' @ 60%
-  - Enfriamiento 5' @ 50%
-  - _Miércoles es día de rodar tranquilo para soltar las piernas. Va en modo calle plana, sin ERG, así que pedalea por sensación con cadencia natural y sin prisa. El objetivo es que pases 30 minutos cómodo, a RPE 3-4, platicando sin esfuerzo. Si notas que te cuesta hablar en frases completas, baja la potencia y anótalo para tu coach. Sentirás las piernas ligeras y la respiración tranquila, y eso es exactamente lo que buscamos hoy. Esta rodada sirve para recuperar de martes y llegar fresco al jueves._
-
-- **jueves 29 oct — Fondo suave** · 40 min · TSS ≈ 23 · por sensación (sin ERG)
-  - Calentamiento 5' @ 55%
-  - Constante 30' @ 60%
-  - Enfriamiento 5' @ 50%
-  - _Jueves es otro fondo a ritmo cómodo, sin ERG, que puedes llevar por sensación. Mantente en RPE 3-4, con la respiración tranquila y la posibilidad de conversar mientras pedaleas. Vigila tu pulso: si empieza a subir sin que lo pidas, baja un poco la potencia para que el esfuerzo siga siendo fácil. Lo que esperas sentir es una rodada cómoda, con piernas que se van calentando y se sienten suaves. Si prefieres usar ERG, puedes prenderlo con el botón ⚡, pero el objetivo es mantener el mismo ritmo relajado. Este fondo te deja con buenas piernas para lo que venga después en la semana._
-- _Fuera del rodillo:_ **sábado 31 oct — Salida larga afuera** (100 min): Rodada continua a RPE 3-4, sin picos. Come desde el minuto 30 y practica lo que vas a comer en el gravel.
-
-#### Semana 3 · 3 sesiones de rodillo · 2 h · TSS ≈ 69
-
-- **martes 3 nov — Intervalos por RPE 7** · 40 min · TSS ≈ 23 · por sensación (sin ERG)
-  - Calentamiento 8' @ 55%
-  - 3× (6' libre, por sensación y sin ERG (referencia ~90%) + 3' @ 50%)
-  - Enfriamiento 5' @ 50%
-  - _Hoy toca subir la intensidad con intervalos de 6 minutos a RPE 7: duro, pero sostenible. Déjalo con ERG apagado y ve por sensación; si prefieres que el rodillo marque la potencia, puedes prenderlo con el botón ⚡, aunque aquí el esfuerzo lo regulas tú. Mantén el mismo ritmo en los tres bloques, sin salir disparado en el primero. Lo sabrás bien si puedes decir frases cortas: si ya no puedes, baja un poco y anótalo para tu coach. Al terminar, las piernas quedan trabajadas pero listas para rodar suave mañana._
-
-- **miércoles 4 nov — Fondo suave** · 40 min · TSS ≈ 23 · por sensación (sin ERG)
-  - Calentamiento 5' @ 55%
-  - Constante 30' @ 60%
-  - Enfriamiento 5' @ 50%
-  - _Día de recuperar lo del martes: una rodada tranquila a RPE 3-4, de esas en las que vas platicando sin esfuerzo. Va con ERG apagado, por sensación; si prefieres marcar la potencia, puedes prenderlo con el botón ⚡, pero no hace falta. Si al pedalear sientes que se te va el aire en medio de una frase, baja un cambio. Sal con calma, disfruta el camino y deja las piernas frescas para el jueves._
-
-- **jueves 5 nov — Fondo suave** · 40 min · TSS ≈ 23 · por sensación (sin ERG)
-  - Calentamiento 5' @ 55%
-  - Constante 30' @ 60%
-  - Enfriamiento 5' @ 50%
-  - _Otra rodada de fondo a RPE 3-4, pensada para sumar kilómetros sin fatigarte. Va con ERG apagado y a tu sensación; si quieres usar el ERG, lo prendes con el botón ⚡. Si dormiste mal, no le añadas nada: solo rueda cómodo y platica mientras avanzas. Si puedes hablar en frases completas, vas en el punto justo._
-- _Fuera del rodillo:_ **sábado 7 nov — Salida larga afuera** (110 min): Rodada continua a RPE 3-4 con comida desde el minuto 30. Si sientes que se te va el pulso en la segunda mitad, baja el ritmo.
+  - _Hoy el protagonista es un bloque de 10 minutos de tempo suave a RPE 5, donde debes poder sostener frases cortas sin ahogarte; es la base que te va a servir para los tramos sostenidos del gravel. Sin ERG, regulas tú la potencia, así que mantén un ritmo parejo y no te vayas de más al inicio. Antes y después hay rodada de fondo que te deja el cuerpo entrando en calor y bajando sin prisa. Si al final del tempo todavía puedes decir algo completo, vas bien; si no, anótalo para tu coach._
+- _Fuera del rodillo:_ **sábado 7 nov — Salida larga de gravel** (120 min): Tu salida larga de 2 h a RPE 3-4, con comida desde el minuto 30. Si vienes con mal sueño, mejor más tranquilo.
 
 ### Por qué tomó estas decisiones (análisis, no texto de la IA)
 
-- **Ignora su FTP provisional (250 W):** le dice «nada de números provisionales»; todo va por sensación hasta el test.
-- **Test de rampa el jueves de la semana 1,** después de dos rodadas suaves. Sí puede dar un máximo, pero no tiene la experiencia completa para el de 20 min.
-- **Su tiempo real:** 3 sesiones de 40 min entre semana y el sábado largo afuera, 90 → 100 → 110 min (su tope es 120).
-- **Arranque conservador:** sueño malo y estrés alto. Semanas 2 y 3: un día de intervalos por RPE 7 y dos de fondo.
+- **Ignora el FTP provisional:** todo por sensación hasta la rampa del jueves de la semana 1.
+- **Su tiempo real:** 3 × 40 min entre semana y el sábado de gravel afuera 1 h 30 → 2 h (su techo de 4 h).
+- **Conservador:** sueño corto y estrés alto; una sola sesión de intensidad por semana (tempo hasta 78% por RPE).
+
+**Qué cambió desde la corrida 1:** Casi igual. Ahora las semanas 2 y 3 tienen un tempo por RPE (hasta 78%) en lugar de solo fondo.
 
 **Para revisar:**
 
-- ¿Test máximo en la semana 1 con sueño malo y estrés alto?
-- Las semanas 2 y 3 siguen por RPE aunque la rampa ya le dio watts (se armaron antes del test; la evaluación semanal debería pasarlas a watts).
+- ¿Rampa en la semana 1 con sueño malo y estrés alto?
 
 **Evaluación de Joe** (llenar):
 
@@ -891,6 +896,7 @@
 | **FTP** | No lo sabe |
 | **FC máxima** | No la sabe · reposo: no sabe |
 | **Últimas 4 semanas** | rodadas suaves, ~3 h/sem |
+| **Su semana típica (textual)** | «Martes rodillo 45 min suave y sábado rodada de montaña de 2 h con mis amigas; me bajo en las subidas largas.» |
 | **Salud** | Condiciones: asma · medicamento: Inhalador (salbutamol) antes de rodar · lesión reciente: no |
 | **Hábitos** | Duerme 7 h (calidad buena) · estrés medio · fuma: no · alcohol: nunca o rara vez |
 | **Esfuerzo** | ¿Sabe usar RPE?: no · ¿ha hecho esfuerzos máximos?: no |
@@ -902,78 +908,79 @@
 
 ### Lo que armó el coach IA
 
-**Plan:** Subir el Ajusco con tus amigas · empieza el 20 de octubre de 2026
+**Plan:** Ajusco sin bajarte · empieza el 20 de octubre de 2026
 
 **Estructura completa (bloques):**
 
 | Bloque | Semanas | h/sem | Enfoque |
 |---|---|---|---|
-| Base y confianza | 4 | 3.5 | Fondo y tempo suave por sensación, aprendiendo la escala de esfuerzo. Rodillo martes y jueves de 55-60 min; el sábado salida con tus amigas. |
-| Construcción de subida | 4 | 4 | Bloques sostenidos de tempo y esfuerzos de 6-10 min a RPE 6-7 para sostener una subida larga. Rodillo de 60-70 min y salida del sábado. |
-| Específico Ajusco | 4 | 4 | Subidas largas simuladas en el rodillo y repeticiones por RPE; el sábado cada vez más tiempo subiendo constante. Descarga en la última semana. |
+| Base y primeras subidas sostenidas | 4 | 3.5 | Construir fondo y tempo suave en el rodillo (martes y jueves) y una salida larga de montaña el sábado de 2 h a 2 h 15 min. Semana 4 de descarga. |
+| Subida sostenida por sensación | 4 | 4 | Bloques de umbral por RPE de 6-10 min y tempo largo para sostener subidas de 20-30 min. Sábado de 2 h 15 min a 2 h 30 min, semana 8 de descarga. |
+| Específico Ajusco | 4 | 4 | Bloques más largos por RPE 6-7 simulando la subida, con sábado de 2 h 30 min en montaña. Última semana ligera y fresca. |
 
 **Por qué, en palabras del coach IA** (su nota al atleta, textual):
 
-> Lucía, tu meta es subir el Ajusco sin bajarte: la demanda es subida sostenida, así que priorizo base aeróbica y tempo suave por sensación. Como vives con asma y usas inhalador, antes de apretar conviene que tu médico te dé luz verde; mientras, construimos con cuidado y sin esfuerzos máximos ni test. Escala de esfuerzo: 3-4 = puedes platicar, 6-7 = solo frases cortas, 8-9 = pocas palabras, 10 = no puedes más. Tu yoga/movilidad de los miércoles cuenta en la carga y por eso martes y jueves quedan separados de él. El rodillo no entrena el manejo en montaña: las rodadas del sábado sí. Con 4 h a la semana y 3 días, lo que cabe son ~2 h el sábado más dos sesiones de ~1 h.
+> Lucía, parto de lo que ya haces (martes de rodillo suave y sábado de 2 h) y subo poco a poco; con 4 h y tres días, la demanda de subir el Ajusco es tempo sostenido, así que priorizo fondo y tempo por sensación. Como tienes asma y usas inhalador, antes de apretar conviene que tu médico te dé luz verde; mientras, construimos con cuidado y sin tests máximos. Todavía no hay FTP medido, así que todo va por sensación (RPE): 3-4 = puedes platicar, 6-7 = solo frases cortas, 8-9 = pocas palabras, 10 = no puedes más. Ajusto con tus primeras sesiones; tu yoga del miércoles lo tomé en cuenta y lo dejé libre entre rodillos. El rodillo no entrena el manejo en montaña, así que tus sábados son la mejor práctica. Sobre el Ajusco, aún no sé qué tiempo es realista: vamos viendo con las primeras semanas; la meta es subir sin bajarte.
 
-#### Semana 1 · 2 sesiones de rodillo · 2 h · TSS ≈ 77
+#### Semana 1 · 2 sesiones de rodillo · 1.9 h · TSS ≈ 73
 
-- **martes 20 oct — Fondo para aprender el esfuerzo** · 55 min · TSS ≈ 33 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - Constante 40' @ 62% · 60–100 rpm
-  - Enfriamiento 5' @ 50%
-  - _Martes es día de rodar tranquila para conocer tu rodillo. Son 55 minutos por sensación, sin ERG: va en calle plana y tú decides el ritmo. Si prefieres que el rodillo marque la potencia, lo prendes con el botón ⚡, pero hoy la idea es que sientas tu propio paso. Mantén un esfuerzo suave en el que puedas platicar en frases completas; si no puedes, baja un poco y anótalo para tu coach. La cadencia que te salga natural está bien, la app la irá observando. Antes de salir, usa tu inhalador como acostumbras. Te deja las piernas frescas y listas para el jueves._
-
-- **jueves 22 oct — Fondo con cambios de ritmo** · 64 min · TSS ≈ 44 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - 3× (8' @ 75% · 60–100 rpm + 5' @ 55%)
+- **martes 20 oct — Fondo con cambios de ritmo** · 53 min · TSS ≈ 35 · por sensación (sin ERG)
+  - Calentamiento 10' @ 55→62%
+  - 4× (2' @ 75% + 5' @ 62%)
   - Constante 10' @ 62%
-  - Enfriamiento 5' @ 50%
-  - _Hoy el jueves trae tres bloques más firmes dentro de un fondo. Son 64 minutos sin ERG, así que vas por sensación: en los bloques de tempo suave, la respiración debe quedarse en frases cortas pero sin ahogarte, sin llegar a un esfuerzo que te corte la plática. Entre bloques, pedalea fácil y recupera el aire antes del siguiente. Si quieres que el rodillo sostenga la potencia, puedes prender ERG con el botón ⚡, pero tú decides. Después del martes, esto pone a prueba tu ritmo y te deja con buenas sensaciones para el fin de semana._
-- _Fuera del rodillo:_ **sábado 24 oct — Rodada con tus amigas** (120 min): Tu salida de siempre a ritmo cómodo, RPE 3-4 en lo plano y sin pasarte en las subidas. Come algo desde el minuto 30 y lleva tu inhalador.
+  - Enfriamiento 5' @ 55%
+  - _Rodada de fondo con cambios de ritmo para despertar las piernas. Vas por sensación con ERG apagado: tú mandas, no los números. Quédate en un ritmo donde puedas platicar en frases completas, y si no puedes, baja; en los cuatro cambios de dos minutos sube a frases cortas. Usa tu inhalador como te indicó tu médico. Vas a sentir las piernas más despiertas al final, y eso te deja lista para el jueves._
 
-#### Semana 2 · 2 sesiones de rodillo · 2.1 h · TSS ≈ 82
+- **jueves 22 oct — Fondo conversacional** · 60 min · TSS ≈ 38 · por sensación (sin ERG)
+  - Calentamiento 10' @ 55→62%
+  - Constante 45' @ 63%
+  - Enfriamiento 5' @ 55%
+  - _Una hora continua a ritmo conversacional, de esas que te dejan la cabeza en orden. Va con ERG apagado, así que rueda por sensación: si puedes hablar en frases completas y el pulso no se te va subiendo hacia el final, vas muy bien. Busca una cadencia natural y no fuerces. Es el tipo de rodada que construye base, así que disfrútala sin prisa._
+- _Fuera del rodillo:_ **sábado 24 oct — Rodada de montaña con tus amigas** (120 min): Sal a rodar a RPE 3-4 en lo plano y sostén RPE 5-6 en las subidas; si te falta el aire, baja un cambio antes de bajarte de la bici. Come algo desde el minuto 30 y lleva tu inhalador.
 
-- **martes 27 oct — Fondo y cadencia libre** · 60 min · TSS ≈ 36 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - Constante 45' @ 62% · 60–100 rpm
-  - Enfriamiento 5' @ 50%
-  - _Hoy toca un fondo tranquilo para llenar el tanque: 45 minutos a ritmo cómodo, de esos en los que puedes platicar sin problema. Déjate la cadencia natural; la app la va observando y no tienes que forzarla. Con ERG apagado vas por sensación, y si prefieres que el rodillo marque la potencia, lo prendes con el botón ⚡. Tu referencia es el RPE 3-4: si puedes decir frases completas, vas perfecto. Es la base que hace que el resto de la semana rinda mejor._
+#### Semana 2 · 2 sesiones de rodillo · 1.9 h · TSS ≈ 77
 
-- **jueves 29 oct — Tempo por sensación** · 65 min · TSS ≈ 46 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - 3× (10' @ 75% · 60–100 rpm + 5' @ 55%)
-  - Constante 5' @ 62%
-  - Enfriamiento 5' @ 50%
-  - _Hoy subimos un poco el ritmo, pero sin pasarte: tres bloques de 10 minutos a ritmo de subida tranquila, con recuperaciones fáciles entre ellos. Ve por sensación con ERG apagado; si quieres que el rodillo marque la potencia, lo prendes con el botón ⚡, aunque aquí el esfuerzo lo regulas tú mejor. Tu referencia es hablar en frases cortas (RPE 5-6): si te cuesta, baja un poco sin culpa. Llega al jueves con las piernas frescas y disfruta el trabajo._
-- _Fuera del rodillo:_ **sábado 31 oct — Rodada con tus amigas** (130 min): Misma salida con un poco más de tiempo. Sube a tu ritmo, RPE 5-6 máximo en las subidas, y baja la intensidad antes de tener que bajarte.
+- **martes 27 oct — Fondo con bloques de tempo suave** · 51 min · TSS ≈ 36 · por sensación (sin ERG)
+  - Calentamiento 10' @ 55→62%
+  - 2× (8' @ 76% + 5' @ 58%)
+  - Constante 10' @ 62%
+  - Enfriamiento 5' @ 55%
+  - _Martes te toca un fondo con dos bloques de tempo suave, de esos que te preparan para una subida sostenida sin desgastarte. Hazlo con ERG apagado y tu cadencia natural: en los bloques de 8 minutos ve a un ritmo donde puedas decir frases cortas sin ahogarte, y en los 5 minutos de recuperación baja a un ritmo muy suave para llegar entera al siguiente. Si prefieres ERG, lo prendes con el botón ⚡, pero aquí el control lo tienes tú. Vas a sentir las piernas trabajar en los bloques, pero si la respiración se te corta, baja un poco y anótalo para tu coach._
 
-#### Semana 3 · 2 sesiones de rodillo · 2.2 h · TSS ≈ 89
+- **jueves 29 oct — Fondo conversacional** · 63 min · TSS ≈ 41 · por sensación (sin ERG)
+  - Calentamiento 10' @ 55→62%
+  - Constante 48' @ 64%
+  - Enfriamiento 5' @ 55%
+  - _Jueves es día de acumular tiempo cómodo: una hora de fondo por sensación, sin persiguir números. Ve con ERG apagado, a un ritmo donde puedas hablar en frases completas, y si lo prefieres puedes prenderlo con el botón ⚡. Lo que buscas es sentirte suelta y tranquila durante todo el rodado, con las piernas sueltas y la respiración estable. Si te cuesta mantener frases completas, baja el ritmo; este día construye base y no pide sufrir._
+- _Fuera del rodillo:_ **sábado 31 oct — Rodada de montaña con tus amigas** (125 min): Mismo plan: fácil en lo plano, RPE 5-6 en las subidas largas, y trata de seguir pedaleando en vez de bajarte. Come desde el minuto 30 y lleva tu inhalador.
 
-- **martes 3 nov — Fondo estable** · 65 min · TSS ≈ 39 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - Constante 50' @ 62% · 60–100 rpm
-  - Enfriamiento 5' @ 50%
-  - _Hoy toca un fondo largo y tranquilo, de esos que construyen base sin desgastarte: unos 50 minutos constantes con cadencia suave entre 60 y 100 rpm. Va por sensación, así que puedes dejar el ERG apagado; si prefieres que el rodillo sostenga la potencia, lo prendes con el botón ⚡. Ritmo de conversación: deberías poder hablar en frases completas todo el tiempo. Si notas que la respiración se acelera, baja el ritmo sin culpa, que aquí lo importante es cuidar tu asma y sumar kilómetros de calidad. Al terminar sentirás las piernas con un trabajo parejo y sin pesadez, lo que deja buena base para lo que viene._
+#### Semana 3 · 2 sesiones de rodillo · 2 h · TSS ≈ 82
 
-- **jueves 5 nov — Tempo en bloques** · 68 min · TSS ≈ 50 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - 3× (12' @ 76% · 60–100 rpm + 5' @ 55%)
-  - Enfriamiento 7' @ 50%
-  - _Hoy te toca trabajo en bloques de tempo: tres tramos de 12 minutos con 5 de recuperación entre cada uno. Va por sensación, así que puedes dejar el ERG apagado; si prefieres que el rodillo sostenga la potencia, lo prendes con el botón ⚡. Busca un esfuerzo constante de principio a fin, RPE alrededor de 6, en el que puedas decir frases cortas. Lo más difícil va a ser no arrancar demasiado fuerte en el primer bloque: parejo gana. Espera sentir las piernas cargadas hacia el tercer bloque, eso es lo esperado; si aparece ahogo o dolor, para y avisa a tu coach. Este bloque largo te deja listo para el fin de semana con más aguante._
-- _Fuera del rodillo:_ **sábado 7 nov — Rodada con tus amigas** (140 min): Salida cómoda, RPE 3-4 en plano y RPE 5-6 en subidas. Come desde el minuto 30 y lleva tu inhalador.
+- **martes 3 nov — Tempo en bloques por sensación** · 55 min · TSS ≈ 41 · por sensación (sin ERG)
+  - Calentamiento 10' @ 55→62%
+  - 2× (10' @ 78% + 5' @ 58%)
+  - Constante 10' @ 62%
+  - Enfriamiento 5' @ 55%
+  - _Hoy toca tempo por bloques, y el truco está en arrancar contenida: el primer minuto tiene que sentirse fácil, casi aburrido. Vas a hacer dos bloques de 10 minutos a RPE 6, con frases cortas y respiración marcada pero controlada, con el ERG apagado para que vayas por sensación y regules tú el ritmo; si prefieres el ERG, lo puedes prender con el botón ⚡, pero te recomiendo probar primero por sensación. Entre bloques, 5 minutos suaves a RPE 3 para recuperar. Si al final te quedó energía, eso es buena señal: significa que el ritmo estuvo bien medido y el jueves llegas fresca._
+
+- **jueves 5 nov — Fondo conversacional** · 63 min · TSS ≈ 41 · por sensación (sin ERG)
+  - Calentamiento 10' @ 55→62%
+  - Constante 48' @ 64%
+  - Enfriamiento 5' @ 55%
+  - _Hoy es un fondo conversacional de una hora, sin prisa y sin presión. Ruedas a RPE 3-4 por sensación, con el ERG apagado, y la referencia es poder hablar en frases completas todo el tiempo; si en algún momento no puedes, baja un poco. Si el martes te dejó cansada, esta sesión es para bajarle a la intensidad y disfrutar la bici, así que no intentes subirle el ritmo. Esto te deja las piernas sueltas para el fin de semana._
+- _Fuera del rodillo:_ **sábado 7 nov — Rodada de montaña con tus amigas** (135 min): Subimos 10 minutos la salida. Mantén RPE 5-6 en las subidas largas y recupera en lo plano; la idea es subir sin bajarte, aunque sea a tu ritmo.
 
 ### Por qué tomó estas decisiones (análisis, no texto de la IA)
 
-- **Médico primero:** asma con salbutamol. Sin test ni máximos, por sensación y nada arriba de 76%; le pide luz verde de su médico.
-- **Sus días:** martes y jueves rodillo de 55–68 min; el sábado, su rodada con amigas (2 h → 2 h 20), que es donde se entrena la subida real. Respeta el yoga del miércoles.
-- **Hacia el Ajusco:** fondo y tempo por sensación ahora; los bloques sostenidos de 6–10 min a RPE 6–7 llegan en el bloque 2.
-- **El inhalador:** le recuerda usarlo antes de rodar y llevarlo en las salidas del sábado.
+- **Médico primero:** asma con inhalador. Sin test ni máximos, por sensación, nada arriba de 78%.
+- **Parte de lo que ya hace:** martes de rodillo y sábado de 2 h con sus amigas (2 h → 2 h 15); jueves rodillo; yoga del miércoles libre.
+- **Meta honesta:** «aún no sé qué tiempo es realista… la meta es subir sin bajarte».
+
+**Qué cambió desde la corrida 1:** Antes ya iba bien. Ahora parte explícitamente de su rutina y dice la meta. Ya no hay errores de género.
 
 **Para revisar:**
 
-- Para subir el Ajusco sin bajarse, ¿meterías trabajo de fuerza en subida (cadencia baja) antes del bloque 2?
-- Una descripción le dice «listo».
+- ¿Trabajo de fuerza en subida (cadencia baja) antes del bloque 2?
 
 **Evaluación de Joe** (llenar):
 
@@ -1013,97 +1020,97 @@
 | **Disponibilidad** | 4 h/sem · lunes, martes, jueves, sábado · máx 60 min por sesión |
 | **Su objetivo (textual)** | «Bajar 12 kg y volver a estar en forma. Jugaba fútbol hasta hace 2 años y dejé de hacer ejercicio.» |
 
-**Perfil de arranque (reglas de Torq):** sin test: por sensación, subiendo de a poco · arranque conservador · base aeróbica antes de intensidad (tabaco/alcohol) · enseñarle a usar RPE · no hace máximos porque: viene de estar sedentario; todavía no sabe medir su esfuerzo (RPE) · estrés ajustado: alto
+**Perfil de arranque (reglas de Torq):** sin test: por sensación, subiendo de a poco · base aeróbica antes de intensidad (tabaco/alcohol) · enseñarle a usar RPE · no hace máximos porque: viene de estar sedentario; todavía no sabe medir su esfuerzo (RPE) · estrés ajustado: medio
 
 ### Lo que armó el coach IA
 
-**Plan:** Volver a moverte: base y peso · empieza el 20 de octubre de 2026
+**Plan:** Volver a rodar: base y constancia · empieza el 20 de octubre de 2026
 
 **Estructura completa (bloques):**
 
 | Bloque | Semanas | h/sem | Enfoque |
 |---|---|---|---|
-| Base 1: acostumbrar el cuerpo | 4 | 2.3 | Rodadas suaves por sensación, 3 sesiones de 40-50 min y un día extra de descanso. Aprendemos la escala de esfuerzo (RPE) y cuidamos la rodilla derecha. |
-| Base 2: más volumen | 4 | 3.2 | Subimos duración de a poco, 4 sesiones de hasta 60 min y primeros cambios de ritmo suaves por RPE. |
-| Construcción | 4 | 3.8 | Esfuerzos de RPE 7 por bloques cortos, una sola sesión exigente por semana, descarga cada 3 semanas. |
+| Base 1: hábito y rodillo | 4 | 2.5 | Tres rodadas por semana de 40-60 min a RPE 3-4, en las que puedas hablar en frases completas. Aprendemos la escala de esfuerzo y cuidamos la rodilla. |
+| Base 2: más volumen | 4 | 3.3 | Sumamos minutos poco a poco, hasta cuatro sesiones si las toleras. Entran cambios de ritmo suaves por sensación y la primera medición del esfuerzo. |
+| Construcción | 4 | 4 | Entran intervalos cortos a RPE 7 y rodadas de hasta 60 min, con una semana de descarga para asimilar. |
 
 **Por qué, en palabras del coach IA** (su nota al atleta, textual):
 
-> Daniel, vienes con motor de futbolista pero sin oficio en la bici ni rodaje reciente: construimos base con calma y ajusto en cuanto vea tus primeras sesiones. Tu meta de 12 kg es realista a mediano plazo si sumamos constancia semana a semana; lo medimos con tus sesiones cumplidas, tu RPE y cómo baja tu pulso a la misma sensación, y del peso y la alimentación que se encargue un nutriólogo. Tu rodilla operada manda: cadencia cómoda, nada de fuerza a cadencia baja ni arrancadas, y si el dolor altera el pedaleo, para y que la vea un fisioterapeuta. Con 4 h declaradas y tope de 60 min por sesión, cuatro días caben pero empezamos con 3 sesiones (unas 2 h) y sumamos tiempo de a poco. Aún no mides tu esfuerzo, así que aprende la escala: RPE 3-4 puedes platicar, 6-7 solo frases cortas, 8-9 pocas palabras, 10 no puedes más. No hay test ni número de FTP por ahora: todo va por sensación (RPE), metiendo esfuerzos un poco más altos de a poco.
+> Daniel, tus 4 h caben en 4 días de 60 min, pero como vienes de dos años sin entrenar empezamos con 3 sesiones (~2 h 10 min) y dos días libres entre ellas; el lunes queda de descanso. Hasta que midamos tu esfuerzo todo va por sensación: RPE 3-4 = puedes platicar, 6-7 = solo frases cortas, 8-9 = pocas palabras, 10 = no puedes más. Rodilla: cadencia cómoda, sin fuerza a cadencia baja ni arrancadas máximas; como la molestia sigue desde la cirugía, te recomiendo que la revise un fisioterapeuta o médico del deporte. Sobre los 12 kg, no prometo cifras ni plazos: el plan te da constancia y la alimentación que la vea un nutriólogo. Vemos cómo respondes en las primeras semanas para decidir cuándo medirte.
 
-#### Semana 1 · 3 sesiones de rodillo · 2.2 h · TSS ≈ 77
+#### Semana 1 · 3 sesiones de rodillo · 2.2 h · TSS ≈ 72
 
-- **martes 20 oct — Rodada suave 1** · 40 min · TSS ≈ 22 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→60%
-  - Constante 25' @ 60%
-  - Enfriamiento 5' @ 50%
-  - _Tu primera rodada en el rodillo, para tomarle la medida con calma. Pedalea por sensación, con la cadencia que te salga natural; no hace falta forzar nada. Te recomiendo dejar el ERG apagado para que tú controles la resistencia, y si prefieres ver la potencia fija, lo prendes con el botón ⚡. Ve a un ritmo en el que puedas platicar en frases completas: si no puedes, baja un poco y anótalo para tu coach. Con esto arrancas el martes sin prisa, con las piernas despiertas para lo que sigue._
+- **martes 20 oct — Rodada fácil 1** · 40 min · TSS ≈ 22 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→60%
+  - Constante 26' @ 60%
+  - Enfriamiento 6' @ 50%
+  - _Martes es tu primera toma de contacto con el rodillo, así que vas a rodar tranquilo y por sensación, con el ERG apagado: la idea es que la bici se sienta tuya antes de pedirle nada. Te recomiendo dejarlo apagado hoy; si prefieres probarlo, lo prendes con el botón ⚡, pero no lo necesitas. Busca un RPE de 3 a 4, de los que puedes platicar en frases completas, y usa la cadencia que te salga natural. Si notas que no puedes hablar, baja la potencia sin pena. Al terminar te vas a sentir ligero y con ganas de más, que es justo lo que queremos._
 
-- **jueves 22 oct — Rodada suave 2** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→60%
-  - Constante 30' @ 60%
-  - Enfriamiento 5' @ 50%
-  - _Misma sensación que el martes, pero un poco más larga. Mantén un esfuerzo suave, RPE 3-4, con una conversación fácil. Te recomiendo dejar el ERG apagado y rodar por sensación; si prefieres ERG, lo prendes con el botón ⚡. Si la rodilla derecha te molesta, baja la resistencia y avísalo en tu nota, sin aguantarte. Es una rodada para sumar kilómetros de base y dejar las piernas listas para el fin de semana._
+- **jueves 22 oct — Rodada fácil 2** · 40 min · TSS ≈ 22 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→60%
+  - Constante 26' @ 60%
+  - Enfriamiento 6' @ 50%
+  - _Jueves repite la misma sensación del martes: suave, constante y sin forzar, con RPE de 3 a 4. El ERG va apagado y tú llevas el ritmo por cómo te sientes. Hoy el objetivo es crear el hábito, así que si vas bien no subas la potencia por subirla. Mantén una cadencia cómoda y, si la rodilla empieza a molestar, detente y avísame. Esto te deja con las piernas frescas para el sábado._
 
-- **sábado 24 oct — Rodada con cambios suaves** · 49 min · TSS ≈ 30 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→60%
-  - 4× (3' @ 72% + 3' @ 58%)
-  - Constante 10' @ 60%
-  - Enfriamiento 5' @ 50%
-  - _Aquí empiezas a sentir la diferencia entre esfuerzos. Alternarás tramos de 3 minutos un poco más firmes, RPE 5, con frases cortas pero cómodas, y tramos fáciles para recuperar. No aprietes de más: la idea es aprender a sentir el cambio, no a sufrir. Te recomiendo dejar el ERG apagado para regular tú los cambios; si prefieres ERG, lo prendes con el botón ⚡. Mantén la resistencia ligera y una cadencia alta, sobre todo por tu rodilla. Si en los tramos firmes sientes que no puedes hablar ni en frases cortas, baja y anótalo para tu coach._
-
-#### Semana 2 · 3 sesiones de rodillo · 2.5 h · TSS ≈ 87
-
-- **martes 27 oct — Rodada suave 1** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→60%
-  - Constante 30' @ 60%
-  - Enfriamiento 5' @ 50%
-  - _Martes, rodada suave para arrancar la semana con las piernas sueltas. Son 45 minutos a ritmo tranquilo, sin ERG: vas por sensación y ajustas tú, y si prefieres ERG lo prendes con el botón ⚡. Busca un RPE de 3 a 4, con respiración tranquila y una cadencia que salga natural. Si puedes charlar sin esfuerzo, vas exactamente donde debes. Es igual que la semana pasada, con 5 minutos más de fondo, así que disfruta la constancia y sal con ganas de repetirla el jueves._
-
-- **jueves 29 oct — Rodada suave 2** · 50 min · TSS ≈ 28 · por sensación (sin ERG)
+- **sábado 24 oct — Rodada de base** · 50 min · TSS ≈ 28 · por sensación (sin ERG)
   - Calentamiento 10' @ 50→60%
   - Constante 35' @ 60%
   - Enfriamiento 5' @ 50%
-  - _Jueves, fondo continuo por sensación. Son 50 minutos sin ERG: tú marcas el ritmo y, si quieres el control del rodillo, lo prendes con el ⚡. La clave es que puedas hablar en frases completas durante casi todo el rodaje; si lo logras, vas bien. Al terminar, anota tu RPE para que tu coach vea cómo se sintió. Sentirás las piernas trabajando de forma pareja, sin picos, y eso deja la base lista para el sábado._
+  - _Sábado es una rodada de base un poco más larga, pero a la misma sensación de siempre: RPE de 3 a 4 y la capacidad de hablar sin problema. Con el ERG apagado, vas por sensación y tú decides el ritmo durante los 50 minutos. Cuando termines, anota tu RPE del 1 al 10 para que pueda ajustar mejor lo que sigue. Es una buena forma de cerrar la semana con kilómetros de calidad y sin exigirte de más._
 
-- **sábado 31 oct — Rodada con cambios suaves** · 55 min · TSS ≈ 34 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→60%
-  - 5× (3' @ 72% + 3' @ 58%)
-  - Constante 10' @ 60%
-  - Enfriamiento 5' @ 50%
-  - _Sábado, rodada con cambios suaves para despertar las piernas sin cansarlas. Son 55 minutos sin ERG: vas por sensación y los cambios son de 3 minutos firmes a RPE 5 seguidos de 3 minutos fáciles, cinco veces. Si prefieres ERG, lo prendes con el ⚡ y lo usas para sostener los cambios. Lo que buscas es sentir el esfuerzo firme sin que se vuelva pesado, y terminar con ganas de más, no vacío. Así cierras la semana con buen volumen y frescura._
+#### Semana 2 · 3 sesiones de rodillo · 2.4 h · TSS ≈ 81
 
-#### Semana 3 · 3 sesiones de rodillo · 2.6 h · TSS ≈ 93
+- **martes 27 oct — Rodada fácil 1** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→60%
+  - Constante 31' @ 60%
+  - Enfriamiento 6' @ 50%
+  - _Martes de rodada fácil, de esas que se disfrutan: cinco minutos más que la semana pasada, pero a la misma sensación, RPE 3-4, en la que puedes platicar sin problema. Va sin ERG, por sensación, con cadencia natural y sin prisa; si prefieres el control del rodillo, puedes prender el ERG con el botón ⚡. Lo que esperar es piernas sueltas y respiración cómoda todo el tiempo; si en algún momento ya no puedes hablar en frases completas, baja un poco y anótalo para tu coach. Esta rodada te deja el cuerpo listo para el jueves._
 
-- **martes 3 nov — Rodada suave 1** · 50 min · TSS ≈ 28 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→60%
-  - Constante 35' @ 60%
-  - Enfriamiento 5' @ 50%
-  - _Martes de fondo tranquilo, de esos que construyen base sin desgastarte. Vas en modo calle plana, por sensación, con cadencia natural y hombros y manos sueltos; si prefieres ERG lo prendes con el botón ⚡, pero hoy no lo necesitas. La referencia es poder hablar en frases completas, con RPE 3-4. Si lo haces así, llegas fresco y listo para lo que sigue en la semana._
+- **jueves 29 oct — Rodada fácil 2** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→60%
+  - Constante 31' @ 60%
+  - Enfriamiento 6' @ 50%
+  - _Jueves de rodada suave y pareja, con RPE 3-4 y la idea de salir de aquí con ganas de más. Va sin ERG, por sensación; si prefieres el rodillo, lo prendes con el botón ⚡. Si el pulso se te dispara o ya no puedes hablar, baja la potencia sin pensarlo. Si la rodilla molesta en algún momento, para y avísame, eso no se negocia._
 
-- **jueves 5 nov — Rodada suave 2** · 55 min · TSS ≈ 31 · por sensación (sin ERG)
+- **sábado 31 oct — Rodada de base** · 55 min · TSS ≈ 31 · por sensación (sin ERG)
   - Calentamiento 10' @ 50→60%
   - Constante 40' @ 60%
   - Enfriamiento 5' @ 50%
-  - _Jueves con un fondo un poco más largo, pero el ritmo sigue siendo suave. Va en modo calle plana, sin ERG, y mantienes un esfuerzo que te permita hablar en frases completas, RPE 3-4. Si notas que el pulso se va subiendo o ya no puedes hablar, baja la resistencia y rueda más suave; ese es tu control. Así llegas con buenas piernas al fin de semana._
+  - _Sábado es tu rodada más larga hasta ahora: 55 minutos a RPE 3-4, así que la clave es dosificar desde el inicio para terminar sintiendo que podrías seguir. Va sin ERG, por sensación; si quieres el control del rodillo, prende el ERG con el botón ⚡. Espera piernas sueltas y una respiración que te permita platicar; si empiezas a apretar de más en la primera parte, afloja. Al terminar, marca tu RPE para que tengamos un dato real de cómo te fue._
 
-- **sábado 7 nov — Rodada con cambios de ritmo** · 53 min · TSS ≈ 34 · por sensación (sin ERG)
+#### Semana 3 · 3 sesiones de rodillo · 2.5 h · TSS ≈ 83
+
+- **martes 3 nov — Rodada fácil** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→60%
+  - Constante 31' @ 60%
+  - Enfriamiento 6' @ 50%
+  - _Martes: rodada fácil de 45 minutos para consolidar lo de la semana pasada. Va con ERG apagado, por sensación; si prefieres ERG, lo prendes con el botón ⚡, pero aquí lo que manda es tu cuerpo. Busca una cadencia cómoda y respiración tranquila, en RPE 3-4, de modo que puedas hablar en frases completas. Es un rodaje sencillo que te deja las piernas frescas para el jueves._
+
+- **jueves 5 nov — Primeros esfuerzos** · 44 min · TSS ≈ 24 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→60%
+  - Constante 15' @ 60%
+  - 3× (2' libre, por sensación y sin ERG (referencia ~85%) + 3' @ 50%)
+  - Enfriamiento 6' @ 50%
+  - _Jueves: primeros esfuerzos, tu primer contacto con un esfuerzo más fuerte. Son tres bloques de 2 minutos a RPE 7, donde solo te saldrán frases cortas, con 3 minutos muy suaves entre cada uno. Va con ERG apagado: tú regulas la potencia, siempre sentado y sin arrancadas fuertes por la rodilla. Si los primeros bloques se sienten muy duros, baja un poco; mejor terminar con control que pasarte. Lo que esperas sentir es piernas cargadas y respiración agitada en los bloques, con recuperación clara entre ellos. Si el dolor de rodilla aparece, para y anótalo para tu coach._
+
+- **sábado 7 nov — Rodada de base** · 60 min · TSS ≈ 34 · por sensación (sin ERG)
   - Calentamiento 10' @ 50→60%
-  - 4× (4' @ 74% + 3' @ 58%)
-  - Constante 10' @ 60%
+  - Constante 45' @ 60%
   - Enfriamiento 5' @ 50%
-  - _Sábado con cambios de ritmo: cuatro bloques firmes a RPE 5-6, donde deberías poder decir frases cortas, separados por tres minutos fáciles para recuperar. Va en modo calle plana, por sensación, sin ERG; si prefieres ERG, lo prendes con el botón ⚡. Dosifica desde el primer bloque, porque el último debe salir igual que el primero. Este trabajo deja las piernas listas para rodar con soltura la semana que viene._
+  - _Sábado: rodada de base de 60 minutos continuos, el tope de tu tiempo por sesión. Va con ERG apagado, por sensación; si prefieres ERG, lo prendes con el botón ⚡. Busca un ritmo parejo en RPE 3-4, sin subirte en los tramos. Si puedes platicar de principio a fin, vas perfecto. Es la sesión que construye tu resistencia para la semana._
 
 ### Por qué tomó estas decisiones (análisis, no texto de la IA)
 
-- **La rodilla manda:** cadencia cómoda, nada de fuerza a cadencia baja ni arranques; si duele, parar y que lo vea un fisioterapeuta.
-- **Sin test:** viene de estar sedentario y no sabe usar RPE. Todo por sensación, nada arriba de 74%.
-- **3 sesiones en vez de 4:** 2.2 h → 2.6 h de 4 disponibles; le explica que suma tiempo de a poco.
-- **Base primero:** fuma de vez en cuando. El peso, con nutriólogo; su avance lo mide con sesiones cumplidas, RPE y pulso.
+- **La rodilla manda:** cadencia cómoda, sin fuerza a cadencia baja ni arranques máximos; recomienda fisioterapeuta o médico del deporte.
+- **Sin test, todo a RPE 3–4** (≤60%): dos años sin entrenar y no sabe usar RPE.
+- **3 sesiones (~2.2 h) de 4 disponibles,** con días libres entre ellas.
+- **Peso:** «no prometo cifras ni plazos»; nutriólogo.
+
+**Qué cambió desde la corrida 1:** Más prudente que antes: tope de 60% (antes, cambios hasta 74%) y dice explícitamente que no promete kilos.
 
 **Para revisar:**
 
-- ¿Pondrías la 4ª sesión desde el inicio para la meta de peso?
+- ¿Muy suave para un exfutbolista de 31 años? ¿4ª sesión desde el inicio?
 
 **Evaluación de Joe** (llenar):
 
@@ -1136,118 +1143,119 @@
 | **FTP** | 265 W — test de rampa, hace 10 días (3.7 W/kg) |
 | **FC máxima** | 176 lpm (medida) · reposo: 48 lpm |
 | **Últimas 4 semanas** | con intensidad, ~9 h/sem |
+| **Su semana típica (textual)** | «Lunes rodillo suave, martes 40/20 o series de VO2, jueves técnica en el cerro, sábado intervalos de umbral y domingo salida larga de 3 h. Corrí la segunda fecha de la Copa hace 2 semanas.» |
 | **Salud** | Condiciones: Ninguna · lesión reciente: no |
 | **Hábitos** | Duerme 7 h (calidad buena) · estrés bajo · fuma: no · alcohol: nunca o rara vez |
 | **Esfuerzo** | ¿Sabe usar RPE?: sí · ¿ha hecho esfuerzos máximos?: sí |
 | **Otras actividades** | Ninguna |
 | **Disponibilidad** | 9 h/sem · lunes, martes, jueves, sábado, domingo |
-| **Su objetivo (textual)** | «Copa Nacional de XCO (Master 50) el 15 de diciembre de 2026. Estoy a media temporada: corrí hace 2 semanas. Quiero llegar con más chispa en los arranques y en las subidas cortas.» |
+| **Su objetivo (textual)** | «Copa Nacional de XCO (Master 50) el 20 de diciembre de 2026. Estoy a media temporada: corrí hace 2 semanas. Quiero llegar con más chispa en los arranques y en las subidas cortas.» |
 
 **Perfil de arranque (reglas de Torq):** test de 20 min · viene entrenando con intensidad: no arranca desde cero · estrés ajustado: bajo
 
 ### Lo que armó el coach IA
 
-**Plan:** Chispa para la Copa Nacional XCO · empieza el 20 de octubre de 2026
+**Plan:** Copa Nacional XCO: chispa en arranques y subidas cortas · empieza el 20 de octubre de 2026
 
 **Estructura completa (bloques):**
 
 | Bloque | Semanas | h/sem | Enfoque |
 |---|---|---|---|
-| Base específica XCO | 3 | 7.5 | Arranque con 2 sesiones clave por semana: 40:20s para los arranques y umbral para las subidas cortas. Salida larga afuera los domingos (2.5 h a 3 h). Semana de descarga con retest al final. |
-| Arranques y subidas cortas | 3 | 8 | Más trabajo por encima del umbral: 40:20s, salidas simuladas y umbral con picos. Salida larga de 2.5 h y una semana de descarga. |
-| Afinado | 2 | 7 | Calidad sobre cantidad: el mismo estímulo con menos volumen. Salida larga corta de 2 h y mucha frescura. |
-| Semana de carrera | 1 | 4 | Llegar fresco: activaciones cortas y descanso. Carrera el martes 15 de diciembre. |
+| Construcción específica XCO | 3 | 7.5 | Mantenemos tu estructura actual: 40:20s los martes, umbral los sábados y la salida larga afuera de 3 h los domingos. La semana 3 es de descarga. Subimos una variable a la vez, empezando por las series de 40:20s. |
+| Específico XCO | 3 | 8.5 | Retest de 20 min al abrir el bloque. Después, salidas simuladas (1 min muy fuerte y luego sostener umbral), umbral con picos y 40:20s más largos. Salida larga de 2.5-3 h afuera, con descarga en la semana 6. |
+| Afinación | 2 | 6.5 | Menos volumen y la misma calidad: arranques y subidas cortas con recuperación completa. La salida larga baja a 2 h para llegar con piernas. |
+| Semana de carrera | 1 | 4 | Activación corta, frescura y logística. La Copa es el domingo 20 de diciembre. |
 
-**Próximo test:** test20 · Será la semana de descarga y cae a 4 semanas de tu rampa del 10 de octubre: llegarás fresco, sabes dosificarte y el número ya servirá como retest al abrir el segundo bloque.
+**Próximo test:** test20 · Pasarán más de 4 semanas del último test, llegas fresco tras la semana de descarga y sabes dosificarte en un máximo.
 
 **Por qué, en palabras del coach IA** (su nota al atleta, textual):
 
-> Fernando, vienes en plena temporada, así que no arrancamos desde base: la intensidad entra desde la semana 1. La demanda del XCO es repetir esfuerzos fuertes en 90 min, y tu límite son los arranques y las subidas cortas, por eso priorizo 40:20s y umbral. A los 51 dejo al menos 3 días entre las dos sesiones duras (martes y sábado) y una descarga cada 3 semanas. El rodillo no entrena la técnica: la agendo los jueves, afuera. Tu salida larga del domingo es la base de resistencia. Tu FTP de 265 W se queda tal cual hasta el retest de la semana 4.
+> Fernando, ya vienes entrenando con intensidad, así que no arrancamos desde base: respeto tu semana (lunes suave, martes 40:20, jueves técnica, sábado umbral, domingo largo) y cambio solo la progresión. La demanda del XCO es intermitente y decide la capacidad de repetir arranques por encima del umbral, por eso priorizo los 40:20s y el umbral con picos. Con 51 años pongo descarga cada 3 semanas y nunca dos días duros en 72 h. Arrancamos con tus 265 W medidos el 10 de octubre y los confirmamos con un test de 20 min en la semana 4, ya pasadas más de 4 semanas del último. El rodillo no entrena técnica: por eso la salida del jueves al cerro cuenta como parte del plan. El plan no usa las 9 h completas porque la sesión larga es afuera: cuento 3 h el domingo más el rodillo y la técnica.
 
-#### Semana 1 · 2 sesiones de rodillo · 2.1 h · TSS ≈ 99
+#### Semana 1 · 2 sesiones de rodillo · 2.2 h · TSS ≈ 101
 
-- **martes 20 oct — 40:20s: arranques** · 56 min · TSS ≈ 34
-  - Calentamiento 15' @ 55→75% (146→199 W)
+- **martes 20 oct — 40:20s: arranques** · 63 min · TSS ≈ 37
+  - Calentamiento 15' @ 50→70% (133→186 W)
   - 6× (40" libre, por sensación y sin ERG (referencia ~125% (331 W)) + 20" @ 50% (133 W))
-  - Recuperación 4' @ 50% (133 W)
+  - Recuperación 3' @ 50% (133 W)
+  - 6× (40" libre, por sensación y sin ERG (referencia ~125% (331 W)) + 20" @ 50% (133 W))
+  - Recuperación 3' @ 50% (133 W)
+  - Constante 20' @ 65% (172 W)
+  - Enfriamiento 10' @ 55→45% (146→119 W)
+  - _Hoy toca chispa, Fernando: 2 series de 6 arranques de 40 segundos fuertes con 20 suaves, con el ERG suelto. Sal a un esfuerzo que aguantes las 6 repeticiones, de RPE 8 a 9; si la potencia se desploma a mitad de serie, saliste demasiado fuerte. Te recomiendo ERG apagado para que regules tú cada arranque, y si lo prendes, que sea solo para mantener el ritmo sin pelearte con el rodillo. Entre series rueda 3 minutos suaves. Espera que la respiración se corte en los arranques y se recupere en los tramos suaves; si sientes las piernas pesadas desde el primer bloque, baja un poco la intensidad. Esta sesión afina tu punch para el fin de semana._
+
+- **sábado 24 oct — Umbral 3×10** · 67 min · TSS ≈ 64
+  - Calentamiento 12' @ 50→70% (133→186 W)
+  - 3× (10' @ 95% (252 W) + 5' @ 55% (146 W))
+  - Enfriamiento 10' @ 55→45% (146→119 W)
+  - _Sábado de umbral: 3 bloques de 10 minutos al 95 % de tu FTP, con 5 de recuperación entre ellos. Te recomiendo dejar el ERG prendido para que el rodillo marque la potencia y tú solo sostengas la cadencia; si se te desengancha o no completas los bloques, baja 3 a 5 puntos en el siguiente intento. Busca un RPE 7, en frases cortas: si puedes hablar en frases completas, sube un poco, y si no logras decir más de unas palabras, baja y anótalo para tu coach. Llega con el día anterior suave para que las piernas respondan desde el primer bloque._
+- _Fuera del rodillo:_ **jueves 22 oct — Técnica en el cerro** (90 min): Bajadas, curvas, raíces y frenado, y arranques cortos desde parado. Suave en lo cardiovascular, que se sienta como juego.
+- _Fuera del rodillo:_ **domingo 25 oct — Salida larga** (180 min): 3 h afuera a RPE 3-4, con la que puedas platicar. Come desde el minuto 30 y no la conviertas en carrera.
+
+#### Semana 2 · 3 sesiones de rodillo · 3.3 h · TSS ≈ 145
+
+- **lunes 26 oct — Rodillo suave** · 60 min · TSS ≈ 35 · por sensación (sin ERG)
+  - Calentamiento 10' @ 50→60% (133→159 W)
+  - Constante 40' @ 62% (164 W)
+  - Enfriamiento 10' @ 55→45% (146→119 W)
+  - _Hoy es día de piernas sueltas: 60 minutos rodando por sensación, a un RPE de 3 a 4, con una cadencia que te salga natural y sin pelear con nada. ERG apagado, así que tú marcas el ritmo; si prefieres ERG, lo prendes con el botón ⚡, pero para este día te recomiendo dejarlo apagado. La referencia es poder hablar en frases completas durante todo el rodaje. Sal cómodo y termina sintiéndote mejor de como empezaste; mañana toca calidad, y hoy esto te deja fresco para ella._
+
+- **martes 27 oct — 40:20s: 3 series** · 64 min · TSS ≈ 37
+  - Calentamiento 15' @ 50→70% (133→186 W)
+  - 6× (40" libre, por sensación y sin ERG (referencia ~125% (331 W)) + 20" @ 50% (133 W))
+  - Recuperación 3' @ 50% (133 W)
+  - 6× (40" libre, por sensación y sin ERG (referencia ~125% (331 W)) + 20" @ 50% (133 W))
+  - Recuperación 3' @ 50% (133 W)
   - 6× (40" libre, por sensación y sin ERG (referencia ~125% (331 W)) + 20" @ 50% (133 W))
   - Constante 15' @ 65% (172 W)
   - Enfriamiento 10' @ 55→45% (146→119 W)
-  - _Hoy toca trabajar la repetición de esfuerzos fuertes con arranques explosivos. Apaga el ERG y, en los 40 segundos fuertes, sal con potencia pero dosificada, en un esfuerzo que te deje con pocas palabras (RPE 8-9); los 20 segundos suaves son pedaleo tranquilo, sin parar. Si notas que la potencia cae mucho a mitad de la serie, saliste demasiado fuerte: la próxima vez arranca un poco más suave. Lo que sientas en las piernas en las últimas series es la señal de que el trabajo está haciendo su efecto._
+  - _Hoy llega la serie extra: 3 bloques de 6 repeticiones de 40 segundos fuertes por 20 suaves, con 3 minutos de recuperación entre bloques. Te recomiendo ERG suelto, es decir, apagado o prendido según lo que prefieras, pero sin fijar la potencia: busca un RPE de 8 a 9 y mantén la misma potencia en las tres series, sin arrancar explosivo para luego caer. Cuando termines, compara tus watts promedio con los de la semana pasada; esa es tu mejor medida de progreso. Si en la tercera serie sientes la respiración muy agitada y las piernas pesadas, es normal a este nivel; si de plano no puedes sostener el ritmo, baja y anótalo para tu coach._
 
-- **sábado 24 oct — Umbral 3x10** · 70 min · TSS ≈ 65
-  - Calentamiento 15' @ 55→75% (146→199 W)
-  - 3× (10' @ 92% (244 W) + 5' @ 55% (146 W))
+- **sábado 31 oct — Umbral 3×12** · 73 min · TSS ≈ 73
+  - Calentamiento 12' @ 50→70% (133→186 W)
+  - 3× (12' @ 95% (252 W) + 5' @ 55% (146 W))
   - Enfriamiento 10' @ 55→45% (146→119 W)
-  - _Este es tu primer contacto con bloques sostenidos, y te recomiendo dejar el ERG prendido para que el rodillo sostenga el umbral conservador de estas dos semanas. Mantén una cadencia cómoda; los bloques deben sentirse duros pero controlados, cerca de un RPE 6-7, y puedes hablar con frases cortas. Si al tercer bloque no logras completarlo, baja 3 a 5 puntos y anótalo para tu coach. Terminar esta sesión bien te deja con buena base para lo que viene en la semana._
-- _Fuera del rodillo:_ **jueves 22 oct — Técnica en montaña** (60 min): Bajadas, curvas, frenado y arrancadas en terreno técnico. Cardiovascularmente suave; el objetivo es soltura, no cansarte.
-- _Fuera del rodillo:_ **domingo 25 oct — Salida larga** (150 min): Rodada afuera a RPE 3-4, de las que permiten platicar. Come desde el minuto 30.
+  - _Sábado de umbral: tres bloques de 12 minutos al 95 % de tu FTP, con 5 minutos de recuperación entre ellos. Te recomiendo ERG prendido para que el rodillo marque la potencia y tú sostengas la cadencia; el RPE objetivo es 7, con respiración firme pero controlada. Si en el último bloque el pulso sigue subiendo sin parar, el número está alto: baja 3 a 5 puntos y termina entero. Este trabajo deja las piernas listas para el lunes de recuperación._
+- _Fuera del rodillo:_ **jueves 29 oct — Técnica en el cerro** (90 min): Bajadas técnicas, curvas y salidas de curva con pedaleo fuerte. Que no termine en esfuerzo cardiovascular.
+- _Fuera del rodillo:_ **domingo 1 nov — Salida larga** (180 min): 3 h a RPE 3-4, comiendo desde el minuto 30. Si las subidas te sacan de la zona, sube más suave.
 
-#### Semana 2 · 3 sesiones de rodillo · 3.3 h · TSS ≈ 151
+#### Semana 3 · 3 sesiones de rodillo · 2.5 h · TSS ≈ 103
 
-- **lunes 26 oct — Fondo suave** · 60 min · TSS ≈ 39
-  - Calentamiento 10' @ 50→62% (133→164 W)
-  - Constante 45' @ 65% (172 W)
-  - Enfriamiento 5' @ 55→45% (146→119 W)
-  - _Fernando, arrancamos la semana con una rodada tranquila para soltar las piernas del fin de semana. Deja el ERG prendido para que el rodillo sostenga los 65 % FTP del bloque central, y si lo prefieres puedes apagarlo, pero mantén la misma referencia. Ve a una cadencia que te salga natural y procura poder hablar en frases completas durante todo el rato; si no puedes, baja un poco. Al terminar vas a sentir las piernas más sueltas, no cansadas, y eso deja la base lista para el martes._
+- **lunes 2 nov — Rodillo suave** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
+  - Calentamiento 10' @ 50→60% (133→159 W)
+  - Constante 25' @ 62% (164 W)
+  - Enfriamiento 10' @ 55→45% (146→119 W)
+  - _Lunes de descarga: 45 minutos suaves para soltar las piernas después de la semana pesada. Va por sensación, sin ERG, así que ajusta la intensidad a lo que sientas; si prefieres ERG, lo prendes con el botón ⚡. Mantente a RPE 3-4, en un ritmo donde puedas hablar en frases completas. No te preocupes si se siente demasiado fácil: la idea es llegar con las piernas sueltas para lo que viene._
 
-- **martes 27 oct — 40:20s: arranques** · 66 min · TSS ≈ 40
-  - Calentamiento 15' @ 55→75% (146→199 W)
+- **martes 3 nov — 40:20s: descarga** · 55 min · TSS ≈ 32
+  - Calentamiento 15' @ 50→70% (133→186 W)
   - 6× (40" libre, por sensación y sin ERG (referencia ~125% (331 W)) + 20" @ 50% (133 W))
-  - Recuperación 4' @ 50% (133 W)
-  - 6× (40" libre, por sensación y sin ERG (referencia ~125% (331 W)) + 20" @ 50% (133 W))
-  - Recuperación 4' @ 50% (133 W)
+  - Recuperación 3' @ 50% (133 W)
   - 6× (40" libre, por sensación y sin ERG (referencia ~125% (331 W)) + 20" @ 50% (133 W))
   - Constante 15' @ 65% (172 W)
   - Enfriamiento 10' @ 55→45% (146→119 W)
-  - _Hoy subimos una serie: tres bloques de seis repeticiones de 40 segundos fuertes con 20 suaves. Los 40 s van con el ERG apagado, a un esfuerzo fuerte pero parejo (RPE 8-9), sin salir disparado en el primero; medirte los primeros minutos te dará mejor promedio que arrancar explosivo y caer. Los 20 s suaves son de recuperación activa, sin parar a descansar. Espera que las últimas repeticiones pesen, con las piernas ardiendo pero la técnica firme; si sientes un dolor agudo o pierdes el control, baja y anótalo para tu coach. Tu potencia en la última serie es la mejor señal de cómo vas, así que guárdala._
+  - _Martes de 40:20s en modo descarga: solo dos series de 6 repeticiones, con menos volumen para mantener la calidad. Te recomiendo el ERG en modo mixto, pero tú decides cuándo prenderlo. Mide los primeros esfuerzos fuertes para no salir demasiado rápido; si el ritmo se te cae en la segunda serie, es buena señal de que vas bien dosificado. Se trata de sentir un RPE 8 en los fuertes y recuperar bien en los suaves. Esto te deja fresco para el retest._
 
-- **sábado 31 oct — Umbral 3x12** · 73 min · TSS ≈ 72
-  - Calentamiento 15' @ 55→75% (146→199 W)
-  - 3× (12' @ 92% (244 W) + 4' @ 55% (146 W))
+- **sábado 7 nov — Umbral 2×10** · 52 min · TSS ≈ 46
+  - Calentamiento 12' @ 50→70% (133→186 W)
+  - 2× (10' @ 95% (252 W) + 5' @ 55% (146 W))
   - Enfriamiento 10' @ 55→45% (146→119 W)
-  - _Hoy toca un umbral con bloques más largos: tres de doce minutos a 92 % FTP, con cuatro de recuperación. La potencia es la misma que la semana pasada, así que el cambio está en aguantar más tiempo, no en apretar más. Deja el ERG prendido para que el rodillo marque la potencia y tú te concentras en sostener la cadencia. Busca un RPE 6-7 con respiración controlada; si llegas a sentir RPE 8, baja tres a cinco puntos de esfuerzo. Llega descansado de la semana para que el tercer bloque se sienta sólido y no a rastras._
-- _Fuera del rodillo:_ **jueves 29 oct — Técnica en montaña** (75 min): Practica bajadas, curvas cerradas y arrancadas en pendiente. Suave de piernas y con la cabeza fresca.
-- _Fuera del rodillo:_ **domingo 1 nov — Salida larga** (165 min): Rodada afuera a RPE 3-4 con la comida desde el minuto 30. Debes poder platicar todo el recorrido.
-
-#### Semana 3 · 3 sesiones de rodillo · 3.1 h · TSS ≈ 145
-
-- **lunes 2 nov — Fondo suave** · 60 min · TSS ≈ 39
-  - Calentamiento 10' @ 50→62% (133→164 W)
-  - Constante 45' @ 65% (172 W)
-  - Enfriamiento 5' @ 55→45% (146→119 W)
-  - _Lunes de rodar tranquilo para soltar el fin de semana: 45 minutos de fondo cómodo al 65 % de tu FTP, con ERG prendido para que el rodillo mantenga la potencia pareja mientras tú disfrutas el pedaleo. La referencia es sencilla: puedes hablar en frases completas todo el tiempo; si no puedes, baja la potencia un poco. Hoy no hay que apretar, solo asimilar y sentir las piernas ligeras para la semana._
-
-- **martes 3 nov — 40:20s: 3x7** · 54 min · TSS ≈ 31
-  - Calentamiento 15' @ 55→75% (146→199 W)
-  - 7× (40" libre, por sensación y sin ERG (referencia ~125% (331 W)) + 20" @ 50% (133 W))
-  - Recuperación 4' @ 50% (133 W)
-  - 7× (40" libre, por sensación y sin ERG (referencia ~125% (331 W)) + 20" @ 50% (133 W))
-  - Recuperación 4' @ 50% (133 W)
-  - 7× (40" libre, por sensación y sin ERG (referencia ~125% (331 W)) + 20" @ 50% (133 W))
-  - Enfriamiento 10' @ 55→45% (146→119 W)
-  - _Martes de intervalos cortos y intensos: 3 bloques de 7 repeticiones de 40 segundos fuertes con 20 segundos suaves, con 4 minutos de descanso entre bloques. Aquí el esfuerzo lo regulas tú, así que el ERG va apagado durante los 40 segundos: sal fuerte pero parejo, cerca de RPE 9, y en los 20 segundos sigue pedaleando suave para recuperar. Lo que más cuenta es no salir como cohete en la primera serie; si en la tercera la potencia se cae mucho, anótalo para tu coach. Llega con buena energía y eso hará la diferencia._
-
-- **sábado 7 nov — Umbral 3x12** · 73 min · TSS ≈ 75
-  - Calentamiento 15' @ 55→75% (146→199 W)
-  - 3× (12' @ 95% (252 W) + 4' @ 55% (146 W))
-  - Enfriamiento 10' @ 55→45% (146→119 W)
-  - _Sábado de umbral con ERG prendido: 3 bloques de 12 minutos al 95 % de tu FTP, con 4 minutos de recuperación entre ellos. El rodillo marca la potencia y tú sostienes la cadencia; si las dos semanas pasadas las completaste sin pasar de RPE 7, este ya es tu umbral real. Si sientes que sufres demasiado, baja 3 a 5 puntos sin dudarlo. Terminar esta sesión deja las piernas listas para cargar bien el resto de la semana._
-- _Fuera del rodillo:_ **jueves 5 nov — Técnica en montaña** (75 min): Bajadas, raíces y curvas, con énfasis en frenar tarde y salir rápido. Cardiovascularmente suave.
-- _Fuera del rodillo:_ **domingo 8 nov — Salida larga** (180 min): Tu salida más larga del bloque, a RPE 3-4. Come desde el minuto 30 y cuida el ritmo en las subidas.
+  - _Sábado de umbral en modo descarga: dos bloques de 10 minutos al 95 % del FTP con el ERG prendido, que el rodillo marca el ritmo mientras tú sostienes la cadencia. Busca un RPE 7, fuerte pero controlado, y en las recuperaciones respira y prepárate para el segundo bloque. Al terminar debe quedarte la sensación de que podías hacer uno más. Llegas al final con buen margen para el resto de la semana._
+- _Fuera del rodillo:_ **jueves 5 nov — Técnica ligera** (75 min): Técnica suave en el cerro, a tu ritmo y sin esfuerzo fuerte. Que sirva para soltar las piernas.
+- _Fuera del rodillo:_ **domingo 8 nov — Salida larga de descarga** (120 min): 2 h a RPE 3-4, comiendo desde el minuto 30. Es descarga: no la alargues.
 
 ### Por qué tomó estas decisiones (análisis, no texto de la IA)
 
-- **En temporada:** intensidad desde el día 1, con 40:20 s por sensación (referencia ~125%) para los arranques y umbral 3×10–12 min al 92–95% para las subidas cortas.
-- **Por edad (51),** 3 o más días entre las dos sesiones duras (martes y sábado) y una descarga cada 3 semanas.
-- **Afuera:** técnica en montaña los jueves (60–75 min) y salida larga los domingos (2.5 h → 3 h).
-- **FTP 265 W se queda** hasta el test de 20 min de la semana 4 (descarga).
-- **Volumen:** ~5.6 → 7.3 h de 9 disponibles.
+- **Respeta su semana:** lunes suave, martes 40:20, jueves técnica, sábado umbral, domingo largo; «cambio solo la progresión».
+- **XCO = repetir esfuerzos arriba del umbral:** 40:20 s y umbral con picos.
+- **51 años:** descarga cada 3 semanas y nunca dos días duros en 72 h.
+- **Su FTP (rampa de hace 10 días) se queda** hasta el test de 20 min de la semana 4.
+
+**Qué cambió desde la corrida 1:** Antes ya iba bien. Ahora lo construye explícitamente sobre su rutina y explica por qué no usa las 9 h (la salida larga es afuera).
 
 **Para revisar:**
 
-- Le pone 40:20 s el mismo día que crea el plan. ¿Lo harías sin una rodada antes?
-- ¿Le faltan arranques explosivos más cortos (10–15 s) para XCO?
+- ¿Faltan arranques más cortos (10–15 s) para XCO?
 
 **Evaluación de Joe** (llenar):
 
@@ -1280,6 +1288,7 @@
 | **FTP** | No lo sabe |
 | **FC máxima** | No la sabe · reposo: 70 lpm |
 | **Últimas 4 semanas** | rodadas suaves, ~2 h/sem |
+| **Su semana típica (textual)** | «Voy a clase de spinning 2 veces por semana (45 min) y a yoga martes y jueves.» |
 | **Salud** | Condiciones: diabetes · medicamento: Metformina · lesión reciente: no |
 | **Hábitos** | Duerme 7 h (calidad regular) · estrés alto · fuma: no · alcohol: nunca o rara vez |
 | **Esfuerzo** | ¿Sabe usar RPE?: más o menos · ¿ha hecho esfuerzos máximos?: no |
@@ -1291,103 +1300,92 @@
 
 ### Lo que armó el coach IA
 
-**Plan:** Movimiento constante para tu glucosa y tu calma · empieza el 20 de octubre de 2026
+**Plan:** Base y energía: rodar con gusto · empieza el 20 de octubre de 2026
 
 **Estructura completa (bloques):**
 
 | Bloque | Semanas | h/sem | Enfoque |
 |---|---|---|---|
-| Base metabólica | 4 | 2.5 | Sesiones frecuentes y parejas de 40-45 min en fondo y tempo suave, sin picos largos. Unas 2.5 h de bici por semana, con variedad tipo clase. |
-| Constancia y variedad | 4 | 3 | Mismo patrón de 4 días, con cambios de ritmo y cadencia más largos y un poco más de tempo suave. Entre 2.5 y 3 h por semana. |
+| Base metabólica | 4 | 2.2 | Rodadas frecuentes y parejas de 40-45 min, en fondo y con cambios de ritmo suaves por sensación (RPE 5-6). Sin picos largos ni intensidad fuerte hasta que tu médico dé luz verde. |
+| Variedad tipo clase | 4 | 2.7 | Subimos de a poco hasta unas 2.5-3 h por semana con bloques cortos de cadencia y ritmo, una semana de descarga a la mitad del bloque. |
+| Consolidación | 4 | 3 | Sostenemos 3 h por semana en 4 sesiones de hasta 45 min, con más tiempo en tempo suave por sensación. |
 
 **Por qué, en palabras del coach IA** (su nota al atleta, textual):
 
-> Paola, antes de apretar, que tu médico te dé luz verde para subir intensidad; mientras, construimos con cuidado. Veo una prueba sin competencia: priorizo constancia, sesiones frecuentes y parejas en fondo y tempo suave para tu metabolismo, sin picos largos. Por eso no hay test ni zonas en watts: todo va por RPE (3-4 puedes platicar, 6-7 solo frases cortas, 8-9 pocas palabras, 10 no puedes más). Tu movilidad de martes y jueves cuenta en la carga y por eso esos días no hay bici. Con 3 h por semana y 45 min por sesión, tus 4 días caben en unas 2.5 h de bici. Con metformina, come antes de rodar y lleva algo dulce. Tu estrés es alto: las rodadas son también tu desahogo, y el rodillo no entrena técnica de montaña.
+> Paola, antes de apretar, que tu médico te dé luz verde; mientras construimos con cuidado: fondo y ritmo suave por sensación, sin picos largos. Con metformina, come algo antes de rodar y lleva algo dulce. Tus yoga de martes y jueves cuentan en la carga: por eso los días de bici van alrededor y arrancamos de lo que ya haces (unas 2 h por semana, subimos poco a poco). Tu meta es salud y desestrés, no competir, así que no hay test: todo va por RPE. 3-4 = puedes platicar, 6-7 = solo frases cortas, 8-9 = pocas palabras, 10 = no puedes más; por ahora no pasamos de 5-6. Empezamos el martes 20, así que la semana 1 tiene tres sesiones: miércoles, viernes y domingo. Tu tope de 45 min lo respetamos y dejamos el lunes libre al inicio.
 
-#### Semana 1 · 3 sesiones de rodillo · 2.2 h · TSS ≈ 72
+#### Semana 1 · 3 sesiones de rodillo · 2.1 h · TSS ≈ 77
 
-- **miércoles 21 oct — Rodada suave tipo clase** · 45 min · TSS ≈ 23 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→60%
-  - 4× (5' @ 60% + 2' @ 50%)
-  - Enfriamiento 7' @ 50%
-  - _Paola, esta es tu primera rodada en el rodillo para conocerlo y conocer tu ritmo, así que todo se hace por sensación: busca un esfuerzo suave en el que puedas platicar en frases completas; si no puedes, baja un poco. Te recomiendo dejar el ERG apagado para rodar a tu propio ritmo, y usa la cadencia que te salga natural, la app la va a observar. Ponte tu música y disfruta. Al terminar sentirás las piernas activas pero frescas, una buena base para lo que viene en la semana._
-
-- **viernes 23 oct — Fondo constante** · 42 min · TSS ≈ 24 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - Constante 25' @ 62%
-  - Enfriamiento 7' @ 50%
-  - _Un fondo parejo para disfrutar la bici sin presión. Te recomiendo dejar el ERG apagado y rodar por sensación, con un ritmo en el que puedas platicar sin esfuerzo (RPE 3-4). Antes de rodar come algo y ten a la mano algo dulce, como te indique tu médico con la metformina. Usa la cadencia que te salga natural. Lo que buscas es sentir las piernas estables y la respiración tranquila de principio a fin, y eso te deja listo para la rodada del domingo._
-
-- **domingo 25 oct — Rodada con cambios de ritmo** · 42 min · TSS ≈ 25 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - 5× (2' @ 72% + 3' @ 58%)
-  - Enfriamiento 7' @ 50%
-  - _Una rodada con variedad, como en clase: alternarás ritmo cómodo con bloques un poco más animados, de esos en los que las frases se acortan pero todavía puedes hablar. Te recomiendo dejar el ERG apagado y manejar tú los cambios; si dudas, quédate en lo cómodo, no hace falta apretar. Usa la cadencia que te salga natural. Lo esperado es sentir los bloques animados como un empujón manejable, y si la respiración se te escapa por completo, baja y anótalo para tu coach._
-- _Fuera del rodillo:_ **martes 20 oct — Sin gimnasio hoy** (15 min): Tu movilidad del martes va como la tienes; hoy no hay bici, así que respira y suelta tensión.
-
-#### Semana 2 · 4 sesiones de rodillo · 2.9 h · TSS ≈ 108
-
-- **lunes 26 oct — Rodada suave tipo clase** · 45 min · TSS ≈ 25 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - 4× (5' @ 62% + 2' @ 52%)
-  - Enfriamiento 7' @ 50%
-  - _Arranca la semana con una rodada tranquila para soltar el estrés del lunes. Vas por sensación, con cambios suaves de cadencia cuando te apetezca, y el ERG va apagado para que tú lleves el ritmo. Si prefieres ERG, lo prendes con el botón ⚡. La referencia es simple: debes poder hablar en frases completas durante toda la sesión. Si en algún momento no puedes, baja un poco y anótalo para tu coach._
-
-- **miércoles 28 oct — Tempo suave** · 44 min · TSS ≈ 30 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - 3× (6' @ 75% + 3' @ 55%)
-  - Enfriamiento 7' @ 50%
-  - _Hoy toca constancia, no examen. Son bloques de tempo suave que haces por sensación, con el ERG apagado, así que tú decides cuánto apretar. Sentirás un RPE de 5: frases un poco más cortas, pero todavía puedes platicar. Entre bloque y bloque recupera con calma, sin prisa por volver. Si no puedes hablar en frases completas, baja y anótalo para tu coach._
-
-- **viernes 30 oct — Fondo constante** · 44 min · TSS ≈ 26 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - Constante 28' @ 62%
-  - Enfriamiento 6' @ 50%
-  - _Un fondo parejo para terminar la semana con buen ritmo y sin prisa. Vas por sensación con el ERG apagado; si prefieres ERG, lo prendes con el botón ⚡. Come algo antes y lleva algo dulce para el camino. Al terminar, marca tu RPE, porque con eso ajusto la semana siguiente. Debes sentir un RPE de 3 a 4 y poder hablar sin problema._
-
-- **domingo 1 nov — Rodada con cambios de ritmo** · 42 min · TSS ≈ 27 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - 5× (3' @ 74% + 2' @ 58%)
-  - Enfriamiento 7' @ 50%
-  - _Una rodada divertida para cerrar la semana, con bloques animados y vueltas a un ritmo cómodo. Vas por sensación con el ERG apagado, así que tú marcas la intensidad de cada cambio. En los bloques animados sentirás un RPE de 5, y en los cómodos puedes recuperar la respiración. Mantén la respiración controlada y pon tu música favorita para disfrutarla._
-
-#### Semana 3 · 4 sesiones de rodillo · 3 h · TSS ≈ 110
-
-- **lunes 2 nov — Rodada suave tipo clase** · 43 min · TSS ≈ 23 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - 4× (4.5' @ 62% + 2' @ 52%)
-  - Enfriamiento 7' @ 50%
-  - _Rodada suave para soltar las piernas al inicio de la semana, con cambios de cadencia como en una clase, sin forzar nada. Va con ERG apagado, por sensación: si prefieres ERG, puedes prenderlo con el botón ⚡, pero aquí lo que manda es cómo te sientes. Vas a sentir un esfuerzo de RPE 3-4, tan cómodo que puedas platicar sin cortar la frase. Si te cuesta trabajo hablar, baja un poco y anótalo para tu coach. Esto te deja fresca para el resto de la semana._
-
-- **miércoles 4 nov — Tempo suave** · 45 min · TSS ≈ 32 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - 3× (7' @ 75% + 3' @ 55%)
+- **miércoles 21 oct — Rodada con cambios suaves** · 43 min · TSS ≈ 27 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→62%
+  - 5× (4' @ 68% + 2' @ 58%)
   - Enfriamiento 5' @ 50%
-  - _Tres bloques de tempo suave para subir un poco el ritmo, un poco más largos que la semana pasada. Va con ERG apagado: rueda por sensación, con un RPE de 5, firme pero controlado. Recupera con calma entre bloques para llegar entero al último. Si sientes que te pasas, baja un poco; la respiración es tu guía._
+  - _Hoy arrancamos suave para conocer tu rodillo: rueda con el ERG apagado, por sensación, con el RPE en 3-4 y pudiendo platicar en frases completas. Si no puedes, baja el ritmo sin pena. Come algo antes de subirte y ten a la mano algo dulce. Al terminar sentirás las piernas sueltas y con ganas de más._
 
-- **viernes 6 nov — Fondo constante** · 45 min · TSS ≈ 26 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - Constante 29' @ 62%
-  - Enfriamiento 6' @ 50%
-  - _Fondo parejo y sin prisa, de esos que construyen base. Va con ERG apagado: busca un ritmo estable a RPE 3-4, donde puedas hablar en frases completas. Come antes de rodar y lleva algo dulce por si lo necesitas. Si prefieres ERG, puedes prenderlo con el botón ⚡._
+- **viernes 23 oct — Fondo constante** · 43 min · TSS ≈ 25 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→60%
+  - Constante 30' @ 62%
+  - Enfriamiento 5' @ 50%
+  - _Un fondo parejo y conversacional, con RPE 3-4 y la cadencia que te salga natural; la app la irá observando, así que no te preocupes por forzarla. Te recomiendo dejar el ERG apagado y rodar por sensación, pero si prefieres prenderlo con el botón ⚡ también está bien. Ponle tu propia música y disfrútalo: es de esos días que dejan la cabeza despejada._
 
-- **domingo 8 nov — Rodada con cambios de ritmo** · 44 min · TSS ≈ 29 · por sensación (sin ERG)
-  - Calentamiento 10' @ 50→62%
-  - 6× (2.5' @ 74% + 2' @ 58%)
+- **domingo 25 oct — Clase suave con cambios de ritmo** · 42 min · TSS ≈ 25 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→62%
+  - 3× (6' libre, por sensación y sin ERG (referencia ~75%) + 3' @ 58%)
   - Enfriamiento 7' @ 50%
-  - _Rodada divertida con cambios de ritmo tipo clase: lo animado a RPE 5 y luego vuelves a lo cómodo para recuperar. Va con ERG apagado, así que tú decides cuánto apretar en cada cambio; si prefieres ERG, lo prendes con el botón ⚡. No compitas contigo: termina con ganas de repetir la siguiente._
+  - _Piensa en una clase de spinning, pero aquí tú mandas el ritmo. El ERG va apagado y te recomiendo rodar por sensación: en los bloques medios busca un RPE 5-6, con frases cortas y una respiración más marcada, y en la recuperación vuelve a un RPE 2-3 para bajar. Nunca vayas al límite; si algo se siente raro, baja y anótalo para tu coach. Terminas con las piernas activadas para el resto de la semana._
+
+#### Semana 2 · 3 sesiones de rodillo · 2.2 h · TSS ≈ 81
+
+- **miércoles 28 oct — Rodada con cambios suaves** · 43 min · TSS ≈ 27 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→62%
+  - 5× (4' @ 68% + 2' @ 58%)
+  - Enfriamiento 5' @ 50%
+  - _Miércoles de rodada tranquila: la idea es la misma que la semana pasada, pero con un poco más de tiempo en el bloque cómodo. Va por sensación, sin ERG, así que ajusta tú los cambios; si prefieres ERG, lo prendes con el botón ⚡. Come algo antes de salir y lleva algo dulce. Vas a sentir las piernas sueltas y podrás platicar sin problema, así que disfrútalo y deja que el ritmo fluya. Esto te deja fresca y lista para el jueves._
+
+- **viernes 30 oct — Fondo constante** · 45 min · TSS ≈ 27 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→60%
+  - Constante 32' @ 62%
+  - Enfriamiento 5' @ 50%
+  - _Viernes de fondo parejo: rueda con una cadencia natural y mantén un esfuerzo constante durante los 32 minutos centrales. Va sin ERG, por sensación; si prefieres ERG, lo prendes con el botón ⚡. Tu referencia es poder hablar en frases completas, que sientas la respiración tranquila y las piernas cómodas. Si notas que la respiración se te acelera, baja un poco y sigue. Así sumas volumen sin desgastarte para el fin de semana._
+
+- **domingo 1 nov — Clase con cambios de ritmo** · 45 min · TSS ≈ 27 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→62%
+  - 4× (5' libre, por sensación y sin ERG (referencia ~75%) + 3' @ 58%)
+  - Enfriamiento 5' @ 50%
+  - _Domingo de clase con cambios de ritmo: cuatro bloques medios donde vas a sentir las piernas trabajar, pero sin ahogarte; frases cortas están bien. Va sin ERG, así que tú marcas el ritmo, y si prefieres ERG lo prendes con el botón ⚡. Recupera de verdad entre bloques, en un esfuerzo suave que te permita respirar. Elige canciones que te animen y llega con ganas. Terminas con las piernas bien trabajadas, y eso te deja lista para cerrar la semana._
+
+#### Semana 3 · 3 sesiones de rodillo · 1.7 h · TSS ≈ 56
+
+- **miércoles 4 nov — Rodada de descarga** · 31 min · TSS ≈ 17 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→60%
+  - Constante 18' @ 60%
+  - Enfriamiento 5' @ 50%
+  - _Hoy toca descansar con la bici: una rodada suave de unos 30 minutos para asimilar lo que llevas. Sin buscar nada, todo fácil, a RPE 2-3, y sin ERG, por sensación con tus cambios; si prefieres ERG, lo prendes con el botón ⚡. Ten el ritmo tan cómodo que puedas hablar en frases completas en todo momento. Es de esas sesiones que te dejan lista para la semana siguiente sin que sientas que hiciste nada._
+
+- **viernes 6 nov — Fondo suave** · 31 min · TSS ≈ 17 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→60%
+  - Constante 18' @ 60%
+  - Enfriamiento 5' @ 50%
+  - _Una rodada conversacional para disfrutar la bici con música y la cadencia que te salga natural. Va a unos 30 minutos a RPE 3, sin ERG; ruedas por sensación y, si quieres el control del rodillo, lo prendes con el botón ⚡. Tu referencia es poder hablar en frases completas durante todo el fondo. Si todo sale así, llegas al resto de la semana con las piernas sueltas y la cabeza tranquila._
+
+- **domingo 8 nov — Clase ligera** · 37 min · TSS ≈ 22 · por sensación (sin ERG)
+  - Calentamiento 8' @ 50→62%
+  - 3× (5' libre, por sensación y sin ERG (referencia ~72%) + 3' @ 58%)
+  - Enfriamiento 5' @ 50%
+  - _Unos cambios de ritmo cortos a RPE 5, sin ERG: vas por sensación, y si prefieres el control del rodillo, lo prendes con el botón ⚡. Los bloques de ritmo medio son para sentirte cómoda y firme, no para apretar; recupera completo en cada pausa para llegar entera al siguiente. Si al final sientes que podrías seguir, es la señal de que el trabajo salió bien y te deja lista para el resto de la semana._
 
 ### Por qué tomó estas decisiones (análisis, no texto de la IA)
 
-- **Médico primero y metabolismo primero:** diabetes tipo 2 con metformina. Fondo y tempo suave parejos (≤75%), sin picos largos, sin test ni watts: todo por RPE.
-- **Lo que le gusta:** sesiones «tipo clase» con cambios de ritmo, 4 días de 42–45 min (su tope es 45).
-- **Sin bici martes y jueves** por su yoga.
-- **Volumen:** 2.1 → 2.9 → 3.0 h de 3 disponibles.
+- **Médico primero y metabolismo primero:** diabetes tipo 2 con metformina. Fondo y ritmo suave parejos, sin picos, ≤68%, por RPE (no más de 5–6).
+- **Parte de lo que ya hace** (~2 h por semana) y sube poco a poco; yoga martes y jueves sin bici.
+- **«Come algo antes de rodar y lleva algo dulce»:** es una regla escrita del método (prompt), no algo inventado.
+- **Semana 3 de descarga** (1.6 h).
+
+**Qué cambió desde la corrida 1:** Antes: un extra «Sin gimnasio hoy» y una frase de técnica de montaña que no aplicaban, y descripciones en masculino. Ahora no hay nada de eso. Arranca con 3 sesiones en lugar de 4.
 
 **Para revisar:**
 
-- El consejo «come antes de rodar y lleva algo dulce» por la metformina: ¿debe darlo la IA?
-- El extra «Sin gimnasio hoy» (15 min) sobra; la frase de técnica de montaña no aplica; las descripciones le hablan en masculino («listo», «entero»).
+- ¿Descarga en la semana 3 después de solo 2 semanas de ~2.2 h?
 
 **Evaluación de Joe** (llenar):
 
@@ -1410,6 +1408,6 @@
 ## Cómo se generó
 
 - Perfiles: `scripts/coach-sim/perfiles-data.mjs` (cuestionario completo: salud y hábitos, otras actividades, FTP medido / provisional / sin dato).
-- Corrida: `node scripts/coach-sim/perfiles.mjs` contra producción con la cuenta de pruebas. Todo lo que contestó la IA (contexto enviado, respuesta, plan y cada sesión con sus intervalos) está en `docs/evaluaciones/planes-ia-para-joe-datos/`.
+- Corrida: `node scripts/coach-sim/perfiles.mjs` contra producción con la cuenta de pruebas. Todo lo que contestó la IA (contexto enviado, respuesta, plan y cada sesión con sus intervalos) está en `docs/evaluaciones/planes-ia-para-joe-datos/` (corrida 2) y `…-datos/v1/` (corrida 1, antes de los cambios de #54).
 - Análisis: `scripts/coach-sim/perfiles-analisis.mjs`.
 - Validación sin IA: `perfiles-check.ts` (mismo schema del servidor y perfil de arranque).

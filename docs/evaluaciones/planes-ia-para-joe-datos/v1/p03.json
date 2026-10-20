@@ -1,0 +1,488 @@
+{
+  "perfil": "p03",
+  "at": "2026-10-20T18:08:51.710Z",
+  "context": {
+    "startDate": "2026-10-20",
+    "goal": "Medio Ironman 70.3 en Cozumel el 9 de febrero de 2027. Corro y nado bien; la bici (90 km) es mi punto débil y quiero llegar a correr el medio maratón sin morirme.",
+    "experienceLevel": "experienced",
+    "generalFitnessLevel": "active_cyclist",
+    "discipline": "road",
+    "yearsRiding": 3,
+    "competes": true,
+    "category": "Grupos de edad 25-29",
+    "availability": {
+      "hoursPerWeek": 5,
+      "days": [
+        "wed",
+        "fri",
+        "sat"
+      ],
+      "maxSessionMinutes": null
+    },
+    "occupiedDates": [],
+    "profile": {
+      "ftp": 190,
+      "provisionalFtp": null,
+      "ftpSource": "manual",
+      "ftpUpdatedAt": "2026-09-10T18:07:53.751Z",
+      "hr_max": 189,
+      "sex": "F",
+      "name": "Sofía Ramírez",
+      "injuries": null,
+      "weightKg": 58,
+      "ageYears": 29,
+      "otherActivities": [
+        {
+          "kind": "running",
+          "perWeek": 3,
+          "minutes": 50,
+          "days": [
+            "tue",
+            "thu",
+            "sun"
+          ]
+        },
+        {
+          "kind": "swimming",
+          "perWeek": 2,
+          "minutes": 60,
+          "days": [
+            "mon",
+            "fri"
+          ]
+        }
+      ],
+      "intake": {
+        "conditions": [],
+        "takesMedication": false,
+        "recentInjury": false,
+        "injuryLimitsIntensity": false,
+        "smoking": "no",
+        "alcohol": "rarely",
+        "stress": "medium",
+        "sleepHours": 7.5,
+        "sleepQuality": "good",
+        "restingHr": 50,
+        "rpeLiteracy": "yes",
+        "maxEffortExperience": true,
+        "recentTraining": "with_intensity",
+        "recentHoursPerWeek": 9
+      },
+      "experienceLevel": "experienced",
+      "generalFitnessLevel": "active_cyclist",
+      "structuredTrainingYears": 3,
+      "rpeZones": null
+    },
+    "recentHistory": null,
+    "lastTest": null
+  },
+  "status": 200,
+  "ms": 57959,
+  "result": {
+    "planId": "7bd842b6-1b28-4806-a367-dc4d5f7e563d",
+    "startDate": "2026-10-20",
+    "coachNote": "Sofía, la demanda de un 70.3 es ritmo sostenido largo en bici sin vaciar las piernas para el medio maratón; por eso priorizo tempo y salida larga afuera, no intervalos cortos. Traes motor de nadadora y corredora y 3 años de estructura: partimos de tu FTP de 190 W con el umbral conservador las primeras 2 semanas y retest de 20 min en la semana 6. Tus 5 h no caben en rodillo de 3 días (3 × 90 min = 4.5 h), así que la salida larga de sábado va afuera y completa las horas; tus carreras (mar, jue, dom) y nataciones (lun, vie) cuentan en la carga, y por eso el viernes es suave. Dime qué días de carrera son fuertes o largas para ajustar el miércoles, que hoy queda entre dos carreras.",
+    "weeks": [
+      {
+        "weekIndex": 0,
+        "workoutIds": [
+          "430cd374-e5cb-4b04-a5e0-0181e166c5a2",
+          "8046a5c0-f4ad-461c-a19e-1507a82b7e5f"
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workoutIds": [
+          "ff846b09-eab0-46b7-9480-92053e2b3a9f",
+          "caf9dc3c-0da7-444e-a7e4-cbfd29cf9825"
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workoutIds": [
+          "d01e25af-9b35-4682-bfb7-3a8fa8b478c1",
+          "80e24e69-4877-4274-afb3-a4fece771667"
+        ]
+      }
+    ],
+    "sentToCoach": false,
+    "suggestedFtp": null,
+    "nextTest": {
+      "weekIndex": 5,
+      "type": "test20",
+      "reason": "Al abrir el segundo bloque, tras 5 semanas con estructura y con tu FTP manual de septiembre como referencia; llegas fresca tras la descarga."
+    }
+  },
+  "error": null,
+  "plan": {
+    "goal": "Camino a Cozumel 70.3: bici fuerte para correr bien",
+    "data": {
+      "form": {
+        "days": [
+          "wed",
+          "fri",
+          "sat"
+        ],
+        "goal": "Medio Ironman 70.3 en Cozumel el 9 de febrero de 2027. Corro y nado bien; la bici (90 km) es mi punto débil y quiero llegar a correr el medio maratón sin morirme.",
+        "hoursPerWeek": 5
+      },
+      "blocks": [
+        {
+          "name": "Base y tempo",
+          "focus": "Base aeróbica con tempo sostenido en rodillo y salida larga afuera que sube de 2 h a 2.5 h (descarga en la semana 4). Las 3 carreras y 2 nataciones semanales cuentan en la carga.",
+          "weeks": 5,
+          "published": true,
+          "targetHoursPerWeek": 4
+        },
+        {
+          "name": "Construcción",
+          "focus": "Sweet spot y tempo largo, con retest de 20 min al abrir el bloque. Salida larga de 2.5 a 3 h con comida.",
+          "weeks": 5,
+          "published": false,
+          "targetHoursPerWeek": 4.5
+        },
+        {
+          "name": "Específico 70.3",
+          "focus": "Ritmo de carrera de 75-85 % en bloques largos, brick corto (bici + trote) y salida larga de hasta 3 h.",
+          "weeks": 5,
+          "published": false,
+          "targetHoursPerWeek": 5
+        },
+        {
+          "name": "Afinación",
+          "focus": "Volumen a la baja, ritmo de carrera corto y llegar fresca. La última semana contiene el 9 de febrero.",
+          "weeks": 2,
+          "published": false,
+          "targetHoursPerWeek": 3
+        }
+      ],
+      "nextTest": {
+        "type": "test20",
+        "reason": "Al abrir el segundo bloque, tras 5 semanas con estructura y con tu FTP manual de septiembre como referencia; llegas fresca tras la descarga.",
+        "weekIndex": 5
+      },
+      "startDate": "2026-10-20",
+      "startingPmc": null,
+      "ftpSuggestion": null,
+      "maxSessionMinutes": null
+    },
+    "weeks": [
+      {
+        "weekIndex": 0,
+        "workoutIds": [
+          "430cd374-e5cb-4b04-a5e0-0181e166c5a2",
+          "8046a5c0-f4ad-461c-a19e-1507a82b7e5f"
+        ]
+      },
+      {
+        "weekIndex": 1,
+        "workoutIds": [
+          "ff846b09-eab0-46b7-9480-92053e2b3a9f",
+          "caf9dc3c-0da7-444e-a7e4-cbfd29cf9825"
+        ]
+      },
+      {
+        "weekIndex": 2,
+        "workoutIds": [
+          "d01e25af-9b35-4682-bfb7-3a8fa8b478c1",
+          "80e24e69-4877-4274-afb3-a4fece771667"
+        ]
+      }
+    ]
+  },
+  "workouts": [
+    {
+      "id": "430cd374-e5cb-4b04-a5e0-0181e166c5a2",
+      "name": "Tempo en bloques",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 65
+        },
+        {
+          "name": "Tempo 1/3",
+          "type": "steady",
+          "power_pct": 82,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 1/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 240
+        },
+        {
+          "name": "Tempo 2/3",
+          "type": "steady",
+          "power_pct": 82,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 2/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 240
+        },
+        {
+          "name": "Tempo 3/3",
+          "type": "steady",
+          "power_pct": 82,
+          "duration_s": 720
+        },
+        {
+          "name": "Recuperación 3/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 240
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 420,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:08:49.175Z",
+      "description": "Hoy toca tempo en bloques: tres tramos de 12 minutos a ritmo sostenido, con 4 minutos suaves entre cada uno para recuperar. Deja el ERG prendido y deja que el rodillo marque la potencia; tu trabajo es sostener la cadencia y mantener el esfuerzo parejo de principio a fin, en un RPE de 5 a 6, con frases cortas. Es un buen momento para construir ritmo sin cargar las piernas, que llegan con margen para la carrera del jueves. Las dos primeras semanas el número va conservador, así que no te preocupes si al principio se siente fácil.",
+      "scheduledDate": "2026-10-21",
+      "format_version": 1
+    },
+    {
+      "id": "8046a5c0-f4ad-461c-a19e-1507a82b7e5f",
+      "erg": "off",
+      "name": "Rodada suave",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 300,
+          "ramp_to_pct": 60
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 2100
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 300,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:08:49.325Z",
+      "description": "Rodada suave para soltar las piernas el mismo día de la natación. Va sin ERG, en modo calle plana, así que pedalea por sensación y ajusta tú los cambios; si prefieres ERG, actívalo con el botón ⚡. Busca una cadencia que te salga natural y un RPE de 3 a 4: deberías poder hablar en frases completas durante toda la rodada. Si notas que no puedes hablar, baja la potencia un poco y sigue rodando.",
+      "scheduledDate": "2026-10-23",
+      "format_version": 1
+    },
+    {
+      "id": "ff846b09-eab0-46b7-9480-92053e2b3a9f",
+      "name": "Tempo en bloques largos",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 65
+        },
+        {
+          "name": "Tempo 1/3",
+          "type": "steady",
+          "power_pct": 82,
+          "duration_s": 900
+        },
+        {
+          "name": "Recuperación 1/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 240
+        },
+        {
+          "name": "Tempo 2/3",
+          "type": "steady",
+          "power_pct": 82,
+          "duration_s": 900
+        },
+        {
+          "name": "Recuperación 2/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 240
+        },
+        {
+          "name": "Tempo 3/3",
+          "type": "steady",
+          "power_pct": 82,
+          "duration_s": 900
+        },
+        {
+          "name": "Recuperación 3/3",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 240
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 420,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:08:49.825Z",
+      "description": "Sofía, esta semana el tempo se alarga: mismos bloques de siempre, pero cada uno dura 15 minutos. Tu objetivo es sostener el 82 % de tu FTP sin arrancar fuerte; progresamos en tiempo, no en intensidad. Te recomiendo ERG prendido para que el rodillo mantenga la potencia y tú solo cuides la cadencia, cómoda y constante. Sientes un esfuerzo de RPE 5-6, con respiración que te deja hablar en frases cortas pero no cantar, y si al tercer bloque las piernas empiezan a pesar, es normal: lo que importa es que termines parejo. Llegarás al jueves con las piernas trabajadas pero listas para descansar bien.",
+      "scheduledDate": "2026-10-28",
+      "format_version": 1
+    },
+    {
+      "id": "caf9dc3c-0da7-444e-a7e4-cbfd29cf9825",
+      "erg": "off",
+      "name": "Rodada suave",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 300,
+          "ramp_to_pct": 60
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 2400
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 300,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:08:50.118Z",
+      "description": "Rodada suave para soltar las piernas antes de la salida larga. Va por sensación, así que el ERG viene apagado: ve a tu ritmo y, si prefieres que el rodillo marque la potencia, lo prendes con el botón ⚡. La idea es rodar a RPE 3-4, con respiración tranquila y sin meterte en tempo, aunque te sientas con energía. Si al final te sientes con las piernas pesadas en vez de sueltas, baja un poco más y anótalo para tu coach. Con esto llegas fresca al fin de semana.",
+      "scheduledDate": "2026-10-30",
+      "format_version": 1
+    },
+    {
+      "id": "d01e25af-9b35-4682-bfb7-3a8fa8b478c1",
+      "name": "Tempo alto",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 600,
+          "ramp_to_pct": 65
+        },
+        {
+          "name": "Tempo 1/2",
+          "type": "steady",
+          "power_pct": 85,
+          "duration_s": 1200
+        },
+        {
+          "name": "Recuperación 1/2",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Tempo 2/2",
+          "type": "steady",
+          "power_pct": 85,
+          "duration_s": 1200
+        },
+        {
+          "name": "Recuperación 2/2",
+          "type": "recovery",
+          "power_pct": 55,
+          "duration_s": 300
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 420,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:08:50.462Z",
+      "description": "Hoy toca subirle un poco al ritmo del tempo: dos bloques de 20 minutos sostenidos con una recuperación corta entre ellos. Prende el ERG para que el rodillo marque la potencia y tú te concentres en mantener la cadencia. Te vas a sentir cargado, pero en tempo debes poder decir frases cortas sin ahogarte; si en el último bloque ya no te alcanza, baja 3 a 5 puntos de esfuerzo y avísame para ajustar. Esta sesión deja buenas piernas para el fondo del fin de semana.",
+      "scheduledDate": "2026-11-04",
+      "format_version": 1
+    },
+    {
+      "id": "80e24e69-4877-4274-afb3-a4fece771667",
+      "erg": "off",
+      "name": "Rodada suave",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 50,
+          "duration_s": 300,
+          "ramp_to_pct": 60
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 2400
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 55,
+          "duration_s": 300,
+          "ramp_to_pct": 45
+        }
+      ],
+      "created_at": "2026-10-20T18:08:50.764Z",
+      "description": "Una rodada tranquila para soltar el cuerpo después de natación. Va en modo calle plana, sin ERG: rueda por sensación, con cadencia natural y un RPE de 3 a 4. Si prefieres usar ERG, lo prendes con el botón ⚡, pero no hace falta. La referencia es poder hablar en frases completas todo el tiempo; si no puedes, baja el ritmo y anótalo para tu coach. Sales con las piernas más ligeras y listo para descansar bien.",
+      "scheduledDate": "2026-11-06",
+      "format_version": 1
+    }
+  ],
+  "extras": [
+    {
+      "scheduled_date": "2026-10-24",
+      "kind": "outdoor",
+      "name": "Salida larga afuera",
+      "payload": {
+        "exercises": [],
+        "description": "Ruta a RPE 3-4, platicando. Come desde el minuto 30 (carbohidrato cada 20-30 min) y ensaya tu hidratación de carrera.",
+        "durationMin": 120
+      }
+    },
+    {
+      "scheduled_date": "2026-10-31",
+      "kind": "outdoor",
+      "name": "Salida larga afuera",
+      "payload": {
+        "exercises": [],
+        "description": "RPE 3-4 constante, con comida desde el minuto 30. Procura terreno parejo para pedalear sin pausas largas.",
+        "durationMin": 135
+      }
+    },
+    {
+      "scheduled_date": "2026-11-07",
+      "kind": "outdoor",
+      "name": "Salida larga afuera",
+      "payload": {
+        "exercises": [],
+        "description": "RPE 3-4, comiendo desde el minuto 30. Es tu sesión principal de la semana: llega descansada y sin forzar.",
+        "durationMin": 150
+      }
+    }
+  ]
+}

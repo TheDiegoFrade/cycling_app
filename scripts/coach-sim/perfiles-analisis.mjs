@@ -1,132 +1,139 @@
-// Análisis de la corrida del 20-oct-2026 (planes reales de producción, ver
-// out/perfiles/ y docs/evaluaciones/planes-ia-para-joe-datos/). Lo escribió
-// Claude leyendo cada plan contra el perfil y las reglas de arranque; NO es
-// razonamiento de la IA del coach (create_plan no devuelve uno: lo único que
-// explica es la nota al atleta, que el reporte cita textual). Si se vuelve a
-// correr, este análisis queda viejo: actualizarlo o quitarlo.
+// Análisis de la corrida 2 (20-oct-2026, después de #54: metas realistas,
+// FTP escrito se confirma, semana típica, alcohol 1-2/sem no cuenta). Lo
+// escribió Claude leyendo cada plan contra el perfil, las reglas de arranque
+// y la corrida 1 (docs/evaluaciones/planes-ia-para-joe-datos/v1/).
+// NO es razonamiento de la IA del coach: create_plan no devuelve uno; lo único
+// que explica es la nota al atleta, que el reporte cita textual. Si se vuelve
+// a correr, este análisis queda viejo: actualizarlo o quitarlo.
 
-export const CORRIDA = '20 de octubre de 2026';
+export const CORRIDA = '20 de octubre de 2026 (corrida 2)';
 
 export const GENERAL = [
-  '**Lo que hace bien en los 10:**',
+  '**Qué cambió desde la corrida 1** (esa misma tarde, después de la revisión de producto):',
   '',
-  '- **Respeta las reglas de arranque.** Las tres personas con condición de salud (Roberto, Lucía y Paola) no tienen test ni esfuerzos máximos: nada pasa de ~76% de FTP y todo va por sensación, con la indicación de ir con su médico. Ana y Daniel, que vienen de estar sedentarios y no saben usar RPE, van sin test, por sensación y con la escala de esfuerzo explicada. Los que vienen entrenando con intensidad (Mariana y Fernando) arrancan con umbral y arranques desde la semana 1, sin rehacer base.',
-  '- **Nunca se pasa de la disponibilidad**, ni de días ni de minutos por sesión, y cuenta las otras actividades (gym, carrera, natación, yoga) para no poner un día duro junto a ellas.',
-  '- **Usa la salida larga afuera** cuando el objetivo es largo y hay fin de semana (Carlos, Sofía, Javier, Fernando, Lucía, y Roberto desde la semana 3). Agenda técnica afuera para XCO (Fernando).',
-  '- **Pone el test donde tiene sentido:** de 20 min para quien sabe dosificarse (Carlos, Sofía, Mariana, Fernando), casi siempre después de una descarga; rampa para Javier; nada para los demás.',
-  '- **Explica sus decisiones** en la nota al atleta: demanda del evento, por qué esos días, qué cuenta en la carga.',
+  '- **Ya no promete resultados.** A Carlos: «La meta de menos de 4 h la juzgamos tras el test y las primeras semanas; por ahora la meta del plan es llegar entero a la subida final». A Roberto: «se ve alcanzable con 15 semanas, pero con tus primeras semanas vamos a ver qué ritmo es realista». A Lucía: «aún no sé qué tiempo es realista». A Ana y Daniel: «no prometo kilos».',
+  '- **El FTP que escribió la persona se confirma pronto.** Carlos y Sofía hacen su test de 20 min en la semana 2 (antes, en las semanas 5 y 6). Fernando, que hizo un test hace 10 días, lo repite hasta la semana 4.',
+  '- **Parte de lo que ya hace cada quien.** Fernando: «respeto tu semana… y cambio solo la progresión». Carlos: «la salida larga del domingo, que ya haces, se queda». Mariana: «partimos de tu semana real». Lucía: «parto de lo que ya haces». Sofía: arranca en 3 h 20 min de bici, «máximo +10 % sobre lo que ya haces».',
+  '- **El alcohol ocasional ya no frena.** Carlos ahora arranca normal: sweet spot hasta 89–90% desde la semana 1 (antes, nada arriba de 82% en 3 semanas).',
+  '- **Mariana ahora tiene salida larga afuera** (3 h 30 min los sábados, con el equipo), como la que ya hacía.',
+  '- **Género:** antes había 8 errores (7 a mujeres); ahora hay 1, al revés: a Roberto le dice «lista».',
+  '- **Paola:** ya no aparece el extra «Sin gimnasio hoy» ni la frase de técnica de montaña.',
   '',
-  '**Problemas que encontré (para corregir en Torq, no para Joe):**',
+  '**Se mantiene bien:** las reglas de salud (Roberto, Lucía y Paola sin test, por sensación y con la indicación de ir al médico; nada arriba de ~78%). Nunca se pasa de la disponibilidad y cuenta gym, carrera, natación y yoga.',
   '',
-  '1. **Género en las descripciones de las sesiones.** A 4 de las 5 mujeres les habla en masculino en algunas sesiones: «listo para el fin de semana», «sentirte cómodo», «llegar entero» (Ana, Sofía, Lucía y Paola). Las notas del coach están bien. El error viene del redactor de descripciones (Haiku), que sí recibe el sexo.',
-  '2. **Un extra sin sentido:** a Paola le agenda «Sin gimnasio hoy» (15 min).',
-  '3. **Frases que no aplican:** a Paola (que no es de montaña) le dice que «el rodillo no entrena técnica de montaña», y que «ve una prueba sin competencia».',
-  '4. **Consejo médico:** a Paola, con metformina, le dice «come antes de rodar y lleva algo dulce». Es prudente, pero es una indicación médica.',
+  '**Pendientes para Torq:**',
   '',
-  '**Limitación de la prueba:** las fechas de los eventos caen en martes porque los calculé como «hoy + N semanas» y hoy es martes. Es un error mío en los datos de prueba, no de la IA.',
+  '1. **Género al revés:** una descripción de Roberto dice «lista para descansar».',
+  '2. **Tope de 90 min en rodillo:** a Mariana le dice «tu sesión indoor llega a 90 min… si quieres rodillo más largo, súbelo en tu formulario», pero ella no puso tope: es el límite general del coach y se lo presenta como si fuera suyo.',
+  '3. **Contenido del gym:** a Carlos y Mariana les agenda qué hacer en su gym («pierna moderada», «tren superior y core»), aunque solo dijeron que van.',
   '',
   '**Preguntas para Joe:**',
   '',
-  '- **Volumen corto.** El plan siempre se queda por debajo de lo disponible: Mariana (élite, venía de 12 h) arranca con 6.3 h de 11 posibles; Fernando ~7 de 9; Sofía ~4 de 5; Ana 2 de 2.5. ¿Así arrancarías, o está siendo demasiado prudente?',
-  '- **Tope de 90 min en rodillo.** Aunque la persona no ponga límite, la IA no pasa de 90 min por sesión de rodillo. A Mariana (ruta) no le pone salida larga afuera: su sesión más larga es de 90 min. ¿Está bien para una élite de ruta?',
-  '- **Alcohol 1–2 veces por semana.** Hoy cuenta igual que tomar seguido: sube el estrés un nivel y pone «base antes de intensidad». Por eso Carlos (Master 40, con experiencia, duerme bien) pasa 3 semanas sin nada arriba de tempo (82%). ¿Así lo quieres, o solo a partir de 3 veces por semana? (La regla está marcada como provisional.)',
-  '- **Sueño de 6 h exactas** no cuenta como «poco sueño» (el corte es menos de 6 h); sí cuenta si la calidad es mala. ¿El corte está bien?',
-  '- **Test en semana 1 con sueño malo.** Javier duerme mal y tiene estrés alto (arranque conservador), pero como sí puede dar un máximo, le toca la rampa el jueves de la primera semana. ¿Lo harías tan pronto?',
+  '- **Volumen.** Sigue por debajo de lo disponible, ahora con razones explícitas: Sofía 3 h 20 min de bici de 5 («máximo +10 % sobre lo que ya haces»), Mariana ~4.7–5.9 h de rodillo más 3.5 h afuera de 11, Fernando 6.7–7.8 h de 9 contando técnica y salida larga (la semana 3 es de descarga). ¿Estás de acuerdo?',
+  '- **Javier** (duerme mal, estrés alto) sigue con la rampa el jueves de la semana 1. ¿Tan pronto?',
+  '- **Paola** tiene descarga en la semana 3 (baja a 1.6 h), cuando apenas lleva 2 semanas de 2.1–2.2 h. ¿Hace falta tan pronto?',
+  '- **Ana** (34, sana, sedentaria): le recomienda chequeo médico antes de subir intensidad. ¿Lo pedirías a todo sedentario?',
+  '- **Metformina:** a Paola le dice «come algo antes de rodar y lleva algo dulce». Es una regla escrita en el prompt (método de Joe). ¿La mantenemos así?',
+  '- **Contenido del gym:** ¿quieres que la IA le diga a la persona qué hacer en su gym, o solo que lo tome en cuenta?',
 ].join('\n');
 
-/** Por perfil: cómo se conectan las decisiones con sus datos y qué revisar. */
+/** Por perfil: qué decidió, por qué (contra sus datos y las reglas) y qué cambió desde la corrida 1. */
 export const POR_PERFIL = {
   p01: {
     porque: [
-      '**Sin test, sin ERG y por sensación (RPE 3–4):** viene de estar sedentaria y no sabe usar RPE, así que las reglas la marcan como «no puede dar un máximo» y «hay que enseñarle RPE». El coach le explica la escala en la nota.',
-      '**Arranque conservador:** estrés alto (sube por el alcohol semanal) y sueño de 6.5 h regular.',
-      '**Volumen:** 1.2 h → 2.0 h → 2.0 h, contra 2.5 h disponibles. Le explica que 3 días de 45 min (2.25 h) no alcanzan las 2.5 h que puso.',
-      '**Intensidad:** solo fondo al 60% y, desde la semana 2, cambios de 2 min al 70%. Lo más alto (RPE 6–7) llega hasta la semana 7.',
-      '**Peso:** no promete kilos; manda la parte de la comida con un nutriólogo.',
+      '**Sin test, sin ERG, por sensación (RPE 3–4):** sedentaria y no sabe usar RPE. Le explica la escala.',
+      '**Arranque conservador:** estrés alto y 6.5 h de sueño regular (el alcohol semanal ya no suma).',
+      '**Volumen:** 1.2 → 2.1 → 2.2 h; explica que 3 × 45 min (2.25 h) no alcanzan sus 2.5 h.',
+      '**Meta:** «no prometo kilos, sí constancia y un proceso medible»; la alimentación, con nutriólogo. Además le recomienda un chequeo médico antes de subir intensidad.',
     ],
-    revisar: ['Para alguien que quiere bajar de peso, ¿meterías más estímulo antes de la semana 7?', 'Las descripciones le hablan en masculino («sentirte cómodo», «listo»).'],
+    cambio: 'Casi igual. Ahora dice explícitamente que no promete kilos y agrega el chequeo médico. Ya no hay errores de género.',
+    revisar: ['¿Chequeo médico para toda persona sedentaria, o solo con alguna señal?'],
   },
   p02: {
     porque: [
-      '**Base antes de intensidad:** la regla del alcohol (1–2 veces por semana) lo pone en «base primero» y arranque conservador. Por eso nada pasa de 82% en 3 semanas; el sweet spot llega hasta el bloque 2.',
-      '**Tempo progresivo los sábados:** 3×10 → 3×12 → 2×20 min a ~80%, para la demanda de maratón MTB (tempo y subidas sostenidas).',
-      '**Gym lunes y miércoles respetado:** martes fondo y jueves tempo suave; la sesión clave es el sábado. Además le agenda contenido para el gym («pierna ligera», «tren superior y core»).',
-      '**Salida larga afuera los domingos:** 2 h → 2 h 15 → 2 h 30, con comida desde el minuto 30.',
-      '**Test de 20 min en la semana 5,** después de la descarga: tiene FTP medido y sabe dosificarse.',
+      '**Su FTP es de partida:** «arrancamos con tus 235 W y los confirmamos con el test de 20 min el sábado de la semana 2; hasta entonces nada intenso a más del 90 %».',
+      '**No promete el «menos de 4 h»:** lo juzga después del test; mientras, la meta es llegar entero a la subida final.',
+      '**Parte de su semana:** la salida larga de montaña del domingo «que ya haces, se queda» (2 h 30 → 2 h 45); gym lunes y miércoles contado, lo duro el sábado.',
+      '**Sin freno por alcohol:** sweet spot hasta 89–90% desde la semana 1.',
     ],
-    revisar: ['Con 12 semanas y experiencia, ¿3 semanas sin nada arriba de tempo es demasiado? Es efecto de la regla del alcohol.', '¿Está bien que la IA le diga qué hacer en su gym?'],
+    cambio: 'Antes: aceptaba «menos de 4 h» como la demanda, 3 semanas sin nada arriba de 82% por la regla del alcohol y test hasta la semana 5. Ahora: meta por evaluar, test en la semana 2, sweet spot desde la semana 1 y parte de su salida del domingo.',
+    revisar: ['Le agenda contenido para su gym («pierna moderada», «tren superior y core»). ¿Debe?'],
   },
   p03: {
     porque: [
-      '**Tempo y salida larga, no intervalos cortos:** la demanda de un 70.3 es ritmo sostenido largo sin vaciar las piernas para la carrera a pie. Aunque viene entrenando con intensidad, no le mete umbral todavía.',
-      '**Encaja la bici entre carrera y natación:** miércoles tempo (entre dos días de carrera), viernes suave (día de natación) y sábado largo afuera, 2 h → 2.5 h. Le pregunta qué días de carrera son fuertes para ajustar el miércoles.',
-      '**FTP 190 W con umbral conservador** las primeras semanas; test de 20 min en la semana 6.',
-      '**Volumen:** ~3.8–4.4 h de bici de 5 disponibles, más sus 5 sesiones de carrera y natación.',
+      '**Demanda del 70.3:** tempo largo y salida larga, sin vaciar las piernas para la carrera a pie.',
+      '**Su FTP se confirma:** test de 20 min el viernes de la semana 2.',
+      '**Parte de su carga real:** venía de 9 h en total (bici, carrera y natación); arranca en 3 h 20 min de bici, «máximo +10 % sobre lo que ya haces». Miércoles tempo (después de sus series del martes), viernes suave (natación), sábado largo afuera 1 h 40 → 2 h.',
+      '**Pregunta lo que le falta:** qué día corre fuerte y si quiere brick más adelante (el brick entra en el bloque específico).',
     ],
-    revisar: ['¿Meterías un brick (bici + trote) antes del bloque específico?', 'Una descripción le dice «listo».'],
+    cambio: 'Antes: test en la semana 6 y no hablaba de su carga actual. Ahora: test en la semana 2, volumen calculado desde lo que ya hace y brick planeado.',
+    revisar: ['3 h 20 min de 5 h disponibles: ¿la regla del +10 % sobre su carga total te parece bien para una triatleta?'],
   },
   p04: {
     porque: [
-      '**Médico primero:** hipertensión con losartán. Sin test, sin FTP, todo por sensación y nada arriba de 68%. Le pide luz verde de su médico «antes de apretar».',
-      '**Tope de 60 min respetado:** sesiones de 40–60 min. Como en rodillo no puede pasar de 60, para el gran fondo usa una salida larga afuera desde la semana 3 (75 min), que crece en los bloques siguientes.',
-      '**Volumen:** 2.2 h → 2.6 h de rodillo. En la semana 3 quita el viernes y deja 2 de rodillo más la primera salida afuera.',
+      '**Médico primero:** hipertensión con losartán. Sin test, sin FTP, todo por sensación, nada arriba de 72%.',
+      '**Meta realista sin prometer:** «se ve alcanzable con 15 semanas, pero con tus primeras semanas vamos a ver qué ritmo es realista; la meta es llegar entero».',
+      '**3 sesiones de 45–60 min** (su tope es 60), viernes libre; la salida larga afuera llega en el bloque 2.',
     ],
-    revisar: ['¿Le pedirías valoración médica (o prueba de esfuerzo) antes de empezar, no solo antes de subir la intensidad?', '¿Por qué baja a 2 sesiones de rodillo en la semana 3? No lo explica.'],
+    cambio: 'Antes: en la semana 3 bajaba a 2 sesiones sin explicar. Ahora: 3 sesiones estables (2.5 → 2.7 h) y una evaluación explícita de la meta.',
+    revisar: ['Una descripción le dice «lista para descansar» (error de género, para Torq).'],
   },
   p05: {
     porque: [
-      '**En temporada:** venía de 12 h con intensidad, así que entra directo con umbral (3×8 → 3×10 → 3×12 min al 95–97%) y arranques de 10 s a tope sin ERG (referencia ~150%), sin rehacer base.',
-      '**2 sesiones duras por semana:** miércoles y sábado. Lunes y jueves suaves por sus días de fuerza.',
-      '**Volumen:** 6.3 → 7.5 → 7.7 h de 11 disponibles. Le dice que es para que sume bien con la fuerza.',
-      '**Test de 20 min al final de la semana 4 (descarga):** 4 semanas después de su último test.',
-      '**Sin salida larga afuera:** su sesión más larga es un fondo de 90 min en rodillo.',
+      '**Parte de su semana real:** umbral el martes, fondo el miércoles, salida larga el sábado, arranques el domingo.',
+      '**En temporada:** umbral (3×10 → 4×10 min al 95–97%) y arranques desde la semana 1.',
+      '**Salida larga afuera con el equipo:** 3 h 30 min los sábados, que completa las horas que el rodillo no da.',
+      '**Retest de 20 min en la semana 4** (su último test fue hace 2 semanas).',
     ],
-    revisar: ['¿Bajarías de 12 h a 6.3 h la primera semana de una élite a 8 semanas del selectivo?', '¿Le falta una salida larga en ruta?', 'Los arranques de 10 s están desde la semana 1, pero los esfuerzos de 30 s a 1 min (clave en criterium) llegan hasta el bloque 2. ¿Es tarde?'],
+    cambio: 'Antes: todo en rodillo (máximo 90 min) y sin salida larga. Ahora: respeta su salida del sábado y su estructura.',
+    revisar: ['Rodillo 4.7–5.9 h + 3.5 h afuera = ~8–9.5 h, de 11 disponibles y 12 que venía haciendo. ¿Bien a 8 semanas del selectivo?', 'Le presenta el tope general de 90 min como si ella lo hubiera puesto (para Torq).'],
   },
   p06: {
     porque: [
-      '**Ignora su FTP provisional (250 W):** le dice «nada de números provisionales»; todo va por sensación hasta el test.',
-      '**Test de rampa el jueves de la semana 1,** después de dos rodadas suaves. Sí puede dar un máximo, pero no tiene la experiencia completa para el de 20 min.',
-      '**Su tiempo real:** 3 sesiones de 40 min entre semana y el sábado largo afuera, 90 → 100 → 110 min (su tope es 120).',
-      '**Arranque conservador:** sueño malo y estrés alto. Semanas 2 y 3: un día de intervalos por RPE 7 y dos de fondo.',
+      '**Ignora el FTP provisional:** todo por sensación hasta la rampa del jueves de la semana 1.',
+      '**Su tiempo real:** 3 × 40 min entre semana y el sábado de gravel afuera 1 h 30 → 2 h (su techo de 4 h).',
+      '**Conservador:** sueño corto y estrés alto; una sola sesión de intensidad por semana (tempo hasta 78% por RPE).',
     ],
-    revisar: ['¿Test máximo en la semana 1 con sueño malo y estrés alto?', 'Las semanas 2 y 3 siguen por RPE aunque la rampa ya le dio watts (se armaron antes del test; la evaluación semanal debería pasarlas a watts).'],
+    cambio: 'Casi igual. Ahora las semanas 2 y 3 tienen un tempo por RPE (hasta 78%) en lugar de solo fondo.',
+    revisar: ['¿Rampa en la semana 1 con sueño malo y estrés alto?'],
   },
   p07: {
     porque: [
-      '**Médico primero:** asma con salbutamol. Sin test ni máximos, por sensación y nada arriba de 76%; le pide luz verde de su médico.',
-      '**Sus días:** martes y jueves rodillo de 55–68 min; el sábado, su rodada con amigas (2 h → 2 h 20), que es donde se entrena la subida real. Respeta el yoga del miércoles.',
-      '**Hacia el Ajusco:** fondo y tempo por sensación ahora; los bloques sostenidos de 6–10 min a RPE 6–7 llegan en el bloque 2.',
-      '**El inhalador:** le recuerda usarlo antes de rodar y llevarlo en las salidas del sábado.',
+      '**Médico primero:** asma con inhalador. Sin test ni máximos, por sensación, nada arriba de 78%.',
+      '**Parte de lo que ya hace:** martes de rodillo y sábado de 2 h con sus amigas (2 h → 2 h 15); jueves rodillo; yoga del miércoles libre.',
+      '**Meta honesta:** «aún no sé qué tiempo es realista… la meta es subir sin bajarte».',
     ],
-    revisar: ['Para subir el Ajusco sin bajarse, ¿meterías trabajo de fuerza en subida (cadencia baja) antes del bloque 2?', 'Una descripción le dice «listo».'],
+    cambio: 'Antes ya iba bien. Ahora parte explícitamente de su rutina y dice la meta. Ya no hay errores de género.',
+    revisar: ['¿Trabajo de fuerza en subida (cadencia baja) antes del bloque 2?'],
   },
   p08: {
     porque: [
-      '**La rodilla manda:** cadencia cómoda, nada de fuerza a cadencia baja ni arranques; si duele, parar y que lo vea un fisioterapeuta.',
-      '**Sin test:** viene de estar sedentario y no sabe usar RPE. Todo por sensación, nada arriba de 74%.',
-      '**3 sesiones en vez de 4:** 2.2 h → 2.6 h de 4 disponibles; le explica que suma tiempo de a poco.',
-      '**Base primero:** fuma de vez en cuando. El peso, con nutriólogo; su avance lo mide con sesiones cumplidas, RPE y pulso.',
+      '**La rodilla manda:** cadencia cómoda, sin fuerza a cadencia baja ni arranques máximos; recomienda fisioterapeuta o médico del deporte.',
+      '**Sin test, todo a RPE 3–4** (≤60%): dos años sin entrenar y no sabe usar RPE.',
+      '**3 sesiones (~2.2 h) de 4 disponibles,** con días libres entre ellas.',
+      '**Peso:** «no prometo cifras ni plazos»; nutriólogo.',
     ],
-    revisar: ['¿Pondrías la 4ª sesión desde el inicio para la meta de peso?'],
+    cambio: 'Más prudente que antes: tope de 60% (antes, cambios hasta 74%) y dice explícitamente que no promete kilos.',
+    revisar: ['¿Muy suave para un exfutbolista de 31 años? ¿4ª sesión desde el inicio?'],
   },
   p09: {
     porque: [
-      '**En temporada:** intensidad desde el día 1, con 40:20 s por sensación (referencia ~125%) para los arranques y umbral 3×10–12 min al 92–95% para las subidas cortas.',
-      '**Por edad (51),** 3 o más días entre las dos sesiones duras (martes y sábado) y una descarga cada 3 semanas.',
-      '**Afuera:** técnica en montaña los jueves (60–75 min) y salida larga los domingos (2.5 h → 3 h).',
-      '**FTP 265 W se queda** hasta el test de 20 min de la semana 4 (descarga).',
-      '**Volumen:** ~5.6 → 7.3 h de 9 disponibles.',
+      '**Respeta su semana:** lunes suave, martes 40:20, jueves técnica, sábado umbral, domingo largo; «cambio solo la progresión».',
+      '**XCO = repetir esfuerzos arriba del umbral:** 40:20 s y umbral con picos.',
+      '**51 años:** descarga cada 3 semanas y nunca dos días duros en 72 h.',
+      '**Su FTP (rampa de hace 10 días) se queda** hasta el test de 20 min de la semana 4.',
     ],
-    revisar: ['Le pone 40:20 s el mismo día que crea el plan. ¿Lo harías sin una rodada antes?', '¿Le faltan arranques explosivos más cortos (10–15 s) para XCO?'],
+    cambio: 'Antes ya iba bien. Ahora lo construye explícitamente sobre su rutina y explica por qué no usa las 9 h (la salida larga es afuera).',
+    revisar: ['¿Faltan arranques más cortos (10–15 s) para XCO?'],
   },
   p10: {
     porque: [
-      '**Médico primero y metabolismo primero:** diabetes tipo 2 con metformina. Fondo y tempo suave parejos (≤75%), sin picos largos, sin test ni watts: todo por RPE.',
-      '**Lo que le gusta:** sesiones «tipo clase» con cambios de ritmo, 4 días de 42–45 min (su tope es 45).',
-      '**Sin bici martes y jueves** por su yoga.',
-      '**Volumen:** 2.1 → 2.9 → 3.0 h de 3 disponibles.',
+      '**Médico primero y metabolismo primero:** diabetes tipo 2 con metformina. Fondo y ritmo suave parejos, sin picos, ≤68%, por RPE (no más de 5–6).',
+      '**Parte de lo que ya hace** (~2 h por semana) y sube poco a poco; yoga martes y jueves sin bici.',
+      '**«Come algo antes de rodar y lleva algo dulce»:** es una regla escrita del método (prompt), no algo inventado.',
+      '**Semana 3 de descarga** (1.6 h).',
     ],
-    revisar: ['El consejo «come antes de rodar y lleva algo dulce» por la metformina: ¿debe darlo la IA?', 'El extra «Sin gimnasio hoy» (15 min) sobra; la frase de técnica de montaña no aplica; las descripciones le hablan en masculino («listo», «entero»).'],
+    cambio: 'Antes: un extra «Sin gimnasio hoy» y una frase de técnica de montaña que no aplicaban, y descripciones en masculino. Ahora no hay nada de eso. Arranca con 3 sesiones en lugar de 4.',
+    revisar: ['¿Descarga en la semana 3 después de solo 2 semanas de ~2.2 h?'],
   },
 };

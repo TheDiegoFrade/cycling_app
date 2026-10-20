@@ -1,9 +1,9 @@
 {
   "perfil": "p06",
-  "at": "2026-10-20T18:12:21.017Z",
+  "at": "2026-10-20T18:54:54.951Z",
   "context": {
     "startDate": "2026-10-20",
-    "goal": "Gravel de 100 km en la Sierra Gorda el 12 de enero de 2027. Tengo dos hijos chicos: entre semana solo puedo 40 minutos temprano y el sábado hasta 2 horas. Duermo mal.",
+    "goal": "Gravel de 100 km en la Sierra Gorda el 17 de enero de 2027. Tengo dos hijos chicos: entre semana solo puedo 40 minutos temprano y el sábado hasta 2 horas. Duermo mal.",
     "experienceLevel": "experienced",
     "generalFitnessLevel": "active_cyclist",
     "discipline": "gravel",
@@ -25,7 +25,7 @@
       "ftp": null,
       "provisionalFtp": 250,
       "ftpSource": "provisional",
-      "ftpUpdatedAt": "2026-10-17T18:11:30.768Z",
+      "ftpUpdatedAt": "2026-10-17T18:53:55.918Z",
       "hr_max": null,
       "sex": "M",
       "name": "Javier Hernández",
@@ -47,7 +47,8 @@
         "rpeLiteracy": "somewhat",
         "maxEffortExperience": true,
         "recentTraining": "easy",
-        "recentHoursPerWeek": 3
+        "recentHoursPerWeek": 3,
+        "recentTrainingNote": "Martes y jueves 40 min de rodillo suave antes de que despierten mis hijos; el sábado salgo 1.5 h de gravel cuando puedo."
       },
       "experienceLevel": "experienced",
       "generalFitnessLevel": "active_cyclist",
@@ -58,34 +59,34 @@
     "lastTest": null
   },
   "status": 200,
-  "ms": 50249,
+  "ms": 59032,
   "result": {
-    "planId": "2a3065d5-fa9a-4309-b526-ce4ddd2d289d",
+    "planId": "10fb104b-01ab-4d8d-bec9-c19365d84b94",
     "startDate": "2026-10-20",
-    "coachNote": "Javier, con 4 h a la semana y 40 min entre semana, cada sesión cuenta: 3 de rodillo de 40 min y el sábado largo afuera, que va en tu calendario. La demanda del gravel de 100 km es ritmo sostenido largo con cambios de ritmo, así que priorizo la salida larga y la base antes que muchos intervalos. Traes 5 años en bici y 1 de entrenamiento estructurado: eso es buen oficio y vamos a construir la estructura juntos. Con el sueño y el estrés en contra, arranco prudente y voy ajustando con tus primeras sesiones. Hasta el test del jueves 22 la intensidad va por sensación (RPE); el test te da tus zonas en watts. Nada de números provisionales.",
+    "coachNote": "Javier, la demanda de un gravel de 100 km es ritmo sostenido muchas horas con repechos, así que priorizo base y salida larga afuera, luego tempo y sweet spot. Con tus 4 h reales (3 sesiones de 40 min más 2 h el sábado) sumamos 4 h; ese es tu techo y lo respetamos. Tu sueño corto y el estrés alto pesan: arrancamos conservadores, con una sola sesión de intensidad por semana y el RPE como guía. Hasta el test la intensidad va por sensación; el jueves de la semana 1 haces la rampa de 2 min por escalón, que te da tus zonas en watts. Sube a la bici de rodillo solo para trabajo de calidad: la salida larga del sábado va afuera.",
     "weeks": [
       {
         "weekIndex": 0,
         "workoutIds": [
-          "86f06c14-4b9b-49ef-899a-91690982401a",
-          "68e408f3-f2a4-443f-95e4-9cbee554b46c",
-          "af5547e4-f0db-4c5f-b002-ea9d3d907e87"
+          "c096d5fc-0d07-491c-b7a9-aeb8c6be8703",
+          "e128a8af-1e66-4a05-a87b-ce410fafff10",
+          "bc8301ee-7500-4ddc-b6b1-ccd8f9b93970"
         ]
       },
       {
         "weekIndex": 1,
         "workoutIds": [
-          "f0a57028-09f9-4965-8e3f-4d6c321de51f",
-          "297d1683-7ddd-4087-923f-2f726d78e4ec",
-          "ca5f9865-93ed-47dc-9446-439af7b7a6f6"
+          "548e4806-2a94-4a87-8241-e044e1c65267",
+          "01a0fb11-eede-40e3-9cdb-10cf0023f515",
+          "647ca2b3-65dc-4054-9661-0dc86e0f663c"
         ]
       },
       {
         "weekIndex": 2,
         "workoutIds": [
-          "cba9ca46-d798-4220-89e9-a77a59c17997",
-          "3f6f1db2-9a57-4881-befe-3d04b40c7342",
-          "1e73be72-de93-43c3-b25e-532ae8cdea57"
+          "e77299bd-5fa2-4d68-b3cb-07820a63c4be",
+          "31ec7231-2ce0-4433-a50f-3f28cef0d66e",
+          "0c9ed284-240d-49c8-a8ad-61b233c89e9e"
         ]
       }
     ],
@@ -94,7 +95,7 @@
     "nextTest": {
       "weekIndex": 0,
       "type": "ramp",
-      "reason": "Después de 2 rodadas por sensación y con un día suave antes, el jueves de la semana 1 es el mejor momento para medir tus zonas con la rampa."
+      "reason": "Ya tienes experiencia con esfuerzos máximos; el jueves de la semana 1 llegas con dos rodadas suaves previas y el día anterior tranquilo."
     }
   },
   "error": null,
@@ -108,42 +109,42 @@
           "thu",
           "sat"
         ],
-        "goal": "Gravel de 100 km en la Sierra Gorda el 12 de enero de 2027. Tengo dos hijos chicos: entre semana solo puedo 40 minutos temprano y el sábado hasta 2 horas. Duermo mal.",
+        "goal": "Gravel de 100 km en la Sierra Gorda el 17 de enero de 2027. Tengo dos hijos chicos: entre semana solo puedo 40 minutos temprano y el sábado hasta 2 horas. Duermo mal.",
         "hoursPerWeek": 4
       },
       "blocks": [
         {
-          "name": "Base y rampa",
-          "focus": "Base aeróbica con 1 sesión por RPE a la semana. Salida larga afuera del sábado: de 1 h 30 a 2 h. Descarga en la semana 4.",
-          "weeks": 5,
+          "name": "Base",
+          "focus": "Constancia con poco tiempo: 40 min entre semana y salida larga afuera el sábado de 1.5 h a 2 h. La semana 4 es de descarga. Test de rampa en la semana 1.",
+          "weeks": 4,
           "published": true,
-          "targetHoursPerWeek": 3.3
+          "targetHoursPerWeek": 3.5
         },
         {
-          "name": "Construcción gravel",
-          "focus": "Tempo y sweet spot en bloques con los watts de la rampa. Salida larga de 2 h el sábado, con comida desde el minuto 30. Descarga en la semana 8.",
+          "name": "Construcción",
+          "focus": "Tempo y sweet spot en bloques cortos entre semana, y salida larga de 2 h a 2.5 h con comida. Retest al abrir el bloque.",
           "weeks": 4,
           "published": false,
-          "targetHoursPerWeek": 3.8
+          "targetHoursPerWeek": 4
         },
         {
           "name": "Específico gravel",
-          "focus": "Ritmo sostenido con cambios de ritmo. Sábado de 2 h afuera, con comida y el ritmo del evento.",
+          "focus": "Ritmo sostenido con cambios de ritmo (repechos y grupos) y salida larga de hasta 3 h afuera, con descarga cada 3 semanas.",
           "weeks": 3,
           "published": false,
           "targetHoursPerWeek": 4
         },
         {
-          "name": "Descarga y carrera",
-          "focus": "Volumen bajo y piernas frescas. El martes 12 de enero es el gravel de 100 km.",
-          "weeks": 1,
+          "name": "Afinación y carrera",
+          "focus": "Bajamos volumen, conservamos algo de calidad y llegamos fresco al domingo 17 de enero.",
+          "weeks": 2,
           "published": false,
-          "targetHoursPerWeek": 2
+          "targetHoursPerWeek": 3
         }
       ],
       "nextTest": {
         "type": "ramp",
-        "reason": "Después de 2 rodadas por sensación y con un día suave antes, el jueves de la semana 1 es el mejor momento para medir tus zonas con la rampa.",
+        "reason": "Ya tienes experiencia con esfuerzos máximos; el jueves de la semana 1 llegas con dos rodadas suaves previas y el día anterior tranquilo.",
         "weekIndex": 0
       },
       "startDate": "2026-10-20",
@@ -155,34 +156,34 @@
       {
         "weekIndex": 0,
         "workoutIds": [
-          "86f06c14-4b9b-49ef-899a-91690982401a",
-          "68e408f3-f2a4-443f-95e4-9cbee554b46c",
-          "af5547e4-f0db-4c5f-b002-ea9d3d907e87"
+          "c096d5fc-0d07-491c-b7a9-aeb8c6be8703",
+          "e128a8af-1e66-4a05-a87b-ce410fafff10",
+          "bc8301ee-7500-4ddc-b6b1-ccd8f9b93970"
         ]
       },
       {
         "weekIndex": 1,
         "workoutIds": [
-          "f0a57028-09f9-4965-8e3f-4d6c321de51f",
-          "297d1683-7ddd-4087-923f-2f726d78e4ec",
-          "ca5f9865-93ed-47dc-9446-439af7b7a6f6"
+          "548e4806-2a94-4a87-8241-e044e1c65267",
+          "01a0fb11-eede-40e3-9cdb-10cf0023f515",
+          "647ca2b3-65dc-4054-9661-0dc86e0f663c"
         ]
       },
       {
         "weekIndex": 2,
         "workoutIds": [
-          "cba9ca46-d798-4220-89e9-a77a59c17997",
-          "3f6f1db2-9a57-4881-befe-3d04b40c7342",
-          "1e73be72-de93-43c3-b25e-532ae8cdea57"
+          "e77299bd-5fa2-4d68-b3cb-07820a63c4be",
+          "31ec7231-2ce0-4433-a50f-3f28cef0d66e",
+          "0c9ed284-240d-49c8-a8ad-61b233c89e9e"
         ]
       }
     ]
   },
   "workouts": [
     {
-      "id": "86f06c14-4b9b-49ef-899a-91690982401a",
+      "id": "c096d5fc-0d07-491c-b7a9-aeb8c6be8703",
       "erg": "off",
-      "name": "Rodada suave por sensación",
+      "name": "Rodada suave",
       "intervals": [
         {
           "name": "Calentamiento",
@@ -193,7 +194,7 @@
         {
           "name": "Fondo",
           "type": "steady",
-          "power_pct": 60,
+          "power_pct": 62,
           "duration_s": 1800
         },
         {
@@ -203,15 +204,15 @@
           "duration_s": 300
         }
       ],
-      "created_at": "2026-10-20T18:12:18.335Z",
-      "description": "Javier, este es tu primer contacto con el rodillo, así que hoy va por sensación y con ERG apagado: pedalea con la cadencia que te salga natural, que la app la va a observar. Busca un esfuerzo en el que puedas platicar en frases completas, un RPE de 3 a 4. Si prefieres tenerlo prendido, activa el botón ⚡ y el rodillo marcará la potencia. Si en algún momento no puedes hablar en frases completas, baja el ritmo sin pena. Es una rodada tranquila para agarrarle la mano a la bici.",
+      "created_at": "2026-10-20T18:54:52.096Z",
+      "description": "Javier, esta es una rodada para soltar las piernas y reconocer el rodillo antes del test. Va por sensación, así que arranca sin ERG y tú marcas el ritmo con tus cambios; si prefieres usar ERG, lo prendes con el botón ⚡. Mantente en un esfuerzo donde puedas hablar en frases completas, y si no puedes, baja y anótalo para tu coach. Con esto llegas con las piernas listas para el miércoles.",
       "scheduledDate": "2026-10-20",
       "format_version": 1
     },
     {
-      "id": "68e408f3-f2a4-443f-95e4-9cbee554b46c",
+      "id": "e128a8af-1e66-4a05-a87b-ce410fafff10",
       "erg": "off",
-      "name": "Rodada suave por sensación",
+      "name": "Rodada suave",
       "intervals": [
         {
           "name": "Calentamiento",
@@ -232,42 +233,13 @@
           "duration_s": 300
         }
       ],
-      "created_at": "2026-10-20T18:12:18.507Z",
-      "description": "Rodada suave de preparación con ERG apagado, por sensación. Mantén un esfuerzo en el que puedas platicar en frases completas, con RPE de 3 a 4, y pedalea con la cadencia que te salga natural. Mañana es el test, así que la idea es llegar fresco y sin cansancio extra. Si prefieres ERG, puedes prenderlo con el botón ⚡. Si no puedes hablar cómodo, baja la intensidad y anótalo para tu coach.",
+      "created_at": "2026-10-20T18:54:52.242Z",
+      "description": "Hoy va muy suave: a platicar sin problema, con RPE 3-4 y la cadencia que te salga natural, que es justo lo que necesitas el día antes del test. Arranca sin ERG, así que vas por sensación; si quieres ERG, lo prendes con el botón ⚡. Lo importante es llegar descansado, así que no lo conviertas en un día de más esfuerzo. Si sientes las piernas pesadas, baja un poco más.",
       "scheduledDate": "2026-10-21",
       "format_version": 1
     },
     {
-      "id": "297d1683-7ddd-4087-923f-2f726d78e4ec",
-      "erg": "off",
-      "name": "Fondo suave",
-      "intervals": [
-        {
-          "name": "Calentamiento",
-          "type": "warmup",
-          "power_pct": 55,
-          "duration_s": 300
-        },
-        {
-          "name": "Fondo",
-          "type": "steady",
-          "power_pct": 60,
-          "duration_s": 1800
-        },
-        {
-          "name": "Enfriamiento",
-          "type": "cooldown",
-          "power_pct": 50,
-          "duration_s": 300
-        }
-      ],
-      "created_at": "2026-10-20T18:12:19.504Z",
-      "description": "Miércoles es día de rodar tranquilo para soltar las piernas. Va en modo calle plana, sin ERG, así que pedalea por sensación con cadencia natural y sin prisa. El objetivo es que pases 30 minutos cómodo, a RPE 3-4, platicando sin esfuerzo. Si notas que te cuesta hablar en frases completas, baja la potencia y anótalo para tu coach. Sentirás las piernas ligeras y la respiración tranquila, y eso es exactamente lo que buscamos hoy. Esta rodada sirve para recuperar de martes y llegar fresco al jueves.",
-      "scheduledDate": "2026-10-28",
-      "format_version": 1
-    },
-    {
-      "id": "af5547e4-f0db-4c5f-b002-ea9d3d907e87",
+      "id": "bc8301ee-7500-4ddc-b6b1-ccd8f9b93970",
       "kind": "test",
       "name": "Test de rampa",
       "protocol": "rpe_ramp",
@@ -441,13 +413,13 @@
           "duration_s": 120
         }
       ],
-      "created_at": "2026-10-20T18:12:18.876Z",
-      "description": "Hoy toca tu primer test de rampa, con ERG prendido: el rodillo sube la potencia cada 2 minutos y tú sostienes la cadencia. Llega descansado y con ventilador, porque el objetivo es darle todo lo que tengas en cada escalón. Al final de cada escalón te va a preguntar tu RPE: contesta con honestidad y detente en RPE 8, no en 10. Es un test de familiarización, así que aprender cómo se siente y cómo responder va a ayudarte a que el siguiente salga mejor. Este test deja tu referencia lista para la semana.",
+      "created_at": "2026-10-20T18:54:52.367Z",
+      "description": "Hoy es tu primer test de rampa y el objetivo es familiarizarte con cómo sube la potencia. Prende ERG: el rodillo sube 25 W cada 2 minutos y tú sostienes la cadencia mientras puedas. Llega descansado y con ventilador, y contesta el RPE con honestidad: para en 8, no en 10. Cuando la cadencia empiece a caerse, esa es tu señal de cierre. No te preocupes si no sale perfecto, porque el siguiente saldrá mejor.",
       "scheduledDate": "2026-10-22",
       "format_version": 1
     },
     {
-      "id": "3f6f1db2-9a57-4881-befe-3d04b40c7342",
+      "id": "01a0fb11-eede-40e3-9cdb-10cf0023f515",
       "erg": "off",
       "name": "Fondo suave",
       "intervals": [
@@ -460,7 +432,7 @@
         {
           "name": "Fondo",
           "type": "steady",
-          "power_pct": 60,
+          "power_pct": 62,
           "duration_s": 1800
         },
         {
@@ -470,160 +442,237 @@
           "duration_s": 300
         }
       ],
-      "created_at": "2026-10-20T18:12:20.100Z",
-      "description": "Día de recuperar lo del martes: una rodada tranquila a RPE 3-4, de esas en las que vas platicando sin esfuerzo. Va con ERG apagado, por sensación; si prefieres marcar la potencia, puedes prenderlo con el botón ⚡, pero no hace falta. Si al pedalear sientes que se te va el aire en medio de una frase, baja un cambio. Sal con calma, disfruta el camino y deja las piernas frescas para el jueves.",
-      "scheduledDate": "2026-11-04",
+      "created_at": "2026-10-20T18:54:53.031Z",
+      "description": "Hoy toca absorber el trabajo del martes con un fondo tranquilo, a RPE 3-4, donde puedas platicar en frases completas y con cadencia natural. Va sin ERG, por sensación. Si dormiste mal, hazlo todavía más suave: el objetivo es llegar fresco al jueves, no exprimirte hoy.",
+      "scheduledDate": "2026-10-28",
       "format_version": 1
     },
     {
-      "id": "f0a57028-09f9-4965-8e3f-4d6c321de51f",
+      "id": "548e4806-2a94-4a87-8241-e044e1c65267",
       "erg": "off",
-      "name": "Intervalos por RPE 7",
+      "name": "Intervalos por sensación",
       "intervals": [
         {
           "name": "Calentamiento",
           "type": "warmup",
-          "power_pct": 55,
+          "power_pct": 58,
           "duration_s": 480
         },
         {
           "name": "Umbral RPE 7 1/3",
           "type": "free",
-          "power_pct": 90,
+          "power_pct": 95,
           "duration_s": 300
         },
         {
           "name": "Recuperación 1/3",
           "type": "recovery",
           "power_pct": 50,
-          "duration_s": 180
+          "duration_s": 240
         },
         {
           "name": "Umbral RPE 7 2/3",
           "type": "free",
-          "power_pct": 90,
+          "power_pct": 95,
           "duration_s": 300
         },
         {
           "name": "Recuperación 2/3",
           "type": "recovery",
           "power_pct": 50,
-          "duration_s": 180
+          "duration_s": 240
         },
         {
           "name": "Umbral RPE 7 3/3",
           "type": "free",
-          "power_pct": 90,
+          "power_pct": 95,
           "duration_s": 300
         },
         {
           "name": "Recuperación 3/3",
           "type": "recovery",
           "power_pct": 50,
-          "duration_s": 180
+          "duration_s": 240
         },
         {
           "name": "Enfriamiento",
           "type": "cooldown",
           "power_pct": 50,
-          "duration_s": 480
+          "duration_s": 300
         }
       ],
-      "created_at": "2026-10-20T18:12:19.374Z",
-      "description": "Martes es día de intervalos por sensación, así que apágale al ERG y deja que el esfuerzo lo marque tu cuerpo: tres bloques de 5 minutos a RPE 7, duros pero sostenibles, con recuperaciones suaves entre cada uno. Durante los intervalos piensa en frases cortas; si ya no puedes decir ni eso, baja un poco. Empieza el primero más contenido de lo que te pide el cuerpo, porque si el último sale mucho más flojo que el primero, saliste demasiado fuerte. Si sientes las piernas pesadas desde el segundo bloque, es normal; lo importante es terminar el tercero con control. Este trabajo le da a tus piernas el estímulo que necesitan para los días de rodaje que siguen, Javier.",
+      "created_at": "2026-10-20T18:54:52.910Z",
+      "description": "Hoy es tu primer contacto con intensidad en el plan, así que va despacio y con cabeza: tres bloques de 5 minutos a RPE 7, donde solo te salen frases cortas. Va por sensación, sin ERG, y dosifica para que el último bloque salga igual que el primero. Las recuperaciones son suaves, sin parar del todo. Si al tercero sientes que se te va la respiración, baja un poco y listo; lo importante es terminar parejo.",
       "scheduledDate": "2026-10-27",
       "format_version": 1
     },
     {
-      "id": "ca5f9865-93ed-47dc-9446-439af7b7a6f6",
+      "id": "647ca2b3-65dc-4054-9661-0dc86e0f663c",
       "erg": "off",
-      "name": "Fondo suave",
+      "name": "Fondo con cambios de ritmo",
       "intervals": [
         {
           "name": "Calentamiento",
           "type": "warmup",
           "power_pct": 55,
-          "duration_s": 300
+          "duration_s": 420
         },
         {
-          "name": "Fondo",
+          "name": "Ritmo medio 1/4",
           "type": "steady",
-          "power_pct": 60,
-          "duration_s": 1800
+          "power_pct": 78,
+          "duration_s": 120
+        },
+        {
+          "name": "Fondo 1/4",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 240
+        },
+        {
+          "name": "Ritmo medio 2/4",
+          "type": "steady",
+          "power_pct": 78,
+          "duration_s": 120
+        },
+        {
+          "name": "Fondo 2/4",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 240
+        },
+        {
+          "name": "Ritmo medio 3/4",
+          "type": "steady",
+          "power_pct": 78,
+          "duration_s": 120
+        },
+        {
+          "name": "Fondo 3/4",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 240
+        },
+        {
+          "name": "Ritmo medio 4/4",
+          "type": "steady",
+          "power_pct": 78,
+          "duration_s": 120
+        },
+        {
+          "name": "Fondo 4/4",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 240
         },
         {
           "name": "Enfriamiento",
           "type": "cooldown",
           "power_pct": 50,
-          "duration_s": 300
+          "duration_s": 540
         }
       ],
-      "created_at": "2026-10-20T18:12:19.657Z",
-      "description": "Jueves es otro fondo a ritmo cómodo, sin ERG, que puedes llevar por sensación. Mantente en RPE 3-4, con la respiración tranquila y la posibilidad de conversar mientras pedaleas. Vigila tu pulso: si empieza a subir sin que lo pidas, baja un poco la potencia para que el esfuerzo siga siendo fácil. Lo que esperas sentir es una rodada cómoda, con piernas que se van calentando y se sienten suaves. Si prefieres usar ERG, puedes prenderlo con el botón ⚡, pero el objetivo es mantener el mismo ritmo relajado. Este fondo te deja con buenas piernas para lo que venga después en la semana.",
+      "created_at": "2026-10-20T18:54:53.349Z",
+      "description": "Fondo a RPE 3-4 con cuatro cambios suaves de ritmo de 2 minutos a RPE 5, como los repechos de gravel. Va sin ERG: regula tú los cambios según cómo te sientas. Entre cambio y cambio vuelve a hablar en frases completas antes del siguiente. Te deja las piernas activas después del trabajo del martes sin cargarlas de más.",
       "scheduledDate": "2026-10-29",
       "format_version": 1
     },
     {
-      "id": "cba9ca46-d798-4220-89e9-a77a59c17997",
+      "id": "e77299bd-5fa2-4d68-b3cb-07820a63c4be",
       "erg": "off",
-      "name": "Intervalos por RPE 7",
+      "name": "Intervalos por sensación",
       "intervals": [
         {
           "name": "Calentamiento",
           "type": "warmup",
-          "power_pct": 55,
-          "duration_s": 480
+          "power_pct": 58,
+          "duration_s": 420
         },
         {
           "name": "Umbral RPE 7 1/3",
           "type": "free",
-          "power_pct": 90,
+          "power_pct": 95,
           "duration_s": 360
         },
         {
           "name": "Recuperación 1/3",
           "type": "recovery",
           "power_pct": 50,
-          "duration_s": 180
+          "duration_s": 240
         },
         {
           "name": "Umbral RPE 7 2/3",
           "type": "free",
-          "power_pct": 90,
+          "power_pct": 95,
           "duration_s": 360
         },
         {
           "name": "Recuperación 2/3",
           "type": "recovery",
           "power_pct": 50,
-          "duration_s": 180
+          "duration_s": 240
         },
         {
           "name": "Umbral RPE 7 3/3",
           "type": "free",
-          "power_pct": 90,
+          "power_pct": 95,
           "duration_s": 360
         },
         {
           "name": "Recuperación 3/3",
           "type": "recovery",
           "power_pct": 50,
-          "duration_s": 180
+          "duration_s": 240
         },
         {
           "name": "Enfriamiento",
           "type": "cooldown",
           "power_pct": 50,
-          "duration_s": 300
+          "duration_s": 180
         }
       ],
-      "created_at": "2026-10-20T18:12:19.970Z",
-      "description": "Hoy toca subir la intensidad con intervalos de 6 minutos a RPE 7: duro, pero sostenible. Déjalo con ERG apagado y ve por sensación; si prefieres que el rodillo marque la potencia, puedes prenderlo con el botón ⚡, aunque aquí el esfuerzo lo regulas tú. Mantén el mismo ritmo en los tres bloques, sin salir disparado en el primero. Lo sabrás bien si puedes decir frases cortas: si ya no puedes, baja un poco y anótalo para tu coach. Al terminar, las piernas quedan trabajadas pero listas para rodar suave mañana.",
+      "created_at": "2026-10-20T18:54:53.794Z",
+      "description": "Hoy toca subirle a la intensidad con tres bloques de 6 minutos a RPE 7, y como ya tienes zonas de tu test, el truco es que los tres salgan parejos: regula tú la potencia, sin ERG, y que cada bloque se sienta igual que el anterior en lugar de arrancar fuerte y apagarte. Piensa en frases cortas mientras pedaleas. Entre bloques recupera suave sin parar del todo, así llegas al tercero con las piernas todavía frescas. Si el tercer bloque se siente igual de controlado que el primero, vas muy bien; si cae mucho, es señal de bajar un poco la potencia la próxima vez.",
       "scheduledDate": "2026-11-03",
       "format_version": 1
     },
     {
-      "id": "1e73be72-de93-43c3-b25e-532ae8cdea57",
+      "id": "0c9ed284-240d-49c8-a8ad-61b233c89e9e",
+      "erg": "off",
+      "name": "Fondo con tempo suave",
+      "intervals": [
+        {
+          "name": "Calentamiento",
+          "type": "warmup",
+          "power_pct": 55,
+          "duration_s": 420
+        },
+        {
+          "name": "Tempo suave",
+          "type": "steady",
+          "power_pct": 78,
+          "duration_s": 600
+        },
+        {
+          "name": "Fondo",
+          "type": "steady",
+          "power_pct": 62,
+          "duration_s": 900
+        },
+        {
+          "name": "Enfriamiento",
+          "type": "cooldown",
+          "power_pct": 50,
+          "duration_s": 480
+        }
+      ],
+      "created_at": "2026-10-20T18:54:54.439Z",
+      "description": "Hoy el protagonista es un bloque de 10 minutos de tempo suave a RPE 5, donde debes poder sostener frases cortas sin ahogarte; es la base que te va a servir para los tramos sostenidos del gravel. Sin ERG, regulas tú la potencia, así que mantén un ritmo parejo y no te vayas de más al inicio. Antes y después hay rodada de fondo que te deja el cuerpo entrando en calor y bajando sin prisa. Si al final del tempo todavía puedes decir algo completo, vas bien; si no, anótalo para tu coach.",
+      "scheduledDate": "2026-11-05",
+      "format_version": 1
+    },
+    {
+      "id": "31ec7231-2ce0-4433-a50f-3f28cef0d66e",
       "erg": "off",
       "name": "Fondo suave",
       "intervals": [
@@ -636,7 +685,7 @@
         {
           "name": "Fondo",
           "type": "steady",
-          "power_pct": 60,
+          "power_pct": 62,
           "duration_s": 1800
         },
         {
@@ -646,9 +695,9 @@
           "duration_s": 300
         }
       ],
-      "created_at": "2026-10-20T18:12:20.441Z",
-      "description": "Otra rodada de fondo a RPE 3-4, pensada para sumar kilómetros sin fatigarte. Va con ERG apagado y a tu sensación; si quieres usar el ERG, lo prendes con el botón ⚡. Si dormiste mal, no le añadas nada: solo rueda cómodo y platica mientras avanzas. Si puedes hablar en frases completas, vas en el punto justo.",
-      "scheduledDate": "2026-11-05",
+      "created_at": "2026-10-20T18:54:54.110Z",
+      "description": "Hoy es día de rodar tranquilo: 30 minutos de fondo a RPE 3-4, de los que puedes platicar sin problema. Sin ERG, a tu sensación, y si la frecuencia cardiaca empieza a subir de más, baja un poco y déjala asentarse. Es un entreno para soltar las piernas y sumar base, no para medirte, así que disfrútalo y deja que el ritmo sea cómodo de principio a fin.",
+      "scheduledDate": "2026-11-04",
       "format_version": 1
     }
   ],
@@ -656,31 +705,31 @@
     {
       "scheduled_date": "2026-10-24",
       "kind": "outdoor",
-      "name": "Salida larga afuera",
+      "name": "Salida de gravel",
       "payload": {
         "exercises": [],
-        "description": "Rodada continua en ruta o gravel a RPE 3-4, platicando todo el tiempo. Come algo desde el minuto 30.",
+        "description": "Rueda tus 1.5 h de gravel a RPE 3-4, platicando sin problema. Come algo desde el minuto 30.",
         "durationMin": 90
       }
     },
     {
       "scheduled_date": "2026-10-31",
       "kind": "outdoor",
-      "name": "Salida larga afuera",
+      "name": "Salida larga de gravel",
       "payload": {
         "exercises": [],
-        "description": "Rodada continua a RPE 3-4, sin picos. Come desde el minuto 30 y practica lo que vas a comer en el gravel.",
-        "durationMin": 100
+        "description": "Salida larga a RPE 3-4, platicando sin problema. Come desde el minuto 30 y practica tu comida de carrera.",
+        "durationMin": 105
       }
     },
     {
       "scheduled_date": "2026-11-07",
       "kind": "outdoor",
-      "name": "Salida larga afuera",
+      "name": "Salida larga de gravel",
       "payload": {
         "exercises": [],
-        "description": "Rodada continua a RPE 3-4 con comida desde el minuto 30. Si sientes que se te va el pulso en la segunda mitad, baja el ritmo.",
-        "durationMin": 110
+        "description": "Tu salida larga de 2 h a RPE 3-4, con comida desde el minuto 30. Si vienes con mal sueño, mejor más tranquilo.",
+        "durationMin": 120
       }
     }
   ]
