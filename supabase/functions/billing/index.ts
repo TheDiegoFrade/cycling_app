@@ -52,7 +52,11 @@ Deno.serve(async (req) => {
       const email = user?.user?.email;
       if (!email) return json({ error: 'sin correo en la cuenta' }, 400);
       const appUrl = appUrlFromEnv();
-      const pre = await createPreapproval({ userId, email, priceMxn: price, backUrl: `${appUrl}/?billing=return#/profile` });
+      // Solo en pruebas: Mercado Pago exige que quien paga sea su usuario de
+      // prueba comprador. Con MP_TEST_PAYER_EMAIL se usa ese correo en vez del
+      // de la cuenta de Torq. En producción NO debe existir.
+      const payerEmail = Deno.env.get('MP_TEST_PAYER_EMAIL') || email;
+      const pre = await createPreapproval({ userId, email: payerEmail, priceMxn: price, backUrl: `${appUrl}/?billing=return#/profile` });
       const { error } = await admin.from('subscriptions').upsert({
         user_id: userId,
         status: 'pending',

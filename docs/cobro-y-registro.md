@@ -149,6 +149,7 @@ no debe regresar `null`.
 |---|---|
 | `MP_ACCESS_TOKEN` | Access token de Mercado Pago. En prueba, el que empieza con `TEST-` (credenciales de prueba). |
 | `MP_WEBHOOK_SECRET` | Clave secreta del webhook (Mercado Pago → Webhooks → «Clave secreta»). |
+| `MP_TEST_PAYER_EMAIL` | **Solo en pruebas:** el correo del usuario de prueba *comprador* de Mercado Pago. Mercado Pago exige que quien paga sea ese usuario; con esto se usa su correo en vez del de la cuenta de Torq. **Bórralo antes de cobrar de verdad.** |
 | `APP_URL` | URL pública de la app (ya existía; la usan correos, regreso de Mercado Pago e invitaciones). |
 | `TORQ_LAUNCH_DATE` | Día de lanzamiento, `YYYY-MM-DD`. El precio de fundador ($299) dura **60 días** contando ese día (`FOUNDER_DAYS` en `src/core/access.ts`); la app muestra «Precio de fundador hasta el …». Sin valor, todos pagan $399. |
 
