@@ -129,12 +129,19 @@ Nada de esto se pega en el chat: las claves van como **secretos de Supabase**
 
 ### 1. Base de datos
 
-Correr en el SQL editor `supabase/schema.sql` completo: es idempotente. Lo
-nuevo: `subscriptions`, `billing_events`, `legal_acceptances`,
-`waitlist.invited_at`, `coach_applications`, `coach_seat_limit`,
+En Supabase → SQL Editor, pegar y correr
+**`supabase/pendientes/2026-10-20-cobro-coaches-registro.sql`**: solo lo que
+este cambio agrega sobre `main`, en una transacción (todo o nada) y
+idempotente. Trae `waitlist`, `subscriptions`, `billing_events`,
+`legal_acceptances`, `coach_applications`, `coach_seat_limit`,
 `my_coach_seats` y la versión nueva de `accept_coach_invite` (revisa que
-siga siendo coach y su máximo de atletas). El archivo completo se probó en
-un Postgres 16 limpio.
+siga siendo coach y su máximo de atletas). Se probó sobre el `schema.sql` de
+`main` en un Postgres 16 limpio, corriéndolo dos veces.
+
+Para revisar que quedó: `select to_regclass('public.waitlist'), to_regclass('public.coach_applications');`
+no debe regresar `null`.
+
+`supabase/schema.sql` sigue siendo la fuente completa (para una base nueva).
 
 ### 2. Secretos
 
@@ -142,19 +149,22 @@ un Postgres 16 limpio.
 |---|---|
 | `MP_ACCESS_TOKEN` | Access token de Mercado Pago. En prueba, el que empieza con `TEST-` (credenciales de prueba). |
 | `MP_WEBHOOK_SECRET` | Clave secreta del webhook (Mercado Pago → Webhooks → «Clave secreta»). |
+| `MP_TEST_PAYER_EMAIL` | **Solo en pruebas:** el correo del usuario de prueba *comprador* de Mercado Pago. Mercado Pago exige que quien paga sea ese usuario; con esto se usa su correo en vez del de la cuenta de Torq. **Bórralo antes de cobrar de verdad.** |
 | `APP_URL` | URL pública de la app (ya existía; la usan correos, regreso de Mercado Pago e invitaciones). |
 | `TORQ_LAUNCH_DATE` | Día de lanzamiento, `YYYY-MM-DD`. El precio de fundador ($299) dura **60 días** contando ese día (`FOUNDER_DAYS` en `src/core/access.ts`); la app muestra «Precio de fundador hasta el …». Sin valor, todos pagan $399. |
 
 ### 3. Funciones
 
 ```sh
-supabase functions deploy billing
-supabase functions deploy billing-webhook --no-verify-jwt   # Mercado Pago no manda sesión; se valida la firma
-supabase functions deploy invite
-supabase functions deploy coach-apply
-# cambiaron por el acceso por plan:
-supabase functions deploy coach-chat pinon-chat coach-retire-plan monthly-self-report
+npx supabase login              # una vez; abre el navegador
+./scripts/deploy-functions.sh   # publica las 8 con las banderas correctas
 ```
+
+El script publica `billing`, `billing-webhook` (`--no-verify-jwt`: Mercado
+Pago no manda sesión; se valida la firma), `invite`, `coach-apply`, y vuelve
+a publicar `coach-chat`, `pinon-chat`, `coach-retire-plan` y
+`monthly-self-report` (**`--no-verify-jwt`**: la llama el cron con
+`x-cron-secret`; sin esa bandera el reporte mensual deja de correr).
 
 > `invite` va con la verificación normal: sin sesión, la app llama con la
 > llave pública (anon). Las acciones de administrador exigen sesión y que la
