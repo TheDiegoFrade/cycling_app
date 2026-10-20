@@ -2,6 +2,11 @@ import type { Workout } from '../../core/types';
 import { validateWorkout } from '../../core/validator';
 import { estimateWorkout } from '../../core/workout-estimate';
 import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
+import type { WorkoutTemplate } from '../../core/workout-templates';
+import { byGender, genderOf } from '../../core/gender';
+import { pinonFigureHtml } from '../pinon';
+import { hasAi, openPricingModal } from '../pricing';
+import { FOUNDER_PRICE_MXN } from '../../core/access';
 import { computeSessionAnalytics } from '../../engine/analytics';
 import { isBikeSession } from '../../core/session-kind';
 import { clearDraft, listDrafts } from '../../storage/session-draft';
@@ -18,6 +23,7 @@ import { montanasVideoHtml } from '../montanas-video';
 import { maybeCelebrateStreak, maybeCelebrateWeek, maybeWelcomeBack } from '../pinon';
 import { computeWeeklyStreak } from '../../engine/streaks';
 import { humanCoachName } from '../coach-notice';
+import { requestCoachCreate } from '../coach';
 import type { Token } from '../workout-token';
 import { isNonBikeKind } from '../../core/session-kind';
 import { wireDatePicker } from '../date-picker';
@@ -29,6 +35,11 @@ import type { PowerZone } from '../../core/zones';
 import { dayKeyOf } from '../../core/day-key';
 
 const DAY_SHORT = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB']; // índice = Date#getDay()
+/** Sesiones guardadas en este dispositivo (null = todavía no se leen). Las
+ * lee paintWeek de forma asíncrona; sirve para no darle la bienvenida de
+ * primera vez a quien ya rodó o importó algo aquí. */
+let localSessionCount: number | null = null;
+
 const MONTH_NAMES_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 function errorsHtml(errors: string[]): string {
@@ -69,18 +80,14 @@ function greeting(): string {
   return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
 }
 
-function displayName(): string {
-  if (appState.profile.name) return appState.profile.name.split(' ')[0];
-  const email = appState.user?.email;
-  if (!email) return '';
-  const local = email.split('@')[0];
-  return local.charAt(0).toUpperCase() + local.slice(1);
-}
-
 export function renderHome(container: HTMLElement): void {
   const today = new Date();
   const todayKey = toDateKey(today);
-  const name = displayName();
+  const name = appState.displayName();
+  // Primera vez: sin nada agendado ni rodado todavía (ni en este dispositivo
+  // ni en la nube). En vez de «Nada agendado» se le da la bienvenida con los
+  // dos caminos claros.
+  const newcomer = appState.workouts.length === 0 && appState.cloudSessions.length === 0 && (localSessionCount ?? 0) === 0;
   const initial = (appState.user?.email ?? '?').charAt(0).toUpperCase();
 
   // Hoy puede tener hasta 2 agendados (ver MAX_PER_DAY en calendar.ts) — se
@@ -129,7 +136,9 @@ export function renderHome(container: HTMLElement): void {
   }
 
   function heroContentHtml(): string {
-    const hello = `${greeting()}${name ? `, ${escapeHtml(name)}` : ''}`;
+    const coachName = appState.coach.myCoach?.coachName;
+    // Con coach, se dice de quién es el plan: Torq es la herramienta del coach.
+    const hello = `${greeting()}${name ? `, ${escapeHtml(name)}` : ''}${coachName ? ` · plan de ${escapeHtml(coachName)}` : ''}`;
     if (todayWorkouts.length > 1) {
       // Hoy puede tener hasta 2 agendados (MAX_PER_DAY en calendar.ts): cada uno con su botón.
       return `
@@ -152,6 +161,28 @@ export function renderHome(container: HTMLElement): void {
         <span class="home-scene-hint">${sensorsHint()}</span>`;
     }
     const w = todayWorkouts[0] ?? nextWorkout;
+    if (newcomer) {
+      const welcome = byGender(genderOf(appState.profile.sex), 'Bienvenido', 'Bienvenida', 'Te damos la bienvenida');
+      const coach = isSupabaseConfigured() && !!appState.user;
+      return `
+        <div class="home-welcome">
+          <span class="home-scene-hello">${welcome}${name ? `, ${escapeHtml(name)}` : ''}</span>
+          <h1 class="home-scene-title mid">¿Por dónde empezamos?</h1>
+          <div class="home-welcome-pinon">
+            ${pinonFigureHtml('habla', 56)}
+            <p>Soy Piñón y te acompaño. ${
+              coach
+                ? 'Para un plan serio, tu coach necesita conocerte: te guío por unas preguntas (unos 4 minutos) y lo arma. ¿Quieres rodar ya? También se puede.'
+                : 'Si quieres rodar ya, armo una rodada suave de 30 minutos y la empiezas en un paso.'
+            }</p>
+          </div>
+          <div class="home-scene-cta home-welcome-cta">
+            ${coach ? `<button type="button" class="home-ride-btn" id="welcome-plan">Armar mi plan con el coach</button>` : ''}
+            ${coach && !hasAi() && appState.billing ? `<span class="home-scene-hint">Torq Coach IA · $${appState.billing.priceMxn} al mes${appState.billing.priceMxn === FOUNDER_PRICE_MXN ? ' (fundador)' : ''}</span>` : ''}
+            <button type="button" class="${coach ? 'home-welcome-alt' : 'home-ride-btn'}" id="welcome-ride">Rodar 30 min suave ahora</button>
+          </div>
+        </div>`;
+    }
     if (!w) {
       return `
         <span class="home-scene-hello">${hello} · hoy toca</span>
@@ -180,7 +211,7 @@ export function renderHome(container: HTMLElement): void {
       </section>`;
   }
 
-  const needsOnboarding = isSupabaseConfigured() && !!appState.user && !isCoachProfileComplete(appState.profile);
+  const needsOnboarding = isSupabaseConfigured() && !!appState.user && !isCoachProfileComplete(appState.profile) && !newcomer;
 
   container.innerHTML = `
     <div class="screen home-screen">
@@ -241,8 +272,33 @@ export function renderHome(container: HTMLElement): void {
   });
 
   container.querySelector('#home-open-onboarding')?.addEventListener('click', () => {
-    openOnboardingForm(() => refresh(), true);
+    // El cuestionario es «antes de tu plan»: al guardarlo se sigue directo
+    // a crearlo en Plan, en vez de volver a Inicio sin saber qué sigue.
+    openOnboardingForm(() => {
+      requestCoachCreate();
+      navigate('plan');
+    }, true);
   });
+
+  /** Arma un workout de plantilla, lo guarda (local y nube) y lo agrega al
+   * Plan. Sin `workout` si no pasó la validación (van los errores). */
+  async function createFromTemplate(t: WorkoutTemplate, minutes: number, scheduledDate: string): Promise<{ workout?: Workout; errors: string[] }> {
+    const dateObj = new Date(`${scheduledDate}T00:00:00`);
+    const workout: Workout = {
+      format_version: 1,
+      id: crypto.randomUUID(),
+      name: `${t.name} · ${minutes} min · ${dateObj.getDate()} ${MONTH_NAMES_SHORT[dateObj.getMonth()]}`,
+      intervals: t.build(minutes),
+      created_at: new Date().toISOString(),
+      scheduledDate,
+    };
+    const result = validateWorkout(workout);
+    if (!result.valid) return { errors: result.errors };
+    await saveWorkout(workout);
+    if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
+    appState.workouts = [...appState.workouts, workout];
+    return { workout, errors: result.errors };
+  }
 
   function wireGenerate(): void {
     const chips = container.querySelectorAll<HTMLButtonElement>('.home-gen-card');
@@ -298,20 +354,9 @@ export function renderHome(container: HTMLElement): void {
         genErrors.innerHTML = errorsHtml(['Elige una fecha válida.']);
         return;
       }
-      const workout: Workout = {
-        format_version: 1,
-        id: crypto.randomUUID(),
-        name: `${t.name} · ${minutes} min · ${dateObj.getDate()} ${MONTH_NAMES_SHORT[dateObj.getMonth()]}`,
-        intervals: t.build(minutes),
-        created_at: new Date().toISOString(),
-        scheduledDate,
-      };
-      const result = validateWorkout(workout);
-      genErrors.innerHTML = errorsHtml(result.errors);
-      if (!result.valid) return;
-      await saveWorkout(workout);
-      if (appState.user) void pushWorkoutToCloud(workout, appState.user.id);
-      appState.workouts = [...appState.workouts, workout];
+      const { workout, errors } = await createFromTemplate(t, minutes, scheduledDate);
+      genErrors.innerHTML = errorsHtml(errors);
+      if (!workout) return;
       if (later) {
         // se queda en Inicio — ya se agregó a Plan, no hay nada que entrenar
         // todavía. Refresh completo (no solo paintWeek) por si la fecha
@@ -327,11 +372,40 @@ export function renderHome(container: HTMLElement): void {
   }
   wireGenerate();
 
+  container.querySelector('#welcome-plan')?.addEventListener('click', () => {
+    // el precio va antes del cuestionario, nunca después del esfuerzo
+    if (!hasAi()) return openPricingModal();
+    // perfil completo: directo a crear el plan; si no, Piñón guía el
+    // cuestionario y al guardarlo se sigue a «Crear tu plan»
+    if (isCoachProfileComplete(appState.profile)) {
+      requestCoachCreate();
+      navigate('plan');
+      return;
+    }
+    openOnboardingForm(() => {
+      requestCoachCreate();
+      navigate('plan');
+    }, true);
+  });
+  container.querySelector('#welcome-ride')?.addEventListener('click', async () => {
+    const z2 = findTemplate('z2')!;
+    const { workout } = await createFromTemplate(z2, 30, todayKey);
+    if (!workout) return;
+    appState.selectedWorkoutId = workout.id;
+    navigate('prepare');
+  });
+
   /** "Esta semana" necesita las sesiones reales (async, IndexedDB) — se
    * pinta con ceros primero y se reconcilia en cuanto cargan, mismo patrón
    * que el resto de la app. */
   async function paintWeek(): Promise<void> {
     const sessions = await listSessions();
+    localSessionCount = sessions.length;
+    // resultó que sí hay historial local: fuera la bienvenida de primera vez
+    if (newcomer && sessions.length > 0 && container.isConnected) {
+      refresh();
+      return;
+    }
     const weekStart = startOfWeek(today);
     const weekStartKey = toDateKey(weekStart);
     const weekEndExclusive = new Date(weekStart);

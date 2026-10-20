@@ -3,9 +3,9 @@ import { buildPlan, targetWattsAt } from '../../engine/plan';
 import { powerZone } from '../../core/zones';
 import { encodeFitActivity } from '../../export/fit';
 import { uploadActivityFit } from '../../export/intervals-icu';
-import { navigate } from '../router';
+import { getRouteParam, navigate } from '../router';
 import { appState } from '../state';
-import { deleteSession, saveSession } from '../../storage/session-store';
+import { deleteSession, listSessions, saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
 import type { Interval } from '../../core/types';
 import { isStravaConfigured, uploadSessionToStrava } from '../../sync/strava';
@@ -14,6 +14,11 @@ import type { CloudSessionSummary } from '../../sync/cloud-sync';
 import { checkAndCelebrateAchievements } from '../achievement-toast';
 import { escapeHtml } from '../workout-cover';
 import { bindChartHover, fmtClock, nearestSorted, tipRow, tipTitle } from '../chart-hover';
+import { pinonSessionComment } from '../../core/pinon-session';
+import { genderOf } from '../../core/gender';
+import { mainZoneOf } from '../../core/workout-zone';
+import { estimateWorkout } from '../../core/workout-estimate';
+import { pinonFigureHtml } from '../pinon';
 
 const RPE_LABELS: Record<number, string> = {
   1: 'muy, muy fácil',
@@ -235,10 +240,26 @@ function renderCloudOnlySummary(container: HTMLElement, s: CloudSessionSummary):
       <div class="summary-head">
         <div>
           <div class="hint">${fmtDateEsMx(s.startedAt)}</div>
-          <h1 style="margin:4px 0 0">${s.workoutName}, completo</h1>
+          <h1 style="margin:4px 0 0">${s.workoutName}${s.completion === 'partial' ? ', a medias' : ', completo'}</h1>
           <p class="hint" style="margin-top:4px">☁ Sincronizada desde otro dispositivo — solo hay resumen, no el detalle segundo a segundo.</p>
         </div>
         <div class="row-actions" style="margin:0">${DELETE_BUTTON}</div>
+      </div>
+
+      <div class="panel summary-pinon" aria-label="Piñón dice">
+        ${pinonFigureHtml('habla', 56)}
+        <p>${escapeHtml(
+          pinonSessionComment({
+            minutes: (new Date(s.finishedAt).getTime() - new Date(s.startedAt).getTime()) / 60_000,
+            plannedMinutes: null,
+            intensityFactor: s.intensityFactor,
+            rpe: s.rpe,
+            hrDriftPct: s.hrDriftPct,
+            zone: null,
+            gender: genderOf(appState.profile.sex),
+            canAskRpe: false,
+          }),
+        )}</p>
       </div>
 
       <div class="panel">
@@ -253,8 +274,8 @@ function renderCloudOnlySummary(container: HTMLElement, s: CloudSessionSummary):
         ${metricCard('Potencia normalizada', s.normalizedPower !== null ? `${Math.round(s.normalizedPower)} W` : '—', '')}
         ${metricCard('Carga (TSS)', s.trainingStressScore !== null ? String(Math.round(s.trainingStressScore)) : '—', '')}
         ${metricCard('Intensidad (IF)', s.intensityFactor !== null ? fmt1(s.intensityFactor) : '—', 'de tu FTP')}
-        ${metricCard('Variability Index', s.variabilityIndex !== null ? fmt1(s.variabilityIndex) : '—', '')}
-        ${metricCard('Efficiency Factor', s.efficiencyFactor !== null ? s.efficiencyFactor.toFixed(2) : '—', '')}
+        ${metricCard('Índice de variabilidad', s.variabilityIndex !== null ? fmt1(s.variabilityIndex) : '—', '')}
+        ${metricCard('Factor de eficiencia', s.efficiencyFactor !== null ? s.efficiencyFactor.toFixed(2) : '—', '')}
         ${metricCard('Desacople', s.hrDriftPct !== null ? `${s.hrDriftPct > 0 ? '+' : ''}${fmt1(s.hrDriftPct)}%` : '—', '')}
       </div>
 
@@ -272,13 +293,26 @@ function renderCloudOnlySummary(container: HTMLElement, s: CloudSessionSummary):
 
 function renderFullSummary(container: HTMLElement, session: SessionRecord, cloudNote?: string): void {
   const analytics = computeSessionAnalytics(session.samples, profileForSession(session));
+  const planned = appState.workouts.find((w) => w.id === session.workoutId);
+  // Lo que opina Piñón de la sesión (sin IA): se recalcula al marcar el RPE.
+  const pinonComment = () =>
+    pinonSessionComment({
+      minutes: session.samples.length / 60,
+      plannedMinutes: planned ? estimateWorkout(planned.intervals, session.ftp).durationS / 60 : null,
+      intensityFactor: analytics.intensityFactor,
+      rpe: session.rpe ?? null,
+      hrDriftPct: analytics.hrDriftPct,
+      zone: planned ? mainZoneOf(planned) : null,
+      gender: genderOf(appState.profile.sex),
+    });
+  const partial = session.completion === 'partial';
 
   container.innerHTML = `
     <div class="screen summary-screen">
       <div class="summary-head">
         <div>
           <div class="hint">${fmtDateEsMx(session.startedAt)}</div>
-          <h1 style="margin:4px 0 0">${session.workoutName}, completo</h1>
+          <h1 style="margin:4px 0 0">${session.workoutName}${partial ? ', a medias' : ', completo'}</h1>
           ${cloudNote ? `<p class="hint" style="margin-top:4px">${cloudNote}</p>` : ''}
         </div>
         <div class="row-actions" style="margin:0">
@@ -288,6 +322,11 @@ function renderFullSummary(container: HTMLElement, session: SessionRecord, cloud
         </div>
       </div>
       ${isStravaConfigured() ? '<div id="strava-upload-result"></div>' : ''}
+
+      <div class="panel summary-pinon" aria-label="Piñón dice">
+        ${pinonFigureHtml('habla', 56)}
+        <p id="summary-pinon-text">${escapeHtml(pinonComment())}</p>
+      </div>
 
       <div class="panel summary-rpe-card">
         <div class="perfil-h2" style="font-size:22px">¿Qué tan duro se sintió?</div>
@@ -325,8 +364,8 @@ function renderFullSummary(container: HTMLElement, session: SessionRecord, cloud
         ${metricCard('Potencia normalizada', `${Math.round(analytics.normalizedPower)} W`, '')}
         ${metricCard('Carga (TSS)', analytics.trainingStressScore !== null ? String(Math.round(analytics.trainingStressScore)) : '—', '')}
         ${metricCard('Intensidad (IF)', analytics.intensityFactor !== null ? fmt1(analytics.intensityFactor) : '—', 'de tu FTP')}
-        ${metricCard('Variability Index', fmt1(analytics.variabilityIndex), '')}
-        ${metricCard('Efficiency Factor', analytics.efficiencyFactor !== null ? analytics.efficiencyFactor.toFixed(2) : '—', '')}
+        ${metricCard('Índice de variabilidad', fmt1(analytics.variabilityIndex), '')}
+        ${metricCard('Factor de eficiencia', analytics.efficiencyFactor !== null ? analytics.efficiencyFactor.toFixed(2) : '—', '')}
         ${metricCard(
           'Desacople',
           analytics.hrDriftPct !== null ? `${analytics.hrDriftPct > 0 ? '+' : ''}${fmt1(analytics.hrDriftPct)}%` : '—',
@@ -410,6 +449,8 @@ function renderFullSummary(container: HTMLElement, session: SessionRecord, cloud
       session.rpe = Number(btn.dataset.rpe);
       container.querySelectorAll('[data-rpe]').forEach((b) => b.classList.remove('on'));
       btn.classList.add('on');
+      const said = container.querySelector('#summary-pinon-text');
+      if (said) said.textContent = pinonComment();
       await saveFeedback();
     });
   });
@@ -490,6 +531,22 @@ export function renderSummary(container: HTMLElement): void {
   appState.justFinishedSession = false;
   if (justFinished) void checkAndCelebrateAchievements();
 
+  // #/session/:id: si se recargó la página (o se abrió el link) ya no hay
+  // sesión en memoria: se busca por id, local primero y luego la nube.
+  const id = getRouteParam();
+  if (id && appState.lastSession?.id !== id && appState.lastCloudSession?.id !== id) {
+    container.innerHTML = '<div class="screen"><h1>Resumen</h1><p class="hint">Cargando…</p></div>';
+    void listSessions().then((local) => {
+      const found = local.find((s) => s.id === id);
+      const cloud = found ? undefined : appState.cloudSessions.find((s) => s.id === id);
+      if (!container.isConnected || getRouteParam() !== id) return;
+      appState.lastSession = found ?? null;
+      appState.lastCloudSession = cloud ?? null;
+      if (found || cloud) renderSummary(container);
+      else renderEmptySummary(container);
+    });
+    return;
+  }
   const session = appState.lastSession;
   const cloudSession = appState.lastCloudSession;
 
@@ -516,6 +573,10 @@ export function renderSummary(container: HTMLElement): void {
     return;
   }
 
+  renderEmptySummary(container);
+}
+
+function renderEmptySummary(container: HTMLElement): void {
   container.innerHTML = `
     <div class="screen">
       <h1>Resumen</h1>

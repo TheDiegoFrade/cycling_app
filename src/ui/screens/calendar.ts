@@ -21,7 +21,7 @@ import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { tokenForIntervals, tokenForWorkout, tokenHtml } from '../workout-token';
 import type { Token } from '../workout-token';
 import { wireDatePicker } from '../date-picker';
-import { renderCoachSection } from '../coach';
+import { renderCoachSection, requestCoachCreate } from '../coach';
 import { isSupabaseConfigured } from '../../supabase/client';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
 import { notifyPlanChange, planChangeNotice } from '../coach-notice';
@@ -577,6 +577,8 @@ export function renderCalendar(container: HTMLElement): () => void {
   }
 
   function paint(): void {
+    // Con coach, el plan es «de» su coach: Torq es su herramienta.
+    const coachBrand = appState.coach.myCoach?.coachName ?? null;
     const isMonth = viewMode === 'month';
     const days = isMonth ? monthGridDays(monthAnchor) : Array.from({ length: 7 }, (_, i) => new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i));
 
@@ -630,6 +632,7 @@ export function renderCalendar(container: HTMLElement): () => void {
         <div id="coach-slot"></div>
         <div class="plan-head">
           <h1>Plan</h1>
+          ${coachBrand ? `<span class="plan-coach-brand">Plan de ${escapeHtml(coachBrand)}</span>` : ''}
           <div class="row-actions" style="align-items:center;margin:0;flex-wrap:wrap">
             <div class="plan-view-toggle">
               <button class="plan-view-btn${!isMonth ? ' on' : ''}" id="view-week">Semana</button>
@@ -692,7 +695,11 @@ export function renderCalendar(container: HTMLElement): () => void {
     wireDragAndDrop();
     renderCoachSection(container, paint);
     container.querySelector('#plan-open-onboarding')?.addEventListener('click', () => {
-      openOnboardingForm(() => paint(), true);
+      // al guardarlo, directo a «Crear tu plan» (para eso se pidió)
+      openOnboardingForm(() => {
+        requestCoachCreate();
+        paint();
+      }, true);
     });
 
     container.querySelector('#view-week')?.addEventListener('click', () => {

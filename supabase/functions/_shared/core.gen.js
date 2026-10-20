@@ -674,6 +674,7 @@ function context(v) {
   const tsb = f ? num(f.tsb, -500, 500) : null;
   return {
     todayKey,
+    gender: c.gender === "m" || c.gender === "f" ? c.gender : "n",
     humanCoach: c.humanCoach === true,
     hasPlan: c.hasPlan !== false,
     ftp: num(c.ftp, 0, 700) ?? 0,
@@ -753,25 +754,164 @@ ${req.message}
 </pregunta>`
   ].filter(Boolean).join("\n\n");
 }
+
+// src/core/access.ts
+var PRICE_MXN = 399;
+var FOUNDER_PRICE_MXN = 299;
+var GRACE_DAYS = 7;
+var after = (iso, now) => !!iso && new Date(iso).getTime() > now.getTime();
+function aiAccess(i) {
+  if (i.comp) return { ai: true, reason: "comp" };
+  if (i.isCoach) return { ai: true, reason: "coach" };
+  if (i.hasActiveCoach) return { ai: true, reason: "coached" };
+  const s = i.subscription;
+  if (s) {
+    if (s.status === "authorized" && (s.paidUntil === null || after(s.paidUntil, i.now))) return { ai: true, reason: "subscription" };
+    if (after(s.graceUntil, i.now)) return { ai: true, reason: "grace" };
+    if ((s.status === "cancelled" || s.status === "paused") && after(s.paidUntil, i.now)) return { ai: true, reason: "subscription" };
+  }
+  return { ai: false, reason: "none" };
+}
+var FOUNDER_DAYS = 60;
+function founderUntilFromLaunch(launchDate) {
+  if (!launchDate || !/^\d{4}-\d{2}-\d{2}$/.test(launchDate)) return null;
+  const d = /* @__PURE__ */ new Date(`${launchDate}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  d.setUTCDate(d.getUTCDate() + FOUNDER_DAYS - 1);
+  return d.toISOString().slice(0, 10);
+}
+function priceForNewSubscription(now, founderUntil) {
+  if (!founderUntil || !/^\d{4}-\d{2}-\d{2}$/.test(founderUntil)) return PRICE_MXN;
+  return now.getTime() < (/* @__PURE__ */ new Date(`${founderUntil}T23:59:59-06:00`)).getTime() ? FOUNDER_PRICE_MXN : PRICE_MXN;
+}
+
+// src/core/mercadopago.ts
+var STATUSES = ["pending", "authorized", "paused", "cancelled"];
+function subscriptionStatusOf(mpStatus) {
+  return STATUSES.includes(mpStatus) ? mpStatus : "pending";
+}
+function addDaysIso(iso, days) {
+  const d = new Date(iso);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString();
+}
+function addMonthIso(iso) {
+  const d = new Date(iso);
+  d.setUTCMonth(d.getUTCMonth() + 1);
+  return d.toISOString();
+}
+function applyPayment(p, now) {
+  const paymentStatus = p.payment?.status ?? null;
+  const when = p.debit_date ?? p.date_created ?? now.toISOString();
+  if (paymentStatus === "approved") return { paidUntil: addDaysIso(addMonthIso(when), 2), graceUntil: null };
+  if (paymentStatus === "rejected" || p.status === "recycling") return { graceUntil: addDaysIso(now.toISOString(), GRACE_DAYS) };
+  return null;
+}
+function hex(buf) {
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+async function verifyMpSignature(opts) {
+  if (!opts.signature || !opts.dataId || !opts.secret) return false;
+  const parts = Object.fromEntries(
+    opts.signature.split(",").map((kv) => {
+      const [k, ...v] = kv.split("=");
+      return [k.trim(), v.join("=").trim()];
+    })
+  );
+  const ts = parts.ts;
+  const v1 = parts.v1;
+  if (!ts || !v1) return false;
+  const tsMs = Number(ts) > 1e12 ? Number(ts) : Number(ts) * 1e3;
+  const nowMs = (opts.now ?? /* @__PURE__ */ new Date()).getTime();
+  if (!Number.isFinite(tsMs) || Math.abs(nowMs - tsMs) > (opts.maxAgeS ?? 600) * 1e3) return false;
+  const id = /^[a-z0-9]+$/i.test(opts.dataId) ? opts.dataId.toLowerCase() : opts.dataId;
+  const manifest = `id:${id};${opts.requestId ? `request-id:${opts.requestId};` : ""}ts:${ts};`;
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(opts.secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = hex(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(manifest)));
+  if (mac.length !== v1.length) return false;
+  let diff = 0;
+  for (let i = 0; i < mac.length; i++) diff |= mac.charCodeAt(i) ^ v1.charCodeAt(i);
+  return diff === 0;
+}
+
+// src/core/coach-application.ts
+var DEFAULT_MAX_ATHLETES = 20;
+var MAX_ATHLETES_LIMIT = 200;
+var COACH_DISCIPLINES = ["road", "mountain", "gravel", "track", "triathlon"];
+var METHODOLOGY_MIN = 80;
+var trim = (v) => typeof v === "string" ? v.trim() : "";
+var int = (v) => typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN;
+function normalizeCoachApplication(raw) {
+  const disciplines = Array.isArray(raw.disciplines) ? raw.disciplines : [];
+  return {
+    fullName: trim(raw.fullName).slice(0, 120),
+    phone: trim(raw.phone).slice(0, 30),
+    city: trim(raw.city).slice(0, 120),
+    yearsCoaching: int(raw.yearsCoaching),
+    certifications: trim(raw.certifications).slice(0, 1e3),
+    disciplines: [...new Set(disciplines.filter((d) => COACH_DISCIPLINES.includes(d)))],
+    currentAthletes: int(raw.currentAthletes),
+    methodology: trim(raw.methodology).slice(0, 3e3),
+    links: trim(raw.links).slice(0, 1e3),
+    references: trim(raw.references).slice(0, 1e3),
+    truthful: raw.truthful === true,
+    responsible: raw.responsible === true,
+    adult: raw.adult === true
+  };
+}
+function validateCoachApplication(a) {
+  const e = {};
+  if (a.fullName.length < 3) e.fullName = "Escribe tu nombre completo.";
+  if (a.phone.replace(/\D/g, "").length < 10) e.phone = "Un tel\xE9fono de 10 d\xEDgitos para contactarte.";
+  if (a.city.length < 2) e.city = "\xBFEn qu\xE9 ciudad entrenas?";
+  if (!Number.isInteger(a.yearsCoaching) || a.yearsCoaching < 0 || a.yearsCoaching > 60) e.yearsCoaching = "A\xF1os como coach, de 0 a 60.";
+  if (a.certifications.length < 3) e.certifications = "Tus certificaciones o formaci\xF3n (si no tienes, dilo y cu\xE9ntanos tu experiencia).";
+  if (a.disciplines.length === 0) e.disciplines = "Elige al menos una disciplina.";
+  if (!Number.isInteger(a.currentAthletes) || a.currentAthletes < 0 || a.currentAthletes > 500) e.currentAthletes = "\xBFCu\xE1ntos atletas entrenas hoy? (0 a 500)";
+  if (a.methodology.length < METHODOLOGY_MIN) e.methodology = `Cu\xE9ntanos c\xF3mo armas y ajustas los planes (al menos ${METHODOLOGY_MIN} caracteres).`;
+  if (a.links.length < 4) e.links = "Un lugar donde podamos ver tu trabajo: Instagram, sitio, Strava o club.";
+  if (!a.truthful) e.truthful = "Confirma que la informaci\xF3n es verdadera.";
+  if (!a.responsible) e.responsible = "Confirma que el entrenamiento de tus atletas es tu responsabilidad.";
+  if (!a.adult) e.adult = "Torq es solo para mayores de 18 a\xF1os.";
+  return e;
+}
+function clampMaxAthletes(v) {
+  const n = int(v);
+  if (!Number.isInteger(n) || n < 1) return DEFAULT_MAX_ATHLETES;
+  return Math.min(n, MAX_ATHLETES_LIMIT);
+}
 export {
+  DEFAULT_MAX_ATHLETES,
+  FOUNDER_PRICE_MXN,
+  GRACE_DAYS,
+  PRICE_MXN,
   addDays,
+  aiAccess,
+  applyPayment,
   buildMonthlyReport,
+  clampMaxAthletes,
   defaultReviewMonth,
   emailKpis,
   evalWeekTarget,
+  founderUntilFromLaunch,
   hasUnlimitedCoach,
   localDateKey,
   mondayOfWeek,
   monthEnd,
   monthStart,
+  normalizeCoachApplication,
   parsePinonRequest,
   pinonLimitReached,
   pinonUserMessage,
   planTotalWeeks,
   planWeekOf,
+  priceForNewSubscription,
   reviewAiContext,
   rpeRampIntervals,
   shiftMonth,
   startPhase,
-  startingProfile
+  startingProfile,
+  subscriptionStatusOf,
+  validateCoachApplication,
+  verifyMpSignature
 };

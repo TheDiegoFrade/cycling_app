@@ -1,3 +1,6 @@
+import { byGender } from '../core/gender';
+import type { Gender } from '../core/gender';
+
 /** Mismos cortes que formInterpretation/formaColor en ui/screens/history.ts
  * — una sola fuente de verdad de qué significa cada rango de TSB. */
 export type FormBand = 'fresh' | 'balanced' | 'fatigued';
@@ -12,11 +15,11 @@ export function formBand(tsb: number): FormBand {
  * tarjeta de "Forma" con un número crudo (y a veces negativo) — "Cargando
  * fuerte" en vez de "fatigado"/"cansado": la misma señal, enmarcada como
  * evidencia de trabajo duro en vez de una advertencia. */
-export function formLabel(tsb: number): string {
+export function formLabel(tsb: number, gender?: Gender): string {
   const band = formBand(tsb);
-  if (band === 'fresh') return 'Fresco';
+  if (band === 'fresh') return byGender(gender, 'Fresco', 'Fresca', 'Piernas frescas');
   if (band === 'fatigued') return 'Cargando fuerte';
-  return 'Equilibrado';
+  return 'En equilibrio';
 }
 
 export interface TodaySuggestion {
@@ -29,13 +32,13 @@ export interface TodaySuggestion {
  * una decisión concreta en vez de dejarlo como dato crudo. "fresh" alterna
  * entre VO2max y umbral para no sugerir siempre lo mismo cuando hay varios
  * días seguidos de buena forma. */
-export function suggestToday(tsb: number, dayOfWeek: number): TodaySuggestion {
+export function suggestToday(tsb: number, dayOfWeek: number, gender?: Gender): TodaySuggestion {
   const band = formBand(tsb);
   if (band === 'fresh') {
     return {
       band,
       templateId: dayOfWeek % 2 === 0 ? 'vo2max' : 'threshold',
-      reason: 'Estás fresco y con buena base — buen día para meter intensidad.',
+      reason: `${byGender(gender, 'Estás fresco', 'Estás fresca', 'Tienes piernas frescas')} y buena base — buen día para meter intensidad.`,
     };
   }
   if (band === 'fatigued') {

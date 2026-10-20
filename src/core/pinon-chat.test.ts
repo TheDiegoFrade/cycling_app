@@ -88,6 +88,19 @@ describe('localAnswer', () => {
     expect(localAnswer('today', { ...base, humanCoach: true, hasPlan: false, today: undefined }).action).toBeUndefined();
   });
 
+  it('concuerda con el género del perfil; sin dato, nunca masculino genérico', () => {
+    const loaded = { ...base, form: { ctl: 40, atl: 70, tsb: -30 } };
+    const fresh = { ...base, form: { ctl: 40, atl: 35, tsb: 5 } };
+    expect(localAnswer('form', { ...loaded, gender: 'm' }).text).toMatch(/Vienes cargado:/);
+    expect(localAnswer('form', { ...loaded, gender: 'f' }).text).toMatch(/Vienes cargada:/);
+    expect(localAnswer('form', { ...fresh, gender: 'f' }).text).toMatch(/Estás fresca/);
+    const masc = /\b(cargado|fresco|descansado|cansado|listo|clavado)\b/i;
+    const variants: PinonChatData[] = [loaded, fresh, { ...base, form: { ctl: 40, atl: 20, tsb: 20 } }, { ...loaded, humanCoach: true }];
+    for (const d of variants)
+      for (const intent of [...PINON_QUICK.map((q) => q.intent), 'change'] as PinonIntent[])
+        for (const seed of [0, 1, 2, 3]) expect(localAnswer(intent, { ...d, gender: 'n' }, seed).text).not.toMatch(masc);
+  });
+
   it('todas las respuestas cuidan el tono', () => {
     const variants: PinonChatData[] = [
       base,
@@ -103,5 +116,14 @@ describe('pinonCacheKey', () => {
     expect(pinonCacheKey('¿Qué desayuno?', base)).toBe(pinonCacheKey('que desayuno', base));
     expect(pinonCacheKey('¿Qué desayuno?', base)).not.toBe(pinonCacheKey('¿Qué desayuno?', { ...base, todayKey: '2026-10-16' }));
     expect(pinonCacheKey('¿Qué desayuno?', base)).not.toBe(pinonCacheKey('¿Qué desayuno?', { ...base, week: { done: 3, planned: 4 } }));
+  });
+});
+
+describe('PINON_QUICK', () => {
+  it('cada botón, escrito a mano, cae en su misma respuesta', () => {
+    for (const q of PINON_QUICK) expect(matchIntent(q.label)).toBe(q.intent);
+  });
+  it('los botones no dan por hecho el género', () => {
+    for (const q of PINON_QUICK) expect(q.label).not.toMatch(/\b\w+(ado|ada)\b/);
   });
 });

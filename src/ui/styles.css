@@ -7526,7 +7526,9 @@ body:has(.pinon-bubble-layer) .pinon-chat-launcher {
 @media (max-width: 760px) {
   .pinon-chat-launcher {
     right: 14px;
-    bottom: 14px;
+    /* arriba de la barra de pestañas (fija abajo, ~56px): si no, Piñón queda
+       medio tapado y en el celular casi no se ve la entrada al chat */
+    bottom: calc(72px + env(safe-area-inset-bottom));
     width: 64px;
     height: 64px;
   }
@@ -7552,3 +7554,414 @@ body:has(.pinon-bubble-layer) .pinon-chat-launcher {
     transform: none;
   }
 }
+
+/* Cuestionario: el dato que falta queda marcado (ver flagMissing en onboarding.ts) */
+.ob-missing {
+  outline: 2px solid var(--danger, #ff5a4f);
+  outline-offset: 4px;
+  border-radius: var(--radius-md, 10px);
+  animation: ob-missing-pulse 0.6s ease 2;
+}
+@keyframes ob-missing-pulse {
+  50% {
+    outline-offset: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ob-missing {
+    animation: none;
+  }
+}
+
+/* Cuestionario paso a paso, con Piñón guiando (onboarding.ts) */
+.ob-guide {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 28px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+.ob-guide .pinon {
+  flex: none;
+}
+.ob-guide-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ob-guide-text {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 4px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.ob-progress {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--border);
+  overflow: hidden;
+}
+.ob-progress-bar {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.35s ease;
+}
+.ob-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ob-step-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border-control, var(--border));
+  background: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+.ob-step-dot.done {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+  color: var(--text);
+}
+.ob-step-dot[aria-current='step'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.ob-step-dot:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.ob-section[hidden] {
+  display: none;
+}
+.ob-section {
+  border-bottom: none;
+}
+.ob-section-title:focus {
+  outline: none;
+}
+.ob-back {
+  padding: 10px 16px;
+  border: 1px solid var(--border-control, var(--border));
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+}
+.ob-back[hidden],
+.ob-save[hidden] {
+  display: none;
+}
+@media (max-width: 560px) {
+  .ob-guide {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .ob-guide .pinon img {
+    height: 40px;
+  }
+  .ob-foot {
+    flex-wrap: wrap;
+  }
+  .ob-status {
+    flex-basis: 100%;
+  }
+}
+
+/* Inicio: bienvenida de primera vez (home.ts, `newcomer`) */
+.home-welcome {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+.home-welcome-pinon {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 520px;
+}
+.home-welcome-pinon .pinon {
+  flex: none;
+}
+.home-welcome-pinon p {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 4px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  border: 1px solid var(--border);
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.home-welcome-cta {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.home-welcome-alt {
+  min-height: 52px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text) 35%, transparent);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.home-welcome-alt:hover {
+  border-color: var(--text);
+}
+@media (max-width: 760px) {
+  .home-welcome-pinon p {
+    font-size: 14px;
+  }
+}
+
+/* Resumen: lo que opina Piñón de la sesión (core/pinon-session.ts) */
+.summary-pinon {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.summary-pinon .pinon {
+  flex: none;
+}
+.summary-pinon p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Login: lista de espera (login.ts, sync/waitlist.ts) */
+.waitlist-toggle {
+  margin-top: 6px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+.entry-fields#waitlist-form.open {
+  max-height: 520px;
+}
+.entry-fields select {
+  width: 100%;
+}
+.waitlist-intro,
+.waitlist-done {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.85);
+}
+.waitlist-toggle[hidden],
+.ghost-btn[hidden] {
+  display: none;
+}
+.entry-fields [hidden] {
+  display: none;
+}
+
+/* Términos: «Antes de empezar» (terms-gate.ts) */
+.terms-screen {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.terms-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.terms-head h1 {
+  margin: 0;
+}
+.terms-draft {
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-control, var(--border));
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.terms-text {
+  margin-top: 14px;
+  max-height: 46vh;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.terms-text h3 {
+  margin: 16px 0 6px;
+  font-size: 16px;
+}
+.terms-text h3:first-child {
+  margin-top: 0;
+}
+.terms-text ul,
+.terms-text ol {
+  padding-left: 20px;
+}
+.legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.legal-table th,
+.legal-table td {
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+.terms-check {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  color: var(--text);
+  align-items: flex-start;
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.terms-check input {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.terms-privacy {
+  max-width: 720px;
+  width: 100%;
+  max-height: 86vh;
+  overflow-y: auto;
+}
+.terms-privacy .terms-text {
+  max-height: none;
+}
+
+/* Torq Coach IA: precio y suscripción (pricing.ts) */
+.pricing-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pricing-kicker {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.pricing-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+.pricing-amount {
+  margin: 0;
+  color: var(--text-muted);
+}
+.pricing-price {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text);
+}
+.pricing-founder {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--text);
+  font-size: 12px;
+}
+.pricing-list {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.6;
+}
+.pricing-card [data-subscribe] {
+  align-self: flex-start;
+}
+.pricing-fine {
+  margin: 0;
+}
+.pricing-modal {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+}
+.pricing-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+}
+.billing-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 70;
+  max-width: min(520px, calc(100vw - 32px));
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  background: var(--card);
+  border: 1px solid var(--border-control, var(--border));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+}
+
+/* Plan: de quién es el plan cuando hay coach (calendar.ts) */
+.plan-coach-brand {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Ser coach: solicitud (coach-apply.ts) y revisión (admin-coaches.ts) */
+.coach-apply-screen form .panel { margin-bottom: 16px; }
+.coach-apply-field { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.coach-apply-field input:not([type='checkbox']), .coach-apply-field textarea { width: 100%; }
+.coach-apply-field textarea {
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-control);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  font: inherit;
+  resize: vertical;
+}
+.coach-apply-field > .live-col-label { font-size: 13px; color: var(--text-muted); }
+.coach-apply-chips { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.coach-apply-chips .terms-check { margin-top: 4px; }
+.field-error { color: var(--danger, #ff6b6b); font-size: 13px; min-height: 0; }
+.field-error:empty { display: none; }
+.admin-invite-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.admin-invite-row input[type='email'] { min-width: 240px; }
+.admin-invite-row input[type='number'], .admin-review input[type='number'] { width: 80px; }
+.admin-invite-coach code { word-break: break-all; }
+.admin-app { margin-bottom: 12px; }
+.admin-app-head { margin-bottom: 4px; }
+.admin-status-pill { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--surface-sunken); }
+.admin-status-pill[data-status='submitted'] { background: var(--accent); color: #111; }
+.admin-answers { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 10px 0; font-size: 14px; }
+.admin-answers dt { color: var(--text-muted); }
+.admin-answers dd { margin: 0; white-space: pre-wrap; }
+.admin-review { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.admin-inline { flex-direction: row; align-items: center; gap: 8px; }
+.admin-full { color: var(--accent); font-weight: 600; }
+button.danger { background: var(--danger, #c0392b); color: #fff; }

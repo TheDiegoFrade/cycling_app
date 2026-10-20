@@ -10,12 +10,12 @@ export async function openSessionDetail(id: string, origin: 'local' | 'cloud'): 
     if (!cloud) return;
     appState.lastSession = null;
     appState.lastCloudSession = cloud;
-    navigate('session');
+    navigate('session', id);
     return;
   }
   const session = (await listSessions()).find((s) => s.id === id);
   if (!session) return;
   appState.lastSession = session;
   appState.lastCloudSession = null;
-  navigate('session');
+  navigate('session', id);
 }

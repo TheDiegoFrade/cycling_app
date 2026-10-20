@@ -16,6 +16,8 @@ export async function ensureLocalDataOwnership(userId: string | null): Promise<v
   const current = userId ?? '';
   if (owner === current) return;
   await Promise.all([dbClear(STORES.profile), dbClear(STORES.workouts), dbClear(STORES.sessions), dbClear(STORES.drafts)]);
-  if (userId) localStorage.setItem(OWNER_KEY, userId);
-  else localStorage.removeItem(OWNER_KEY);
+  // Sin sesión también se guarda el dueño ('' = sin cuenta): antes se quitaba
+  // la clave, y en el siguiente arranque null !== '' borraba todo otra vez —
+  // sin nube (modo local) se perdían los datos en cada recarga.
+  localStorage.setItem(OWNER_KEY, current);
 }

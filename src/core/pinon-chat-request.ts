@@ -63,6 +63,7 @@ function context(v: unknown): PinonChatData | null {
   const tsb = f ? num(f.tsb, -500, 500) : null;
   return {
     todayKey,
+    gender: c.gender === 'm' || c.gender === 'f' ? c.gender : 'n',
     humanCoach: c.humanCoach === true,
     hasPlan: c.hasPlan !== false,
     ftp: num(c.ftp, 0, 700) ?? 0,

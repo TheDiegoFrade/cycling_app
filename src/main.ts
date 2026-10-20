@@ -1,6 +1,6 @@
 import './ui/styles.css';
 import type { Screen } from './ui/router';
-import { refresh, registerScreen, startRouter } from './ui/router';
+import { getRouteParam, refresh, registerScreen, startRouter } from './ui/router';
 import { installClickSound } from './ui/click-sound';
 import { schedulePinonGuide, schedulePinonPeek, startPinonBlink } from './ui/pinon';
 import { mountPinonChat } from './ui/pinon-chat-launcher';
@@ -27,10 +27,18 @@ import { renderPerfil } from './ui/screens/perfil';
 import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
 import { appState } from './ui/state';
+import { genderOf } from './core/gender';
 import { stopAmbientTrack } from './ui/ambient-audio';
 import { handleStravaRedirect } from './sync/strava';
 import { installDomTips } from './ui/chart-hover';
 import { maybeShowPasswordReset } from './ui/password-reset';
+import { renderTermsGate } from './ui/terms-gate';
+import { renderInviteSignup } from './ui/screens/invite-signup';
+import { maybeCompleteSignup } from './ui/invite-signup';
+import { maybeConfirmBillingReturn } from './ui/pricing';
+import { renderAdminWaitlist } from './ui/screens/admin-waitlist';
+import { renderAdminCoaches } from './ui/screens/admin-coaches';
+import { renderCoachApply } from './ui/screens/coach-apply';
 
 type RenderFn = (container: HTMLElement) => (() => void) | void;
 
@@ -38,7 +46,13 @@ type RenderFn = (container: HTMLElement) => (() => void) | void;
  * (menos "Cuenta") se reemplaza por el login — la app es privada, no un
  * sitio público que cualquiera puede usar sin cuenta. */
 function guarded(render: RenderFn): RenderFn {
-  return (container) => (appState.cloudEnabled && !appState.user ? renderLogin(container) : render(container));
+  return (container) => {
+    if (appState.cloudEnabled && !appState.user) return renderLogin(container);
+    // Nadie usa la app sin aceptar los términos vigentes (ver ui/terms-gate.ts).
+    // Solo `false` bloquea: si no se pudo saber (sin internet), no se bloquea.
+    if (appState.cloudEnabled && appState.termsAccepted === false) return renderTermsGate(container, () => refresh());
+    return render(container);
+  };
 }
 
 /** Piñón explica estas pantallas la primera vez y se asoma en las del
@@ -49,7 +63,7 @@ function withPinon(screen: Screen, render: RenderFn): RenderFn {
   return (container) => {
     const cleanup = render(container);
     const stopPeek = schedulePinonPeek(screen, container);
-    const stopGuide = schedulePinonGuide(screen, container);
+    const stopGuide = schedulePinonGuide(screen, container, genderOf(appState.profile.sex));
     const stopChat = mountPinonChat(screen);
     return () => {
       stopPeek();
@@ -68,7 +82,7 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['library', withPinon('library', withSidebar('library', renderLibrary))],
   ['prepare', renderConnect],
   ['train', renderTrain],
-  ['session', withSidebar(null, renderSummary)],
+  ['session', withPinon('session', withSidebar(null, renderSummary))],
   ['form', withPinon('form', withSidebar('form', renderForma))],
   ['profile', withPinon('profile', withSidebar('profile', renderPerfil))],
   ['limits', renderLimits],
@@ -89,9 +103,23 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['review', withSidebar('profile', renderReview)],
   // Detalle de una sesión de un atleta, con descarga del .fit.
   ['coach-session', withSidebar('coach-athletes', renderCoachSession)],
+  // Solo administradores: #/admin (lista de espera) y #/admin/coaches
+  // (invitar y aprobar coaches), ver admin-waitlist.ts y admin-coaches.ts.
+  ['admin', withSidebar(null, (c) => (getRouteParam() === 'coaches' ? renderAdminCoaches(c) : renderAdminWaitlist(c)))],
+  // Solicitud para ser coach: solo con la invitación de Torq (#/coach-apply/:token).
+  ['coach-apply', withSidebar(null, renderCoachApply)],
 ];
 
-SCREENS_TO_GUARD.forEach(([screen, render]) => registerScreen(screen, guarded(render)));
+SCREENS_TO_GUARD.forEach(([screen, render]) => {
+  // El link de invitación de un coach también sirve para crear la cuenta:
+  // sin sesión, en vez del login, se pide el correo (ver invite-signup.ts).
+  if (screen === 'invite') {
+    const g = guarded(render);
+    registerScreen(screen, (container) => (appState.cloudEnabled && !appState.user ? renderInviteSignup(container) : g(container)));
+    return;
+  }
+  registerScreen(screen, guarded(render));
+});
 registerScreen('login', renderLogin); // nunca bloqueada: si no, nadie podría iniciar sesión
 
 installDomTips();
@@ -117,4 +145,8 @@ appState.boot().then(async () => {
   refresh();
   // Volvimos del link de "olvidé mi contraseña": pide la nueva.
   maybeShowPasswordReset();
+  // Volvimos del correo de invitación: crear la contraseña.
+  await maybeCompleteSignup();
+  // Volvimos de Mercado Pago: confirmar la suscripción.
+  maybeConfirmBillingReturn();
 });

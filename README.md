@@ -59,6 +59,7 @@ npm run dev        # servidor de desarrollo (Vite)
 npm test           # corre toda la suite de Vitest
 npm run build      # type-check + build de producción
 npm run simulate   # corre una sesión simulada completa y la imprime en consola
+npm run test:ux    # pruebas de UX de punta a punta (Playwright), ver docs/evaluaciones/2026-10-20-ux-flujos.md
 ```
 
 175 tests en Vitest cubren `core/`, `engine/`, `devices/` (parseo de protocolo BLE) y `export/`. La UI y la conexión Bluetooth real se prueban a mano — no hay forma de automatizar hardware real en CI.

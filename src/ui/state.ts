@@ -18,6 +18,10 @@ import type { CoachContext } from '../sync/coach-link';
 import { fetchCloudProfile, pushProfileToCloud } from '../sync/profile-sync';
 import { fetchCloudSettings, pushSettingsToCloud } from '../sync/settings-sync';
 import { fetchCloudWorkouts, pushWorkoutToCloud } from '../sync/workout-sync';
+import { fetchBillingStatus } from '../sync/billing';
+import type { BillingStatus } from '../sync/billing';
+import { hasAcceptedTerms } from '../sync/legal';
+import { TERMS_VERSION } from '../core/terms-text';
 
 export interface AuthUser {
   id: string;
@@ -66,7 +70,20 @@ class AppState {
   /** Rutinas de fuerza/movilidad que le agendó su coach (planned_routines).
    * Solo viven en la nube: sin conexión simplemente no se muestran. */
   plannedRoutines: PlannedRoutine[] = [];
+  /** Acceso a la IA y suscripción, según el servidor (null = no se sabe:
+   * sin nube, sin internet). Ver sync/billing.ts. */
+  billing: BillingStatus | null = null;
+  /** ¿Aceptó la versión vigente de los términos? undefined = no se pudo
+   * saber; solo `false` bloquea la app (ver ui/terms-gate.ts). */
+  termsAccepted: boolean | undefined = undefined;
   private readonly authListeners = new Set<() => void>();
+
+  /** Cómo saludar: el nombre del perfil o, si no hay, el del correo. */
+  displayName(): string {
+    if (this.profile.name) return this.profile.name.split(' ')[0];
+    const local = this.user?.email.split('@')[0];
+    return local ? local.charAt(0).toUpperCase() + local.slice(1) : '';
+  }
 
   get selectedWorkout(): Workout | null {
     return this.workouts.find((w) => w.id === this.selectedWorkoutId) ?? null;
@@ -136,7 +153,17 @@ class AppState {
    * es error/offline — ver el patrón de 3 estados en sync/*-sync.ts), sube lo
    * que había local una sola vez, cubriendo tanto usuarios nuevos como la
    * migración de quien ya usaba la app solo en este navegador. */
+  /** Vuelve a preguntar el acceso a la IA (p. ej. al volver de Mercado Pago). */
+  async refreshBilling(): Promise<BillingStatus | null> {
+    if (!this.user) return null;
+    this.billing = await fetchBillingStatus();
+    return this.billing;
+  }
+
   private async syncFromCloud(userId: string): Promise<void> {
+    const [termsAccepted, billing] = await Promise.all([hasAcceptedTerms(userId, TERMS_VERSION), fetchBillingStatus()]);
+    this.termsAccepted = termsAccepted;
+    this.billing = billing;
     const [cloudSessions, cloudProfile, cloudSettings, cloudWorkouts, coach, plannedRoutines] = await Promise.all([
       listCloudSessions(userId),
       fetchCloudProfile(userId),
@@ -214,6 +241,25 @@ class AppState {
     void backfillMetricsFromLocal(userId, localSessions);
   }
 
+  /** Vuelve a leer los workouts de la nube. Para cuando el servidor los
+   * cambió por su cuenta (el coach IA al crear o ajustar el plan): sin esto el
+   * calendario sigue vacío hasta recargar la app. Misma regla que
+   * syncFromCloud: la nube manda. */
+  async reloadWorkoutsFromCloud(): Promise<void> {
+    if (!this.user) return;
+    const cloudWorkouts = await fetchCloudWorkouts(this.user.id);
+    if (!cloudWorkouts) return; // sin conexión o error: se queda lo que había
+    const cloudIds = new Set(cloudWorkouts.map((w) => w.id));
+    // Lo creado aquí hace un momento puede no haber terminado de subir
+    // (pushWorkoutToCloud no se espera): eso no se borra.
+    const justCreated = (w: Workout) => Date.now() - Date.parse(w.created_at) < 2 * 60_000;
+    const missing = this.workouts.filter((w) => !cloudIds.has(w.id));
+    const kept = missing.filter(justCreated);
+    await Promise.all(missing.filter((w) => !justCreated(w)).map((w) => deleteWorkout(w.id)));
+    this.workouts = [...cloudWorkouts, ...kept];
+    await Promise.all(cloudWorkouts.map((w) => saveWorkout(w)));
+  }
+
   async signOut(): Promise<void> {
     if (supabase) await supabase.auth.signOut();
     // No depende del evento onAuthStateChange para borrar lo local: ese
@@ -227,6 +273,8 @@ class AppState {
     this.cloudSessions = [];
     this.coach = EMPTY_COACH_CONTEXT;
     this.plannedRoutines = [];
+    this.billing = null;
+    this.termsAccepted = undefined;
     this.setUser(null);
   }
 

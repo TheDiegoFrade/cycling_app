@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ageFromBirthDate, coachFtpFields, coachProfileError, coachProfileExtras, ftpSourceOf, sourceForAcceptedSuggestion, withFtp } from './coach-profile';
+import { ageFromBirthDate, bodyDataError, coachFtpFields, coachProfileError, coachProfileExtras, ftpSourceOf, sourceForAcceptedSuggestion, withFtp } from './coach-profile';
 import type { Profile } from './types';
 
 // Mismos números que DEFAULT_PROFILE (storage/profile-store.ts), sin
@@ -113,5 +113,13 @@ describe('otras actividades en el cuestionario', () => {
     expect(coachProfileError({ ...base, otherActivities: [{ kind: 'running', perWeek: 2, minutes: 0, days: [] }] }, today)).toMatch(/minutos/);
     expect(coachProfileError({ ...base, otherActivities: [{ kind: 'other', perWeek: 1, minutes: 60, days: [] }] }, today)).toBeNull();
     expect(coachProfileError({ ...base, otherActivities: [{ kind: 'strength', perWeek: 1, minutes: 60, days: ['mon', 'wed'] }] }, today)).toMatch(/más días/);
+  });
+});
+
+describe('mayoría de edad', () => {
+  it('menores de 18 no pueden crear plan (términos §2)', () => {
+    const today = new Date(2026, 9, 20);
+    expect(bodyDataError({ birth_date: '2010-03-01', weight_kg: 60, height_cm: 165 }, today)).toMatch(/solo para mayores de 18/);
+    expect(bodyDataError({ birth_date: '2008-10-20', weight_kg: 60, height_cm: 165 }, today)).toBeNull();
   });
 });

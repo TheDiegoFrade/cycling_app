@@ -8,9 +8,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
-// La MISMA lista que coach-chat: antes tenía una copia propia sin dpcfrade,
-// que podía crear un plan pero no darlo de baja (403).
-import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
 import { localDateKey } from '../_shared/core.gen.js';
 
 function adminClient() {
@@ -22,9 +19,8 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
     const userId = await getUserId(req);
-    if (!ALLOWED_USER_IDS.has(userId)) {
-      return json({ error: 'el coach todavía no está disponible para tu cuenta' }, 403);
-    }
+    // Sin revisar suscripción a propósito: no llama a Claude, y quien dejó de
+    // pagar debe poder dar de baja su plan.
     const admin = adminClient();
 
     const body = await req.json().catch(() => ({}));

@@ -43,7 +43,7 @@ export function isInZone(power: number, target: number): boolean {
 }
 
 const IN_ZONE_LINES = [
-  'Así, parejito. Llevas {m} min clavado en tu zona.',
+  'Así, parejito. Llevas {m} min justo en tu zona.',
   '{m} min en zona. Eso es entrenar bien.',
   'Muy constante: {m} min justo donde va.',
 ] as const;

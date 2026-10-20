@@ -1,3 +1,4 @@
+import { subscriptionPanelHtml, wireSubscriptionPanel } from '../pricing';
 import { supabase } from '../../supabase/client';
 import { disconnectStrava, getStravaConnection, isStravaConfigured, redirectToStravaAuthorize } from '../../sync/strava';
 import type { StravaConnection } from '../../sync/strava';
@@ -247,6 +248,7 @@ export function renderPerfil(container: HTMLElement): void {
               </div>
             </div>
 
+            ${appState.user ? subscriptionPanelHtml() : ''}
             ${
               appState.coach.myCoach
                 ? `
@@ -401,6 +403,7 @@ export function renderPerfil(container: HTMLElement): void {
     // plan", donde es obligatorio), acá es revisión/edición libre.
     void paintNotesInto(container.querySelector<HTMLElement>('#profile-notes-slot'));
 
+    wireSubscriptionPanel(container);
     container.querySelector('#profile-open-onboarding')?.addEventListener('click', () => {
       openOnboardingForm(() => paint(), true);
     });

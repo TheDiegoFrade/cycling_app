@@ -32,3 +32,9 @@ coach-lab/out/
 # simulaciones del coach: resultados y secciones del reporte (scripts/coach-sim/README.md)
 scripts/coach-sim/out/
 scripts/coach-sim/report/
+
+# pruebas de UX (Playwright): resultados y trazas
+e2e/.out/
+
+# arnés de calidad de Piñón: resultados de cada corrida (el resumen va a docs/)
+scripts/pinon-eval/out/

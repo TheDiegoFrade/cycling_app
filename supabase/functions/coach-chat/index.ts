@@ -20,7 +20,7 @@ import Anthropic from 'npm:@anthropic-ai/sdk@0';
 import { zodOutputFormat } from 'npm:@anthropic-ai/sdk@0/helpers/zod';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
-import { ALLOWED_USER_IDS } from '../_shared/coach-access.ts';
+import { NO_ACCESS, loadAiAccess } from '../_shared/access.ts';
 import { evalWeekTarget, hasUnlimitedCoach, localDateKey, planTotalWeeks, startingProfile } from '../_shared/core.gen.js';
 import { COACH_SYSTEM_PROMPT, WRITER_SYSTEM_PROMPT } from './prompt.ts';
 import { buildUserMessage } from './message.ts';
@@ -125,10 +125,10 @@ Deno.serve(async (req) => {
     const userId = await getUserId(req);
     // Antes de CUALQUIER otra cosa — ni siquiera parsea el body todavía.
     // Rechazar aquí cuesta $0 (nunca se llega a tocar Claude).
-    if (!ALLOWED_USER_IDS.has(userId)) {
-      return json({ error: 'el coach todavía no está disponible para tu cuenta' }, 403);
-    }
     const admin = adminClient();
+    // Suscripción, coach o atleta con coach (ver _shared/access.ts). Una
+    // consulta barata, antes de parsear nada ni tocar a Claude.
+    if (!(await loadAiAccess(admin, userId)).ai) return json(NO_ACCESS, 403);
 
     const body = (await req.json()) as CoachChatRequest;
     if (!body?.mode || !body?.context) return json({ error: 'falta mode o context' }, 400);

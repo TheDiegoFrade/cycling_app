@@ -12,9 +12,13 @@
     "build:edge": "node scripts/build-edge.mjs",
     "simulate": "vitest run src/engine/simulate.test.ts",
     "coach:build": "npx --yes deno@2 run --node-modules-dir=none --no-lock --allow-read --allow-write coach-lab/build.ts",
-    "coach:check": "npx --yes deno@2 run --node-modules-dir=none --no-lock --allow-read coach-lab/check.ts"
+    "coach:check": "npx --yes deno@2 run --node-modules-dir=none --no-lock --allow-read coach-lab/check.ts",
+    "test:ux": "playwright test",
+    "test:ux:report": "node e2e/report.mjs",
+    "pinon:eval": "node scripts/pinon-eval/run.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "esbuild": "^0.28.2",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",

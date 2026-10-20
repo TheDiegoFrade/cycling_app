@@ -6,6 +6,8 @@
 // movimiento» nada se anima.
 import type { Screen } from './router';
 import type { WorkoutZone } from '../core/workout-zone';
+import { byGender } from '../core/gender';
+import type { Gender } from '../core/gender';
 
 export type PinonPose = 'base' | 'habla' | 'motiva';
 
@@ -72,10 +74,20 @@ const CATCHES_KEY = 'torq.pinon.catches';
 export const GUIDES: Record<GuideScreen, string> = {
   home: 'Aquí ves qué toca hoy. Dale a Empezar a rodar y en el siguiente paso conectas tu rodillo.',
   plan: 'Tu semana. Toca un día para ver el detalle; arrastra un entrenamiento para moverlo.',
-  form: 'Fitness es tu base, Fatiga lo cansado que vienes. Si la Forma es positiva, llegas fresco.',
+  form: 'Fitness es tu base, Fatiga el cansancio que traes. Si la Forma es positiva, llegas con piernas frescas.',
   library: 'Todo lo que has rodado. Toca una sesión para ver cómo te fue y ponerle tu RPE.',
   profile: 'Pon tu FTP y tu pulso máximo: con eso calculo tus zonas.',
 };
+/** La guía de una pantalla, en el género de la persona cuando aplica. */
+export function guideText(screen: GuideScreen, gender?: Gender): string {
+  if (screen === 'form') {
+    const fresh = byGender(gender, 'llegas fresco', 'llegas fresca', 'llegas con piernas frescas');
+    return `Fitness es tu base, Fatiga el cansancio que traes. Si la Forma es positiva, ${fresh}.`;
+  }
+  return GUIDES[screen];
+}
+/** Inicio sin nada agendado: la guía de siempre habla de un botón que no está. */
+export const HOME_EMPTY_GUIDE = 'Aquí te digo qué toca cada día. Hoy no hay nada: genera un workout abajo y ruedas ya, o arma tu plan en Plan.';
 
 /** ¿Explicar esta pantalla? Solo la primera vez y si no apagaste las guías. */
 export function shouldShowGuide(screen: Screen, seen: boolean, guidesOff: boolean): boolean {
@@ -116,6 +128,8 @@ export interface PinonTipContext {
   humanCoach?: boolean;
   /** Para rotar los consejos genéricos (p. ej. el día del año). */
   seed?: number;
+  /** Concordancia («vienes cargado/cargada»); sin dato, neutro. */
+  gender?: Gender;
 }
 
 export interface PinonAction {
@@ -174,15 +188,15 @@ export function pinonTip(ctx: PinonTipContext): PinonTip {
   if (typeof ctx.tsb === 'number' && ctx.tsb < -20) {
     // Con coach humano no se toca el plan: solo se cuida al atleta.
     return {
-      text: ctx.humanCoach
-        ? 'Vienes cargado. Duerme bien y come rico, que el cuerpo también entrena cuando para.'
-        : 'Vienes cargado. Hoy suave o descanso, que el cuerpo también entrena cuando para.',
+      text: `${byGender(ctx.gender, 'Vienes cargado', 'Vienes cargada', 'Vienes con mucha carga')}. ${
+        ctx.humanCoach ? 'Duerme bien y come rico' : 'Hoy suave o descanso'
+      }, que el cuerpo también entrena cuando para.`,
     };
   }
   if (ctx.isRestDay) return { text: 'Hoy descansas. Mañana rodamos con piernas frescas.' };
   if (!ctx.hasPlan && !ctx.humanCoach) {
     return {
-      text: '¿Armamos tu plan? Te pregunto cuatro cosas y listo.',
+      text: '¿Armamos tu plan? Te hago unas preguntas sobre ti y tu bici, y el coach lo arma.',
       action: { label: 'Crear plan', href: '#/plan', kind: 'create' },
     };
   }
@@ -378,15 +392,17 @@ function guideSeen(screen: Screen): boolean {
 }
 
 /** La primera vez en una pantalla, Piñón la explica. Devuelve cleanup. */
-export function schedulePinonGuide(screen: Screen, root: HTMLElement): () => void {
+export function schedulePinonGuide(screen: Screen, root: HTMLElement, gender?: Gender): () => void {
   if (!shouldShowGuide(screen, guideSeen(screen), areGuidesOff())) return () => {};
   const t = window.setTimeout(() => {
     if (!root.isConnected || bubbleBusy()) return; // con el cuestionario abierto, en la próxima visita
+    // la bienvenida de primera vez en Inicio ya trae a Piñón explicando: no se repite
+    if (screen === 'home' && root.querySelector('.home-welcome')) return;
     lsSet(guideKey(screen as GuideScreen), '1');
     openPinonBubble({
       pose: 'habla',
       title: 'TE CUENTO',
-      text: GUIDES[screen as GuideScreen],
+      text: screen === 'home' && !root.querySelector('.home-ride-btn[data-ride-id]') ? HOME_EMPTY_GUIDE : guideText(screen as GuideScreen, gender),
       action: { label: 'Entendido' },
       dismissLabel: 'No mostrar más guías',
       onDismiss: () => setGuidesOff(true),
