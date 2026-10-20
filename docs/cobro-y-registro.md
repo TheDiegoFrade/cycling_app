@@ -129,12 +129,19 @@ Nada de esto se pega en el chat: las claves van como **secretos de Supabase**
 
 ### 1. Base de datos
 
-Correr en el SQL editor `supabase/schema.sql` completo: es idempotente. Lo
-nuevo: `subscriptions`, `billing_events`, `legal_acceptances`,
-`waitlist.invited_at`, `coach_applications`, `coach_seat_limit`,
+En Supabase → SQL Editor, pegar y correr
+**`supabase/pendientes/2026-10-20-cobro-coaches-registro.sql`**: solo lo que
+este cambio agrega sobre `main`, en una transacción (todo o nada) y
+idempotente. Trae `waitlist`, `subscriptions`, `billing_events`,
+`legal_acceptances`, `coach_applications`, `coach_seat_limit`,
 `my_coach_seats` y la versión nueva de `accept_coach_invite` (revisa que
-siga siendo coach y su máximo de atletas). El archivo completo se probó en
-un Postgres 16 limpio.
+siga siendo coach y su máximo de atletas). Se probó sobre el `schema.sql` de
+`main` en un Postgres 16 limpio, corriéndolo dos veces.
+
+Para revisar que quedó: `select to_regclass('public.waitlist'), to_regclass('public.coach_applications');`
+no debe regresar `null`.
+
+`supabase/schema.sql` sigue siendo la fuente completa (para una base nueva).
 
 ### 2. Secretos
 
