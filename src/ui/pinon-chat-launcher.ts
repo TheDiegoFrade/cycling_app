@@ -1,11 +1,13 @@
-// Botón fijo de Piñón (abajo a la derecha) en Inicio, Plan, Forma e
-// Historial. El panel del chat se carga al tocarlo (import dinámico). El
+// Botón fijo de Piñón (abajo a la derecha) en Inicio, Plan, Forma,
+// Historial, Resumen y Perfil. El panel del chat se carga al tocarlo (import dinámico). El
 // panel sobrevive a repintar la pantalla y a pasar entre esas pantallas
 // (p. ej. «Ver mi plan» desde el chat); en cualquier otra se cierra.
 import type { Screen } from './router';
 import { pinonFigureHtml } from './pinon';
 
-export const CHAT_SCREENS: readonly Screen[] = ['home', 'plan', 'form', 'library'];
+// También en Resumen (justo después de rodar es cuando uno pregunta «¿cómo
+// me fue?») y en Perfil.
+export const CHAT_SCREENS: readonly Screen[] = ['home', 'plan', 'form', 'library', 'session', 'profile'];
 
 let chatModule: typeof import('./pinon-chat') | null = null;
 let routeWatch = false;

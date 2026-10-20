@@ -27,6 +27,7 @@ import { renderPerfil } from './ui/screens/perfil';
 import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
 import { appState } from './ui/state';
+import { genderOf } from './core/gender';
 import { stopAmbientTrack } from './ui/ambient-audio';
 import { handleStravaRedirect } from './sync/strava';
 import { installDomTips } from './ui/chart-hover';
@@ -49,7 +50,7 @@ function withPinon(screen: Screen, render: RenderFn): RenderFn {
   return (container) => {
     const cleanup = render(container);
     const stopPeek = schedulePinonPeek(screen, container);
-    const stopGuide = schedulePinonGuide(screen, container);
+    const stopGuide = schedulePinonGuide(screen, container, genderOf(appState.profile.sex));
     const stopChat = mountPinonChat(screen);
     return () => {
       stopPeek();
@@ -68,7 +69,7 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['library', withPinon('library', withSidebar('library', renderLibrary))],
   ['prepare', renderConnect],
   ['train', renderTrain],
-  ['session', withSidebar(null, renderSummary)],
+  ['session', withPinon('session', withSidebar(null, renderSummary))],
   ['form', withPinon('form', withSidebar('form', renderForma))],
   ['profile', withPinon('profile', withSidebar('profile', renderPerfil))],
   ['limits', renderLimits],

@@ -24,17 +24,19 @@ describe('formBand', () => {
 
 describe('formLabel', () => {
   it('fresh → Fresco', () => {
-    expect(formLabel(10)).toBe('Fresco');
+    expect(formLabel(10, 'm')).toBe('Fresco');
+    expect(formLabel(10, 'f')).toBe('Fresca');
+    expect(formLabel(10)).toBe('Piernas frescas');
   });
   it('balanced → Equilibrado', () => {
-    expect(formLabel(0)).toBe('Equilibrado');
+    expect(formLabel(0)).toBe('En equilibrio');
   });
   it('fatigued → Cargando fuerte', () => {
     expect(formLabel(-20)).toBe('Cargando fuerte');
   });
   it('coincide con los mismos cortes que formBand', () => {
-    expect(formLabel(5)).toBe('Equilibrado');
-    expect(formLabel(-10)).toBe('Equilibrado');
+    expect(formLabel(5)).toBe('En equilibrio');
+    expect(formLabel(-10)).toBe('En equilibrio');
   });
 });
 

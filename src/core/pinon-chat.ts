@@ -5,6 +5,8 @@
 // Piñón solo opina: nunca cambia el plan. Si le piden un cambio, manda al
 // ajuste semanal del coach de IA, o con coach humano, a hablarlo con él.
 import type { WorkoutZone } from './workout-zone';
+import { byGender } from './gender';
+import type { Gender } from './gender';
 
 export type PinonIntent = 'today' | 'week' | 'form' | 'why' | 'tired' | 'cheer' | 'change';
 
@@ -36,6 +38,8 @@ export interface PinonChatSession {
  * (sin Strava: ver core/session-source.ts). */
 export interface PinonChatData {
   todayKey: string;
+  /** Para concordar los adjetivos (cansado/cansada); sin dato, neutro. */
+  gender?: Gender;
   humanCoach: boolean;
   hasPlan: boolean;
   ftp: number;
@@ -164,14 +168,15 @@ export function localAnswer(intent: PinonIntent, d: PinonChatData, seed = 0): Pi
       const { ctl, tsb } = d.form;
       // con la base en casi 0 (nuevo, o mucho sin rodar) «fresco» no dice nada
       if (ctl < 5) return { text: 'Tu base todavía está muy baja, o hace rato que no ruedas. Con unas semanas constantes empieza a subir.', action: FORM };
+      const g = (m: string, f: string, n: string) => byGender(d.gender, m, f, n);
       const how =
         tsb < -20
-          ? 'Vienes cargado: el cansancio va por delante de tu base. Es normal en semanas duras; cuida el sueño.'
+          ? `${g('Vienes cargado', 'Vienes cargada', 'Vienes con mucha carga')}: el cansancio va por delante de tu base. Es normal en semanas duras; cuida el sueño.`
           : tsb < -5
             ? 'Estás entrenando en serio: algo de fatiga, justo lo que te hace mejorar.'
             : tsb <= 10
-              ? 'Estás fresco y en equilibrio, buen momento para un entreno de calidad.'
-              : 'Estás muy descansado. Si no viene una carrera, toca volver a cargar.';
+              ? `${g('Estás fresco', 'Estás fresca', 'Tienes piernas frescas')} y en equilibrio, buen momento para un entreno de calidad.`
+              : `${g('Estás muy descansado', 'Estás muy descansada', 'Traes mucho descanso')}. Si no viene una carrera, toca volver a cargar.`;
       return { text: `Tu base (fitness) es ${Math.round(ctl)} y tu forma ${tsb > 0 ? '+' : ''}${Math.round(tsb)}. ${how}`, action: FORM };
     }
     case 'why': {
@@ -181,7 +186,8 @@ export function localAnswer(intent: PinonIntent, d: PinonChatData, seed = 0): Pi
     }
     case 'tired': {
       if (d.humanCoach) return { text: 'Escúchate. Cuéntale a tu coach cómo te sientes; con eso ajusta lo que sigue. Hoy, si ruedas, sin forzar.' };
-      if (d.form && d.form.tsb < -20) return { text: 'Tus números dicen lo mismo: vienes cargado. Hoy algo muy suave o descansa, y anota tu RPE: el ajuste semanal lo toma en cuenta.' };
+      if (d.form && d.form.tsb < -20)
+        return { text: `Tus números dicen lo mismo: ${byGender(d.gender, 'vienes cargado', 'vienes cargada', 'vienes con mucha carga')}. Hoy algo muy suave o descansa, y anota tu RPE: el ajuste semanal lo toma en cuenta.` };
       return { text: 'Pasa. Si es solo flojera, los primeros 10 minutos lo arreglan. Si es cansancio de verdad, hoy suave y anota tu RPE al terminar.' };
     }
     case 'cheer': {

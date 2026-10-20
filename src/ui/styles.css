@@ -7572,3 +7572,205 @@ body:has(.pinon-bubble-layer) .pinon-chat-launcher {
     animation: none;
   }
 }
+
+/* Cuestionario paso a paso, con Piñón guiando (onboarding.ts) */
+.ob-guide {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 28px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+.ob-guide .pinon {
+  flex: none;
+}
+.ob-guide-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ob-guide-text {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 4px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.ob-progress {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--border);
+  overflow: hidden;
+}
+.ob-progress-bar {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.35s ease;
+}
+.ob-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ob-step-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border-control, var(--border));
+  background: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+.ob-step-dot.done {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+  color: var(--text);
+}
+.ob-step-dot[aria-current='step'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.ob-step-dot:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.ob-section[hidden] {
+  display: none;
+}
+.ob-section {
+  border-bottom: none;
+}
+.ob-section-title:focus {
+  outline: none;
+}
+.ob-back {
+  padding: 10px 16px;
+  border: 1px solid var(--border-control, var(--border));
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+}
+.ob-back[hidden],
+.ob-save[hidden] {
+  display: none;
+}
+@media (max-width: 560px) {
+  .ob-guide {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .ob-guide .pinon img {
+    height: 40px;
+  }
+  .ob-foot {
+    flex-wrap: wrap;
+  }
+  .ob-status {
+    flex-basis: 100%;
+  }
+}
+
+/* Inicio: bienvenida de primera vez (home.ts, `newcomer`) */
+.home-welcome {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+.home-welcome-pinon {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 520px;
+}
+.home-welcome-pinon .pinon {
+  flex: none;
+}
+.home-welcome-pinon p {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 4px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  border: 1px solid var(--border);
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.home-welcome-cta {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.home-welcome-alt {
+  min-height: 52px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text) 35%, transparent);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.home-welcome-alt:hover {
+  border-color: var(--text);
+}
+@media (max-width: 760px) {
+  .home-welcome-pinon p {
+    font-size: 14px;
+  }
+}
+
+/* Resumen: lo que opina Piñón de la sesión (core/pinon-session.ts) */
+.summary-pinon {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.summary-pinon .pinon {
+  flex: none;
+}
+.summary-pinon p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Login: lista de espera (login.ts, sync/waitlist.ts) */
+.waitlist-toggle {
+  margin-top: 6px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+.entry-fields#waitlist-form.open {
+  max-height: 520px;
+}
+.entry-fields select {
+  width: 100%;
+}
+.waitlist-intro,
+.waitlist-done {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.85);
+}
+.waitlist-toggle[hidden],
+.ghost-btn[hidden] {
+  display: none;
+}
+.entry-fields [hidden] {
+  display: none;
+}

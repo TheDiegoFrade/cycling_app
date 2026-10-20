@@ -13,6 +13,7 @@ import { appState } from './state';
 import { humanCoachName } from './coach-notice';
 import { aiEligibleSessions, knownCoachPlanState, requestCoachCreate } from './coach';
 import type { PinonChatData, PinonChatSession } from '../core/pinon-chat';
+import { genderOf } from '../core/gender';
 import { catchTitle, isCatchMilestone, openPinonBubble, pinonTip } from './pinon';
 import type { PinonAction, PinonTipContext } from './pinon';
 
@@ -61,6 +62,7 @@ export async function buildPinonTipContext(): Promise<{ ctx: PinonTipContext; to
     hasPlan,
     isRestDay: hasPlan && !today && !doneDays.has(todayKey),
     humanCoach: humanCoachName() !== null,
+    gender: genderOf(appState.profile.sex),
     seed: Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86_400_000),
   };
   return { ctx, todayWorkoutId: today?.id ?? null };
@@ -150,6 +152,7 @@ export async function buildPinonChatData(): Promise<PinonChatData> {
 
   return {
     todayKey,
+    gender: genderOf(appState.profile.sex),
     humanCoach: humanCoachName() !== null,
     // Hasta abrir Plan no se sabe si hay plan del coach: sin nada agendado de
     // hoy en adelante, se trata como «sin plan» (si no, a alguien recién

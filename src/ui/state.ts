@@ -68,6 +68,13 @@ class AppState {
   plannedRoutines: PlannedRoutine[] = [];
   private readonly authListeners = new Set<() => void>();
 
+  /** Cómo saludar: el nombre del perfil o, si no hay, el del correo. */
+  displayName(): string {
+    if (this.profile.name) return this.profile.name.split(' ')[0];
+    const local = this.user?.email.split('@')[0];
+    return local ? local.charAt(0).toUpperCase() + local.slice(1) : '';
+  }
+
   get selectedWorkout(): Workout | null {
     return this.workouts.find((w) => w.id === this.selectedWorkoutId) ?? null;
   }

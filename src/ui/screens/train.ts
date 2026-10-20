@@ -903,7 +903,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     // esperar a la nube (ni bloquear si no hay internet) para navegar.
     if (appState.user) void pushSessionToCloud(record, appState.profile, appState.user.id);
     appState.justFinishedSession = true;
-    navigate('session');
+    navigate('session', record.id);
   }
 
   function stopPollLoop(): void {

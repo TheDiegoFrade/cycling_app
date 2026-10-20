@@ -16,6 +16,9 @@ import { wireDatePicker } from './date-picker';
 import { buildCompletedSessionFromFit } from '../core/completed-session-import';
 import { saveSession } from '../storage/session-store';
 import { pushSessionToCloud } from '../sync/cloud-sync';
+import { byGender, genderOf } from '../core/gender';
+import type { Gender } from '../core/gender';
+import { pinonFigureHtml } from './pinon';
 
 /** Todo el cuestionario es obligatorio para crear un plan (menos los .fit):
  * ver coachProfileError. */
@@ -89,7 +92,36 @@ function chipGroupHtml(id: string, options: readonly (readonly [string, string])
 const yesNo = (v: boolean | undefined): string | undefined => (v === undefined ? undefined : v ? 'yes' : 'no');
 
 function sectionHtml(n: number, title: string, body: string): string {
-  return `<section class="ob-section"><h3 class="ob-section-title"><span class="ob-section-num">${n}</span>${title}</h3>${body}</section>`;
+  return `<section class="ob-section" data-step="${n}" aria-labelledby="ob-step-title-${n}"><h3 class="ob-section-title" id="ob-step-title-${n}"><span class="ob-section-num">${n}</span>${title}</h3>${body}</section>`;
+}
+
+/** Los pasos del cuestionario, en el orden del formulario. */
+export const OB_STEPS = ['Sobre ti', 'Salud', 'Hábitos', 'Tu experiencia', 'Tu bici', 'Tus números', 'Otras actividades', 'Metas', 'Entrenamientos recientes'] as const;
+
+/** Lo que dice Piñón en cada paso: acompaña y explica para qué sirve, sin
+ * acortar nada (todas las preguntas son necesarias para un plan serio). */
+export function obGuideLine(step: number, name: string | undefined, gender: Gender | undefined): string {
+  const hi = name ? `Hola, ${name}. ` : 'Hola. ';
+  switch (step) {
+    case 1:
+      return `${hi}Yo te acompaño: son ${OB_STEPS.length} pasos cortos y con esto tu coach arma un plan hecho para ti. Empecemos por lo básico.`;
+    case 2:
+      return 'Salud va primero porque manda sobre todo lo demás: con esto tu coach decide qué tan fuerte y qué tan rápido subir. Contesta con calma.';
+    case 3:
+      return 'No es para juzgarte: el sueño y el estrés cambian cuánta carga aguantas. Con esto el plan arranca a tu ritmo.';
+    case 4:
+      return 'Ahora tu historia en la bici. Si empiezas de cero, perfecto: el plan arranca justo desde ahí.';
+    case 5:
+      return `Vas a la mitad. ¿Qué rodadas haces? Esto cambia el tipo de sesiones que te tocan.`;
+    case 6:
+      return 'Si no sabes tu FTP o tu pulso, márcalo y ya: el plan trae un test para medirlos con seguridad.';
+    case 7:
+      return 'Correr, gym o fútbol también cansan. Dímelo y tu coach lo acomoda junto a tus rodadas.';
+    case 8:
+      return `${byGender(gender, '¿Listo? Ya casi terminamos.', '¿Lista? Ya casi terminamos.', 'Ya casi terminamos.')} Cuéntame qué quieres lograr.`;
+    default:
+      return 'Último paso, y es opcional: si entrenaste con otra app, sube tus .fit y el plan arranca con datos reales. Si no, dale a Guardar.';
+  }
 }
 
 function modalHtml(p: Profile): string {
@@ -111,6 +143,17 @@ function modalHtml(p: Profile): string {
           </div>
           <button type="button" class="ob-close" id="onboarding-close" aria-label="Cerrar">✕</button>
         </header>
+
+        <div class="ob-guide">
+          ${pinonFigureHtml('habla', 56)}
+          <div class="ob-guide-main">
+            <p class="ob-guide-text" id="ob-guide-text" aria-live="polite"></p>
+            <div class="ob-progress" aria-hidden="true"><span class="ob-progress-bar" id="ob-progress-bar"></span></div>
+            <nav class="ob-steps" id="ob-steps" aria-label="Pasos del cuestionario">
+              ${OB_STEPS.map((t, i) => `<button type="button" class="ob-step-dot" data-go="${i + 1}" aria-label="Paso ${i + 1}: ${t}" title="${t}">${i + 1}</button>`).join('')}
+            </nav>
+          </div>
+        </div>
 
         <div class="ob-body">
           ${sectionHtml(
@@ -313,6 +356,8 @@ function modalHtml(p: Profile): string {
         <footer class="ob-foot">
           <span class="ob-status" id="onboarding-status" aria-live="polite"></span>
           <button type="button" class="ob-skip" id="onboarding-skip">Saltar por ahora</button>
+          <button type="button" class="ob-back" id="onboarding-back">Atrás</button>
+          <button type="button" class="ob-save" id="onboarding-next">Siguiente</button>
           <button type="button" class="ob-save" id="onboarding-submit">Guardar</button>
         </footer>
       </div>
@@ -359,12 +404,19 @@ const MISSING_TARGETS: [RegExp, string][] = [
 
 /** Marca el campo que falta y lo pone a la vista: un texto al pie de un
  * formulario largo no dice dónde está el problema. */
-function flagMissing(root: HTMLElement, message: string): void {
-  root.querySelectorAll('.ob-missing').forEach((el) => el.classList.remove('ob-missing'));
-  root.querySelectorAll('[aria-invalid="true"]').forEach((el) => el.removeAttribute('aria-invalid'));
+function missingTarget(root: HTMLElement, message: string): HTMLElement | null {
   const selector = MISSING_TARGETS.find(([re]) => re.test(message))?.[1];
-  const el = selector ? root.querySelector<HTMLElement>(selector) : null;
-  if (!el) return;
+  return selector ? root.querySelector<HTMLElement>(selector) : null;
+}
+
+function flagMissing(root: HTMLElement, message: string): void {
+  const el = missingTarget(root, message);
+  if (el) flagElement(root, el);
+}
+
+function flagElement(root: HTMLElement, el: HTMLElement): void {
+  root.querySelectorAll('.ob-missing').forEach((x) => x.classList.remove('ob-missing'));
+  root.querySelectorAll('[aria-invalid="true"]').forEach((x) => x.removeAttribute('aria-invalid'));
   // el input de la fecha está oculto: se marca el selector visible que lo envuelve
   const box = el.closest<HTMLElement>('.date-picker, .ob-toggle') ?? (el.matches('input, textarea, select') ? el.closest<HTMLElement>('.ob-field') : null) ?? el;
   box.classList.add('ob-missing');
@@ -372,6 +424,49 @@ function flagMissing(root: HTMLElement, message: string): void {
   box.scrollIntoView({ block: 'center', behavior: 'smooth' });
   const focusable = box.matches('.date-picker') ? box.querySelector<HTMLElement>('[role=spinbutton]') : el.matches('input:not([type=checkbox]), textarea') ? el : null;
   focusable?.focus({ preventScroll: true });
+}
+
+/** Lo primero sin contestar en un paso, para no avanzar con huecos. Revisa
+ * lo que se ve: grupos de opciones sin elegir y campos vacíos que no dicen
+ * «opcional». Rangos y combinaciones los revisa la validación completa al
+ * guardar (coachProfileError), que sigue siendo la que manda. */
+function stepGap(section: HTMLElement): { el: HTMLElement; question: string } | null {
+  const shown = (el: HTMLElement) => el.getClientRects().length > 0;
+  const questionOf = (el: HTMLElement): string => {
+    const q = el.previousElementSibling;
+    if (q?.classList.contains('ob-q')) return q.textContent!.trim();
+    // el título del campo: el primer texto que no sea el input con su unidad
+    const field = el.closest('label, .ob-field');
+    const head = field && !field.matches('label') ? (field.querySelector('label') ?? field) : field;
+    for (const n of head?.childNodes ?? []) {
+      if (n instanceof Element && n.querySelector('input, textarea, select')) continue;
+      const t = n.textContent?.trim();
+      if (t) return t;
+    }
+    return 'este dato';
+  };
+  for (const el of section.querySelectorAll<HTMLElement>('.ob-chips, .ob-options, input, textarea')) {
+    if (el.closest('.ob-other-list')) continue;
+    if (el.matches('.ob-chips, .ob-options')) {
+      if (shown(el) && !el.querySelector('.on')) return { el, question: questionOf(el) };
+      continue;
+    }
+    const input = el as HTMLInputElement;
+    if (['checkbox', 'file'].includes(input.type) || input.disabled) continue;
+    if (input.closest('label, .ob-field')?.querySelector('.ob-optional')) continue;
+    if (input.id === 'ob-ftp' && section.querySelector<HTMLInputElement>('#ob-no-ftp')?.checked) continue;
+    // la fecha vive en un input oculto detrás del selector de día/mes/año
+    if (input.id !== 'ob-birth-date' && !shown(input)) continue;
+    if (!input.value.trim()) {
+      const toggle = input.closest('.ob-field')?.querySelector<HTMLElement>('.ob-toggle');
+      return { el: input, question: questionOf(input) + (toggle ? ` (o marca «${toggle.querySelector('.ob-toggle-title')?.textContent}»)` : '') };
+    }
+  }
+  const noOther = section.querySelector<HTMLInputElement>('#ob-no-other');
+  if (noOther && !noOther.checked && !section.querySelector('.ob-other-row')) {
+    return { el: noOther, question: 'Agrega tus otras actividades o marca «No hago otra actividad además de la bici»' };
+  }
+  return null;
 }
 
 /** `allowSkip`: true en el primer aviso al llegar a la app (se puede
@@ -633,8 +728,64 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
   backdrop.querySelector('#onboarding-close')?.addEventListener('click', close);
   backdrop.querySelector('#onboarding-skip')?.addEventListener('click', close);
 
+  // ── Pasos: una sección a la vez, con Piñón guiando ──
+  const sections = [...backdrop.querySelectorAll<HTMLElement>('.ob-section')];
+  const editing = isCoachProfileComplete(p);
+  const statusEl = backdrop.querySelector<HTMLElement>('#onboarding-status')!;
+  const guideEl = backdrop.querySelector<HTMLElement>('#ob-guide-text')!;
+  const bar = backdrop.querySelector<HTMLElement>('#ob-progress-bar')!;
+  const backBtn = backdrop.querySelector<HTMLButtonElement>('#onboarding-back')!;
+  const nextBtn = backdrop.querySelector<HTMLButtonElement>('#onboarding-next')!;
+  const saveBtn = backdrop.querySelector<HTMLButtonElement>('#onboarding-submit')!;
+  const bodyEl = backdrop.querySelector<HTMLElement>('.ob-body')!;
+  let step = 1;
+  // hasta dónde llegó: a esos pasos se puede saltar con los puntitos (al
+  // editar un perfil ya completo, a todos)
+  let reached = editing ? sections.length : 1;
+  const showStep = (n: number, focus = true) => {
+    step = Math.min(Math.max(n, 1), sections.length);
+    reached = Math.max(reached, step);
+    sections.forEach((s, i) => (s.hidden = i + 1 !== step));
+    guideEl.textContent = obGuideLine(step, appState.displayName() || undefined, genderOf(sex));
+    bar.style.width = `${(step / sections.length) * 100}%`;
+    backdrop.querySelectorAll<HTMLButtonElement>('.ob-step-dot').forEach((dot) => {
+      const n2 = Number(dot.dataset.go);
+      dot.classList.toggle('done', n2 < step && n2 <= reached);
+      dot.disabled = n2 > reached;
+      if (n2 === step) dot.setAttribute('aria-current', 'step');
+      else dot.removeAttribute('aria-current');
+    });
+    backBtn.hidden = step === 1;
+    nextBtn.hidden = step === sections.length;
+    saveBtn.hidden = step !== sections.length && !editing;
+    statusEl.textContent = '';
+    bodyEl.scrollTop = 0;
+    if (focus) {
+      const title = sections[step - 1].querySelector<HTMLElement>('.ob-section-title')!;
+      title.tabIndex = -1;
+      title.focus({ preventScroll: true });
+    }
+  };
+  backBtn.addEventListener('click', () => showStep(step - 1));
+  nextBtn.addEventListener('click', () => {
+    const gap = stepGap(sections[step - 1]);
+    if (gap) {
+      statusEl.textContent = `Contesta «${gap.question}» para seguir.`;
+      flagElement(backdrop, gap.el);
+      return;
+    }
+    showStep(step + 1);
+  });
+  backdrop.querySelector('#ob-steps')?.addEventListener('click', (e) => {
+    const dot = (e.target as HTMLElement).closest<HTMLButtonElement>('.ob-step-dot');
+    if (dot && !dot.disabled) showStep(Number(dot.dataset.go));
+  });
+  // el saludo de Piñón cambia de género en cuanto se elige el sexo
+  backdrop.querySelector('#ob-sex')?.addEventListener('click', () => (guideEl.textContent = obGuideLine(step, appState.displayName() || undefined, genderOf(sex))));
+  showStep(1, false);
+
   backdrop.querySelector('#onboarding-submit')?.addEventListener('click', async () => {
-    const status = backdrop.querySelector<HTMLElement>('#onboarding-status')!;
+    const status = statusEl;
     const numOrUndef = (id: string) => {
       const raw = backdrop.querySelector<HTMLInputElement>(id)!.value;
       return raw.trim() !== '' && Number.isFinite(Number(raw)) ? Number(raw) : undefined;
@@ -699,6 +850,10 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     const before = coachProfileError({ ...candidate, ftpSource: 'default', hrMaxConfirmed: false, competes: false, recentBestResult: '-', otherActivities: [] });
     const missing = aboutYou ?? intakeRead.missing ?? before ?? ftpOrHrError() ?? coachProfileError(candidate);
     if (missing) {
+      // lo que falta puede estar en un paso anterior: se regresa ahí
+      const target = missingTarget(backdrop, missing);
+      const owner = target?.closest<HTMLElement>('.ob-section');
+      if (owner) showStep(sections.indexOf(owner) + 1, false);
       status.textContent = missing;
       flagMissing(backdrop, missing);
       return;

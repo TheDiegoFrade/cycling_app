@@ -65,7 +65,9 @@ describe('pinonTip', () => {
 
   it('3 · vienes cargado (TSB < −20)', () => {
     const t = pinonTip({ ...base, tsb: -21, isRestDay: true });
-    expect(t.text).toMatch(/^Vienes cargado\. Hoy suave o descanso/);
+    expect(t.text).toMatch(/^Vienes con mucha carga\. Hoy suave o descanso/);
+    expect(pinonTip({ ...base, tsb: -21, gender: 'm' }).text).toMatch(/^Vienes cargado\./);
+    expect(pinonTip({ ...base, tsb: -21, gender: 'f' }).text).toMatch(/^Vienes cargada\./);
     expect(t.action).toBeUndefined();
     expect(pinonTip({ ...base, tsb: -20, isRestDay: true }).text).toMatch(/^Hoy descansas/);
   });

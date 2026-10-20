@@ -1298,3 +1298,23 @@ alter table profiles add column if not exists rpe_zones jsonb
 alter table profiles drop constraint if exists profiles_ftp_source_check;
 alter table profiles add constraint profiles_ftp_source_check
   check (ftp_source in ('default', 'provisional', 'manual', 'test_ramp', 'test_20min', 'test_rpe_ramp'));
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Lista de espera. Torq es por invitación: quien llega sin cuenta deja su
+-- correo desde el login (src/sync/waitlist.ts) y el admin invita por orden.
+-- Cualquiera (anon) puede apuntarse, nadie puede leer la lista desde la app
+-- (no hay policy de select: se ve solo en el dashboard / service role).
+-- ─────────────────────────────────────────────────────────────────────────
+create table if not exists waitlist (
+  id uuid primary key default gen_random_uuid(),
+  email text not null check (length(email) <= 254 and email ~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$'),
+  name text check (name is null or length(name) <= 80),
+  discipline text check (discipline is null or discipline in ('mountain', 'road', 'gravel', 'other')),
+  created_at timestamptz not null default now()
+);
+create unique index if not exists waitlist_email_unique on waitlist (lower(email));
+alter table waitlist enable row level security;
+
+drop policy if exists "waitlist: cualquiera se apunta" on waitlist;
+create policy "waitlist: cualquiera se apunta" on waitlist for insert
+  to anon, authenticated with check (true);

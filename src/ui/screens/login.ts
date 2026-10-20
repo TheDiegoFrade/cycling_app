@@ -3,6 +3,7 @@ import { subscribeAmbientState, toggleAmbientTrack } from '../ambient-audio';
 import { navigate } from '../router';
 import { appState } from '../state';
 import { requestPasswordReset } from '../password-reset';
+import { joinWaitlist } from '../../sync/waitlist';
 
 /** Supabase contesta en inglés ("Invalid login credentials"…): a la persona
  * se le dice en español qué pasó y qué hacer. */
@@ -29,6 +30,23 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
           <a href="#" class="hint" id="login-forgot" style="display:block;margin-top:8px">¿Olvidaste tu contraseña?</a>
           <div id="login-result" aria-live="polite"></div>
         </form>
+        <button type="button" class="ghost-btn waitlist-toggle" id="waitlist-toggle">¿Sin cuenta? Únete a la lista de espera</button>
+        <form class="entry-fields" id="waitlist-form" novalidate>
+          <p class="waitlist-intro">Torq es por invitación. Déjanos tu correo y te escribimos en cuanto haya lugar.</p>
+          <label>Correo<input type="email" id="waitlist-email" placeholder="tucorreo@ejemplo.com" autocomplete="email"></label>
+          <label>Nombre <span class="hint">(opcional)</span><input type="text" id="waitlist-name" maxlength="80" autocomplete="given-name"></label>
+          <label>¿Qué ruedas? <span class="hint">(opcional)</span>
+            <select id="waitlist-discipline">
+              <option value="">—</option>
+              <option value="road">Ruta</option>
+              <option value="mountain">Montaña / XC</option>
+              <option value="gravel">Gravel</option>
+              <option value="other">Otra</option>
+            </select>
+          </label>
+          <button type="submit" class="primary" id="waitlist-btn">Apuntarme</button>
+          <div id="waitlist-result" aria-live="polite"></div>
+        </form>
       </div>
       <button type="button" class="music-toggle" id="music-toggle" title="Still Corners – The Trip (click para reproducir)">🔇</button>
       <button type="button" class="hero-toggle" id="hero-toggle" title="Cambiar apariencia">${appState.settings.heroCharacter === 'woman' ? '🚴‍♀️' : '🚴‍♂️'}</button>
@@ -47,11 +65,38 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
   const fields = container.querySelector<HTMLElement>('#entry-fields')!;
   const musicToggle = container.querySelector<HTMLButtonElement>('#music-toggle')!;
 
-  toggleBtn.addEventListener('click', () => {
+  const waitlistToggle = container.querySelector<HTMLButtonElement>('#waitlist-toggle')!;
+  const waitlistForm = container.querySelector<HTMLFormElement>('#waitlist-form')!;
+  /** Muestra el login o la lista de espera (uno a la vez). */
+  const show = (which: 'login' | 'waitlist') => {
     pill.classList.add('active');
-    fields.classList.add('open');
-    toggleBtn.hidden = true;
-    container.querySelector<HTMLInputElement>('#login-email')?.focus();
+    fields.classList.toggle('open', which === 'login');
+    waitlistForm.classList.toggle('open', which === 'waitlist');
+    toggleBtn.hidden = which === 'login';
+    toggleBtn.textContent = which === 'waitlist' ? 'Ya tengo cuenta: entrar' : 'Entrar';
+    waitlistToggle.hidden = which === 'waitlist';
+    container.querySelector<HTMLInputElement>(which === 'login' ? '#login-email' : '#waitlist-email')?.focus();
+  };
+  toggleBtn.addEventListener('click', () => show('login'));
+  waitlistToggle.addEventListener('click', () => show('waitlist'));
+  waitlistForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const resultEl = container.querySelector<HTMLElement>('#waitlist-result')!;
+    const btn = container.querySelector<HTMLButtonElement>('#waitlist-btn')!;
+    btn.disabled = true;
+    resultEl.innerHTML = '<p class="hint">Enviando…</p>';
+    const res = await joinWaitlist(
+      container.querySelector<HTMLInputElement>('#waitlist-email')!.value,
+      container.querySelector<HTMLInputElement>('#waitlist-name')!.value,
+      container.querySelector<HTMLSelectElement>('#waitlist-discipline')!.value,
+    );
+    btn.disabled = false;
+    if (res === 'ok') {
+      waitlistForm.querySelectorAll('label, #waitlist-btn, .waitlist-intro').forEach((el) => ((el as HTMLElement).hidden = true));
+      resultEl.innerHTML = '<p class="waitlist-done">Listo, ya estás en la lista. Te escribimos a ese correo cuando haya lugar.</p>';
+    } else {
+      resultEl.innerHTML = `<div class="error-box">${res === 'invalid_email' ? 'Revisa tu correo: parece que le falta algo.' : 'No se pudo guardar. Intenta de nuevo en un momento.'}</div>`;
+    }
   });
 
   // control de música totalmente aparte del login: nadie debería tener que

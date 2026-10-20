@@ -1,3 +1,4 @@
+import { byGender, genderOf } from '../../core/gender';
 import { formLabel, suggestToday } from '../../engine/coaching';
 import { computeSessionAnalytics } from '../../engine/analytics';
 import { computePmc, futureTssEntries } from '../../engine/pmc';
@@ -123,7 +124,7 @@ function cloudRow(s: (typeof appState.cloudSessions)[number]): HistoryRow {
 }
 
 function formInterpretation(tsb: number): string {
-  if (tsb > 5) return 'Estás fresco y con buena base. Buen momento para meter intensidad esta semana.';
+  if (tsb > 5) return `${byGender(genderOf(appState.profile.sex), 'Estás fresco', 'Estás fresca', 'Tienes piernas frescas')} y buena base. Buen momento para meter intensidad esta semana.`;
   if (tsb < -10)
     return 'Traes una carga de entrenamiento alta — eso es lo que construye forma. Un día suave hoy te la deja lista para seguir sumando.';
   return 'Carga equilibrada entre esfuerzo y descanso. Sigue como vas.';
@@ -417,7 +418,7 @@ export function renderForma(container: HTMLElement): () => void {
 
       // tarjeta "hoy": qué entrenar según la forma actual, y si ya hay algo
       // agendado para hoy en Plan, para no contradecirlo.
-      const suggestion = suggestToday(latest.tsb, new Date().getDay());
+      const suggestion = suggestToday(latest.tsb, new Date().getDay(), genderOf(appState.profile.sex));
       const template = findTemplate(suggestion.templateId);
       const todayWorkout = appState.workouts.find((w) => w.scheduledDate === todayKey);
       const suggestedEstimate = template ? estimateWorkout(template.build(template.defaultMinutes), appState.profile.ftp) : null;
@@ -504,7 +505,7 @@ export function renderForma(container: HTMLElement): () => void {
               </div>
               <div class="forma-card lift" data-pinon-perch>
                 <span class="forma-card-label">Forma <span class="forma-num-sub">(${latest.tsb > 0 ? '+' : ''}${Math.round(latest.tsb)})</span></span>
-                <span class="forma-card-num forma-card-word" style="color:${formaColor(latest.tsb)}">${formLabel(latest.tsb)}</span>
+                <span class="forma-card-num forma-card-word" style="color:${formaColor(latest.tsb)}">${formLabel(latest.tsb, genderOf(appState.profile.sex))}</span>
                 <span class="forma-card-sub">fitness menos fatiga</span>
                 ${tokenHtml('ss', 72, 'forma-card-tk')}
               </div>

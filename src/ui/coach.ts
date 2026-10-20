@@ -3,6 +3,7 @@
 // si no, no se muestra nada (el coach necesita la Edge Function coach-chat).
 import { supabase, isSupabaseConfigured } from '../supabase/client';
 import { appState } from './state';
+import { byGender, genderOf } from '../core/gender';
 import { isCoachProfileComplete, openOnboardingForm } from './onboarding';
 import { computePmc } from '../engine/pmc';
 import { listSessions } from '../storage/session-store';
@@ -66,7 +67,7 @@ export async function aiEligibleSessions(bikeOnly: boolean): Promise<{
 // transmitir que sí está trabajando, no que se colgó.
 const THINKING_MESSAGES = [
   '🧠 Revisando tu historial…',
-  '📊 Calculando qué tan en forma y qué tan cansado vienes…',
+  '📊 Calculando tu forma y la fatiga que traes…',
   '🗓️ Armando la periodización del plan…',
   '💪 Concretando el primer bloque de entrenamientos…',
   '🔧 Armando los intervalos de cada sesión…',
@@ -317,7 +318,7 @@ function evalFormHtml(isRefresh: boolean, hint: string): string {
     </div>
     <div id="coach-eval-form" style="display:none;margin-top:10px">
       <label class="live-col-label">¿Cómo te fue esta semana y algo que debamos saber para la que viene? (opcional)
-        <textarea id="coach-eval-note" rows="3" placeholder="Ej. me sentí muy cansado toda la semana · el miércoles no voy a poder entrenar · el sábado tengo una rodada larga con un grupo · estoy de vacaciones…" style="width:100%;resize:vertical;font-family:inherit"></textarea>
+        <textarea id="coach-eval-note" rows="3" placeholder="Ej. ${byGender(genderOf(appState.profile.sex), 'me sentí muy cansado', 'me sentí muy cansada', 'sentí mucho cansancio')} toda la semana · el miércoles no voy a poder entrenar · el sábado tengo una rodada larga con un grupo · estoy de vacaciones…" style="width:100%;resize:vertical;font-family:inherit"></textarea>
       </label>
       <label class="live-col-label" style="display:block;margin-top:8px">¿Hiciste algo más además de la bici? (opcional)
         <textarea id="coach-eval-other" rows="2" maxlength="1000" placeholder="Ej. crossfit el lunes y el jueves, 50 min cada uno · corrí 5 km el sábado · nada más" style="width:100%;resize:vertical;font-family:inherit"></textarea>
