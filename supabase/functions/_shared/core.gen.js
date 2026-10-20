@@ -772,6 +772,14 @@ function aiAccess(i) {
   }
   return { ai: false, reason: "none" };
 }
+var FOUNDER_DAYS = 60;
+function founderUntilFromLaunch(launchDate) {
+  if (!launchDate || !/^\d{4}-\d{2}-\d{2}$/.test(launchDate)) return null;
+  const d = /* @__PURE__ */ new Date(`${launchDate}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  d.setUTCDate(d.getUTCDate() + FOUNDER_DAYS - 1);
+  return d.toISOString().slice(0, 10);
+}
 function priceForNewSubscription(now, founderUntil) {
   if (!founderUntil || !/^\d{4}-\d{2}-\d{2}$/.test(founderUntil)) return PRICE_MXN;
   return now.getTime() < (/* @__PURE__ */ new Date(`${founderUntil}T23:59:59-06:00`)).getTime() ? FOUNDER_PRICE_MXN : PRICE_MXN;
@@ -885,6 +893,7 @@ export {
   defaultReviewMonth,
   emailKpis,
   evalWeekTarget,
+  founderUntilFromLaunch,
   hasUnlimitedCoach,
   localDateKey,
   mondayOfWeek,

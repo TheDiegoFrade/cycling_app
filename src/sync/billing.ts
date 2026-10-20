@@ -10,6 +10,8 @@ export interface BillingStatus {
   subscription: { status: string; price_mxn: number; paid_until: string | null; grace_until: string | null } | null;
   /** Precio al que se suscribiría ahora (399, o 299 de fundador). */
   priceMxn: number;
+  /** Último día (YYYY-MM-DD) del precio de fundador, si aplica. */
+  founderUntil?: string | null;
   /** false = Mercado Pago todavía no está configurado (no se puede cobrar). */
   billingReady: boolean;
   isAdmin: boolean;

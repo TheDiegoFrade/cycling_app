@@ -98,11 +98,13 @@ test.describe('Crear mi plan', () => {
 
   test('cuenta sin acceso al coach: ve el precio ANTES de pedirle el cuestionario', async ({ page, backend, ux }) => {
     await enterAs(page, backend, 'carla', false);
-    backend.billingStatus = { ai: false, reason: 'none', subscription: null, priceMxn: 299, billingReady: true, isAdmin: false };
+    backend.billingStatus = { ai: false, reason: 'none', subscription: null, priceMxn: 299, founderUntil: '2026-12-30', billingReady: true, isAdmin: false };
     await page.goto('/#/plan');
     // en lugar de «Crear mi plan» (que abriría 29 preguntas), el precio
     await expect(page.locator('#coach-slot [data-pricing]')).toBeVisible();
     await expect(page.locator('#coach-slot')).toContainText('$299');
+    // fundadores: los primeros 60 días, y se dice hasta cuándo
+    await expect(page.locator('#coach-slot .pricing-founder')).toHaveText('Precio de fundador hasta el 30 de diciembre · normal $399');
     await expect(page.locator('#coach-open-create')).toHaveCount(0);
     await ux.shot('70-plan-sin-acceso-precio');
   });

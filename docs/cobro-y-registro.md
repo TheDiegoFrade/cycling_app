@@ -9,9 +9,9 @@ de producto están en
 
 > **Estado:** todo funciona en **modo de prueba**. Mientras no se configure
 > Mercado Pago, el botón «Suscribirme» aparece apagado con el aviso «El cobro
-> todavía no está activo (modo de prueba)». Los términos se muestran con la
-> etiqueta de borrador (`TERMS_IS_DRAFT` en `src/core/terms-text.ts`) hasta que
-> los revise un abogado.
+> todavía no está activo (modo de prueba)». Los términos ya son la versión
+> vigente (`TERMS_VERSION = '2026-10-20'`, decidido el 20-oct). La revisión de
+> un abogado queda para después.
 
 ## Quién tiene la IA
 
@@ -118,8 +118,9 @@ máximo de 20.
 - El cuestionario no acepta una fecha de nacimiento de menor de 18
   (`BODY_LIMITS.ageYears` en `src/core/coach-profile.ts`).
 - Textos: `docs/legal/*-BORRADOR.md` → `src/core/terms-text.ts` y
-  `privacy-text.ts`. Al aprobar el abogado: cambiar `TERMS_VERSION`, poner
-  `TERMS_IS_DRAFT = false`.
+  `privacy-text.ts`. Si un abogado los cambia después: actualizar el texto y
+  subir `TERMS_VERSION`; a todos se les vuelve a pedir aceptarlo.
+  (`TERMS_IS_DRAFT = true` vuelve a mostrar la etiqueta de borrador.)
 
 ## Configuración, paso a paso
 
@@ -142,7 +143,7 @@ un Postgres 16 limpio.
 | `MP_ACCESS_TOKEN` | Access token de Mercado Pago. En prueba, el que empieza con `TEST-` (credenciales de prueba). |
 | `MP_WEBHOOK_SECRET` | Clave secreta del webhook (Mercado Pago → Webhooks → «Clave secreta»). |
 | `APP_URL` | URL pública de la app (ya existía; la usan correos, regreso de Mercado Pago e invitaciones). |
-| `TORQ_FOUNDER_UNTIL` | Último día con precio de fundador, `YYYY-MM-DD` (hora de CDMX). Sin valor, todos pagan $399. Propuesta: 60 días desde el lanzamiento. |
+| `TORQ_LAUNCH_DATE` | Día de lanzamiento, `YYYY-MM-DD`. El precio de fundador ($299) dura **60 días** contando ese día (`FOUNDER_DAYS` en `src/core/access.ts`); la app muestra «Precio de fundador hasta el …». Sin valor, todos pagan $399. |
 
 ### 3. Funciones
 

@@ -16,10 +16,13 @@ export function hasAi(): boolean {
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
 
+const fmtDay = (ymd: string) => new Date(`${ymd}T12:00:00Z`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+
 function priceHtml(b: BillingStatus | null): string {
   const price = b?.priceMxn ?? PRICE_MXN;
+  const until = b?.founderUntil ? ` hasta el ${fmtDay(b.founderUntil)}` : '';
   return price === FOUNDER_PRICE_MXN
-    ? `<span class="pricing-price">$${FOUNDER_PRICE_MXN}</span> al mes <span class="pricing-founder">Precio de fundador · normal $${PRICE_MXN}</span>`
+    ? `<span class="pricing-price">$${FOUNDER_PRICE_MXN}</span> al mes <span class="pricing-founder">Precio de fundador${until} · normal $${PRICE_MXN}</span>`
     : `<span class="pricing-price">$${price}</span> al mes`;
 }
 

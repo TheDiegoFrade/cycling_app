@@ -56,6 +56,20 @@ export function aiAccess(i: AccessInput): Access {
   return { ai: false, reason: 'none' };
 }
 
+/** El precio de fundador dura los primeros 60 días desde el lanzamiento. */
+export const FOUNDER_DAYS = 60;
+
+/** Último día con precio de fundador (YYYY-MM-DD) a partir del día de
+ * lanzamiento (YYYY-MM-DD): el lanzamiento cuenta como día 1. Sin fecha
+ * válida, no hay precio de fundador. */
+export function founderUntilFromLaunch(launchDate: string | null | undefined): string | null {
+  if (!launchDate || !/^\d{4}-\d{2}-\d{2}$/.test(launchDate)) return null;
+  const d = new Date(`${launchDate}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  d.setUTCDate(d.getUTCDate() + FOUNDER_DAYS - 1);
+  return d.toISOString().slice(0, 10);
+}
+
 /** Precio al suscribirse: el de fundador si es antes de la fecha límite
  * (`founderUntil`, YYYY-MM-DD; sin fecha, no hay precio de fundador). Se
  * conserva mientras la suscripción siga activa: lo decide quien la crea, una

@@ -1,9 +1,10 @@
 // Texto de los términos que se aceptan en la app (pantalla de ui/terms-gate.ts).
-// GENERADO a partir de docs/legal/terminos-y-responsabilidad-BORRADOR.md: es
-// el BORRADOR, en modo de prueba, hasta que lo revise un abogado. Al cambiar
-// el texto se cambia TERMS_VERSION, y la app vuelve a pedir aceptarlo.
-export const TERMS_VERSION = '2026-10-20-borrador';
-export const TERMS_IS_DRAFT = true;
+// GENERADO a partir de docs/legal/terminos-y-responsabilidad-BORRADOR.md.
+// Aprobado como versión vigente el 20-oct-2026 (pendiente revisión de un
+// abogado). Al cambiar el texto se cambia TERMS_VERSION, y la app vuelve a
+// pedir aceptarlo a todos.
+export const TERMS_VERSION = '2026-10-20';
+export const TERMS_IS_DRAFT = false;
 
 export const TERMS_TEXT = `## 1. Qué es Torq
 
