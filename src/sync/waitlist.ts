@@ -18,5 +18,8 @@ export async function joinWaitlist(email: string, name: string, discipline: stri
   // Ya estaba apuntado (índice único): para la persona es lo mismo, y no
   // revelamos si un correo ya estaba en la lista.
   if (!error || error.code === '23505') return 'ok';
+  // Para diagnosticar desde la consola del navegador. PGRST205 / 42P01 = la
+  // tabla no existe en este Supabase: falta correr supabase/schema.sql.
+  console.warn('[waitlist] no se pudo guardar', error.code, error.message);
   return 'failed';
 }

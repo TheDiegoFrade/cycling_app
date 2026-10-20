@@ -1380,6 +1380,9 @@ alter table waitlist enable row level security;
 drop policy if exists "waitlist: cualquiera se apunta" on waitlist;
 create policy "waitlist: cualquiera se apunta" on waitlist for insert
   to anon, authenticated with check (true);
+-- Explícito por si el proyecto no da permisos por defecto a tablas nuevas
+-- (solo insertar; leer sigue cerrado: no hay policy de select).
+grant insert on waitlist to anon, authenticated;
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- Suscripción Torq Coach IA (Mercado Pago). Solo para atletas sin coach: los
