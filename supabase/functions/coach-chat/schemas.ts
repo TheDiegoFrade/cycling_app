@@ -49,6 +49,7 @@ const HealthIntakeSchema = z.object({
   injuryLimitsIntensity: z.boolean().optional(),
   recentTraining: z.enum(['little', 'easy', 'with_intensity']).optional(),
   recentHoursPerWeek: z.number().min(0).max(40).nullable().optional(),
+  recentTrainingNote: z.string().max(500).nullable().optional(),
   smoking: z.enum(['no', 'occasional', 'daily']),
   alcohol: z.enum(['rarely', 'weekly', 'frequent']),
   stress: z.enum(['low', 'medium', 'high']),

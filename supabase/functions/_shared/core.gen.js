@@ -564,9 +564,8 @@ function startingProfile(p) {
   const maxEffortReady = reasons.length === 0;
   const knowsHowToDose = !!i?.maxEffortExperience && i.rpeLiteracy === "yes" && (p.experienceLevel === "experienced" || (p.structuredTrainingYears ?? 0) >= 1);
   const testPlan = !maxEffortReady ? "none" : knowsHowToDose ? "test20" : "ramp";
-  const baseFirst = !!i && (i.smoking !== "no" || i.alcohol !== "rarely");
+  const baseFirst = !!i && (i.smoking !== "no" || i.alcohol === "frequent");
   let stress = i?.stress ?? "medium";
-  if (i && i.alcohol !== "rarely") stress = bump(stress);
   if (i && (i.sleepHours < SHORT_SLEEP_H || i.sleepQuality === "poor")) stress = bump(stress);
   if (i && i.alcohol === "frequent") stress = "high";
   const poorSleep = !!i && (i.sleepHours < SHORT_SLEEP_H || i.sleepQuality === "poor");

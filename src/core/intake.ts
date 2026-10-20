@@ -58,6 +58,10 @@ export interface HealthIntake {
   recentTraining?: RecentTraining;
   /** Horas por semana de esas 4 semanas (aprox.); null = no sabe. */
   recentHoursPerWeek?: number | null;
+  /** Cómo es una semana típica de su entrenamiento (texto libre). El
+   * cuestionario lo pide si viene entrenando; con eso el coach no arranca
+   * de cero con quien ya tiene una rutina. */
+  recentTrainingNote?: string;
   smoking: Smoking;
   /** rarely = nunca o rara vez · weekly = 1-2 veces por semana ·
    * frequent = 3 o más veces por semana. */
@@ -152,11 +156,12 @@ export function startingProfile(
     !!i?.maxEffortExperience && i.rpeLiteracy === 'yes' && (p.experienceLevel === 'experienced' || (p.structuredTrainingYears ?? 0) >= 1);
   const testPlan: TestPlan = !maxEffortReady ? 'none' : knowsHowToDose ? 'test20' : 'ramp';
 
-  // (provisional) Fumar (aunque sea ocasional) o alcohol semanal o más.
-  const baseFirst = !!i && (i.smoking !== 'no' || i.alcohol !== 'rarely');
+  // Fumar (aunque sea ocasional) o alcohol frecuente (3 o más veces por
+  // semana). Tomar 1-2 veces por semana es lo común y no se castiga
+  // (decisión de producto, 20-oct-2026).
+  const baseFirst = !!i && (i.smoking !== 'no' || i.alcohol === 'frequent');
 
   let stress: Level3 = i?.stress ?? 'medium';
-  if (i && i.alcohol !== 'rarely') stress = bump(stress); // Joe: con alcohol asume estrés alto
   if (i && (i.sleepHours < SHORT_SLEEP_H || i.sleepQuality === 'poor')) stress = bump(stress);
   if (i && i.alcohol === 'frequent') stress = 'high';
   const poorSleep = !!i && (i.sleepHours < SHORT_SLEEP_H || i.sleepQuality === 'poor');

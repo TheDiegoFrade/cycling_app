@@ -55,11 +55,11 @@ describe('startingProfile (método de Joe)', () => {
     expect(noRpe).toMatchObject({ testPlan: 'none', teachRpe: true });
   });
 
-  it('hábitos: fumar o alcohol → base primero; alcohol frecuente → estrés alto y arranque conservador', () => {
+  it('hábitos: fumar o alcohol frecuente → base primero y estrés alto; 1-2 veces por semana no cuenta', () => {
     expect(startingProfile({ ...athlete, intake: { ...healthy, smoking: 'occasional' } }).baseFirst).toBe(true);
     const drinks = startingProfile({ ...athlete, intake: { ...healthy, alcohol: 'frequent' } });
     expect(drinks).toMatchObject({ baseFirst: true, stressAdjusted: 'high', start: 'conservative' });
-    expect(startingProfile({ ...athlete, intake: { ...healthy, alcohol: 'weekly' } }).stressAdjusted).toBe('medium');
+    expect(startingProfile({ ...athlete, intake: { ...healthy, alcohol: 'weekly' } })).toMatchObject({ baseFirst: false, stressAdjusted: 'low', start: 'normal' });
   });
 
   it('sueño corto o malo → arranque conservador', () => {

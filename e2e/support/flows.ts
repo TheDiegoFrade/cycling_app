@@ -113,12 +113,13 @@ export async function fillOnboarding(page: Page, ux: Ux, p: Persona): Promise<vo
   await ux.click(option('ob-fitness', p.fitness), `Actividad: ${p.fitness}`);
   await ux.fill(m.locator('#ob-years'), p.years, 'Años en bici');
   await ux.fill(m.locator('#ob-structured-years'), p.structuredYears, 'Años con estructura');
-  await ux.click(chip('ob-recent-training', p.recentTraining), 'Últimas 4 semanas');
   await ux.click(chip('ob-rpe', 'Más o menos'), 'RPE');
   await ux.click(chip('ob-max-effort', 'No'), 'Esfuerzos máximos');
   await next(4);
   // 5. Bici
   await ux.click(m.locator('#ob-discipline .ob-chip', { hasText: p.discipline }), `Disciplina: ${p.discipline}`);
+  await ux.click(chip('ob-recent-training', p.recentTraining), 'Últimas 4 semanas');
+  if (p.recentTraining !== 'Poco o nada') await ux.fill(m.locator('#ob-recent-note'), 'Martes y jueves rodillo 1 h con series, sábado salida larga de 3 h', 'Semana típica');
   await next(5);
   // 6. Números
   if (p.ftp) await ux.fill(m.locator('#ob-ftp'), p.ftp, 'FTP');

@@ -8,7 +8,12 @@ const DAY_MS = 86_400_000;
 export const todayKey = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 const addDays = (key, n) => { const d = new Date(`${key}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 export const fmtLong = (key) => new Date(`${key}T12:00:00Z`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-const inWeeks = (n) => fmtLong(addDays(todayKey(), n * 7));
+// El evento cae en el domingo de la semana N (las carreras son en fin de semana).
+const inWeeks = (n) => {
+  const k = addDays(todayKey(), n * 7);
+  const dow = new Date(`${k}T12:00:00Z`).getUTCDay();
+  return fmtLong(addDays(k, (7 - dow) % 7));
+};
 
 const healthy = { conditions: [], takesMedication: false, recentInjury: false, injuryLimitsIntensity: false, smoking: 'no', alcohol: 'rarely' };
 
@@ -28,7 +33,7 @@ export const PERFILES = [
     discipline: 'mountain', experienceLevel: 'experienced', generalFitnessLevel: 'active_cyclist', yearsRiding: 6, structuredTrainingYears: 2, competes: true, category: 'Master 40',
     ftp: { watts: 235, source: 'manual', ageDays: 21 }, hrMax: 182, injuries: null,
     otherActivities: [{ kind: 'strength', perWeek: 2, minutes: 60, days: ['mon', 'wed'] }],
-    intake: { ...healthy, alcohol: 'weekly', stress: 'medium', sleepHours: 7, sleepQuality: 'good', restingHr: 56, rpeLiteracy: 'yes', maxEffortExperience: true, recentTraining: 'easy', recentHoursPerWeek: 5 },
+    intake: { ...healthy, alcohol: 'weekly', stress: 'medium', sleepHours: 7, sleepQuality: 'good', restingHr: 56, rpeLiteracy: 'yes', maxEffortExperience: true, recentTraining: 'easy', recentHoursPerWeek: 5, recentTrainingNote: 'Martes y jueves rodillo 1 h (uno suave y otro con series de 10 min), y el sábado o domingo salida de montaña de 2.5 a 3 h con amigos. Gym lunes y miércoles.' },
     availability: { hoursPerWeek: 6, days: ['tue', 'thu', 'sat', 'sun'], maxSessionMinutes: null },
     goal: () => `Correr el Chupacabras 60 km (MTB) el ${inWeeks(12)}. Quiero terminar en menos de 4 horas y no tronarme en la subida final. Voy al gym lunes y miércoles.`,
   },
@@ -41,7 +46,7 @@ export const PERFILES = [
       { kind: 'running', perWeek: 3, minutes: 50, days: ['tue', 'thu', 'sun'] },
       { kind: 'swimming', perWeek: 2, minutes: 60, days: ['mon', 'fri'] },
     ],
-    intake: { ...healthy, stress: 'medium', sleepHours: 7.5, sleepQuality: 'good', restingHr: 50, rpeLiteracy: 'yes', maxEffortExperience: true, recentTraining: 'with_intensity', recentHoursPerWeek: 9 },
+    intake: { ...healthy, stress: 'medium', sleepHours: 7.5, sleepQuality: 'good', restingHr: 50, rpeLiteracy: 'yes', maxEffortExperience: true, recentTraining: 'with_intensity', recentHoursPerWeek: 9, recentTrainingNote: 'Bici: miércoles rodillo 1 h con tempo y sábado salida larga de 2 h. Corro martes (series), jueves (rodaje) y domingo (largo de 1 h 15). Nado lunes y viernes 1 h.' },
     availability: { hoursPerWeek: 5, days: ['wed', 'fri', 'sat'], maxSessionMinutes: null },
     goal: () => `Medio Ironman 70.3 en Cozumel el ${inWeeks(16)}. Corro y nado bien; la bici (90 km) es mi punto débil y quiero llegar a correr el medio maratón sin morirme.`,
   },
@@ -60,7 +65,7 @@ export const PERFILES = [
     discipline: 'road', experienceLevel: 'experienced', generalFitnessLevel: 'active_cyclist', yearsRiding: 7, structuredTrainingYears: 4, competes: true, category: 'Élite femenil',
     ftp: { watts: 235, source: 'test_20min', ageDays: 14 }, hrMax: 196, injuries: null,
     otherActivities: [{ kind: 'strength', perWeek: 2, minutes: 45, days: ['mon', 'thu'] }],
-    intake: { ...healthy, stress: 'low', sleepHours: 8, sleepQuality: 'good', restingHr: 46, rpeLiteracy: 'yes', maxEffortExperience: true, recentTraining: 'with_intensity', recentHoursPerWeek: 12 },
+    intake: { ...healthy, stress: 'low', sleepHours: 8, sleepQuality: 'good', restingHr: 46, rpeLiteracy: 'yes', maxEffortExperience: true, recentTraining: 'with_intensity', recentHoursPerWeek: 12, recentTrainingNote: 'Lunes suave o descanso, martes series de umbral, miércoles fondo de 2 h, jueves VO2 (5×4 min), sábado salida larga de 3-4 h con el equipo y domingo criterium o fondo. Gym lunes y jueves.' },
     availability: { hoursPerWeek: 11, days: ['mon', 'tue', 'wed', 'thu', 'sat', 'sun'], maxSessionMinutes: null },
     goal: () => `Selectivo nacional de ruta (criterium y contrarreloj) el ${inWeeks(8)}. Quiero mejorar mis arranques y aguantar más tiempo en umbral.`,
   },
@@ -69,7 +74,7 @@ export const PERFILES = [
     resumen: 'Papá con poco tiempo, gravel de 100 km, FTP provisional',
     discipline: 'gravel', experienceLevel: 'experienced', generalFitnessLevel: 'active_cyclist', yearsRiding: 5, structuredTrainingYears: 1, competes: false, category: null,
     ftp: { watts: 250, source: 'provisional', ageDays: 3 }, hrMax: null, injuries: null, otherActivities: [],
-    intake: { ...healthy, stress: 'high', sleepHours: 6, sleepQuality: 'poor', restingHr: 60, rpeLiteracy: 'somewhat', maxEffortExperience: true, recentTraining: 'easy', recentHoursPerWeek: 3 },
+    intake: { ...healthy, stress: 'high', sleepHours: 6, sleepQuality: 'poor', restingHr: 60, rpeLiteracy: 'somewhat', maxEffortExperience: true, recentTraining: 'easy', recentHoursPerWeek: 3, recentTrainingNote: 'Martes y jueves 40 min de rodillo suave antes de que despierten mis hijos; el sábado salgo 1.5 h de gravel cuando puedo.' },
     availability: { hoursPerWeek: 4, days: ['tue', 'wed', 'thu', 'sat'], maxSessionMinutes: 120 },
     goal: () => `Gravel de 100 km en la Sierra Gorda el ${inWeeks(12)}. Tengo dos hijos chicos: entre semana solo puedo 40 minutos temprano y el sábado hasta 2 horas. Duermo mal.`,
   },
@@ -79,7 +84,7 @@ export const PERFILES = [
     discipline: 'mountain', experienceLevel: 'returning_or_new_to_app', generalFitnessLevel: 'active_cyclist', yearsRiding: 3, structuredTrainingYears: 0, competes: false, category: null,
     ftp: null, hrMax: null, injuries: null,
     otherActivities: [{ kind: 'mobility', perWeek: 1, minutes: 60, days: ['wed'] }],
-    intake: { ...healthy, conditions: ['asthma'], takesMedication: true, medicationNote: 'Inhalador (salbutamol) antes de rodar', stress: 'medium', sleepHours: 7, sleepQuality: 'good', restingHr: null, rpeLiteracy: 'no', maxEffortExperience: false, recentTraining: 'easy', recentHoursPerWeek: 3 },
+    intake: { ...healthy, conditions: ['asthma'], takesMedication: true, medicationNote: 'Inhalador (salbutamol) antes de rodar', stress: 'medium', sleepHours: 7, sleepQuality: 'good', restingHr: null, rpeLiteracy: 'no', maxEffortExperience: false, recentTraining: 'easy', recentHoursPerWeek: 3, recentTrainingNote: 'Martes rodillo 45 min suave y sábado rodada de montaña de 2 h con mis amigas; me bajo en las subidas largas.' },
     availability: { hoursPerWeek: 4, days: ['tue', 'thu', 'sat'], maxSessionMinutes: null },
     goal: () => 'Subir el Ajusco sin bajarme de la bici en las rodadas con mis amigas. Martes y jueves rodillo; el sábado salgo a rodar con ellas. No compito.',
   },
@@ -99,7 +104,7 @@ export const PERFILES = [
     resumen: 'XCO Master 50 a media temporada, Copa Nacional en 8 semanas',
     discipline: 'mountain', experienceLevel: 'experienced', generalFitnessLevel: 'active_cyclist', yearsRiding: 15, structuredTrainingYears: 8, competes: true, category: 'Master 50',
     ftp: { watts: 265, source: 'test_ramp', ageDays: 10 }, hrMax: 176, injuries: null, otherActivities: [],
-    intake: { ...healthy, stress: 'low', sleepHours: 7, sleepQuality: 'good', restingHr: 48, rpeLiteracy: 'yes', maxEffortExperience: true, recentTraining: 'with_intensity', recentHoursPerWeek: 9 },
+    intake: { ...healthy, stress: 'low', sleepHours: 7, sleepQuality: 'good', restingHr: 48, rpeLiteracy: 'yes', maxEffortExperience: true, recentTraining: 'with_intensity', recentHoursPerWeek: 9, recentTrainingNote: 'Lunes rodillo suave, martes 40/20 o series de VO2, jueves técnica en el cerro, sábado intervalos de umbral y domingo salida larga de 3 h. Corrí la segunda fecha de la Copa hace 2 semanas.' },
     availability: { hoursPerWeek: 9, days: ['mon', 'tue', 'thu', 'sat', 'sun'], maxSessionMinutes: null },
     goal: () => `Copa Nacional de XCO (Master 50) el ${inWeeks(8)}. Estoy a media temporada: corrí hace 2 semanas. Quiero llegar con más chispa en los arranques y en las subidas cortas.`,
   },
@@ -109,7 +114,7 @@ export const PERFILES = [
     discipline: 'other', experienceLevel: 'returning_or_new_to_app', generalFitnessLevel: 'active_other_sport', yearsRiding: 1, structuredTrainingYears: 0, competes: false, category: null,
     ftp: null, hrMax: null, injuries: null,
     otherActivities: [{ kind: 'mobility', perWeek: 2, minutes: 60, days: ['tue', 'thu'] }],
-    intake: { ...healthy, conditions: ['diabetes'], takesMedication: true, medicationNote: 'Metformina', stress: 'high', sleepHours: 7, sleepQuality: 'fair', restingHr: 70, rpeLiteracy: 'somewhat', maxEffortExperience: false, recentTraining: 'easy', recentHoursPerWeek: 2 },
+    intake: { ...healthy, conditions: ['diabetes'], takesMedication: true, medicationNote: 'Metformina', stress: 'high', sleepHours: 7, sleepQuality: 'fair', restingHr: 70, rpeLiteracy: 'somewhat', maxEffortExperience: false, recentTraining: 'easy', recentHoursPerWeek: 2, recentTrainingNote: 'Voy a clase de spinning 2 veces por semana (45 min) y a yoga martes y jueves.' },
     availability: { hoursPerWeek: 3, days: ['mon', 'wed', 'fri', 'sun'], maxSessionMinutes: 45 },
     goal: () => 'Quiero hacer ejercicio que me guste para controlar mi glucosa y bajar el estrés. Me gustan las clases con música; nada de competir.',
   },
