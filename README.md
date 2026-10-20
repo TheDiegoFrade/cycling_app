@@ -39,17 +39,24 @@ La especificación completa del proyecto (modelo de datos, motor de reglas, prot
 
 ## Cómo usarla
 
-1. **Inicio** — configura tu perfil (FTP, pulso máximo, piso de cadencia, techo de pulso), prueba los sonidos y ajusta el volumen, e importa un workout (`.zwo` o `.workout.json`).
-2. **Conectar** — conecta tu rodillo y tu banda por Bluetooth (o usa "Usar simulador" si no tienes el hardware a la mano) y confirma que las lecturas se vean bien.
-3. **Entrenar** — empieza a pedalear (arranca sola) o presiona "Empezar". Espacio pausa/continúa. El botón `ERG` prende/apaga el control de resistencia.
-4. **Resumen** — se abre solo al terminar: revisa tus métricas, descarga el `.fit`, o súbelo a intervals.icu.
-5. **Historial** — cualquier momento, para ver tu progreso a través de todas tus sesiones grabadas.
+1. **Perfil** — configura FTP, pulso máximo, piso de cadencia y techo de pulso, y los sonidos de las alertas.
+2. **Historial** — en la pestaña *Biblioteca* importa workouts (`.zwo`, `.mrc`, `.erg`, `.fit` o `.json`); en *Actividad* están todas tus sesiones grabadas.
+3. **Plan** — tu calendario en vista de semana o de mes: crea un entrenamiento en un día desde una plantilla, arrástralo a otro día, quítalo (pide un motivo), registra una sesión de fuerza o movilidad (la carga se mide en sRPE), agrega un entrenamiento ya hecho desde un `.fit` o desde Strava, o descarga lo agendado en CSV. Desde aquí arrancas el entrenamiento del día.
+4. **Coach de IA** (en Plan, con sesión iniciada) — primero llenas un cuestionario (salud, otras actividades, días disponibles) y luego "Crear mi plan" arma un plan por bloques: rodillo más salidas largas afuera, técnica y gimnasio en el calendario. Cada semana puedes pedirle una evaluación, que también puede sugerirte un FTP nuevo. Si tienes un coach humano vinculado, lo que propone la IA le llega a él como borrador y no ves la semana hasta que él la publica.
+5. **Piñón** — la mascota del coach. Se asoma de vez en cuando (se puede apagar) y explica cada pantalla la primera vez. El botón "Platica con Piñón" (Inicio, Plan, Forma e Historial) abre un chat: las preguntas comunes se contestan en el navegador con tus datos y lo demás va a la IA. Piñón solo opina — nunca cambia tu plan, tus workouts ni tu perfil.
+6. **Conectar** — conecta tu rodillo y tu banda por Bluetooth (o usa "Usar simulador" si no tienes el hardware a la mano) y confirma que las lecturas se vean bien.
+7. **Entrenar** — empieza a pedalear (arranca sola) o presiona "Empezar". Espacio pausa/continúa. El botón `ERG` prende/apaga el control de resistencia.
+8. **Resumen** — se abre solo al terminar: revisa tus métricas, descarga el `.fit`, o súbelo a intervals.icu.
+9. **Forma** — Fitness / Fatigue / Form (PMC) y tu progreso a través de todas tus sesiones.
+
+**Vista del coach humano.** Una cuenta con `profiles.is_coach` (se activa a mano desde el SQL Editor; la app no puede cambiarlo) sigue entrenando como cualquier atleta y además ve en la barra lateral **Atletas**, **Semanas**, **Biblioteca** e **Invitar atleta**. El coach invita con un link de un solo uso que vence; el atleta lo abre, inicia sesión y acepta. Desde ahí el coach revisa el análisis de cada atleta (sin las sesiones que llegaron por Strava), deja notas privadas, edita y publica las semanas que propone la IA, arma su biblioteca de sesiones de bici, fuerza y movilidad, publica revisiones mensuales y aprueba los correos al atleta. La especificación está en [`docs/coach-view/README.md`](./docs/coach-view/README.md).
 
 ### Requisitos
 
-- **Chrome de escritorio** (u otro navegador con Web Bluetooth). Safari no lo soporta.
+- Un navegador con Web Bluetooth: **Chrome o Edge**, en computadora o en Android. Ningún navegador de iPhone/iPad lo soporta (la app sugiere la app gratuita Bluefy), ni Firefox.
 - Para Bluetooth real: HTTPS o `localhost`, y permiso de Bluetooth otorgado al navegador a nivel de sistema operativo.
 - Sin Bluetooth compatible, todo funciona igual con los simuladores.
+- Login, sincronización, coach de IA, Piñón y vista del coach necesitan Supabase configurado (`VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`). Sin esas variables la app corre en modo solo local: sin login, sin nube y sin IA.
 
 ## Desarrollo local
 
@@ -61,7 +68,7 @@ npm run build      # type-check + build de producción
 npm run simulate   # corre una sesión simulada completa y la imprime en consola
 ```
 
-175 tests en Vitest cubren `core/`, `engine/`, `devices/` (parseo de protocolo BLE) y `export/`. La UI y la conexión Bluetooth real se prueban a mano — no hay forma de automatizar hardware real en CI.
+Unos 540 tests en Vitest cubren `core/`, `engine/`, `devices/` (parseo de protocolo BLE), `export/`, `storage/`, partes de `ui/` (Piñón, portadas) y la lógica de la Edge Function `coach-chat` (ruteo de modelos, guardas, biblioteca). La UI completa y la conexión Bluetooth real se prueban a mano — no hay forma de automatizar hardware real en CI.
 
 ## Estructura del proyecto
 
@@ -70,16 +77,21 @@ src/
   core/      tipos, validador, parser de .zwo, cálculo de zonas
   engine/    reloj, plan del workout, métricas, motor de reglas, sesión, analítica (NP/IF/TSS), PMC
   devices/   Web Bluetooth: FTMS (rodillo) y Heart Rate (banda), más adaptadores simulados
-  ui/        pantallas: inicio, conectar, entrenar, resumen, historial
+  ui/        pantallas: inicio, plan, conectar, entrenar, resumen, historial, forma, perfil, coach de IA, Piñón, vista del coach
   export/    generación de .fit, subida a intervals.icu
   storage/   IndexedDB: perfil, biblioteca de workouts, ajustes, sesiones grabadas
+  supabase/  cliente de Supabase (null si no está configurado)
+  sync/      sincronización con la nube, Strava, coach de IA, chat de Piñón, datos del coach humano
+supabase/
+  schema.sql esquema y permisos (RLS)
+  functions/ Edge Functions: coach-chat, pinon-chat, monthly-self-report, Strava, correos del coach, etc.
 ```
 
 Regla dura de arquitectura: `engine/` no importa nada de `devices/` ni de `ui/` — el motor recibe muestras y emite eventos, y puede correr una sesión completa con datos simulados sin browser y sin hardware (ver `npm run simulate`).
 
 ## Qué NO hace (todavía, o a propósito)
 
-- No tiene backend ni cuentas — todo vive en IndexedDB de tu navegador. Si cambias de dispositivo o borras datos del sitio, pierdes tu historial (no hay sincronización en la nube por ahora).
-- No llama a ningún LLM — la app no tiene IA integrada. Hay un prompt (`prompt-editor-workout.md`) que puedes pegar en tu propia IA para generar workouts y reglas.
-- No optimizada para celular — el objetivo es laptop.
+- Sin Supabase configurado no hay cuentas ni nube: todo vive en IndexedDB de tu navegador, y si cambias de dispositivo o borras datos del sitio pierdes tu historial.
+- No hay registro abierto, y el coach de IA y Piñón están en lanzamiento controlado: solo responden a las cuentas de una lista fija en `supabase/functions/_shared/coach-access.ts` (las demás reciben "todavía no está disponible para tu cuenta"), con topes de uso.
+- Lo que llega por Strava no entra a la IA ni a la vista del coach (lo prohíben los términos de la API de Strava).
 - La subida a intervals.icu no está verificada contra la API real (falta probarla con una cuenta y una API key reales).
