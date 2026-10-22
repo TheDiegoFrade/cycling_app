@@ -9,7 +9,6 @@ export const COMP_USER_IDS = new Set([
   '85983750-01e5-449f-adb6-0a87c7047682', // joemtb03@gmail.com — Joe Hernández, entrenador (UR Training)
   'cef1d388-39f1-4216-ab5d-8c272c323f73', // diego.sanchez.c95@gmail.com
   'b73d7ff9-adcb-494a-98fb-c94fdc509b3b', // joemtb03+pruebas@gmail.com — cuenta de pruebas de Joe (sin topes, ver coach-testers.ts)
-  '12c8672a-a0bf-4107-b0f5-cdd28384b5be', // juancarlospcv@yahoo.com.mx — Juan Carlos PCV
 ]);
 
 // Administradores: ven la lista de espera e invitan gente (admin-waitlist).
