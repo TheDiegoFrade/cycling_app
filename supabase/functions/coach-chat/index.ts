@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
     // loguearla porque la función murió antes de recordUsage.
     const reserved = await reserveUsage(admin, userId);
     const period = reserved.period;
-    refund = () => refundUsage(admin, userId, reserved.period, reserved.before);
+    refund = () => refundUsage(admin, userId, reserved.period);
 
     const client = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
     const schema = schemaForMode(body.mode);
@@ -1218,43 +1218,40 @@ async function logPlanAction(admin: AdminClient, userId: string, action: PlanAct
   await admin.from('plan_actions').insert({ id: crypto.randomUUID(), user_id: userId, action });
 }
 
+/** Tokens que ESTE request ha sumado a coach_usage (reserva, reconciliación,
+ * redactor). El reembolso resta solo eso — no pisa lo que otros requests
+ * concurrentes del mismo usuario hayan sumado. El cliente admin es por request. */
+const requestDelta = new WeakMap<object, number>();
+
+/** Suma (o resta) de forma atómica en Postgres (coach_usage_add) y lleva la
+ * cuenta de lo que este request ha movido. */
+async function bumpUsage(admin: AdminClient, userId: string, period: string, tokens: number, requests = 0): Promise<void> {
+  requestDelta.set(admin, (requestDelta.get(admin) ?? 0) + tokens);
+  const { error } = await admin.rpc('coach_usage_add', { p_user: userId, p_period: period, p_tokens: tokens, p_requests: requests });
+  if (error) throw new Error(`coach_usage_add: ${error.message}`);
+}
+
 /** Aparta PRE_CALL_RESERVE_TOKENS ANTES de llamar a Claude — si la función
  * muere a medio camino, esto ya quedó contado como gasto (sobreestimado,
  * nunca perdido). Regresa el período para que reconcileUsage sepa qué fila
  * corregir después. */
-async function reserveUsage(admin: AdminClient, userId: string): Promise<{ period: string; before: number }> {
+async function reserveUsage(admin: AdminClient, userId: string): Promise<{ period: string }> {
   const period = currentMonthPeriod();
-  const { data: existing } = await admin
-    .from('coach_usage')
-    .select('tokens_used, requests_used')
-    .eq('user_id', userId)
-    .eq('period', period)
-    .maybeSingle();
-
-  await admin.from('coach_usage').upsert(
-    {
-      user_id: userId,
-      period,
-      tokens_used: (existing?.tokens_used ?? 0) + PRE_CALL_RESERVE_TOKENS,
-      requests_used: (existing?.requests_used ?? 0) + 1,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id,period' },
-  );
-  return { period, before: existing?.tokens_used ?? 0 };
+  await bumpUsage(admin, userId, period, PRE_CALL_RESERVE_TOKENS, 1);
+  return { period };
 }
 
 /** Un intento que no le dio nada al atleta (la guardia lo rechazó, el modelo
  * no devolvió una salida válida, un error) no cuenta contra su tope mensual:
- * la fila vuelve a lo que tenía antes de este intento. El gasto real sigue
- * registrado en coach_calls. Si no, reintentar como pide el mensaje
- * («intenta de nuevo») podía dejarlo sin cuota y sin plan. */
-async function refundUsage(admin: AdminClient, userId: string, period: string, before: number): Promise<void> {
-  await admin
-    .from('coach_usage')
-    .update({ tokens_used: before, updated_at: new Date().toISOString() })
-    .eq('user_id', userId)
-    .eq('period', period);
+ * se resta lo que este request sumó. El gasto real sigue registrado en
+ * coach_calls. Si no, reintentar como pide el mensaje («intenta de nuevo»)
+ * podía dejarlo sin cuota y sin plan. */
+async function refundUsage(admin: AdminClient, userId: string, period: string): Promise<void> {
+  const delta = requestDelta.get(admin) ?? 0;
+  if (delta <= 0) return;
+  requestDelta.set(admin, 0);
+  const { error } = await admin.rpc('coach_usage_add', { p_user: userId, p_period: period, p_tokens: -delta, p_requests: 0 });
+  if (error) console.log(`[coach-chat] reembolso de uso falló: ${error.message}`);
 }
 
 /** Tokens que cuentan contra el tope mensual (la lectura de caché no). */
@@ -1272,37 +1269,13 @@ function tokensOf(usage: UsageLike): number {
  * resta la reserva y suma lo que de verdad reportó la API. Si esto nunca se
  * llama (la función murió antes), la reserva de arriba se queda tal cual. */
 async function reconcileUsage(admin: AdminClient, userId: string, period: string, usage: UsageLike): Promise<void> {
-  const actualTokens = tokensOf(usage);
-  const { data: existing } = await admin
-    .from('coach_usage')
-    .select('tokens_used')
-    .eq('user_id', userId)
-    .eq('period', period)
-    .maybeSingle();
-
-  await admin
-    .from('coach_usage')
-    .update({
-      tokens_used: (existing?.tokens_used ?? PRE_CALL_RESERVE_TOKENS) - PRE_CALL_RESERVE_TOKENS + actualTokens,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('user_id', userId)
-    .eq('period', period);
+  // Ya se pagó la llamada: si el conteo falla no se tumba la respuesta.
+  await bumpUsage(admin, userId, period, tokensOf(usage) - PRE_CALL_RESERVE_TOKENS).catch((e) => console.log(`[coach-chat] reconcile falló: ${e.message}`));
 }
 
 /** Suma tokens ya gastados (el redactor) a la fila del mes. */
 async function addUsage(admin: AdminClient, userId: string, period: string, tokens: number): Promise<void> {
-  const { data: existing } = await admin
-    .from('coach_usage')
-    .select('tokens_used')
-    .eq('user_id', userId)
-    .eq('period', period)
-    .maybeSingle();
-  await admin
-    .from('coach_usage')
-    .update({ tokens_used: (existing?.tokens_used ?? 0) + tokens, updated_at: new Date().toISOString() })
-    .eq('user_id', userId)
-    .eq('period', period);
+  await bumpUsage(admin, userId, period, tokens).catch((e) => console.log(`[coach-chat] addUsage falló: ${e.message}`));
 }
 
 function currentMonthPeriod(): string {

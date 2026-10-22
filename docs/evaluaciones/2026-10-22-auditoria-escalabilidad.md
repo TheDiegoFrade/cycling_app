@@ -170,3 +170,10 @@ También: **Dashboard → Advisors → Performance** (muestra `auth_rls_initplan
 
 **P3, higiene**
 13. Pasar a `supabase/migrations/` versionadas; `wrangler.jsonc` en el repo; retención de `coach_calls` y `billing_events`. → #3, #16, #18
+
+## Seguimiento — Lote 1 (implementado)
+
+- Índices `sessions_fit_path_idx` y `coach_calls_user_created_idx` (sin CONCURRENTLY).
+- Conteo de tokens atómico: función SQL `coach_usage_add` (solo `service_role`); `coach-chat` ya no lee-y-escribe. El reembolso resta solo lo que sumó ese request. Probado en Postgres local: 2000 incrementos concurrentes → 2000 exactos.
+- Migraciones versionadas en `supabase/migrations/` (+ `scripts/check-schema-sync.sh`).
+- Orden de despliegue: primero correr la migración en Supabase, luego desplegar `coach-chat`.
