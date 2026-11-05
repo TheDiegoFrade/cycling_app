@@ -314,6 +314,29 @@ function repairTextGender(mode: Mode, ctx: Any, out: Any, fixes: string[]): void
   if (changed) fixes.push(`"juntos/juntas" ajustado al sexo del atleta (${sex})`);
 }
 
+/** Días de la semana que se genera (weekly_eval) donde sí cabe algo: de sus
+ * días, los que no pasaron ni están ocupados. Va en el contexto como
+ * `usableDays` para que el coach no agende en días pasados: si lo hacía, la
+ * guardia movía o quitaba sesiones y el reasoning contaba otra semana. */
+export function usableDaysOf(mode: Mode, ctx: Any): { dayOfWeek: string; date: string }[] {
+  if (mode !== 'weekly_eval') return [];
+  const o = weekOpts(mode, ctx);
+  if (!o.startDate) return [];
+  return DAYS.filter((d) => dayUsable(d, 0, o)).map((d) => ({ dayOfWeek: d, date: dateForWeek(o.startDate!, 0, d) }));
+}
+
+/** Qué tan importante es conservar una sesión si no caben todas: el test, luego
+ * lo duro, luego cualquier estímulo (tempo o intervalos por RPE en steps
+ * "free"), y al final lo suave. Lo suave es lo primero que se quita (Joe:
+ * no dejar el estímulo sobre la mesa). */
+function keepPriority(w: Any): number {
+  const steps = flat(w.segments ?? []);
+  if (isTest(w)) return 3;
+  if (isHard(steps)) return 2;
+  if (steps.some((s: Any) => s.type === 'free') || maxPct(steps) >= 76) return 1;
+  return 0;
+}
+
 /** Copia de `out` con lo mecánico arreglado, y qué se arregló. */
 export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes: string[] } {
   const fixed = structuredClone(out);
@@ -337,7 +360,9 @@ export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes:
   weeks = weeks.map((week, wi) => {
     const used = new Set<string>();
     const kept: Any[] = [];
-    for (const raw of week.workouts) {
+    // Primero lo que más importa: si falta día, lo que se queda sin lugar es lo suave.
+    const ordered = [...week.workouts].sort((a, b) => keepPriority(b) - keepPriority(a));
+    for (const raw of ordered) {
       let w: Any = raw;
       // Tope de minutos por sesión (menores: 60 entre semana).
       const cap = isMinor(ctx) && DAY_OFFSET[w.dayOfWeek] < 5 ? Math.min(o.cap, MINOR_WEEKDAY_CAP_MIN) : o.cap;

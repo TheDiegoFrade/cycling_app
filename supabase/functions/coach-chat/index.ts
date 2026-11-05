@@ -29,7 +29,7 @@ import { summarizeSegments, toGeneratedWorkout, totalMinutes, type PlannedWorkou
 import { resolveFromLibrary, type CoachWeekWorkout, type LibraryTemplate } from './library.ts';
 import { acceptAiNotes, notesDueOnWeeklyEval, type StoredNotes } from './notes.ts';
 import { callRow, logCalls, type CallRow, type CallStep, type UsageLike } from './usage-log.ts';
-import { correctionMessage, guardOutput, usableStartDate } from './guard.ts';
+import { correctionMessage, guardOutput, usableDaysOf, usableStartDate } from './guard.ts';
 import { plannerFor } from './routing.ts';
 import { OTHER_MODEL, callCoach, readResponse } from './coach-call.ts';
 import { deliverDraft, emailKey, planDraftOf, weekDraftOf } from './coach-email.ts';
@@ -187,7 +187,10 @@ Deno.serve(async (req) => {
         structuredTrainingYears: (prof.structuredTrainingYears ?? undefined) as number | undefined,
       });
     }
-    if (body.mode === 'weekly_eval') await prepareWeeklyEvalContext(admin, userId, context);
+    if (body.mode === 'weekly_eval') {
+      await prepareWeeklyEvalContext(admin, userId, context);
+      context.usableDays = usableDaysOf('weekly_eval', context);
+    }
     if (body.mode === 'create_plan') {
       const availability = context.availability as { days?: string[] } | undefined;
       const start = usableStartDate(context.startDate as string, availability?.days, new Set((context.occupiedDates as string[] | undefined) ?? []));
@@ -788,7 +791,7 @@ function withGeneratedWeeks(mode: Mode, output: Record<string, unknown>, weeks: 
  * del tiempo — el llamador usa la intención del coach en su lugar. */
 async function writeWeekDescriptions(
   client: Anthropic,
-  athlete: { name: string | null; sex: string | null },
+  athlete: { name: string | null; sex: string | null; mentionFtp: boolean },
   workouts: PlannedWorkout[],
   timeoutMs: number,
   logAs: { userId: string; mode: string; calls: CallRow[] },
@@ -849,8 +852,11 @@ async function finishPlannedWorkouts(
 ): Promise<Record<string, unknown>> {
   // El tope de minutos ya lo aplicó la guardia (guard.ts → fitToCap).
   const weeks = plannedWeeksOf(mode, output);
-  const profile = context.profile as { name?: string | null; sex?: string | null } | undefined;
-  const athlete = { name: profile?.name ?? null, sex: profile?.sex ?? null };
+  const profile = context.profile as { name?: string | null; sex?: string | null; ftp?: number | null; ftpSource?: string | null } | undefined;
+  // Sin FTP medido, o con las zonas de su rampa por RPE, al atleta no se le
+  // habla de FTP ni de % de FTP (prompt.ts): el redactor necesita saberlo.
+  const mentionFtp = typeof profile?.ftp === 'number' && profile.ftpSource !== 'test_rpe_ramp';
+  const athlete = { name: profile?.name ?? null, sex: profile?.sex ?? null, mentionFtp };
 
   const remaining = WALL_CLOCK_BUDGET_MS - (Date.now() - startedAt);
   const written =
