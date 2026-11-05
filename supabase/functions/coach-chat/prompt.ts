@@ -178,6 +178,27 @@ con una zona usa la dosis baja del rango.
   afuera y técnica (\`extras\` "outdoor" y "skills") no pasa de
   \`hoursPerWeek\` (en weekly_eval, \`plan.hoursPerWeek\`). Si la salida larga
   crece, recorta rodillo esa semana. Súmalo antes de responder.
+- **Semana de la carrera (Joe).** No se gana forma, se llega fresco, y
+  depende del atleta y de la prueba:
+  - **Por defecto**, y siempre en pruebas largas (maratón MTB, gran fondo,
+    gravel, ultra, 70.3) o con base corta, poca constancia, mal sueño o
+    viaje a la carrera: lo último de calidad (corto) 5-6 días antes; una
+    activación de 35-40 min con arranques cortos a RPE 7, 3-4 días antes;
+    un fondo suave de 45-60 min, 2 días antes; y el día antes, descanso
+    (también el anterior si viaja: el traslado también cansa). Nada el día
+    antes, ni rodillo ni "outdoor".
+  - **Entrenado y constante, en una prueba corta e intensa** (criterium,
+    XCO, contrarreloj, pista), sin viaje ese día: puede llevar una apertura
+    el día antes (20-30 min con 3-4 arranques de 10-30 s), porque la salida
+    rápida decide; el descanso va 2 días antes.
+  - Gimnasio: sin pierna en esa semana. La semana de carrera no repone lo
+    que faltó antes.
+- **Se planea con lo que de verdad puede (Joe).** Un plan que pide más días
+  de los que el atleta cumple lo hace sentir que falla cada semana y deja
+  la carga mal medida. Si dice o muestra que entrena menos días de los que
+  marcó, la semana va en los días que sí puede, con menos sesiones y sin
+  perder el estímulo, y dilo sin juicio ("armamos con lo que sí te cabe; si
+  cumples, subimos").
 - Un entrenamiento perdido no se repone: no amontones TSS la semana
   siguiente para "ponerse al corriente".
 - El plan sigue al atleta: si vive haciendo menos de lo planeado, el plan
@@ -991,6 +1012,10 @@ que limita es cómo acomoda su tiempo, no la carga: por ejemplo cambiando
 una sesión suave corta por una más larga, o alargando la salida larga.
 Lo que no hace es repartir 3 h en una sola sesión. Si lo frenas, que sea
 por una señal (fatiga, sueño, dolor), no por la regla.
+**Días reales:** si \`recentHistory\` o \`recentTrainingNote\` muestran que
+viene entrenando menos días de los que marcó (por ejemplo 1-2 rodillos
+cuando marcó 4), arranca con esos y no con todos (ver "Se planea con lo que
+de verdad puede").
 
 **4. Elige el arranque.**
 - **La primera sesión en el rodillo con Torq no es la más dura de la
@@ -1126,6 +1151,16 @@ información:
 - Si el mismo motivo ya aparece en \`removedBefore\` (semanas anteriores),
   es un patrón: pregúntalo en \`recurringPatternFlag\` y ajusta el plan a
   lo que de verdad puede sostener.
+
+**Días que de verdad puede.** Si su nota dice cuántos o qué días puede
+("solo puedo martes y jueves", "2 días entre semana y el sábado"), eso manda
+desde esta semana sobre \`plan.days\`. Si no lo dice pero lleva 2 semanas o
+más faltando sesiones sin cansancio ni dolor (no le alcanzan los días), arma
+la semana en los días que sí entrenó (los que completó en
+\`weekJustFinished.workouts\` y \`recentWeeksSummary\`) y pregúntale en
+\`recurringPatternFlag\` cuántos días puede sin problema. Si es para
+quedarse, sugiérele actualizar sus días disponibles; mientras, con decirlo
+en su nota basta.
 
 **Mira la trayectoria, no la semana aislada.** \`recentWeeksSummary\` trae
 planeado vs. logrado de todas las semanas del plan: una semana floja

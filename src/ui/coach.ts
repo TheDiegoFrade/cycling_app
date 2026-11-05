@@ -318,9 +318,10 @@ function evalFormHtml(isRefresh: boolean, hint: string): string {
       <p class="hint" style="margin-top:4px">${hint}</p>
     </div>
     <div id="coach-eval-form" style="display:none;margin-top:10px">
-      <label class="live-col-label">¿Cómo te fue esta semana y algo que debamos saber para la que viene? (opcional)
-        <textarea id="coach-eval-note" rows="3" placeholder="Ej. ${byGender(genderOf(appState.profile.sex), 'me sentí muy cansado', 'me sentí muy cansada', 'sentí mucho cansancio')} toda la semana · el miércoles no voy a poder entrenar · el sábado tengo una rodada larga con un grupo · estoy de vacaciones…" style="width:100%;resize:vertical;font-family:inherit"></textarea>
+      <label class="live-col-label">¿Cómo te sentiste esta semana y qué te funcionó o no? (opcional)
+        <textarea id="coach-eval-note" rows="4" placeholder="Ej. ${byGender(genderOf(appState.profile.sex), 'me sentí muy cansado', 'me sentí muy cansada', 'sentí mucho cansancio')} y las series se me hicieron pesadas · dormí poco · no me alcanzan 4 días: sin problema puedo martes, jueves y el sábado · el miércoles no voy a poder · el sábado tengo una rodada larga con un grupo…" style="width:100%;resize:vertical;font-family:inherit"></textarea>
       </label>
+      <p class="hint" style="margin-top:4px">Cuéntale si la carga te está quedando bien, pesada o corta y por qué. Si no te alcanzan los días del plan, dile cuántos o cuáles puedes sin problema: el coach arma la semana con eso.</p>
       <label class="live-col-label" style="display:block;margin-top:8px">¿Hiciste algo más además de la bici? (opcional)
         <textarea id="coach-eval-other" rows="2" maxlength="1000" placeholder="Ej. crossfit el lunes y el jueves, 50 min cada uno · corrí 5 km el sábado · nada más" style="width:100%;resize:vertical;font-family:inherit"></textarea>
       </label>
