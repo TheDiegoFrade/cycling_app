@@ -1,0 +1,164 @@
+{
+ "id": "s07-luz-verde-novata",
+ "mode": "weekly_eval",
+ "title": "Semana 3 de Gabriela: todo completo, RPE y desacople bajando → apretar (luz verde)",
+ "expect": [
+  "decision progress con un aumento real del estímulo (más aceleraciones o primer bloque a RPE 7), no solo +5 %",
+  "No le explica el desacople en técnico; motiva",
+  "La rampa por RPE 8 puede programarse pronto"
+ ],
+ "today": "2026-11-08",
+ "context": {
+  "profile": {
+   "sex": "F",
+   "name": "Gabriela Ruiz",
+   "ftp": null,
+   "ftpSource": "default",
+   "provisionalFtp": null,
+   "ftpUpdatedAt": null,
+   "weightKg": 64,
+   "ageYears": 45,
+   "otherActivities": [],
+   "intake": {
+    "conditions": [],
+    "takesMedication": false,
+    "recentInjury": false,
+    "injuryLimitsIntensity": false,
+    "smoking": "no",
+    "alcohol": "weekly",
+    "stress": "high",
+    "sleepHours": 6.5,
+    "sleepQuality": "fair",
+    "restingHr": null,
+    "rpeLiteracy": "no",
+    "maxEffortExperience": false,
+    "recentTraining": "little",
+    "recentHoursPerWeek": 0
+   },
+   "experienceLevel": "new_to_cycling",
+   "generalFitnessLevel": "sedentary",
+   "structuredTrainingYears": 0,
+   "rpeZones": null
+  },
+  "maxSessionMinutes": 50,
+  "occupiedDates": [],
+  "plan": {
+   "goal": "Más energía y menos estrés",
+   "discipline": "other",
+   "experienceLevel": "new_to_cycling",
+   "generalFitnessLevel": "sedentary",
+   "days": [
+    "tue",
+    "thu",
+    "sat"
+   ],
+   "hoursPerWeek": 3,
+   "currentBlock": {
+    "name": "Base y hábito",
+    "focus": "Fondo con aceleraciones a RPE 5-6 y juego de cadencia",
+    "weeks": 4,
+    "weekInBlock": 4
+   },
+   "nextBlock": {
+    "name": "Construcción",
+    "focus": "Primeros bloques a RPE 7",
+    "weeks": 4,
+    "targetHoursPerWeek": 3
+   },
+   "nextTest": {
+    "weekIndex": 4,
+    "type": "ramp",
+    "reason": "Cuando tolere el rodillo"
+   }
+  },
+  "nextWeekStart": "2026-11-09",
+  "lastTest": null,
+  "weekJustFinished": {
+   "plannedTSS": 93,
+   "actualTSS": 96,
+   "completedWorkouts": 3,
+   "missedWorkouts": 0,
+   "ruleTriggers": [],
+   "athleteNote": "Me siento muy bien, ya hasta me aburre un poco el fondo.",
+   "otherActivitiesNote": null,
+   "otherActivities": [],
+   "workouts": [
+    {
+     "dayOfWeek": "tue",
+     "name": "Fondo con cadencia",
+     "zone": "fondo",
+     "plannedTSS": 28,
+     "actualTSS": 29,
+     "completed": true,
+     "rpe": 3,
+     "hrDriftPct": 3.1,
+     "efficiencyFactor": 1.21,
+     "ruleTriggers": [],
+     "note": null
+    },
+    {
+     "dayOfWeek": "thu",
+     "name": "Aceleraciones 6×1.5 min",
+     "zone": "tempo",
+     "plannedTSS": 32,
+     "actualTSS": 33,
+     "completed": true,
+     "rpe": 5,
+     "hrDriftPct": null,
+     "efficiencyFactor": 1.18,
+     "ruleTriggers": [],
+     "note": "Se me hizo más fácil que la semana pasada"
+    },
+    {
+     "dayOfWeek": "sat",
+     "name": "Fondo 50 min",
+     "zone": "fondo",
+     "plannedTSS": 33,
+     "actualTSS": 34,
+     "completed": true,
+     "rpe": 3,
+     "hrDriftPct": 2.4,
+     "efficiencyFactor": 1.24,
+     "ruleTriggers": [],
+     "note": null
+    }
+   ]
+  },
+  "pmcTrend": {
+   "ctl": 14,
+   "atl": 15,
+   "tsb": -1,
+   "ctlRampLast4Weeks": 9
+  },
+  "recentGapPattern": null,
+  "recentWeeksSummary": [
+   {
+    "weekIndex": 0,
+    "plannedTSS": 80,
+    "actualTSS": 82,
+    "completedWorkouts": 3,
+    "missedWorkouts": 0,
+    "avgRpe": 4.3,
+    "rpeCount": 3
+   },
+   {
+    "weekIndex": 1,
+    "plannedTSS": 88,
+    "actualTSS": 90,
+    "completedWorkouts": 3,
+    "missedWorkouts": 0,
+    "avgRpe": 4.0,
+    "rpeCount": 3
+   },
+   {
+    "weekIndex": 2,
+    "plannedTSS": 93,
+    "actualTSS": 96,
+    "completedWorkouts": 3,
+    "missedWorkouts": 0,
+    "avgRpe": 3.7,
+    "rpeCount": 3
+   }
+  ]
+ }
+}

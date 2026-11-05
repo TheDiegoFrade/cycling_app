@@ -1,0 +1,208 @@
+{
+  "planName": "Gran Fondo de 100 km: de vuelta a la bici con cimientos firmes",
+  "blocks": [
+    {
+      "name": "Cimientos",
+      "weeks": 6,
+      "focus": "Volver a rodar con constancia, aprender a medir el esfuerzo por sensación y meter aceleraciones cortas una vez por semana. Sube el tiempo despacio, de unas 2.7 h a 3 h semanales.",
+      "targetHoursPerWeek": 2.7
+    },
+    {
+      "name": "Base ampliada",
+      "weeks": 6,
+      "focus": "Más tiempo en bici a ritmo cómodo, salida larga afuera que crece poco a poco y esfuerzos un poco más largos por sensación, con tu médico al tanto.",
+      "targetHoursPerWeek": 3.3
+    },
+    {
+      "name": "Específico Gran Fondo",
+      "weeks": 5,
+      "focus": "Bloques sostenidos de ritmo de rodada larga y la salida larga afuera como sesión principal, comiendo y tomando agua como el día del evento.",
+      "targetHoursPerWeek": 4
+    },
+    {
+      "name": "Afinación y evento",
+      "weeks": 3,
+      "focus": "Bajar la carga para llegar fresco, mantener algo de ritmo y llegar entero al Gran Fondo; la última semana es la del evento.",
+      "targetHoursPerWeek": 3
+    }
+  ],
+  "firstBlockWeeks": [
+    {
+      "weekIndex": 0,
+      "workouts": [
+        {
+          "name": "Aceleraciones suaves",
+          "dayOfWeek": "mon",
+          "targetTSS": 32,
+          "erg": "off",
+          "intent": "Rueda cómodo y mete 4 aceleraciones de 1 min 30 s a un esfuerzo medio (RPE 5-6: puedes decir frases cortas, no platicar), con recuperación pedaleando suave entre ellas. Ve por sensación con el ERG apagado y empieza cada una contenido; si al final no puedes hablar, bájale.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 600, "power_pct": 50, "ramp_to_pct": 60 } ] },
+            { "repeat": 1, "steps": [ { "name": "Fondo", "type": "steady", "duration_s": 720, "power_pct": 60 } ] },
+            { "repeat": 4, "steps": [
+              { "name": "Aceleración", "type": "free", "duration_s": 90, "power_pct": 75 },
+              { "name": "Recuperación", "type": "recovery", "duration_s": 150, "power_pct": 50 }
+            ] },
+            { "repeat": 1, "steps": [ { "name": "Fondo", "type": "steady", "duration_s": 600, "power_pct": 60 } ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 420, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        },
+        {
+          "name": "Fondo con juego de cadencia",
+          "dayOfWeek": "wed",
+          "targetTSS": 30,
+          "erg": "off",
+          "intent": "Fondo fácil (RPE 3-4, puedes platicar completo) con 4 bloques de 2 min en los que pedaleas un poco más rápido de lo que te sale natural. Que no se te dispare la respiración: es solo soltar las piernas, y la app va a observar tu cadencia natural.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 480, "power_pct": 50, "ramp_to_pct": 60 } ] },
+            { "repeat": 4, "steps": [
+              { "name": "Un poco más rápido", "type": "steady", "duration_s": 120, "power_pct": 62 },
+              { "name": "Cadencia natural", "type": "steady", "duration_s": 180, "power_pct": 58 }
+            ] },
+            { "repeat": 1, "steps": [ { "name": "Fondo", "type": "steady", "duration_s": 960, "power_pct": 60 } ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 360, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        },
+        {
+          "name": "Rodada de fondo",
+          "dayOfWeek": "sun",
+          "targetTSS": 36,
+          "erg": "off",
+          "intent": "Tu rodada más larga de la semana, constante y cómoda (RPE 3-4, platicas sin problema). Con el ERG apagado y cadencia libre; si el pulso se va subiendo o te cuesta hablar, baja un poco la potencia.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 600, "power_pct": 50, "ramp_to_pct": 62 } ] },
+            { "repeat": 1, "steps": [ { "name": "Fondo", "type": "steady", "duration_s": 2400, "power_pct": 62 } ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 600, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        }
+      ],
+      "extras": []
+    },
+    {
+      "weekIndex": 1,
+      "workouts": [
+        {
+          "name": "Aceleraciones suaves",
+          "dayOfWeek": "mon",
+          "targetTSS": 33,
+          "erg": "off",
+          "intent": "Misma sesión de la semana pasada con una aceleración más: 5 de 1 min 30 s a RPE 5-6 (frases cortas), recuperando pedaleando suave. Ve por sensación con el ERG apagado y que la última salga igual de controlada que la primera.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 600, "power_pct": 50, "ramp_to_pct": 60 } ] },
+            { "repeat": 1, "steps": [ { "name": "Fondo", "type": "steady", "duration_s": 600, "power_pct": 60 } ] },
+            { "repeat": 5, "steps": [
+              { "name": "Aceleración", "type": "free", "duration_s": 90, "power_pct": 75 },
+              { "name": "Recuperación", "type": "recovery", "duration_s": 150, "power_pct": 50 }
+            ] },
+            { "repeat": 1, "steps": [ { "name": "Fondo", "type": "steady", "duration_s": 600, "power_pct": 60 } ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 420, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        },
+        {
+          "name": "Fondo con juego de cadencia",
+          "dayOfWeek": "wed",
+          "targetTSS": 31,
+          "erg": "off",
+          "intent": "Fondo fácil (RPE 3-4) con 4 bloques de 2 min un poco más rápido de lo que te sale natural. Unos minutos más de fondo que la semana pasada; la respiración debe seguir tranquila.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 480, "power_pct": 50, "ramp_to_pct": 60 } ] },
+            { "repeat": 4, "steps": [
+              { "name": "Un poco más rápido", "type": "steady", "duration_s": 120, "power_pct": 62 },
+              { "name": "Cadencia natural", "type": "steady", "duration_s": 180, "power_pct": 58 }
+            ] },
+            { "repeat": 1, "steps": [ { "name": "Fondo", "type": "steady", "duration_s": 1080, "power_pct": 60 } ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 360, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        }
+      ],
+      "extras": [
+        {
+          "dayOfWeek": "sun",
+          "kind": "outdoor",
+          "name": "Primera salida afuera",
+          "minutes": 75,
+          "description": "Ruta plana y tranquila a RPE 3-4, de las que puedes ir platicando; sin picarte con nadie. Lleva agua y come algo ligero desde el minuto 30."
+        }
+      ]
+    },
+    {
+      "weekIndex": 2,
+      "workouts": [
+        {
+          "name": "Aceleraciones cortas",
+          "dayOfWeek": "mon",
+          "targetTSS": 20,
+          "erg": "off",
+          "intent": "Semana más ligera para que el cuerpo asimile: 3 aceleraciones de 1 min a RPE 5 (frases cortas) con recuperación larga y suave. Termina con ganas de más, esa es la idea.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 480, "power_pct": 50, "ramp_to_pct": 60 } ] },
+            { "repeat": 1, "steps": [ { "name": "Fondo", "type": "steady", "duration_s": 600, "power_pct": 60 } ] },
+            { "repeat": 3, "steps": [
+              { "name": "Aceleración", "type": "free", "duration_s": 60, "power_pct": 72 },
+              { "name": "Recuperación", "type": "recovery", "duration_s": 180, "power_pct": 50 }
+            ] },
+            { "repeat": 1, "steps": [ { "name": "Fondo", "type": "steady", "duration_s": 360, "power_pct": 60 } ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 240, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        },
+        {
+          "name": "Fondo suave con cadencia",
+          "dayOfWeek": "wed",
+          "targetTSS": 17,
+          "erg": "off",
+          "intent": "Rodada corta y fácil (RPE 3-4) con 3 bloques de 2 min un poco más rápido de lo que te sale natural. Que te deje fresco para la salida del domingo.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 480, "power_pct": 50, "ramp_to_pct": 60 } ] },
+            { "repeat": 3, "steps": [
+              { "name": "Un poco más rápido", "type": "steady", "duration_s": 120, "power_pct": 62 },
+              { "name": "Cadencia natural", "type": "steady", "duration_s": 180, "power_pct": 58 }
+            ] },
+            { "repeat": 1, "steps": [ { "name": "Fondo", "type": "steady", "duration_s": 480, "power_pct": 60 } ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 240, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        }
+      ],
+      "extras": [
+        {
+          "dayOfWeek": "sun",
+          "kind": "outdoor",
+          "name": "Salida suave afuera",
+          "minutes": 45,
+          "description": "Rodada corta y plana a RPE 3-4, disfrutando. Es semana ligera: si te sientes bien, no la alargues."
+        }
+      ]
+    }
+  ],
+  "coachNote": "Andrés, traes 12 años de oficio en la bici y cuatro años de pausa: vamos a reconstruir el motor con cuidado, sin que tu experiencia te empuje a ir más rápido de lo que el cuerpo está listo. Tu medicamento y tu presión mandan sobre la meta: antes de apretar, que tu médico te dé luz verde, y si sientes mareo, dolor de cabeza fuerte, presión en el pecho o palpitaciones, paras y lo consultas ya. El Gran Fondo pide aguantar muchas horas a ritmo sostenido, así que prioricé base, constancia y la salida larga afuera; contamos 20 semanas hasta finales de marzo, ¿cuál es la fecha exacta? Hasta hoy no hay test ni números en watts: todo va por sensación (RPE 3-4 puedes platicar, 6-7 solo frases cortas, 8-9 pocas palabras, 10 no puedes más), y la app va a comparar tu sensación con tu pulso. Te recomiendo sumar 1-2 sesiones de fuerza por semana, sin buscar pesos máximos y aprendiendo a respirar bien; coméntalo con tu médico.",
+  "suggestedFtp": null,
+  "nextTest": null,
+  "report": {
+    "welcome": "Te doy la bienvenida, qué gusto arrancar contigo este camino hacia el Gran Fondo con tus amigos del club. Vamos a ir juntos, paso a paso: yo armo cada semana con lo que me cuentes y lo que muestren tus sesiones. Antes de apretar, que tu médico te dé luz verde por tu presión; mientras, construimos con cuidado.",
+    "why": [
+      {
+        "title": "Primero tu salud",
+        "body": "Tomas medicamento para la presión, así que lo primero es que tu médico esté al tanto y te dé su visto bueno. Por eso no hay esfuerzos máximos ni pruebas duras por ahora, y si algo se siente raro al pedalear, paras y lo consultas."
+      },
+      {
+        "title": "Empezamos tranquilos, y es a propósito",
+        "body": "Llevas cuatro años sin rodar, así que arrancamos con 3 sesiones por semana de menos de una hora. No es que estés mal: son los cimientos que sostienen tu metabolismo y tu resistencia, y sobre eso se aprieta después."
+      },
+      {
+        "title": "Todo por sensación",
+        "body": "Todavía no tenemos tus números en watts, así que nos guiamos por cómo te sientes: si puedes platicar mientras pedaleas, vas bien. Un día a la semana metemos aceleraciones cortas a un esfuerzo medio para que tu cuerpo no se aburra ni se duerma."
+      },
+      {
+        "title": "Días de descanso a propósito",
+        "body": "Rodamos lunes, miércoles y domingo, y dejamos viernes libre para descansar o, si tienes ganas, caminar. La tercera semana baja la carga para que tu cuerpo asimile; ahí es donde se gana la mejora."
+      }
+    ],
+    "closing": "Arrancas con la mejor actitud: constancia y paciencia son lo que te va a llevar a esos 100 km. Cada semana la revisamos juntos y, al cerrar el primer bloque en 6 semanas, nos sentamos a ver cómo respondió tu cuerpo y qué sigue. Aquí estoy acompañándote."
+  }
+}

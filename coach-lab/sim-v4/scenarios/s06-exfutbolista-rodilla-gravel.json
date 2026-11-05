@@ -1,0 +1,67 @@
+{
+ "id": "s06-exfutbolista-rodilla-gravel",
+ "mode": "create_plan",
+ "title": "Exfutbolista, fuma ocasional, molestia vieja de rodilla (como Daniel): no tan conservador",
+ "expect": [
+  "Intensidad por RPE desde temprano en steps free (<88 %), no solo fondo",
+  "Isométricos de rodilla + core sugeridos; revisar ajuste de bici",
+  "Rodilla: sin cadencia baja ni sprints, pero sin congelar el plan"
+ ],
+ "today": "2026-11-04",
+ "context": {
+  "startDate": "2026-11-09",
+  "goal": "Gravel de 60 km en Valle de Bravo el 21 de febrero de 2027. Jugaba fútbol hasta hace un año. La rodilla izquierda me molesta a veces desde una lesión de ligamento hace 5 años, pero no me duele al pedalear.",
+  "experienceLevel": "new_to_cycling",
+  "generalFitnessLevel": "active_other_sport",
+  "discipline": "gravel",
+  "yearsRiding": 0.5,
+  "competes": false,
+  "category": null,
+  "availability": {
+   "hoursPerWeek": 4.5,
+   "days": [
+    "tue",
+    "thu",
+    "sat",
+    "sun"
+   ],
+   "maxSessionMinutes": 90
+  },
+  "occupiedDates": [],
+  "recentHistory": null,
+  "lastTest": null,
+  "profile": {
+   "ftp": null,
+   "provisionalFtp": null,
+   "ftpSource": "default",
+   "ftpUpdatedAt": null,
+   "hr_max": null,
+   "injuries": "Molestia ocasional en rodilla izquierda (ligamento, hace 5 años); no duele al pedalear.",
+   "otherActivities": [],
+   "experienceLevel": "new_to_cycling",
+   "generalFitnessLevel": "active_other_sport",
+   "structuredTrainingYears": 0,
+   "rpeZones": null,
+   "sex": "M",
+   "name": "Luis Ortega",
+   "weightKg": 88,
+   "ageYears": 29,
+   "intake": {
+    "conditions": [],
+    "takesMedication": false,
+    "recentInjury": false,
+    "injuryLimitsIntensity": false,
+    "smoking": "occasional",
+    "alcohol": "weekly",
+    "stress": "medium",
+    "sleepHours": 7,
+    "sleepQuality": "good",
+    "restingHr": 62,
+    "rpeLiteracy": "yes",
+    "maxEffortExperience": true,
+    "recentTraining": "easy",
+    "recentHoursPerWeek": 2
+   }
+  }
+ }
+}

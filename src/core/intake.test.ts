@@ -56,7 +56,9 @@ describe('startingProfile (método de Joe)', () => {
   });
 
   it('hábitos: fumar o alcohol frecuente → base primero y estrés alto; 1-2 veces por semana no cuenta', () => {
-    expect(startingProfile({ ...athlete, intake: { ...healthy, smoking: 'occasional' } }).baseFirst).toBe(true);
+    // Fumar ya no cambia el plan (4-nov-2026), ni ocasional ni diario.
+    expect(startingProfile({ ...athlete, intake: { ...healthy, smoking: 'occasional' } }).baseFirst).toBe(false);
+    expect(startingProfile({ ...athlete, intake: { ...healthy, smoking: 'daily' } })).toMatchObject({ baseFirst: false, start: 'normal' });
     const drinks = startingProfile({ ...athlete, intake: { ...healthy, alcohol: 'frequent' } });
     expect(drinks).toMatchObject({ baseFirst: true, stressAdjusted: 'high', start: 'conservative' });
     expect(startingProfile({ ...athlete, intake: { ...healthy, alcohol: 'weekly' } })).toMatchObject({ baseFirst: false, stressAdjusted: 'low', start: 'normal' });

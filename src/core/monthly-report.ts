@@ -474,6 +474,10 @@ export interface ReviewGoal {
 }
 
 export const MAX_FINDINGS = 6;
+/** (provisional) "Casi todo suave": horas mínimas del mes para opinar y la
+ * proporción de recuperación + fondo (por IF de sesión) que lo dispara. */
+const ALL_EASY_MIN_HOURS = 6;
+const ALL_EASY_SHARE = 0.95;
 export const MAX_GOALS = 5;
 export const MAX_MESSAGE = 4000;
 
@@ -506,6 +510,13 @@ export function suggestFindings(r: MonthlyReport): ReviewFinding[] {
     if (last <= first - 1) out.push({ tone: 'good', title: 'Base aeróbica mejorando.', body: `El desacople en rodadas largas bajó de ${first.toFixed(1)} % a ${last.toFixed(1)} %.` });
     else if (last > 5) out.push({ tone: 'warn', title: 'Desacople alto en rodadas largas.', body: `${last.toFixed(1)} % la última semana (meta < 5 %): más volumen suave ayuda.` });
   }
+
+  // Puro fondo también es un problema (Joe): se adapta con otros estímulos
+  // y lo monótono se abandona. Solo con horas suficientes para opinar.
+  const totalH = r.intensity.reduce((s, i) => s + i.hours, 0);
+  const easyH = r.intensity.filter((i) => i.bucket === 'recovery' || i.bucket === 'endurance').reduce((s, i) => s + i.hours, 0);
+  if (totalH >= ALL_EASY_MIN_HOURS && easyH / totalH >= ALL_EASY_SHARE)
+    out.push({ tone: 'warn', title: 'Casi todo fue suave.', body: `${Math.round((easyH / totalH) * 100)} % de tus horas fueron suaves. Si no fue por descanso, lesión o indicación médica, el mes que viene metemos una sesión más intensa por semana para seguir avanzando.` });
 
   for (const rc of r.routines) {
     if (rc.kind === 'strength' && rc.planned > 0 && rc.done / rc.planned < 0.75)

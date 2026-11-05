@@ -1,0 +1,269 @@
+{
+  "planName": "Gravel Valle de Bravo: 60 km con piernas y rodilla cuidada",
+  "blocks": [
+    {
+      "name": "Base y arranque",
+      "weeks": 4,
+      "focus": "Base aeróbica, aceleraciones cortas por sensación y juego de cadencia. Test de rampa en la semana 1, salida larga afuera que crece poco a poco y semana 4 más ligera.",
+      "targetHoursPerWeek": 2.4
+    },
+    {
+      "name": "Construcción",
+      "weeks": 4,
+      "focus": "Bloques de ritmo sostenido en tus zonas en watts, más rodillo entre semana y salida larga de 1.5 a 2 h con comida. Semana 8 más ligera.",
+      "targetHoursPerWeek": 3.5
+    },
+    {
+      "name": "Específico gravel",
+      "weeks": 5,
+      "focus": "Ritmo de evento con cambios de ritmo tipo repecho, y salida larga que llega a unas 3 h para simular tu día de carrera. Semana 12 más ligera.",
+      "targetHoursPerWeek": 4.3
+    },
+    {
+      "name": "Afinación y carrera",
+      "weeks": 2,
+      "focus": "Baja el volumen, se mantiene un poco de ritmo para llegar fresco. La semana 15 termina con tu gravel de 60 km el domingo 21 de febrero.",
+      "targetHoursPerWeek": 2.8
+    }
+  ],
+  "firstBlockWeeks": [
+    {
+      "weekIndex": 0,
+      "workouts": [
+        {
+          "name": "Fondo con aceleraciones",
+          "dayOfWeek": "tue",
+          "targetTSS": 28,
+          "erg": "off",
+          "intent": "Rueda por sensación con ERG apagado: fondo a RPE 3-4, donde puedes platicar en frases completas, y 4 aceleraciones de 1 min a RPE 5-6 (frases cortas) con 3 min suaves entre ellas. Pedalea a la cadencia que te salga natural; la app la va a observar. Mañana descansas y el jueves medimos.",
+          "segments": [
+            {
+              "repeat": 1,
+              "steps": [
+                { "name": "Calentamiento", "type": "warmup", "duration_s": 480, "power_pct": 50, "ramp_to_pct": 60 }
+              ]
+            },
+            {
+              "repeat": 4,
+              "steps": [
+                { "name": "Aceleración", "type": "free", "duration_s": 60, "power_pct": 80 },
+                { "name": "Recuperación", "type": "recovery", "duration_s": 180, "power_pct": 55 }
+              ]
+            },
+            {
+              "repeat": 1,
+              "steps": [
+                { "name": "Fondo", "type": "steady", "duration_s": 600, "power_pct": 60 },
+                { "name": "Enfriamiento", "type": "cooldown", "duration_s": 360, "power_pct": 55, "ramp_to_pct": 45 }
+              ]
+            }
+          ],
+          "kind": null
+        },
+        {
+          "name": "Test de rampa",
+          "dayOfWeek": "thu",
+          "targetTSS": 30,
+          "erg": "on",
+          "intent": "Llega descansado (el miércoles sin bici) y contesta el RPE de cada escalón con honestidad. La rampa termina al llegar a RPE 8: no es ir al máximo ni apretar los dientes, con eso ya sacamos tus zonas en watts y un esfuerzo mayor solo da más desgaste. Es tu primera vez, así que también sirve para conocer el rodillo.",
+          "segments": [
+            {
+              "repeat": 1,
+              "steps": [
+                { "name": "Calentamiento", "type": "warmup", "duration_s": 480, "power_pct": 45, "ramp_to_pct": 55 },
+                { "name": "Rampa", "type": "interval", "duration_s": 1440, "power_pct": 40, "ramp_to_pct": 100 },
+                { "name": "Enfriamiento", "type": "cooldown", "duration_s": 480, "power_pct": 50, "ramp_to_pct": 40 }
+              ]
+            }
+          ],
+          "kind": "test"
+        }
+      ],
+      "extras": [
+        {
+          "dayOfWeek": "sun",
+          "kind": "outdoor",
+          "name": "Primera salida afuera",
+          "minutes": 55,
+          "description": "Rueda en terreno llano o suave a RPE 3-4, donde puedas platicar sin esfuerzo, con cadencia cómoda. Lleva agua y algo para comer en el minuto 30; es práctica para tu día largo."
+        }
+      ]
+    },
+    {
+      "weekIndex": 1,
+      "workouts": [
+        {
+          "name": "Fondo con aceleraciones",
+          "dayOfWeek": "tue",
+          "targetTSS": 30,
+          "erg": "off",
+          "intent": "Rodada por sensación con ERG apagado: fondo a RPE 3-4 y 5 aceleraciones de 1.5 min a RPE 5-6 (frases cortas) con 3 min suaves entre ellas. Tu cuerpo ya está conociendo el rodillo, así que subimos una aceleración. Con tus zonas del test, la app te ayudará a ubicar mejor el esfuerzo.",
+          "segments": [
+            {
+              "repeat": 1,
+              "steps": [
+                { "name": "Calentamiento", "type": "warmup", "duration_s": 480, "power_pct": 50, "ramp_to_pct": 60 }
+              ]
+            },
+            {
+              "repeat": 5,
+              "steps": [
+                { "name": "Aceleración", "type": "free", "duration_s": 90, "power_pct": 80 },
+                { "name": "Recuperación", "type": "recovery", "duration_s": 180, "power_pct": 55 }
+              ]
+            },
+            {
+              "repeat": 1,
+              "steps": [
+                { "name": "Fondo", "type": "steady", "duration_s": 360, "power_pct": 60 },
+                { "name": "Enfriamiento", "type": "cooldown", "duration_s": 510, "power_pct": 55, "ramp_to_pct": 45 }
+              ]
+            }
+          ],
+          "kind": null
+        },
+        {
+          "name": "Fondo con juego de cadencia",
+          "dayOfWeek": "thu",
+          "targetTSS": 26,
+          "erg": "off",
+          "intent": "Fondo a RPE 3-4, platicando sin problema. Cuatro veces pedalea 2 min un poco más rápido de lo que te sale natural, sin que se te dispare el pulso ni te sientas incómodo, y regresa a tu cadencia. Si notas la rodilla, baja la cadencia a la que estés cómodo.",
+          "segments": [
+            {
+              "repeat": 1,
+              "steps": [
+                { "name": "Calentamiento", "type": "warmup", "duration_s": 480, "power_pct": 50, "ramp_to_pct": 60 }
+              ]
+            },
+            {
+              "repeat": 4,
+              "steps": [
+                { "name": "Cadencia ágil", "type": "steady", "duration_s": 120, "power_pct": 65 },
+                { "name": "Fondo", "type": "steady", "duration_s": 180, "power_pct": 60 }
+              ]
+            },
+            {
+              "repeat": 1,
+              "steps": [
+                { "name": "Fondo", "type": "steady", "duration_s": 600, "power_pct": 60 },
+                { "name": "Enfriamiento", "type": "cooldown", "duration_s": 360, "power_pct": 55, "ramp_to_pct": 45 }
+              ]
+            }
+          ],
+          "kind": null
+        }
+      ],
+      "extras": [
+        {
+          "dayOfWeek": "sun",
+          "kind": "outdoor",
+          "name": "Salida larga afuera",
+          "minutes": 65,
+          "description": "Rueda a RPE 3-4, terreno llano o con subidas suaves, y come algo desde el minuto 30. Si aparece una molestia en la rodilla que cambia tu pedaleo, baja el ritmo o regresa."
+        }
+      ]
+    },
+    {
+      "weekIndex": 2,
+      "workouts": [
+        {
+          "name": "Fondo con aceleraciones",
+          "dayOfWeek": "tue",
+          "targetTSS": 34,
+          "erg": "off",
+          "intent": "Fondo a RPE 3-4 y 6 aceleraciones de 1.5 min a RPE 5-6 (frases cortas) con 3 min suaves. Es una repetición más que la semana pasada y lo demás igual: si terminas con ganas de más, esa es la señal buena.",
+          "segments": [
+            {
+              "repeat": 1,
+              "steps": [
+                { "name": "Calentamiento", "type": "warmup", "duration_s": 480, "power_pct": 50, "ramp_to_pct": 60 }
+              ]
+            },
+            {
+              "repeat": 6,
+              "steps": [
+                { "name": "Aceleración", "type": "free", "duration_s": 90, "power_pct": 80 },
+                { "name": "Recuperación", "type": "recovery", "duration_s": 180, "power_pct": 55 }
+              ]
+            },
+            {
+              "repeat": 1,
+              "steps": [
+                { "name": "Fondo", "type": "steady", "duration_s": 600, "power_pct": 60 },
+                { "name": "Enfriamiento", "type": "cooldown", "duration_s": 300, "power_pct": 55, "ramp_to_pct": 45 }
+              ]
+            }
+          ],
+          "kind": null
+        },
+        {
+          "name": "Tempo suave",
+          "dayOfWeek": "thu",
+          "targetTSS": 33,
+          "erg": "off",
+          "intent": "Dos bloques de 10 min a ritmo de tempo suave, RPE 5: respiras más profundo y hablas en frases cortas pero completas. Regula por sensación, sin ERG; si no puedes hablar, baja. Es tu primer contacto con ritmo sostenido, que es lo que más va a pedir el gravel.",
+          "segments": [
+            {
+              "repeat": 1,
+              "steps": [
+                { "name": "Calentamiento", "type": "warmup", "duration_s": 600, "power_pct": 50, "ramp_to_pct": 65 }
+              ]
+            },
+            {
+              "repeat": 2,
+              "steps": [
+                { "name": "Tempo suave", "type": "steady", "duration_s": 600, "power_pct": 78 },
+                { "name": "Recuperación", "type": "recovery", "duration_s": 240, "power_pct": 55 }
+              ]
+            },
+            {
+              "repeat": 1,
+              "steps": [
+                { "name": "Enfriamiento", "type": "cooldown", "duration_s": 360, "power_pct": 55, "ramp_to_pct": 45 }
+              ]
+            }
+          ],
+          "kind": null
+        }
+      ],
+      "extras": [
+        {
+          "dayOfWeek": "sun",
+          "kind": "outdoor",
+          "name": "Salida larga afuera",
+          "minutes": 70,
+          "description": "Rueda a RPE 3-4, platicando, con algo de gravel o terreno suelto si tienes cerca. Come desde el minuto 30 y toma agua con regularidad."
+        }
+      ]
+    }
+  ],
+  "coachNote": "Luis, vienes de años de fútbol: eso es motor a favor, y el oficio sobre la bici lo construimos juntos, así que ajusto en cuanto vea tus primeras sesiones. El gravel de 60 km pide ritmo sostenido largo con cambios de ritmo en los repechos; por eso priorizo base, una salida larga afuera los domingos con comida y, después, bloques de ritmo. El rodillo no entrena manejo en terreno suelto, eso lo practicas en tus salidas. Hasta el test la intensidad va por sensación (RPE); la rampa del jueves 12 te da tus zonas en watts y desde ahí trabajamos con ellas. Para la rodilla: cadencia cómoda, sin fuerza a cadencia baja ni arrancadas; como la molestia aparece a veces, que la revise un fisioterapeuta, que te revisen el ajuste de la bici y que te recomiende isométricos de rodilla y core. No prometo un tiempo para los 60 km: la meta del plan es llegar entero y fuerte, y con el test y las primeras semanas vemos qué ritmo es realista.",
+  "suggestedFtp": null,
+  "nextTest": {
+    "weekIndex": 0,
+    "type": "ramp",
+    "reason": "Sabes dosificarte y llegas con energía: después de la rodada del martes 10 y con el miércoles libre, el jueves 12 te mide. Con eso arrancamos tus zonas en watts desde la semana 2."
+  },
+  "report": {
+    "welcome": "Luis, bienvenido. Vamos a prepararte para rodar tus 60 km de gravel en Valle de Bravo el 21 de febrero con buenas piernas y disfrutándolos. Cada semana la armo con lo que me cuentes y con lo que muestren tus sesiones, así el plan se ajusta a ti. Tus años de fútbol juegan a tu favor, y la rodilla la cuidamos desde el primer día; si la molestia aparece seguido, que la vea un fisioterapeuta.",
+    "why": [
+      {
+        "title": "Empezamos desde lo que ya haces",
+        "body": "Hoy estás rodando unas 2 horas por semana, así que la primera semana ronda las 2 h 15 min y subimos poco a poco. Cada cuarta semana aflojamos para que tu cuerpo asimile lo trabajado y llegue mejor a la siguiente."
+      },
+      {
+        "title": "Primero medimos, luego apretamos",
+        "body": "Todavía no tenemos un número de partida en watts, así que el jueves 12 haces una rampa: escalones que suben cada 2 minutos y paras al llegar a un esfuerzo de 8 sobre 10, en el que solo dices pocas palabras. Con eso sacamos tus zonas. Mientras, las primeras semanas llevan aceleraciones cortas por sensación para que no sean planas."
+      },
+      {
+        "title": "Cuidamos tu rodilla sin congelar el plan",
+        "body": "En la bici no hay impacto ni cambios de dirección, y como no te duele al pedalear no te quitamos el trabajo aeróbico. Sí evitamos arrancadas fuertes y pedalear con mucha fuerza a pocas vueltas. Un fisio puede darte isométricos de rodilla y core, y conviene revisar el ajuste de tu bici."
+      },
+      {
+        "title": "El domingo es tu día largo afuera",
+        "body": "Un gravel de 60 km se gana con horas sobre la bici, no con sesiones largas de rodillo. Por eso el domingo es salida larga afuera, a un paso donde puedes platicar y comiendo desde el minuto 30, y va creciendo semana a semana. Martes y jueves son de rodillo, y el resto de días descansas."
+      }
+    ],
+    "closing": "Arrancas con la actitud correcta: constancia y ganas de escuchar tu cuerpo. Cada semana la revisamos juntos y, al cerrar este primer bloque en 4 semanas, nos sentamos a ver cómo respondiste y qué viene. Aquí voy a estar acompañándote hasta la línea de salida."
+  }
+}

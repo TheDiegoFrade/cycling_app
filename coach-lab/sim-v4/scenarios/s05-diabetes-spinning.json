@@ -1,0 +1,81 @@
+{
+ "id": "s05-diabetes-spinning",
+ "mode": "create_plan",
+ "title": "Diabetes tipo 2 controlada que ya hace spinning (como Paola): 3-1 y algo de intensidad",
+ "expect": [
+  "Microciclo 3 de carga y 1 de descarga, no descarga en la semana 3",
+  "Estímulos cortos por RPE (30/30 a RPE 7-8) cuando toque, no tope en RPE 5-6",
+  "Snack: que pregunte a su nutriólogo",
+  "Sin test"
+ ],
+ "today": "2026-11-04",
+ "context": {
+  "startDate": "2026-11-09",
+  "goal": "Quiero controlar mi glucosa y divertirme. Voy a spinning 2 veces por semana y me encanta la música fuerte; no quiero competir.",
+  "experienceLevel": "returning_or_new_to_app",
+  "generalFitnessLevel": "active_other_sport",
+  "discipline": "other",
+  "yearsRiding": 2,
+  "competes": false,
+  "category": null,
+  "availability": {
+   "hoursPerWeek": 3.5,
+   "days": [
+    "mon",
+    "wed",
+    "fri",
+    "sat"
+   ],
+   "maxSessionMinutes": 50
+  },
+  "occupiedDates": [],
+  "recentHistory": null,
+  "lastTest": null,
+  "profile": {
+   "ftp": null,
+   "provisionalFtp": null,
+   "ftpSource": "default",
+   "ftpUpdatedAt": null,
+   "hr_max": null,
+   "injuries": null,
+   "otherActivities": [
+    {
+     "kind": "other",
+     "perWeek": 2,
+     "minutes": 45,
+     "days": [
+      "tue",
+      "thu"
+     ]
+    }
+   ],
+   "experienceLevel": "returning_or_new_to_app",
+   "generalFitnessLevel": "active_other_sport",
+   "structuredTrainingYears": 0,
+   "rpeZones": null,
+   "sex": "F",
+   "name": "Mónica Lara",
+   "weightKg": 74,
+   "ageYears": 47,
+   "intake": {
+    "conditions": [
+     "diabetes"
+    ],
+    "takesMedication": true,
+    "recentInjury": false,
+    "injuryLimitsIntensity": false,
+    "smoking": "no",
+    "alcohol": "rarely",
+    "stress": "medium",
+    "sleepHours": 7,
+    "sleepQuality": "good",
+    "restingHr": 72,
+    "rpeLiteracy": "somewhat",
+    "maxEffortExperience": false,
+    "recentTraining": "with_intensity",
+    "recentHoursPerWeek": 1.5,
+    "medicationNote": "Metformina"
+   }
+  }
+ }
+}

@@ -1,0 +1,66 @@
+{
+ "id": "s01-sedentaria-sin-senales",
+ "mode": "create_plan",
+ "title": "Sedentaria sana con estrés alto (como Ana): no plano, sin médico",
+ "expect": [
+  "Semana 1 trae un día de aceleraciones a RPE 5-6 de 1-2 min (≈4 reps) que suben semana a semana",
+  "No le pide chequeo médico (no hay señales)",
+  "Juego de cadencia; no 3 semanas de puro fondo"
+ ],
+ "today": "2026-11-04",
+ "context": {
+  "startDate": "2026-11-09",
+  "goal": "Quiero tener más energía y quitarme el estrés del trabajo. Nunca he hecho deporte en serio; me regalaron un rodillo.",
+  "experienceLevel": "new_to_cycling",
+  "generalFitnessLevel": "sedentary",
+  "discipline": "other",
+  "yearsRiding": 0,
+  "competes": false,
+  "category": null,
+  "availability": {
+   "hoursPerWeek": 3,
+   "days": [
+    "tue",
+    "thu",
+    "sat"
+   ],
+   "maxSessionMinutes": 50
+  },
+  "occupiedDates": [],
+  "recentHistory": null,
+  "lastTest": null,
+  "profile": {
+   "ftp": null,
+   "provisionalFtp": null,
+   "ftpSource": "default",
+   "ftpUpdatedAt": null,
+   "hr_max": null,
+   "injuries": null,
+   "otherActivities": [],
+   "experienceLevel": "new_to_cycling",
+   "generalFitnessLevel": "sedentary",
+   "structuredTrainingYears": 0,
+   "rpeZones": null,
+   "sex": "F",
+   "name": "Gabriela Ruiz",
+   "weightKg": 64,
+   "ageYears": 45,
+   "intake": {
+    "conditions": [],
+    "takesMedication": false,
+    "recentInjury": false,
+    "injuryLimitsIntensity": false,
+    "smoking": "no",
+    "alcohol": "weekly",
+    "stress": "high",
+    "sleepHours": 6.5,
+    "sleepQuality": "fair",
+    "restingHr": null,
+    "rpeLiteracy": "no",
+    "maxEffortExperience": false,
+    "recentTraining": "little",
+    "recentHoursPerWeek": 0
+   }
+  }
+ }
+}
