@@ -545,6 +545,8 @@ export const CoachWeekInputContextSchema = z.object({
         minutes: z.number().nonnegative().nullable(),
         tss: z.number().nonnegative().nullable(),
         reason: z.enum(['past', 'coach_edit', 'routine']),
+        // Solo en lo pasado de bici: si se entrenó (null si no aplica o no se sabe).
+        done: z.boolean().nullable().optional(),
       }),
     )
     .max(40),

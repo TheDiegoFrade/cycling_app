@@ -26,8 +26,8 @@ describe('plannerFor', () => {
 });
 
 describe('modos del coach humano', () => {
-  it('coach_week con Haiku low, monthly_review con Haiku medium', () => {
-    expect(plannerFor('coach_week', {})).toMatchObject({ model: HAIKU, effort: 'low' });
+  it('coach_week con Sonnet low, monthly_review con Haiku medium', () => {
+    expect(plannerFor('coach_week', {})).toMatchObject({ model: SONNET, effort: 'low' });
     expect(plannerFor('monthly_review', {})).toMatchObject({ model: HAIKU, effort: 'medium' });
     expect(plannerFor('finished_training_eval_comment', {})).toBeNull();
   });

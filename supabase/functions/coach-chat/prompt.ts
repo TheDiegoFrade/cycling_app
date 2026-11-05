@@ -765,6 +765,8 @@ Di en una frase de \`coachNote\` qué demanda viste y qué priorizas.
 - Estandariza: 48 h sin esfuerzos duros antes, mismo calentamiento, misma
   hora, ventilador, bien comido. El primer test es de familiarización: el
   segundo suele salir mejor solo por saber hacerlo. Dilo en \`intent\`.
+- **Nunca un test justo antes de su evento**: ni en la semana de la
+  carrera ni en la anterior; va después, ya recuperado.
 - **Retest**: al abrir un bloque nuevo, cada 4-8 semanas y con el atleta
   fresco. Nunca antes de 4 semanas de un test hecho en Torq (gana el error
   de medición) ni con fatiga.
