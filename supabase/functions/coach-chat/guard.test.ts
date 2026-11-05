@@ -440,3 +440,17 @@ describe('planDays: días confirmados por el atleta en weekly_eval', () => {
     expect(fixed.nextWeekWorkouts.map((w: { dayOfWeek: string }) => w.dayOfWeek)).not.toContain('sat');
   });
 });
+
+describe('gimnasio que agrega la guardia', () => {
+  const gctx = (over: Record<string, unknown> = {}) =>
+    weeklyCtx({ profile: { ftp: 250, otherActivities: [{ kind: 'strength', perWeek: 1, minutes: 50, days: ['wed'] }] }, plan: { days: ['tue', 'thu', 'sat', 'sun'] }, ...over });
+  const gymDesc = (ctx: unknown) => repairOutput('weekly_eval', ctx, weeklyOut([easy('sat')])).out.nextWeekExtras.find((e: { kind: string }) => e.kind === 'gym').description;
+
+  it('sin sesión dura cerca, lo prudente: sin pierna pesada', () => {
+    expect(gymDesc(gctx())).toBe('Tren superior y core; pierna solo ligera.');
+  });
+
+  it('en la semana de la carrera (planWeeksLeft 1), sin pierna', () => {
+    expect(gymDesc(gctx({ planWeeksLeft: 1 }))).toMatch(/sin pierna: es semana de carrera/);
+  });
+});

@@ -351,10 +351,14 @@ Deno.serve(async (req) => {
  * de la semana que está reemplazando). */
 async function prepareWeeklyEvalContext(admin: AdminClient, userId: string, context: Record<string, unknown>): Promise<void> {
   const { data: plan } = await admin.from('training_plans').select('data').eq('user_id', userId).eq('status', 'active').maybeSingle();
-  const planData = plan?.data as { startDate: string; weeks: { workoutIds: string[] }[] } | undefined;
+  const planData = plan?.data as { startDate: string; weeks: { workoutIds: string[] }[]; blocks?: { weeks: number }[] } | undefined;
   if (!planData) return;
   const t = evalWeekTarget(planData.startDate, athleteToday());
   if (!t) return;
+  // Semanas que le quedan al plan contando la que se arma: el plan termina en
+  // la semana del evento, así que 1 = es la semana de la carrera. Sin esto el
+  // coach contaba fechas de memoria y armó la descarga una semana antes.
+  if (planData.blocks?.length) context.planWeeksLeft = planTotalWeeks(planData.blocks) - t.target;
   const monday = new Date(`${planData.startDate}T00:00:00Z`);
   monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7) + t.target * 7);
   context.nextWeekStart = monday.toISOString().slice(0, 10);
