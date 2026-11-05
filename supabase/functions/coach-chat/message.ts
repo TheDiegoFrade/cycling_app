@@ -51,6 +51,7 @@ export function buildUserMessage(mode: Mode, context: Record<string, unknown>): 
     weekly_eval: [
       'Modo: weekly_eval. Evalúa la semana recién terminada y decide la que sigue.',
       'Elige `decision` con el orden de casos de tu sección weekly_eval (gana el primero que aplique) y arma `nextWeekWorkouts` coherente con esa decisión.',
+      '`planWeeksLeft` son las semanas que le quedan al plan contando la que armas; el plan termina en la semana de su evento. Con 1, la que armas es la de la carrera; con 2 o más, todavía no lo es (no la armes como semana de carrera ni le digas que lo es).',
       '`usableDays` son los únicos días de esa semana donde puedes poner workouts y extras "outdoor" o "skills" (los demás ya pasaron, no son suyos o están ocupados). Si no caben todas las sesiones, quita lo suave y conserva el estímulo, y que `reasoning` cuente la semana tal como la armaste. Si en su nota confirma otros días para seguir, ponlos en `planDays` y usa esos (los que no hayan pasado ni estén ocupados).',
       'Si `athleteNote` menciona dolor, enfermedad o cansancio, pesa más que el TSS logrado. Si menciona un test o pregunta por su FTP, `reasoning` le dice si lo cambia (y a cuánto) o lo mantiene.',
       'Lee también lo que hizo fuera de la bici (`weekJustFinished.otherActivities`, `weekJustFinished.otherActivitiesNote` y `profile.otherActivities`): explica fatiga que la bici sola no explica.',

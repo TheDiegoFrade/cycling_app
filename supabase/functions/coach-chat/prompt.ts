@@ -1169,7 +1169,8 @@ la semana en los días que sí entrenó (los que completó en
   más largos).
 - **\`planDays\`:** solo cuando su nota confirma un cambio para seguir
   ("de ahora en adelante puedo martes, jueves y sábado", "sí, agrego el
-  sábado"), con TODOS los días con los que sigue el plan; la semana que
+  sábado"), con TODOS los días con los que sigue el plan, también los de
+  su salida afuera (no solo los de rodillo); la semana que
   armas ya va en ellos y \`reasoning\` se lo dice ("actualicé tus días:
   martes, jueves y sábado"). Algo de una sola semana ("esta semana no puedo
   el miércoles") o lo que tú deduces sin que lo diga: \`planDays\` null.
