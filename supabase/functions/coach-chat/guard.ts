@@ -141,6 +141,7 @@ function weekOpts(mode: Mode, ctx: Any): WeekOpts {
     startDate: ctx.nextWeekStart,
     days: ctx.plan?.days?.length ? ctx.plan.days : undefined,
     occupied: new Set(ctx.occupiedDates ?? []),
+    hoursPerWeek: ctx.plan?.hoursPerWeek ?? undefined,
     today: ctx.today,
     minor: isMinor(ctx),
     minorMaxWeekMin: minorMaxWeekMin(ctx),
@@ -280,10 +281,44 @@ function repairExtras(mode: Mode, ctx: Any, out: Any, o: WeekOpts, fixes: string
   setExtras(mode, out, repaired);
 }
 
+/** "juntos"/"juntas" según el sexo del atleta (el correo lo lee tal cual;
+ * Joe marcó un error de género). Sin sexo no se toca: el prompt pide evitarlo. */
+function fixTogetherGender(text: string, sex: unknown): string {
+  if (sex === 'F') return text.replace(/\b([Jj])untos\b/g, '$1untas');
+  if (sex === 'M') return text.replace(/\b([Jj])untas\b/g, '$1untos');
+  return text;
+}
+
+function repairTextGender(mode: Mode, ctx: Any, out: Any, fixes: string[]): void {
+  const sex = ctx?.profile?.sex;
+  if (sex !== 'F' && sex !== 'M') return;
+  let changed = false;
+  const fix = (v: unknown) => {
+    if (typeof v !== 'string') return v;
+    const next = fixTogetherGender(v, sex);
+    if (next !== v) changed = true;
+    return next;
+  };
+  if (mode === 'create_plan') {
+    out.coachNote = fix(out.coachNote);
+    if (out.report) {
+      out.report.welcome = fix(out.report.welcome);
+      out.report.closing = fix(out.report.closing);
+      if (Array.isArray(out.report.why)) out.report.why = out.report.why.map((d: Any) => ({ ...d, title: fix(d.title), body: fix(d.body) }));
+    }
+  } else if (mode === 'weekly_eval') {
+    out.reasoning = fix(out.reasoning);
+    out.contradictionFlag = fix(out.contradictionFlag);
+    out.recurringPatternFlag = fix(out.recurringPatternFlag);
+  }
+  if (changed) fixes.push(`"juntos/juntas" ajustado al sexo del atleta (${sex})`);
+}
+
 /** Copia de `out` con lo mecánico arreglado, y qué se arregló. */
 export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes: string[] } {
   const fixed = structuredClone(out);
   const fixes: string[] = [];
+  repairTextGender(mode, ctx, fixed, fixes);
   let weeks = weeksOf(mode, fixed);
   if (!weeks.length) return { out: fixed, fixes };
   const o = weekOpts(mode, ctx);
@@ -386,7 +421,12 @@ export function repairOutput(mode: Mode, ctx: Any, out: Any): { out: Any; fixes:
 
 // ─── Revisión ──────────────────────────────────────────────────────────────
 
-function checkPlannedWeeks(f: Finding[], weeks: { workouts: Any[] }[], o: WeekOpts) {
+/** Minutos de bici fuera del rodillo (salida afuera y técnica): cuentan en
+ * las horas de la semana; el gimnasio no (prompt.ts, "Horas de la semana"). */
+const bikeExtraMinutes = (extras: Any[] | undefined) =>
+  (extras ?? []).filter((x) => x?.kind === 'outdoor' || x?.kind === 'skills').reduce((s, x) => s + (Number(x.minutes) || 0), 0);
+
+function checkPlannedWeeks(f: Finding[], weeks: { workouts: Any[]; extras?: Any[] }[], o: WeekOpts) {
   weeks.forEach((week, wi) => {
     const seen = new Set<string>();
     let weekMin = 0;
@@ -418,8 +458,10 @@ function checkPlannedWeeks(f: Finding[], weeks: { workouts: Any[] }[], o: WeekOp
     if (o.minor && week.workouts.some((w) => isTest(w))) {
       f.push({ level: 'fail', msg: `S${wi + 1}: un menor de 18 no hace tests máximos (ni rampa ni 20 min): entrena por RPE` });
     }
-    if (o.hoursPerWeek && weekMin > o.hoursPerWeek * 60 * 1.1) {
-      f.push({ level: 'warn', msg: `S${wi + 1}: ${(weekMin / 60).toFixed(1)} h, más que las ${o.hoursPerWeek} h disponibles` });
+    const totalMin = weekMin + bikeExtraMinutes(week.extras);
+    if (o.hoursPerWeek && totalMin > o.hoursPerWeek * 60 * 1.05) {
+      const outside = totalMin - weekMin;
+      f.push({ level: 'warn', msg: `S${wi + 1}: ${(totalMin / 60).toFixed(1)} h${outside ? ` (${Math.round(outside)} min afuera)` : ''}, más que las ${o.hoursPerWeek} h disponibles` });
     }
     hardDays.sort((a, b) => a - b);
     for (let i = 1; i < hardDays.length; i++) {
@@ -576,7 +618,7 @@ function checkWeeklyEval(ctx: Any, out: Any): Finding[] {
   else if (tsb <= -25) {
     for (const w of out.nextWeekWorkouts) if (!isTest(w) && isHard(flat(w.segments))) f.push({ level: 'fail', msg: `TSB ${tsb} y la semana siguiente trae «${w.name}» duro` });
   }
-  checkPlannedWeeks(f, [{ workouts: out.nextWeekWorkouts }], weekOpts('weekly_eval', ctx));
+  checkPlannedWeeks(f, [{ workouts: out.nextWeekWorkouts, extras: out.nextWeekExtras }], weekOpts('weekly_eval', ctx));
   checkNoFtp(f, ctx, out, [{ workouts: out.nextWeekWorkouts }]);
   checkNoPerformance(f, ctx, out, [{ workouts: out.nextWeekWorkouts }]);
   checkStartingProfile(f, 'weekly_eval', ctx, out, [{ workouts: out.nextWeekWorkouts }]);

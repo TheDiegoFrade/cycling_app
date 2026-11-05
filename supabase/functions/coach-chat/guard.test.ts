@@ -356,3 +356,47 @@ describe('extras (lo que no es rodillo)', () => {
     expect(out.nextWeekExtras.map((e: { name: string }) => e.name)).toEqual(['ok']);
   });
 });
+
+describe('v4.1: horas con salidas afuera y género del "nosotros"', () => {
+  const ctx = (sex: string | null) => ({ startDate: '2026-10-12', availability: { days: ['tue', 'thu', 'sat', 'sun'], maxSessionMinutes: 90, hoursPerWeek: 4 }, occupiedDates: [], profile: { ftp: 250, sex } });
+  const outdoor = (minutes: number) => ({ dayOfWeek: 'sun', kind: 'outdoor', name: 'Salida larga', minutes, description: 'x' });
+  const plan = (extras: unknown[], over: Record<string, unknown> = {}) => ({
+    blocks: [{ weeks: 4 }],
+    firstBlockWeeks: [{ weekIndex: 0, workouts: [easy('tue'), easy('thu')], extras }],
+    coachNote: 'Vamos juntos hacia tu meta: cada semana la revisamos juntos y ajustamos con lo que me cuentes.',
+    suggestedFtp: null,
+    nextTest: null,
+    report: { welcome: 'Vamos juntos a tu carrera.', why: [{ title: 'Juntos', body: 'Lo vemos juntos.' }], closing: 'Cada semana la revisamos juntos.' },
+    ...over,
+  });
+
+  it('la salida afuera cuenta en las horas de la semana', () => {
+    const warns = (extras: unknown[]) => reviewOutput('create_plan', ctx('M'), plan(extras)).filter((x) => x.level === 'warn').map((x) => x.msg);
+    expect(warns([outdoor(90)]).some((m) => m.includes('h disponibles'))).toBe(false); // 2 h + 1.5 h = 3.5 h
+    expect(warns([outdoor(150)]).some((m) => m.includes('150 min afuera'))).toBe(true); // 4.5 h
+  });
+
+  it('weekly_eval usa las horas del plan guardado', () => {
+    const wctx = weeklyCtx({ plan: { days: ['tue', 'thu', 'sat', 'sun'], hoursPerWeek: 2 } });
+    const warns = reviewOutput('weekly_eval', wctx, weeklyOut([easy('tue'), easy('thu')], { nextWeekExtras: [outdoor(120)] })).filter((x) => x.level === 'warn').map((x) => x.msg);
+    expect(warns.some((m) => m.includes('más que las 2 h disponibles'))).toBe(true);
+  });
+
+  it('"juntos" pasa a "juntas" con una atleta, y al revés con un atleta', () => {
+    const { out, fixes } = repairOutput('create_plan', ctx('F'), plan([]));
+    expect(out.report.closing).toBe('Cada semana la revisamos juntas.');
+    expect(out.report.why[0]).toEqual({ title: 'Juntas', body: 'Lo vemos juntas.' });
+    expect(out.coachNote).not.toMatch(/juntos/);
+    expect(fixes.some((f) => f.includes('juntos/juntas'))).toBe(true);
+    const m = repairOutput('create_plan', ctx('M'), plan([], { report: { welcome: 'Vamos juntas.', why: [{ title: 't', body: 'b' }], closing: 'c' } }));
+    expect(m.out.report.welcome).toBe('Vamos juntos.');
+    const none = repairOutput('create_plan', ctx('other'), plan([]));
+    expect(none.out.report.closing).toBe('Cada semana la revisamos juntos.');
+  });
+
+  it('weekly_eval: el reasoning también', () => {
+    const wctx = weeklyCtx({ profile: { ftp: 250, sex: 'F' } });
+    const { out } = repairOutput('weekly_eval', wctx, weeklyOut([easy('tue')], { reasoning: 'La semana la hicimos juntos y salió completa: subimos un poco.' }));
+    expect(out.reasoning).toBe('La semana la hicimos juntas y salió completa: subimos un poco.');
+  });
+});
