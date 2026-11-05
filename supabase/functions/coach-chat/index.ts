@@ -42,9 +42,8 @@ function adminClient(): AdminClient {
 
 // Dos modelos para los modos que planifican (create_plan, weekly_eval,
 // publish_block):
-//  - El coach (routing.ts: Sonnet low para planes y bloques y para las
-//    semanas donde hay que razonar el FTP; Haiku 5.5 low para las demás
-//    evaluaciones semanales) razona y decide el plan, pero con una
+//  - El coach (routing.ts: Sonnet low para planes, bloques y evaluaciones
+//    semanales) razona y decide el plan, pero con una
 //    salida corta: las series en forma compacta (`repeat`) y una intención
 //    por workout. Antes Sonnet 5 escribía TODO (cada intervalo + una
 //    descripción de 3-5 oraciones por workout, ~15k tokens) y se pasaba de
