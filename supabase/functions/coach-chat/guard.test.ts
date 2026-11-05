@@ -424,3 +424,19 @@ describe('weekly_eval a media semana: días usables y prioridad del estímulo', 
     expect(fixes.some((f) => f.includes('quitado, no quedaba un día libre'))).toBe(true);
   });
 });
+
+describe('planDays: días confirmados por el atleta en weekly_eval', () => {
+  it('la semana se revisa contra los días nuevos', () => {
+    const ctx = weeklyCtx({ plan: { days: ['mon', 'tue', 'thu', 'fri'] } });
+    const out = weeklyOut([easy('tue'), easy('sat')], { planDays: ['tue', 'thu', 'sat'] });
+    const { out: fixed, fixes } = guardOutput('weekly_eval', ctx, out);
+    expect(fixed.nextWeekWorkouts.map((w: { dayOfWeek: string }) => w.dayOfWeek)).toEqual(['tue', 'sat']);
+    expect(fixes.some((f) => f.includes('movido'))).toBe(false);
+  });
+
+  it('sin planDays siguen mandando los días del plan', () => {
+    const ctx = weeklyCtx({ plan: { days: ['mon', 'tue', 'thu', 'fri'] } });
+    const { out: fixed } = guardOutput('weekly_eval', ctx, weeklyOut([easy('tue'), easy('sat')], { planDays: null }));
+    expect(fixed.nextWeekWorkouts.map((w: { dayOfWeek: string }) => w.dayOfWeek)).not.toContain('sat');
+  });
+});

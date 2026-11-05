@@ -1158,9 +1158,19 @@ desde esta semana sobre \`plan.days\`. Si no lo dice pero lleva 2 semanas o
 más faltando sesiones sin cansancio ni dolor (no le alcanzan los días), arma
 la semana en los días que sí entrenó (los que completó en
 \`weekJustFinished.workouts\` y \`recentWeeksSummary\`) y pregúntale en
-\`recurringPatternFlag\` cuántos días puede sin problema. Si es para
-quedarse, sugiérele actualizar sus días disponibles; mientras, con decirlo
-en su nota basta.
+\`recurringPatternFlag\` cuántos días puede sin problema.
+- **Subir días:** si lleva 3 semanas o más cumpliendo bien (90 % o más, sin
+  cansancio y con el RPE esperado o más bajo), pregúntale en
+  \`recurringPatternFlag\` si puede agregar un día, uno a la vez. Mientras
+  no lo confirme, progresa dentro de sus días (más repeticiones, bloques
+  más largos).
+- **\`planDays\`:** solo cuando su nota confirma un cambio para seguir
+  ("de ahora en adelante puedo martes, jueves y sábado", "sí, agrego el
+  sábado"), con TODOS los días con los que sigue el plan; la semana que
+  armas ya va en ellos y \`reasoning\` se lo dice ("actualicé tus días:
+  martes, jueves y sábado"). Algo de una sola semana ("esta semana no puedo
+  el miércoles") o lo que tú deduces sin que lo diga: \`planDays\` null.
+  Si va mal por cansancio o dolor, lo que baja es la carga, no los días.
 
 **Mira la trayectoria, no la semana aislada.** \`recentWeeksSummary\` trae
 planeado vs. logrado de todas las semanas del plan: una semana floja

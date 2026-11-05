@@ -458,6 +458,10 @@ export const WeeklyEvalOutputSchema = z.object({
   // Texto COMPLETO nuevo del expediente, solo si el context trae notesDue
   // true; si no, null. Ver "Expediente del atleta" en prompt.ts.
   notesUpdate: z.string().max(1200).nullable(),
+  // Días con los que sigue el plan de aquí en adelante, solo si el atleta lo
+  // confirmó en su nota (subir o bajar días); null si no cambia. El servidor
+  // los guarda en training_plans.data.form.days. Ver "Días que de verdad puede".
+  planDays: z.array(z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])).min(1).max(7).nullable(),
 });
 
 // Forma esperada de `context` para publish_block — resumen del BLOQUE
