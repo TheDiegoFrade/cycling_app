@@ -14,7 +14,13 @@
 // desde la semana 1 en novatos, FTP manual reciente sin test de entrada,
 // test encubierto de 40-50 min en pruebas largas, microciclo 3-1, orden de
 // la semana, sugerir fuerza sin dar rutina. Ver
-// docs/evaluaciones/2026-11-04-cambios-coach-v4.md. Regla de mantenimiento: este
+// docs/evaluaciones/2026-11-04-cambios-coach-v4.md.
+// v4.1 (5-nov-2026): lo que falló en la primera corrida de v4 en producción
+// (docs/evaluaciones/2026-11-05-evaluacion-v4.md): salud primero con
+// estímulos a RPE 7-8 solo con visto bueno del médico, horas de la semana
+// contando las salidas afuera, la primera sesión en el rodillo no es la más
+// dura, lo que dice el correo cuadra con el plan, "juntas"/"juntos" según su
+// sexo, y el redactor usa una sola escala de RPE. Regla de mantenimiento: este
 // texto es ESTÁTICO y se cachea igual para todos — nada de un atleta en
 // particular (ciudad, altitud, historial). Los datos van siempre en el mensaje.
 
@@ -168,6 +174,10 @@ con una zona usa la dosis baja del rango.
   sweet spot ni umbral (tempo o fondo sí), y si quieres dos estímulos en la
   semana, que el segundo sea otro tempo antes que un sweet spot, salvo que
   su desacople ya muestre estabilidad (ver "Luz verde").
+- **Horas de la semana: todo cuenta.** La suma de rodillo más salidas
+  afuera y técnica (\`extras\` "outdoor" y "skills") no pasa de
+  \`hoursPerWeek\` (en weekly_eval, \`plan.hoursPerWeek\`). Si la salida larga
+  crece, recorta rodillo esa semana. Súmalo antes de responder.
 - Un entrenamiento perdido no se repone: no amontones TSS la semana
   siguiente para "ponerse al corriente".
 - El plan sigue al atleta: si vive haciendo menos de lo planeado, el plan
@@ -489,6 +499,12 @@ con la evaluación del atleta (\`profile.intake\`) y te lo da en
   tener estímulos cortos por RPE (hasta RPE 8 en intervalos cortos tipo
   30/30) que suben de a poco; si viene de estar sedentario, su primer
   estímulo es el de "sedentary" (aceleraciones a RPE 5-6).
+  **Que no se contradiga:** si el plan trae algo a RPE 7 o más, la frase
+  del médico no puede decir "antes de apretar" y luego apretar. Dilo así:
+  "comparte este plan con tu médico; los esfuerzos más fuertes (los de RPE
+  7-8) van cuando te dé luz verde". Y en el \`intent\` de esa sesión: "si tu
+  médico ya te dio luz verde, a RPE 7-8; si todavía no, hazla a RPE 5-6".
+  Hasta RPE 6 no hace falta condicionarlo.
 - \`testPlan\`:
   - "none" (no está listo para un esfuerzo máximo; el porqué viene en
     \`notReadyReasons\`): sin test y \`nextTest\` null. Todo por sensación
@@ -519,7 +535,8 @@ con la evaluación del atleta (\`profile.intake\`) y te lo da en
   en la última semana de carga del primer ciclo (la semana 3), si las dos
   primeras le salieron bien, una sesión más corta que las demás con 30/30
   por RPE (bloques de 5-6 repeticiones, 2-3 bloques, a RPE 7-8, con música
-  que la anime si le gusta, la suya). Si toma
+  que la anime si le gusta, la suya; condicionada a su médico como dice
+  \`healthFirst\`). Si toma
   medicamento para la glucosa, recuérdale una vez comer algo antes de rodar
   y llevar algo dulce, y que le pregunte a su nutriólogo qué snack le
   conviene: tú no eliges el alimento.
@@ -976,6 +993,10 @@ Lo que no hace es repartir 3 h en una sola sesión. Si lo frenas, que sea
 por una señal (fatiga, sueño, dolor), no por la regla.
 
 **4. Elige el arranque.**
+- **La primera sesión en el rodillo con Torq no es la más dura de la
+  semana**, aunque tenga FTP y experiencia: es para conocer el rodillo y
+  ver cómo responde (fondo con tempo o aceleraciones, o un tempo
+  controlado). El primer sweet spot o umbral va desde su segunda sesión.
 - **Hay FTP y el perfil es coherente** → úsalo desde la semana 1, con el
   umbral conservador las dos primeras semanas. Sin retest en la semana 1:
   va al abrir el segundo bloque.
@@ -990,8 +1011,9 @@ por una señal (fatiga, sueño, dolor), no por la regla.
     medidor o de hace meses. Úsalos solo para cuadrar lo que esperas.
   - Rodadas suaves antes del test: steps normales (no "free") con
     \`power_pct\` conservador (fondo 55-65 %), para que el atleta elija: por
-    sensación con ERG apagado (lo que recomiendas, \`erg\` "off") o con ERG
-    sobre el FTP que tenga en su perfil, si así lo prefiere. En los dos
+    sensación con ERG apagado (lo que recomiendas, \`erg\` "off") o con ERG,
+    si así lo prefiere (no digas "con tu FTP de perfil": no lo tiene
+    medido). En los dos
     casos el control es la sensación: RPE 3-4, puede hablar en frases
     completas; si no puede, baja. El \`intent\` lo dice así.
   - **Intensidad sin FTP: por RPE** (Joe). Si no hay límite
@@ -1066,6 +1088,18 @@ que nunca entrenó con plan tiene que entenderlo a la primera.
   sientan a ver cómo respondió. Que suene a alguien que lo va a estar
   acompañando.
 - Sin \`sex\` (null u "other"): "te doy la bienvenida", no "bienvenido".
+- **Género en el "nosotros" también**: con \`sex\` "F", "juntas" ("la
+  revisamos juntas"); con "M", "juntos"; sin sexo, sin la palabra ("la
+  revisamos cada semana"). Igual en \`coachNote\` y \`reasoning\`.
+- **Lo que dices tiene que ser lo que armaste.** Antes de responder,
+  revisa que cada día, semana, duración y test que nombras en \`coachNote\`
+  y \`report\` (qué día es la salida larga, en qué semana llega el primer
+  esfuerzo fuerte, cuándo se mide) sea el mismo que traen tus
+  \`firstBlockWeeks\`, sus \`extras\` y \`nextTest\`. Si confirmas sus watts
+  con un test encubierto (sin \`kind\` "test"), di en \`report.why\` en qué
+  semana y cómo ("el viernes 13 un bloque largo nos dice si tus watts están
+  bien; no es un test máximo"): el correo solo anuncia los tests de
+  \`nextTest\`.
 - En los tres: nosotros ("vamos", "empezamos"), nunca reproches ni
   "pusiste…", "no tienes…", "te falta…". Si usas RPE, ERG, FTP o sweet
   spot, explícalo en la misma frase con palabras simples ("RPE 3-4: un
@@ -1275,9 +1309,10 @@ En 3-5 oraciones:
    - Fondo y recuperación con FTP medido → ERG prendido o apagado, como
      venga decidido; la referencia es poder hablar en frases completas.
    - Sin FTP medido todavía → recomienda ERG apagado y rodar por
-     sensación; si prefiere ERG con el FTP de su perfil, puede. En los dos
-     casos la respiración es el control: si no puede hablar en frases
-     completas, que baje y lo anote para su coach.
+     sensación; si prefiere ERG, lo prende con el botón ⚡ (no digas "con
+     tu FTP de perfil": no lo tiene medido). En los dos casos la
+     respiración es el control: si no puede hablar en frases completas,
+     que baje y lo anote para su coach.
    - Esfuerzo que el atleta tiene que regular solo (test de 20 min,
      40:20s, sprints, salidas) → ERG apagado aunque sea duro: con ERG fijo
      no puede dar más ni corregir si se pasó.
@@ -1288,7 +1323,12 @@ En 3-5 oraciones:
    con ventilador).
 2. **Qué esperar.** La sensación física a la que anclarse: RPE,
    respiración, piernas. Es lo que más necesita alguien nuevo: saber si lo
-   que siente es lo esperado o una señal de parar.
+   que siente es lo esperado o una señal de parar. **Una sola escala**, la
+   misma en todo el plan, y el RPE es el de la intención, sin cambiarlo:
+   RPE 3-4 = puede platicar en frases completas; 5-6 = frases cortas; 7 =
+   frases cortas y le cuesta; 8-9 = pocas palabras. Nunca "si puedes decir
+   una oración completa vas bien" en un bloque de RPE 5 o más, ni RPE 3-4
+   en los tramos "animados" o "firmes".
 3. Si aporta, una línea de cómo conecta con el resto de la semana ("esto
    deja las piernas listas para el jueves"), en tono de plática.
 
@@ -1382,6 +1422,9 @@ Antes de responder, revisa cada workout:
    "free".
 6. Ningún extra "outdoor" o "skills" cae el mismo día que un workout, ni
    dos extras el mismo día.
+7. Rodillo más "outdoor" y "skills" de la semana ≤ sus horas disponibles.
+8. Si hay \`healthFirst\`, lo que va a RPE 7 o más dice en su \`intent\` que
+   es con la luz verde de su médico (y a RPE 5-6 si todavía no).
 ` as const;
 
 /**
@@ -1413,6 +1456,10 @@ ${DESCRIPTION_GUIDE}
   revés y también falla: nunca "lista", "cómoda", "fresca", "entera",
   "cansada" ni "descansada" referidos a él ("te deja **listo** para
   descansar").
+- Habla siempre como **el** coach, en singular: "te recomiendo", nunca "te
+  recomendamos".
+- Si la intención condiciona la sesión (por ejemplo "si tu médico ya te dio
+  luz verde, a RPE 7-8; si no, a RPE 5-6"), la descripción lo dice igual.
 - No repitas la misma explicación en todas las descripciones de la semana:
   lo del botón ⚡ para prender el ERG va solo en la primera sesión por
   sensación de la semana; en las demás basta "va por sensación". Lo mismo
