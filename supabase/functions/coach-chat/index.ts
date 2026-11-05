@@ -788,7 +788,7 @@ function withGeneratedWeeks(mode: Mode, output: Record<string, unknown>, weeks: 
  * del tiempo — el llamador usa la intención del coach en su lugar. */
 async function writeWeekDescriptions(
   client: Anthropic,
-  athlete: { name: string | null; sex: string | null },
+  athlete: { name: string | null; sex: string | null; mentionFtp: boolean },
   workouts: PlannedWorkout[],
   timeoutMs: number,
   logAs: { userId: string; mode: string; calls: CallRow[] },
@@ -849,8 +849,11 @@ async function finishPlannedWorkouts(
 ): Promise<Record<string, unknown>> {
   // El tope de minutos ya lo aplicó la guardia (guard.ts → fitToCap).
   const weeks = plannedWeeksOf(mode, output);
-  const profile = context.profile as { name?: string | null; sex?: string | null } | undefined;
-  const athlete = { name: profile?.name ?? null, sex: profile?.sex ?? null };
+  const profile = context.profile as { name?: string | null; sex?: string | null; ftp?: number | null; ftpSource?: string | null } | undefined;
+  // Sin FTP medido, o con las zonas de su rampa por RPE, al atleta no se le
+  // habla de FTP ni de % de FTP (prompt.ts): el redactor necesita saberlo.
+  const mentionFtp = typeof profile?.ftp === 'number' && profile.ftpSource !== 'test_rpe_ramp';
+  const athlete = { name: profile?.name ?? null, sex: profile?.sex ?? null, mentionFtp };
 
   const remaining = WALL_CLOCK_BUDGET_MS - (Date.now() - startedAt);
   const written =

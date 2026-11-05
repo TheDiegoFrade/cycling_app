@@ -141,7 +141,8 @@ async function runOne(label: string, v: Any, c: (typeof cases)[number], rep: num
   const out = guard.out;
   // Descripciones del redactor, una llamada por semana, como producción.
   if (planning) {
-    const athlete = { name: ctx.profile?.name ?? null, sex: ctx.profile?.sex ?? null };
+    const mentionFtp = typeof ctx.profile?.ftp === 'number' && ctx.profile?.ftpSource !== 'test_rpe_ramp';
+    const athlete = { name: ctx.profile?.name ?? null, sex: ctx.profile?.sex ?? null, mentionFtp };
     const weeks: Any[][] = c.mode === 'create_plan' ? out.firstBlockWeeks.map((w: Any) => w.workouts) : [out.nextWeekWorkouts ?? out.workouts ?? []];
     const results = await Promise.all(weeks.map((ws) => (ws.length ? writeDescriptions(v, athlete, ws) : Promise.resolve({ map: new Map(), usage: null }))));
     results.forEach((res, wi) => {
