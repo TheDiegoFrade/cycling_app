@@ -51,6 +51,7 @@ const cases: { id: string; mode: string; today: string; context: Any }[] = JSON.
 function buildContext(v: Any, c: (typeof cases)[number]): Any {
   const ctx: Any = { ...v.schemas.inputContextSchemaForMode(c.mode).parse(c.context) };
   ctx.today = c.today;
+  if (c.mode === 'weekly_eval' && v.guard.usableDaysOf) ctx.usableDays = v.guard.usableDaysOf(c.mode, ctx);
   const prof = ctx.profile ?? {};
   ctx.starting = v.intake.startingProfile({
     intake: prof.intake ?? undefined,

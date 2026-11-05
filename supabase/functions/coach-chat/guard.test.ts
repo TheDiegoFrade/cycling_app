@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { correctionMessage, guardOutput, repairOutput, reviewOutput, usableStartDate } from './guard.ts';
+import { correctionMessage, guardOutput, repairOutput, reviewOutput, usableDaysOf, usableStartDate } from './guard.ts';
 
 const step = (min: number, pct: number) => ({ name: 'x', type: 'steady', duration_s: min * 60, power_pct: pct });
 const easy = (day: string, min = 60, name = `Fondo ${day}`) => ({
@@ -398,5 +398,29 @@ describe('v4.1: horas con salidas afuera y género del "nosotros"', () => {
     const wctx = weeklyCtx({ profile: { ftp: 250, sex: 'F' } });
     const { out } = repairOutput('weekly_eval', wctx, weeklyOut([easy('tue')], { reasoning: 'La semana la hicimos juntos y salió completa: subimos un poco.' }));
     expect(out.reasoning).toBe('La semana la hicimos juntas y salió completa: subimos un poco.');
+  });
+});
+
+describe('weekly_eval a media semana: días usables y prioridad del estímulo', () => {
+  // Evaluar un jueves: lun-mié ya pasaron; el sábado está ocupado.
+  const ctx = () => weeklyCtx({ today: '2026-10-15', occupiedDates: ['2026-10-17'], plan: { days: ['mon', 'tue', 'thu', 'sat', 'sun'] } });
+  const accel = (day: string) => ({ ...easy(day, 45, 'Aceleraciones'), segments: [{ repeat: 6, steps: [{ ...step(1.5, 80), type: 'free' }, step(2.5, 52)] }] });
+
+  it('usableDays: solo sus días que no pasaron ni están ocupados', () => {
+    expect(usableDaysOf('weekly_eval', ctx())).toEqual([
+      { dayOfWeek: 'thu', date: '2026-10-15' },
+      { dayOfWeek: 'sun', date: '2026-10-18' },
+    ]);
+    expect(usableDaysOf('create_plan', ctx())).toEqual([]);
+  });
+
+  it('si falta día, se queda el estímulo y se quita lo suave', () => {
+    // El modelo puso fondos en jue y dom y las aceleraciones el lunes (ya pasó).
+    const out = weeklyOut([accel('mon'), easy('thu'), easy('sun', 50, 'Fondo largo')]);
+    const { out: fixed, fixes } = repairOutput('weekly_eval', ctx(), out);
+    const names = fixed.nextWeekWorkouts.map((w: { name: string }) => w.name);
+    expect(names).toContain('Aceleraciones');
+    expect(fixed.nextWeekWorkouts).toHaveLength(2);
+    expect(fixes.some((f) => f.includes('quitado, no quedaba un día libre'))).toBe(true);
   });
 });

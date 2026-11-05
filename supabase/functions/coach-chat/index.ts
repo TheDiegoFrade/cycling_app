@@ -29,7 +29,7 @@ import { summarizeSegments, toGeneratedWorkout, totalMinutes, type PlannedWorkou
 import { resolveFromLibrary, type CoachWeekWorkout, type LibraryTemplate } from './library.ts';
 import { acceptAiNotes, notesDueOnWeeklyEval, type StoredNotes } from './notes.ts';
 import { callRow, logCalls, type CallRow, type CallStep, type UsageLike } from './usage-log.ts';
-import { correctionMessage, guardOutput, usableStartDate } from './guard.ts';
+import { correctionMessage, guardOutput, usableDaysOf, usableStartDate } from './guard.ts';
 import { plannerFor } from './routing.ts';
 import { OTHER_MODEL, callCoach, readResponse } from './coach-call.ts';
 import { deliverDraft, emailKey, planDraftOf, weekDraftOf } from './coach-email.ts';
@@ -187,7 +187,10 @@ Deno.serve(async (req) => {
         structuredTrainingYears: (prof.structuredTrainingYears ?? undefined) as number | undefined,
       });
     }
-    if (body.mode === 'weekly_eval') await prepareWeeklyEvalContext(admin, userId, context);
+    if (body.mode === 'weekly_eval') {
+      await prepareWeeklyEvalContext(admin, userId, context);
+      context.usableDays = usableDaysOf('weekly_eval', context);
+    }
     if (body.mode === 'create_plan') {
       const availability = context.availability as { days?: string[] } | undefined;
       const start = usableStartDate(context.startDate as string, availability?.days, new Set((context.occupiedDates as string[] | undefined) ?? []));
