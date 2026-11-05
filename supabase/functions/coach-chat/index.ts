@@ -21,7 +21,7 @@ import { zodOutputFormat } from 'npm:@anthropic-ai/sdk@0/helpers/zod';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
 import { NO_ACCESS, loadAiAccess } from '../_shared/access.ts';
-import { evalWeekTarget, hasUnlimitedCoach, localDateKey, planTotalWeeks, startingProfile } from '../_shared/core.gen.js';
+import { evalWeekTarget, hasUnlimitedCoach, localDateKey, planTotalWeeks, planWeekOf, startingProfile } from '../_shared/core.gen.js';
 import { COACH_SYSTEM_PROMPT, WRITER_SYSTEM_PROMPT } from './prompt.ts';
 import { buildUserMessage } from './message.ts';
 import { PLANNING_MODES, WorkoutDescriptionsSchema, schemaForMode, inputContextSchemaForMode, type Mode } from './schemas.ts';
@@ -185,6 +185,17 @@ Deno.serve(async (req) => {
         generalFitnessLevel: (context.generalFitnessLevel ?? prof.generalFitnessLevel ?? (context.plan as Record<string, unknown> | undefined)?.generalFitnessLevel ?? undefined) as never,
         structuredTrainingYears: (prof.structuredTrainingYears ?? undefined) as number | undefined,
       });
+    }
+    if (body.mode === 'coach_week') {
+      // Semanas que le quedan al plan del atleta contando la que se arma (1 =
+      // la de su evento): el coach_week no sabía cuándo es la carrera y
+      // sugería el test en la semana de la competencia.
+      const { data: athletePlan } = await admin.from('training_plans').select('data').eq('user_id', (validContext as { athleteId: string }).athleteId).eq('status', 'active').maybeSingle();
+      const pd = athletePlan?.data as { startDate?: string; blocks?: { weeks: number }[] } | undefined;
+      if (pd?.startDate && pd.blocks?.length) {
+        const left = planTotalWeeks(pd.blocks) - planWeekOf(pd.startDate, context.weekStart as string);
+        if (left >= 1) context.planWeeksLeft = left;
+      }
     }
     if (body.mode === 'weekly_eval') {
       await prepareWeeklyEvalContext(admin, userId, context);

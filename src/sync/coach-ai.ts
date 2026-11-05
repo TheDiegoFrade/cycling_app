@@ -12,7 +12,7 @@ export interface CoachWeekContext {
   weekStart: string;
   instruction: string;
   openDays: string[];
-  lockedItems: { dayOfWeek: string; name: string; kind: 'bike' | 'strength' | 'mobility' | 'flexibility'; minutes: number | null; tss: number | null; reason: 'past' | 'coach_edit' | 'routine' }[];
+  lockedItems: { dayOfWeek: string; name: string; kind: 'bike' | 'strength' | 'mobility' | 'flexibility'; minutes: number | null; tss: number | null; reason: 'past' | 'coach_edit' | 'routine'; done?: boolean | null }[];
   athlete: { name: string | null; ftp: number | null; ftpConfirmed: boolean | null; discipline: string | null; injuries: string | null; goal: string | null };
   pmc: { ctl: number; atl: number; tsb: number } | null;
   recentWeeks: { weekStart: string; bikeTss: number; nonBikeSessions: number }[];

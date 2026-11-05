@@ -53,7 +53,10 @@ export function weekNeedsFtpReasoning(ctx: Record<string, unknown>): string | nu
 /** Modelo y effort del coach para este modo y contexto (no del redactor).
  * null = finished_training_eval_comment, que la app ya no llama. */
 export function plannerFor(mode: Mode, ctx: Record<string, unknown>): ModelChoice | null {
-  if (mode === 'coach_week') return { model: HAIKU, effort: 'low', reason: 'semana del coach' };
+  // Lo usa solo el coach humano, unas pocas veces por semana: Sonnet, como
+  // weekly_eval (2026-11-05: con Haiku contaba sesiones perdidas como carga y
+  // sugirió el test en la semana de la carrera).
+  if (mode === 'coach_week') return { model: SONNET, effort: 'low', reason: 'semana del coach' };
   if (mode === 'monthly_review') return { model: HAIKU, effort: 'medium', reason: 'revisión mensual (una al mes)' };
   if (mode === 'finished_training_eval_comment') return null;
   if (mode === 'weekly_eval') {

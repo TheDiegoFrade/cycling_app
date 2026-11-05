@@ -19,6 +19,7 @@ import { stateSessionFromCloud } from '../athlete-state-data';
 import { requestCoachWeek } from '../../sync/coach-ai';
 import type { CoachWeekContext } from '../../sync/coach-ai';
 import { COACH_OVERVIEW_DAYS, sinceIso, todayLocalKey, errorMessage } from '../coach-ui';
+import { dayKeyOf } from '../../core/day-key';
 import type { LibrarySource, PlanWeekItem } from '../../core/plan-week';
 import { summarizeIntervals } from '../../core/interval-summary';
 import { blockPreviewHtml, intervalRowsHtml, readIntervalInputs, wireIntervalEditor } from '../interval-editor';
@@ -293,6 +294,13 @@ export function renderCoachWeek(container: HTMLElement): void {
             minutes: est ? Math.round(est.durationS / 60) : (i.routine?.payload.durationMin ?? null),
             tss: est?.tss ?? null,
             reason: day < todayKey ? ('past' as const) : i.routine ? ('routine' as const) : ('coach_edit' as const),
+            // Lo pasado de bici: ¿lo entrenó? (una sesión de bici ese día). Si no,
+            // la IA no lo cuenta como carga: antes sumaba sesiones perdidas y
+            // concluía que la semana ya iba cargada.
+            done:
+              day < todayKey && (i.workout || isRideKind(i.routine.kind))
+                ? rows.some((r) => r.userId === athleteId && (!r.kind || r.kind.startsWith('bike')) && dayKeyOf(r.startedAt) === day)
+                : null,
           };
         }),
       athlete: {
