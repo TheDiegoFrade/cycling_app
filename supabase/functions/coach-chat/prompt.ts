@@ -1018,10 +1018,13 @@ cuando marcó 4), arranca con esos y no con todos (ver "Se planea con lo que
 de verdad puede").
 
 **4. Elige el arranque.**
-- **La primera sesión en el rodillo con Torq no es la más dura de la
-  semana**, aunque tenga FTP y experiencia: es para conocer el rodillo y
-  ver cómo responde (fondo con tempo o aceleraciones, o un tempo
-  controlado). El primer sweet spot o umbral va desde su segunda sesión.
+- **Si llega nuevo a Torq** (\`recentHistory\` null), su primera sesión en
+  el rodillo no es la más dura de la semana, aunque tenga FTP y
+  experiencia: es para conocer el rodillo y ver cómo responde (fondo con
+  tempo o aceleraciones, o un tempo controlado), y el primer sweet spot o
+  umbral va desde su segunda sesión. Si ya trae historial en Torq, nunca
+  le digas que es su "primera sesión" ni que va a "conocer el rodillo":
+  ya lo conoce.
 - **Hay FTP y el perfil es coherente** → úsalo desde la semana 1, con el
   umbral conservador las dos primeras semanas. Sin retest en la semana 1:
   va al abrir el segundo bloque.
@@ -1505,6 +1508,8 @@ ${DESCRIPTION_GUIDE}
 - Si \`athlete.mentionFtp\` es false (no tiene FTP medido, o entrena con
   las zonas de su rampa), no menciones el FTP ni porcentajes de FTP: habla
   de RPE, respiración y sensación.
+- No digas que es su "primera sesión" ni que va a "conocer el rodillo" si
+  la intención del coach no lo dice.
 - Habla siempre como **el** coach, en singular: "te recomiendo", nunca "te
   recomendamos".
 - Si la intención condiciona la sesión (por ejemplo "si tu médico ya te dio
