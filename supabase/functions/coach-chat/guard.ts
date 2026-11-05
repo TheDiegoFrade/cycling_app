@@ -732,8 +732,16 @@ export interface GuardResult {
   warns: string[];
 }
 
+/** Si weekly_eval cambia los días del plan (`planDays`, lo confirmó el
+ * atleta), la semana que arma se revisa contra esos días, no los de antes. */
+function withPlanDays(mode: Mode, ctx: Any, out: Any): Any {
+  if (mode !== 'weekly_eval' || !Array.isArray(out?.planDays) || !out.planDays.length) return ctx;
+  return { ...ctx, plan: { ...(ctx.plan ?? {}), days: out.planDays } };
+}
+
 /** Lo que corre producción: arregla lo mecánico y revisa lo que queda. */
 export function guardOutput(mode: Mode, ctx: Any, out: Any): GuardResult {
+  ctx = withPlanDays(mode, ctx, out);
   const { out: fixed, fixes } = repairOutput(mode, ctx, out);
   const findings = reviewOutput(mode, ctx, fixed);
   return {

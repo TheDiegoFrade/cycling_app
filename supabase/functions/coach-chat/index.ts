@@ -1097,6 +1097,11 @@ async function applyModeEffects(
           blocks,
           weeks,
           lastEvalNote: output.reasoning,
+          // Días que el atleta confirmó en su nota para seguir (subir o bajar):
+          // quedan como los del plan y las semanas siguientes se arman con ellos.
+          ...(Array.isArray(output.planDays) && output.planDays.length
+            ? { form: { ...((planData as { form?: Record<string, unknown> }).form ?? {}), days: output.planDays } }
+            : {}),
           // El coach revisa el test agendado cada semana: lo que diga ahora
           // reemplaza lo anterior (null = no hay test pendiente).
           nextTest: output.nextTest ?? null,
