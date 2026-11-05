@@ -26,6 +26,7 @@ import { renderCoachSession } from './ui/screens/coach-session';
 import { renderPerfil } from './ui/screens/perfil';
 import { renderSummary } from './ui/screens/summary';
 import { renderTrain } from './ui/screens/train';
+import { renderRemote } from './ui/screens/remote';
 import { appState } from './ui/state';
 import { genderOf } from './core/gender';
 import { stopAmbientTrack } from './ui/ambient-audio';
@@ -121,6 +122,9 @@ SCREENS_TO_GUARD.forEach(([screen, render]) => {
   registerScreen(screen, guarded(render));
 });
 registerScreen('login', renderLogin); // nunca bloqueada: si no, nadie podría iniciar sesión
+// Control remoto en el celular (#/remote/:código): se abre con el QR de la
+// sesión, sin iniciar sesión ni sidebar. El código del QR es la llave.
+registerScreen('remote', renderRemote);
 
 installDomTips();
 installClickSound();

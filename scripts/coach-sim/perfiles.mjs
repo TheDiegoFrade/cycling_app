@@ -98,7 +98,7 @@ function rampLine(intervals, i, ftp) {
   const a = intervals[i], b = intervals[j - 1];
   const step = (b.power_pct - a.power_pct) / (j - i - 1);
   const w = (pct) => (ftp ? ` (${Math.round((ftp * pct) / 100)} W)` : '');
-  return { next: j, text: `Rampa: escalones de ${fmtMin(a.duration_s)} subiendo ~${Math.round(step * 10) / 10}% cada uno, de ${a.power_pct}%${w(a.power_pct)} hasta ${b.power_pct}%${w(b.power_pct)} o hasta no poder más (${j - i} escalones como máximo)` };
+  return { next: j, text: `Rampa: escalones de ${fmtMin(a.duration_s)} subiendo ~${Math.round(step * 10) / 10}% cada uno, de ${a.power_pct}%${w(a.power_pct)} hasta ${b.power_pct}%${w(b.power_pct)} o hasta que diga RPE 8 (${j - i} escalones como máximo; no es ir al máximo)` };
 }
 function structure(intervals, ftp) {
   const key = (iv) => `${iv.type}|${iv.duration_s}|${iv.power_pct}|${iv.ramp_to_pct ?? ''}|${iv.cadence_min ?? ''}|${iv.cadence_max ?? ''}`;
@@ -186,7 +186,7 @@ function planMd(p, r) {
     const tss = ws.filter((x) => x.kind !== 'test').reduce((s, x) => s + tssOf(x), 0);
     L.push('', `#### Semana ${w.weekIndex + 1} · ${ws.length} sesiones de rodillo · ${Math.round(mins / 6) / 10} h · TSS ≈ ${tss}${ws.some((x) => x.kind === 'test') ? ' (sin contar el test)' : ''}`);
     for (const x of ws) {
-      L.push('', `- **${dayName(x.scheduledDate)} ${shortDate(x.scheduledDate)} — ${x.name}** · ${minutesOf(x)} min · ${x.kind === 'test' ? '🧪 test hasta el fallo (la duración es el máximo posible)' : `TSS ≈ ${tssOf(x)}`}${x.erg === 'off' ? ' · por sensación (sin ERG)' : ''}`);
+      L.push('', `- **${dayName(x.scheduledDate)} ${shortDate(x.scheduledDate)} — ${x.name}** · ${minutesOf(x)} min · ${x.kind === 'test' ? (/rampa/i.test(x.name) ? '🧪 rampa: se detiene al llegar a RPE 8 (la duración es la máxima posible)' : '🧪 test hasta el fallo (la duración es el máximo posible)') : `TSS ≈ ${tssOf(x)}`}${x.erg === 'off' ? ' · por sensación (sin ERG)' : ''}`);
       for (const s of structure(x.intervals ?? [], ftp)) L.push(`  - ${s}`);
       if (x.description) L.push(`  - _${x.description.replace(/\s+/g, ' ').trim()}_`);
     }

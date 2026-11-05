@@ -1,0 +1,208 @@
+{
+  "planName": "Camino al 70.3 de Monterrey: más bici sin quemar la corrida",
+  "blocks": [
+    {
+      "name": "Base y confirmación",
+      "weeks": 8,
+      "focus": "Tempo sostenido y sweet spot en dosis conservadora, juego de cadencia y la salida larga de los sábados afuera (de 2 a 3 h). Confirmamos tu FTP el jueves 19 de noviembre. Descarga en las semanas 4 y 8.",
+      "targetHoursPerWeek": 5
+    },
+    {
+      "name": "Construcción",
+      "weeks": 8,
+      "focus": "Bloques largos de tempo y sweet spot (de 20 a 40 min), umbral corto una vez por semana y primeros bricks de bici + trote. Retest al abrir el bloque. Descarga cada 4 semanas.",
+      "targetHoursPerWeek": 5.5
+    },
+    {
+      "name": "Específico 70.3",
+      "weeks": 6,
+      "focus": "Ritmo de carrera sostenido de 40 a 60 min, salida larga de 3 a 3.5 h con tu nutrición de carrera y bricks que te enseñen a correr con piernas vivas. Descarga en la semana 4 del bloque.",
+      "targetHoursPerWeek": 6
+    },
+    {
+      "name": "Afinación y carrera",
+      "weeks": 2,
+      "focus": "Bajamos volumen y mantenemos algo de chispa para llegar fresca; la última semana es la de la carrera, domingo 25 de abril.",
+      "targetHoursPerWeek": 3.5
+    }
+  ],
+  "firstBlockWeeks": [
+    {
+      "weekIndex": 0,
+      "workouts": [
+        {
+          "name": "Tempo con juego de cadencia",
+          "dayOfWeek": "tue",
+          "targetTSS": 49,
+          "erg": "on",
+          "intent": "Es tu martes de siempre, con un poco de orden: dos bloques de tempo (RPE 5-6, respiras profundo pero aún sacas frases cortas) y dos series de cadencia alta para soltar piernas. Vienes de series de carrera el lunes, así que aquí no hay nada fuerte: si el tempo te cuesta más de RPE 6, baja un poco.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 600, "power_pct": 50, "ramp_to_pct": 65 } ] },
+            { "repeat": 2, "steps": [
+              { "name": "Cadencia alta", "type": "interval", "duration_s": 120, "power_pct": 68, "cadence_min": 95, "cadence_max": 105 },
+              { "name": "Suave", "type": "recovery", "duration_s": 120, "power_pct": 58 }
+            ] },
+            { "repeat": 2, "steps": [
+              { "name": "Tempo", "type": "interval", "duration_s": 900, "power_pct": 80 },
+              { "name": "Recuperación", "type": "recovery", "duration_s": 240, "power_pct": 55 }
+            ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 240, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        },
+        {
+          "name": "Sweet spot de entrada",
+          "dayOfWeek": "thu",
+          "targetTSS": 58,
+          "erg": "on",
+          "intent": "Tu primera sesión de calidad del plan: 3 bloques de 10 min en sweet spot (RPE 6-7, frases cortas, firme pero parejo). Tu FTP es de hace varias semanas, así que arrancamos prudentes: si en el tercer bloque llegas a RPE 9 o no lo completas, dímelo en tu nota, el número puede estar alto. Llegas bien al jueves: el miércoles solo corres rodaje.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 720, "power_pct": 50, "ramp_to_pct": 70 } ] },
+            { "repeat": 3, "steps": [
+              { "name": "Sweet spot", "type": "interval", "duration_s": 600, "power_pct": 89 },
+              { "name": "Recuperación", "type": "recovery", "duration_s": 300, "power_pct": 55 }
+            ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 480, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        }
+      ],
+      "extras": [
+        {
+          "dayOfWeek": "sat",
+          "kind": "outdoor",
+          "name": "Salida larga afuera",
+          "minutes": 120,
+          "description": "Rodada afuera a RPE 3-4, de las que puedes platicar sin problema, y comiendo desde el minuto 30. Mañana toca tu largo de carrera, así que nada de picar el ritmo."
+        }
+      ]
+    },
+    {
+      "weekIndex": 1,
+      "workouts": [
+        {
+          "name": "Tempo corto y cadencia",
+          "dayOfWeek": "tue",
+          "targetTSS": 44,
+          "erg": "on",
+          "intent": "Martes más ligero para que el jueves llegues con piernas frescas a tu bloque largo. Tempo cómodo (RPE 5) y cadencia alta para jugar; si te sientes con ganas, aun así no subas la potencia.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 600, "power_pct": 50, "ramp_to_pct": 65 } ] },
+            { "repeat": 3, "steps": [
+              { "name": "Cadencia alta", "type": "interval", "duration_s": 120, "power_pct": 68, "cadence_min": 95, "cadence_max": 105 },
+              { "name": "Suave", "type": "recovery", "duration_s": 120, "power_pct": 58 }
+            ] },
+            { "repeat": 2, "steps": [
+              { "name": "Tempo", "type": "interval", "duration_s": 720, "power_pct": 78 },
+              { "name": "Recuperación", "type": "recovery", "duration_s": 240, "power_pct": 55 }
+            ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 360, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        },
+        {
+          "name": "Bloque sostenido de 45 min",
+          "dayOfWeek": "thu",
+          "targetTSS": 81,
+          "erg": "mixed",
+          "intent": "Esta sesión nos dice si tus 205 W de hace unas semanas siguen siendo los tuyos, y es lo que más se parece a tu 70.3. Después del calentamiento, 45 min continuos al ritmo más alto que puedas sostener parejo, con ERG apagado: los primeros 10 min deben sentirse contenidos y al final debes estar en RPE 7. No es un máximo; llega descansada (nada fuerte el martes ni el miércoles) y con ventilador.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 600, "power_pct": 50, "ramp_to_pct": 70 } ] },
+            { "repeat": 3, "steps": [
+              { "name": "Apertura", "type": "interval", "duration_s": 60, "power_pct": 95 },
+              { "name": "Suave", "type": "recovery", "duration_s": 120, "power_pct": 55 }
+            ] },
+            { "repeat": 1, "steps": [ { "name": "Rodar suave", "type": "steady", "duration_s": 300, "power_pct": 55 } ] },
+            { "repeat": 1, "steps": [ { "name": "Bloque sostenido", "type": "free", "duration_s": 2700, "power_pct": 90 } ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 600, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        }
+      ],
+      "extras": [
+        {
+          "dayOfWeek": "sat",
+          "kind": "outdoor",
+          "name": "Salida larga afuera",
+          "minutes": 135,
+          "description": "Una media hora más que la semana pasada, a RPE 3-4 y comiendo desde el minuto 30. Aprovecha para practicar la hidratación que llevarás en la carrera."
+        }
+      ]
+    },
+    {
+      "weekIndex": 2,
+      "workouts": [
+        {
+          "name": "Tempo largo y cadencia",
+          "dayOfWeek": "tue",
+          "targetTSS": 52,
+          "erg": "on",
+          "intent": "Dos bloques de tempo de 15 min (RPE 5-6) con cadencia alta antes para activar piernas. Es el estímulo sostenido que más se parece a tu bici de 70.3: respira rítmico y no te pases de la potencia.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 600, "power_pct": 50, "ramp_to_pct": 65 } ] },
+            { "repeat": 3, "steps": [
+              { "name": "Cadencia alta", "type": "interval", "duration_s": 120, "power_pct": 68, "cadence_min": 95, "cadence_max": 105 },
+              { "name": "Suave", "type": "recovery", "duration_s": 120, "power_pct": 58 }
+            ] },
+            { "repeat": 2, "steps": [
+              { "name": "Tempo", "type": "interval", "duration_s": 900, "power_pct": 80 },
+              { "name": "Recuperación", "type": "recovery", "duration_s": 240, "power_pct": 55 }
+            ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 300, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        },
+        {
+          "name": "Sweet spot, bloques más largos",
+          "dayOfWeek": "thu",
+          "targetTSS": 64,
+          "erg": "on",
+          "intent": "Repetimos el sweet spot de la primera semana pero con bloques de 12 min en vez de 10 (RPE 6-7, frases cortas). Solo cambia la duración; si completas los tres bloques sin irte a RPE 9, vamos bien.",
+          "segments": [
+            { "repeat": 1, "steps": [ { "name": "Calentamiento", "type": "warmup", "duration_s": 720, "power_pct": 50, "ramp_to_pct": 70 } ] },
+            { "repeat": 3, "steps": [
+              { "name": "Sweet spot", "type": "interval", "duration_s": 720, "power_pct": 89 },
+              { "name": "Recuperación", "type": "recovery", "duration_s": 240, "power_pct": 55 }
+            ] },
+            { "repeat": 1, "steps": [ { "name": "Enfriamiento", "type": "cooldown", "duration_s": 480, "power_pct": 50 } ] }
+          ],
+          "kind": null
+        }
+      ],
+      "extras": [
+        {
+          "dayOfWeek": "sat",
+          "kind": "outdoor",
+          "name": "Salida larga afuera",
+          "minutes": 150,
+          "description": "Dos horas y media a RPE 3-4, con comida desde el minuto 30 y bebida a sorbos constantes. Es la sesión que más construye tu bici de carrera, así que cuídala."
+        }
+      ]
+    }
+  ],
+  "coachNote": "Valeria, tu 70.3 es sostenido y largo, así que priorizo tempo y sweet spot en el rodillo y una salida larga afuera cada sábado, y dejo el jueves como único día duro porque es el único que no pega con tus series ni con tu largo de carrera. Tu FTP de 205 W es de hace unas 9 semanas: arrancamos con él y el jueves 19 de noviembre lo confirmamos con un bloque parejo de 45 min, así que no lo cambies todavía. Bajar de 3 horas es una meta ambiciosa que hoy no puedo juzgar bien; con esa sesión y las primeras semanas vemos qué es realista, y mientras la meta del plan es sostener ritmo y bajar de la bici con piernas para correr. Las 6 horas a la semana caben así: martes y jueves de rodillo (hasta 90 min cada uno) más el sábado afuera, que sube de 2 a 3 h. Tu carrera, natación y bici cuentan juntas: por eso los días de después de tus series son tempo y nada más. Te sugiero core 2 veces por semana para cuidar cadera y espalda en la bici, y que practiques tu hidratación y comida de carrera en la salida larga.",
+  "suggestedFtp": null,
+  "nextTest": null,
+  "report": {
+    "welcome": "Valeria, te doy la bienvenida: me da mucho gusto acompañarte a Monterrey. Vamos a convertir la bici en tu fortaleza para que bajes de ella con piernas para correr bien. Cada semana la armo con lo que me cuentes y lo que muestren tus sesiones.",
+    "why": [
+      {
+        "title": "Partimos de lo que ya haces",
+        "body": "Ya entrenas con intensidad y tienes carrera y natación en la semana, así que no empiezas desde cero. Subimos la bici de forma gradual, sin amontonar cosas, para que tu cuerpo la absorba junto con todo lo demás."
+      },
+      {
+        "title": "El jueves es el día de calidad",
+        "body": "Corres series el lunes y largo el domingo, así que el martes queda con tempo moderado y el sábado con rodada suave. El jueves, con el rodaje del miércoles antes, es el mejor día para apretar sin chocar con tu carrera."
+      },
+      {
+        "title": "Confirmamos tu punto de partida",
+        "body": "Tu número de referencia en la bici es de hace un par de meses, y no sabemos si hoy está arriba o abajo. En la semana 2 haces un bloque parejo de 45 min, parecido a lo que vivirás en el 70.3, y con eso ajustamos tus zonas."
+      },
+      {
+        "title": "El sábado es afuera",
+        "body": "Para una prueba de casi 3 horas en bici, la salida larga manda y ahí practicas también tu comida y tu hidratación. Por eso el sábado no hay rodillo y la rodada va creciendo poco a poco."
+      }
+    ],
+    "closing": "Arrancas con buena base y con ganas, que es justo lo que se necesita. Cada semana lo revisamos juntas y a las 8 semanas, cuando cerremos este primer bloque, nos sentamos a ver cómo respondió tu cuerpo para dar el siguiente paso."
+  }
+}

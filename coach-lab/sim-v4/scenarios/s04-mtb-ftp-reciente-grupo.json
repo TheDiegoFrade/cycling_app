@@ -1,0 +1,78 @@
+{
+ "id": "s04-mtb-ftp-reciente-grupo",
+ "mode": "create_plan",
+ "title": "MTB maratón con FTP reciente, gym y salida con amigos (como Carlos)",
+ "expect": [
+  "Sin test de entrada: valida con desacople/RPE; test solo si el desacople brinca en más de una sesión",
+  "Orden: fuerza → fondo → tempo; nada de sweet spot el día antes de la salida en grupo",
+  "Salida en grupo contada como posible sesión dura"
+ ],
+ "today": "2026-11-04",
+ "context": {
+  "startDate": "2026-11-09",
+  "goal": "Correr el Maratón MTB de la Sierra de Lobos (70 km) el 7 de marzo de 2027. Quiero llegar entero a la última subida. Voy al gym lunes y miércoles y el domingo salgo con mis amigos, que siempre se pica.",
+  "experienceLevel": "experienced",
+  "generalFitnessLevel": "active_cyclist",
+  "discipline": "mountain",
+  "yearsRiding": 7,
+  "competes": true,
+  "category": "Master 40",
+  "availability": {
+   "hoursPerWeek": 7,
+   "days": [
+    "tue",
+    "thu",
+    "sat",
+    "sun"
+   ],
+   "maxSessionMinutes": null
+  },
+  "occupiedDates": [],
+  "recentHistory": null,
+  "lastTest": null,
+  "profile": {
+   "ftp": 248,
+   "provisionalFtp": null,
+   "ftpSource": "manual",
+   "ftpUpdatedAt": "2026-10-18T12:00:00.000Z",
+   "hr_max": 180,
+   "injuries": null,
+   "otherActivities": [
+    {
+     "kind": "strength",
+     "perWeek": 2,
+     "minutes": 60,
+     "days": [
+      "mon",
+      "wed"
+     ]
+    }
+   ],
+   "experienceLevel": "experienced",
+   "generalFitnessLevel": "active_cyclist",
+   "structuredTrainingYears": 2,
+   "rpeZones": null,
+   "sex": "M",
+   "name": "Rodrigo Pérez",
+   "weightKg": 78,
+   "ageYears": 43,
+   "intake": {
+    "conditions": [],
+    "takesMedication": false,
+    "recentInjury": false,
+    "injuryLimitsIntensity": false,
+    "smoking": "no",
+    "alcohol": "weekly",
+    "stress": "medium",
+    "sleepHours": 7,
+    "sleepQuality": "good",
+    "restingHr": 55,
+    "rpeLiteracy": "yes",
+    "maxEffortExperience": true,
+    "recentTraining": "with_intensity",
+    "recentHoursPerWeek": 6,
+    "recentTrainingNote": "Martes y jueves rodillo 1 h (uno con series de 8 min), sábado libre y domingo salida de montaña de 3 h con amigos."
+   }
+  }
+ }
+}

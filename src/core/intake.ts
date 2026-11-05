@@ -100,12 +100,12 @@ export interface StartingProfile {
   /** none = sin test, por sensación subiendo de a poco · ramp = rampa en
    * el rodillo · test20 = 20 min a máximo (sabe dosificarse). */
   testPlan: TestPlan;
-  /** Base aeróbica antes de meter intensidad (fumar, alcohol frecuente). */
+  /** Base aeróbica antes de meter intensidad (alcohol frecuente). */
   baseFirst: boolean;
   /** conservative = arranca suave y poco polarizado (sueño corto o malo,
    * estrés alto ajustado). */
   start: 'conservative' | 'normal';
-  /** Estrés ajustado (el que dice, subido por alcohol, sueño o tabaco). */
+  /** Estrés ajustado (el que dice, subido por alcohol o sueño). */
   stressAdjusted: Level3;
   /** No sabe usar RPE: hay que enseñárselo antes de pedírselo. */
   teachRpe: boolean;
@@ -156,10 +156,12 @@ export function startingProfile(
     !!i?.maxEffortExperience && i.rpeLiteracy === 'yes' && (p.experienceLevel === 'experienced' || (p.structuredTrainingYears ?? 0) >= 1);
   const testPlan: TestPlan = !maxEffortReady ? 'none' : knowsHowToDose ? 'test20' : 'ramp';
 
-  // Fumar (aunque sea ocasional) o alcohol frecuente (3 o más veces por
-  // semana). Tomar 1-2 veces por semana es lo común y no se castiga
-  // (decisión de producto, 20-oct-2026).
-  const baseFirst = !!i && (i.smoking !== 'no' || i.alcohol === 'frequent');
+  // Solo alcohol frecuente (3 o más veces por semana). Tomar 1-2 veces por
+  // semana es lo común y no se castiga (decisión de producto, 20-oct-2026).
+  // Fumar ya no cambia el plan (Diego y Joe, 4-nov-2026): quien fuma no va
+  // a mejorar igual, y armarle un plan aparte no lo cambia. El dato se sigue
+  // preguntando, pero el coach no lo usa ni lo menciona.
+  const baseFirst = !!i && i.alcohol === 'frequent';
 
   let stress: Level3 = i?.stress ?? 'medium';
   if (i && (i.sleepHours < SHORT_SLEEP_H || i.sleepQuality === 'poor')) stress = bump(stress);

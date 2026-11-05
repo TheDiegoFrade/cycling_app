@@ -17,6 +17,11 @@ import type { RampStep, RpeZones } from '../../core/rpe-ramp';
 import { beeper } from '../audio';
 import { navigate } from '../router';
 import { appState } from '../state';
+import { renderSVG } from 'uqr';
+import { isRemoteCode, newRemoteCode, remoteUrl, sameRemoteState, REMOTE_STALE_MS } from '../../core/remote-protocol';
+import type { RemoteCommand, RemoteState } from '../../core/remote-protocol';
+import { hostRemote, remoteAvailable } from '../../sync/remote';
+import type { RemoteLink, RemoteLinkStatus } from '../../sync/remote';
 import { canRidePinonSpeak, inZoneLine, isInZone, isRidePinonEnabled, ridePinonHide, ridePinonHtml, ridePinonSay } from '../pinon-ride';
 
 function fmt(totalS: number): string {
@@ -69,6 +74,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         <div class="live-topbar-right">
           <span class="status-dot" id="trainer-dot" title="Rodillo"></span>
           <span class="status-dot" id="hr-dot" title="Banda de pulso"></span>
+          <button class="live-remote-chip" id="remoteChip" type="button" title="Control con el celular" hidden>📱</button>
           <span class="live-clock num"><span id="elapsed">00:00</span> / <span id="total">00:00</span></span>
           <div class="live-intensity">
             <button id="bMinus" type="button" aria-label="Bajar intensidad">−</button>
@@ -84,6 +90,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
               <button class="live-menu-item" id="menuFtp" type="button">FTP: ${appState.profile.ftp} W</button>
               <button class="live-menu-item" id="menuRules" type="button">Reglas</button>
               <button class="live-menu-item" id="menuLimits" type="button">Límites</button>
+              <button class="live-menu-item" id="menuRemote" type="button">📱 Control con el celular</button>
               <div class="live-menu-divider"></div>
               <button class="live-menu-item" id="menuFinish" type="button">Terminar y guardar</button>
               <div class="live-menu-divider"></div>
@@ -151,6 +158,20 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     <div class="count" id="count"><div class="ring" id="ring"></div><div class="n num" id="countN">5</div><div class="what" id="countWhat"></div></div>
     <div class="rules" id="rules"><h4>Reglas activas</h4><div id="rulesList"></div></div>
     <div class="rules" id="limits"><h4>Límites de pulso/cadencia</h4><div id="limitsPanel"></div></div>
+    <div class="remote-pair" id="remotePair" hidden>
+      <div class="remote-pair-card" role="dialog" aria-label="Control con el celular">
+        <div class="remote-pair-qr" id="remotePairQr"></div>
+        <div class="remote-pair-body">
+          <h3>Controla la sesión desde tu celular</h3>
+          <p>Escanea el código con la cámara. Desde el celular subes o bajas la dureza, pausas y, en la rampa, contestas tu RPE sin bajarte de la bici.</p>
+          <p class="remote-pair-status" id="remotePairStatus">Esperando al celular…</p>
+          <div class="remote-pair-actions">
+            <button type="button" id="remotePairCopy">Copiar enlace</button>
+            <button type="button" class="primary" id="remotePairClose">Listo</button>
+          </div>
+        </div>
+      </div>
+    </div>
   `;
 
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -243,6 +264,11 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   // el objetivo del bloque y el "test" medía solo que aguantaba esa potencia.
   const isSelfPaced = (): boolean => workout.intervals[currentIndex0]?.type === 'free';
   let ergReleasedForFree = false;
+  /** ¿El rodillo está siguiendo watts ahora mismo? Con ERG prendido pero en
+   * un bloque libre (test de 20 min, 40:20s), no: ahí +/- y el control del
+   * celular tienen que mover la pendiente o la resistencia, no la intensidad
+   * — si no, sin cassette no había cómo cambiar la dureza a mitad del test. */
+  const ergFollowing = (): boolean => ergEnabled && !ergReleasedForFree;
   let currentTimeLeft = workout.intervals[0]?.duration_s ?? 0;
   // Las sesiones por sensación del coach arrancan sin ERG (ver Workout.erg).
   let ergEnabled = workout.erg !== 'off';
@@ -647,20 +673,30 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     $('rampRpe').addEventListener('click', (e) => {
       const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-rpe]');
       if (btn && rampAskingFor !== null) {
-        const rpe = Number(btn.dataset.rpe);
-        recordRampStep(rampAskingFor).rpe = rpe;
-        rampAskingFor = null;
-        $('rampRpeQ').hidden = true;
-        beeper.play('tick');
-        if (rpe >= RPE_RAMP.stopRpe) stopRamp('rpe');
+        answerRampRpe(Number(btn.dataset.rpe));
         return;
       }
-      if ((e.target as HTMLElement).closest('#rampStop')) {
-        // Lo dice a mitad del escalón: ese escalón ya es 8+.
-        recordRampStep(currentIndex0).rpe = Math.max(RPE_RAMP.stopRpe, recordRampStep(currentIndex0).rpe ?? 0);
-        stopRamp('rpe');
-      }
+      if ((e.target as HTMLElement).closest('#rampStop')) rampStopNow();
     });
+  }
+
+  /** Respuesta al «¿qué tan duro fue?» del escalón (desde la pantalla, el
+   * teclado o el celular). */
+  function answerRampRpe(rpe: number): void {
+    if (rampAskingFor === null || rampDone) return;
+    recordRampStep(rampAskingFor).rpe = rpe;
+    rampAskingFor = null;
+    $('rampRpeQ').hidden = true;
+    beeper.play('tick');
+    if (rpe >= RPE_RAMP.stopRpe) stopRamp('rpe');
+    pushRemote();
+  }
+
+  /** «Llegué a 8+» a mitad del escalón: ese escalón ya es 8+. */
+  function rampStopNow(): void {
+    if (!rampMode || rampByHr || rampDone) return;
+    recordRampStep(currentIndex0).rpe = Math.max(RPE_RAMP.stopRpe, recordRampStep(currentIndex0).rpe ?? 0);
+    stopRamp('rpe');
   }
 
   /** Pulso promedio de los últimos 30 s de un escalón. */
@@ -679,6 +715,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     $('rampRpeTitle').textContent = `¿Qué tan duro fue el escalón de ${workout.intervals[idx]?.watts ?? ''} W?`;
     $('rampRpeQ').hidden = false;
     beeper.play('chime');
+    pushRemote();
   }
 
   /** Cierra la rampa: zonas al perfil (y la referencia interna) y termina. */
@@ -755,10 +792,14 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         lastTargetWatts = event.sample.target;
         if (ergEnabled && !isSelfPaced()) {
           trainer.setTarget(lastTargetWatts); // también re-engancha el ERG al salir de un bloque libre
-          ergReleasedForFree = false;
+          if (ergReleasedForFree) {
+            ergReleasedForFree = false;
+            paintIntensityValue();
+          }
         } else if (ergEnabled && !ergReleasedForFree) {
           applyFreeMode();
           ergReleasedForFree = true;
+          paintResistance();
         }
         if (rampByHr && !rampDone && rampHrLimit !== null && latestHr >= rampHrLimit) stopRamp('hr');
         draw();
@@ -785,6 +826,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
           recordRampStep(event.index1 - 2);
           if (!rampByHr) askRampRpe(event.index1 - 2);
         }
+        pushRemote();
         if (event.interval.type === 'free') {
           showBanner('info', event.interval.name, 'Bloque libre: tú regulas la potencia, el ERG se suelta', 4000);
         } else {
@@ -848,11 +890,13 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         } else {
           showBanner('pause', 'Pausa', 'espacio para continuar', null);
         }
+        pushRemote();
         return;
       }
       case 'resumed': {
         $('btnMain').textContent = 'Pausar';
         showBanner('info', 'Reanuda', '', 1200);
+        pushRemote();
         return;
       }
       case 'finished': {
@@ -864,6 +908,8 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
 
   async function finish(): Promise<void> {
     sessionFinished = true;
+    pushRemote(true); // el celular ve «Sesión terminada»
+    sessionStorage.removeItem(REMOTE_KEY);
     stopPollLoop();
     stopAutoStartWatcher();
     wakeLock.release();
@@ -960,6 +1006,15 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     return `${gradePct === 0 ? 'calle plana' : `pendiente ${gradePct > 0 ? '+' : ''}${gradePct.toFixed(1)} %`} · el esfuerzo lo pones con tus cambios, +/- cambia la pendiente`;
   }
 
+  /** Repinta el % de intensidad sin registrar un ajuste (paintBias sí lo
+   * registra). */
+  function paintIntensityValue(): void {
+    const pct = engine.intensityPct;
+    const b = $('bias');
+    b.textContent = `${pct}%`;
+    b.className = `live-intensity-value num${pct < 100 ? ' down' : ''}`;
+  }
+
   function paintResistance(): void {
     const b = $('bias');
     b.textContent = trainer.freeMode === 'sim' ? (gradePct === 0 ? 'Plano' : `${gradePct > 0 ? '+' : ''}${gradePct.toFixed(1)}%`) : `R ${Math.round(resistancePercent)}%`;
@@ -980,7 +1035,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
    * pegado al último objetivo para siempre), así que sin esto no había
    * ninguna forma de hacerlo más fácil/difícil una vez apagado el ERG. */
   function adjustIntensity(deltaPct: number): void {
-    if (ergEnabled) {
+    if (ergFollowing()) {
       paintBias(engine.adjustIntensityPct(deltaPct));
       return;
     }
@@ -1029,15 +1084,14 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         applyFreeMode();
         ergReleasedForFree = true;
       } else {
+        ergReleasedForFree = false;
         trainer.setTarget(lastTargetWatts);
       }
       // repinta el % de intensidad sin pasar por paintBias: esa función
       // también registra un ajuste de intensidad y no queremos un renglón
       // falso en el historial solo por haber prendido el ERG de nuevo
-      const pct = engine.intensityPct;
-      const b = $('bias');
-      b.textContent = `${pct}%`;
-      b.className = `live-intensity-value num${pct < 100 ? ' down' : ''}`;
+      if (ergReleasedForFree) paintResistance();
+      else paintIntensityValue();
     } else {
       // sin esto el rodillo se queda pegado al último objetivo en watts
       // para siempre — no basta con dejar de mandarle setTarget.
@@ -1180,7 +1234,143 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
 
   startAutoStartWatcher();
 
+  // ── Control con el celular (ui/screens/remote.ts, sync/remote.ts) ──────
+  // El código vive en la pestaña (sessionStorage): si se recarga la página a
+  // media sesión, el celular se vuelve a enganchar solo.
+  const REMOTE_KEY = 'torq-remote-code';
+  let remoteLink: RemoteLink<RemoteState> | null = null;
+  let remoteStatus: RemoteLinkStatus = 'offline';
+  let remoteSeenAt = 0;
+  let remoteLastSent: RemoteState | null = null;
+  let remoteAckId: number | null = null;
+  function remoteCode(): string {
+    const saved = sessionStorage.getItem(REMOTE_KEY);
+    if (isRemoteCode(saved)) return saved;
+    const fresh = newRemoteCode();
+    sessionStorage.setItem(REMOTE_KEY, fresh);
+    return fresh;
+  }
+  const phoneConnected = (): boolean => remoteSeenAt > 0 && performance.now() - remoteSeenAt < REMOTE_STALE_MS;
+
+  function remoteSnapshot(): RemoteState {
+    const following = ergFollowing();
+    const mode: RemoteState['mode'] = following ? 'erg' : trainer.freeMode === 'sim' ? 'sim' : 'resistance';
+    const asking = rampAskingFor !== null && !rampDone ? `¿Qué tan duro fue el escalón de ${workout.intervals[rampAskingFor]?.watts ?? ''} W?` : null;
+    let level: string;
+    if (following) level = `${engine.intensityPct}%`;
+    else if (mode === 'sim') level = gradePct === 0 ? 'Plano' : `${gradePct > 0 ? '+' : ''}${gradePct.toFixed(1)}%`;
+    else level = `R ${Math.round(resistancePercent)}%`;
+    return {
+      run: sessionFinished ? 'finished' : engine.currentState,
+      mode,
+      level,
+      levelLabel: following ? 'intensidad' : mode === 'sim' ? 'pendiente' : 'resistencia',
+      block: workout.intervals[currentIndex0]?.name ?? workout.name,
+      blockLeftS: Math.round(currentTimeLeft),
+      targetW: following && lastTargetWatts > 0 ? Math.round(lastTargetWatts) : null,
+      rpeAsk: asking,
+      ramp: rampMode && !rampByHr && !rampDone,
+      ackId: remoteAckId,
+    };
+  }
+
+  /** Le manda su estado al celular solo si cambió algo (o si se pide). */
+  function pushRemote(force = false): void {
+    if (!remoteLink) return;
+    const snap = remoteSnapshot();
+    if (!force && sameRemoteState(remoteLastSent, snap)) return;
+    remoteLastSent = snap;
+    remoteLink.send(snap);
+  }
+
+  function paintRemote(): void {
+    const connected = phoneConnected() && remoteStatus === 'online';
+    const chip = $('remoteChip');
+    chip.hidden = !remoteLink;
+    chip.classList.toggle('on', connected);
+    const status = $('remotePairStatus');
+    status.textContent = remoteStatus === 'offline' && remoteLink ? 'Sin conexión con el servidor: revisa tu internet' : connected ? '✓ Celular conectado' : 'Esperando al celular…';
+    status.classList.toggle('ok', connected);
+  }
+
+  function onRemoteCommand(cmd: RemoteCommand): void {
+    const firstContact = !phoneConnected();
+    remoteSeenAt = performance.now();
+    remoteAckId = cmd.id;
+    switch (cmd.kind) {
+      case 'harder':
+        adjustIntensity(5);
+        break;
+      case 'easier':
+        adjustIntensity(-5);
+        break;
+      case 'toggle':
+        if (!sessionFinished) toggleRun();
+        break;
+      case 'rpe':
+        answerRampRpe(cmd.value);
+        break;
+      case 'ramp-stop':
+        rampStopNow();
+        break;
+      case 'hello':
+        break;
+    }
+    if (firstContact) {
+      showBanner('info', 'Celular conectado', 'ya puedes controlar la sesión desde ahí', 2400);
+      // si estaba el QR abierto, se cierra solo: ya no hace falta
+      setTimeout(() => ($('remotePair').hidden = true), 900);
+    }
+    paintRemote();
+    pushRemote(true); // siempre responde: así el celular mide la demora
+  }
+
+  function startRemoteHost(): void {
+    if (remoteLink || !remoteAvailable()) return;
+    remoteLink = hostRemote(remoteCode(), onRemoteCommand, (st) => {
+      remoteStatus = st;
+      if (st === 'online') pushRemote(true);
+      paintRemote();
+    });
+    paintRemote();
+  }
+
+  function openRemotePair(): void {
+    closeMenu();
+    // un toque en la laptop: aprovecha para habilitar el audio, por si la
+    // sesión se arranca desde el celular (sin un toque aquí no sonarían los beeps)
+    beeper.unlock();
+    if (!remoteAvailable()) {
+      showBanner('info', 'Sin servidor', 'el control con el celular necesita conexión a Torq', 3200);
+      return;
+    }
+    startRemoteHost();
+    const url = remoteUrl(location.origin, location.pathname, remoteCode());
+    $('remotePairQr').innerHTML = renderSVG(url, { border: 2 });
+    $('remotePairCopy').onclick = () => {
+      void navigator.clipboard?.writeText(url).then(() => showBanner('info', 'Enlace copiado', 'ábrelo en tu celular', 1800));
+    };
+    $('remotePair').hidden = false;
+    paintRemote();
+  }
+
+  $('menuRemote').addEventListener('click', openRemotePair);
+  $('remoteChip').addEventListener('click', openRemotePair);
+  $('remotePairClose').addEventListener('click', () => ($('remotePair').hidden = true));
+  $('remotePair').addEventListener('click', (e) => {
+    if (e.target === $('remotePair')) $('remotePair').hidden = true;
+  });
+  // Cada segundo: repinta el estado del celular y le manda lo que cambió
+  // (bloque nuevo, pausa, intensidad). Si nada cambió, no se manda nada.
+  const remoteWatch = setInterval(() => {
+    paintRemote();
+    pushRemote();
+  }, 1000);
+  // ya estaba emparejado en esta pestaña (recarga a media sesión)
+  if (isRemoteCode(sessionStorage.getItem(REMOTE_KEY))) startRemoteHost();
+
   function onKeydown(e: KeyboardEvent): void {
+
     if (e.code === 'Space') {
       e.preventDefault();
       toggleRun();
@@ -1190,6 +1380,17 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     } else if (e.code === 'ArrowDown') {
       e.preventDefault();
       adjustIntensity(-1);
+    } else if (e.code === 'PageUp') {
+      // los controles de presentación (clickers) mandan estas teclas
+      e.preventDefault();
+      adjustIntensity(5);
+    } else if (e.code === 'PageDown') {
+      e.preventDefault();
+      adjustIntensity(-5);
+    } else if (rampAskingFor !== null && /^(Digit|Numpad)\d$/.test(e.code)) {
+      // RPE de la rampa con el teclado: 1-9, y 0 = 10
+      const n = Number(e.code.slice(-1));
+      answerRampRpe(n === 0 ? 10 : n);
     }
   }
   window.addEventListener('keydown', onKeydown);
@@ -1206,6 +1407,9 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     if (!sessionFinished && history.length > 0) flushDraft();
     stopPollLoop();
     stopAutoStartWatcher();
+    clearInterval(remoteWatch);
+    remoteLink?.close();
+    remoteLink = null;
     wakeLock.release();
     document.removeEventListener('visibilitychange', onVisibilityChange);
     document.removeEventListener('click', onDocClick);

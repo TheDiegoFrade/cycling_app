@@ -168,6 +168,15 @@ describe('hallazgos sugeridos', () => {
     expect(suggestVerdict([{ tone: 'warn', title: 'a', body: '' }, { tone: 'warn', title: 'b', body: '' }])).toBe('attention');
   });
 
+  it('avisa cuando casi todo el mes fue suave (Joe), y no con intensidad', () => {
+    const easy = Array.from({ length: 10 }, (_, i) => ride(`2026-09-${String(i + 1).padStart(2, '0')}`, { intensityFactor: 0.68 }));
+    const r = buildMonthlyReport({ monthKey: '2026-09', todayKey: '2026-10-07', sessions: easy, workouts: [], routines: [], ftp: 250 });
+    expect(suggestFindings(r).map((x) => x.title)).toContain('Casi todo fue suave.');
+    const mixed = [...easy.slice(0, 7), ...Array.from({ length: 3 }, (_, i) => ride(`2026-09-2${i}`, { intensityFactor: 0.88 }))];
+    const r2 = buildMonthlyReport({ monthKey: '2026-09', todayKey: '2026-10-07', sessions: mixed, workouts: [], routines: [], ftp: 250 });
+    expect(suggestFindings(r2).map((x) => x.title)).not.toContain('Casi todo fue suave.');
+  });
+
   it('limpia lo que escribe el coach', () => {
     expect(cleanFindings([{ tone: 'good', title: '  Bien ', body: '' }, { tone: 'bad', title: '', body: ' ' }])).toEqual([{ tone: 'good', title: 'Bien', body: '' }]);
     expect(cleanGoals(Array.from({ length: 8 }, (_, i) => ({ title: `g${i}`, detail: '' })))).toHaveLength(5);

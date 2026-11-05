@@ -233,6 +233,7 @@ const GLOSSARY: { term: string; match: RegExp; meaning: string }[] = [
   { term: 'Sweet spot', match: /sweet spot/i, meaning: 'Un esfuerzo firme pero sostenible, un poco por debajo de tu FTP.' },
   { term: 'Umbral', match: /\bumbral\b/i, meaning: 'Un esfuerzo duro y sostenido (RPE 5-7): solo te salen frases cortas.' },
   { term: 'Deriva', match: /\bderiva\b/i, meaning: 'Cuánto sube tu pulso con el mismo esfuerzo al pasar el tiempo. Poca deriva es buena señal de fondo.' },
+  { term: 'Desacople', match: /\bdesacople\b/i, meaning: 'Qué tanto se te sube el pulso con la misma potencia. Entre más chico, mejor.' },
 ];
 
 /** Solo los términos que de verdad aparecen en lo que va a leer. */
