@@ -8,7 +8,14 @@
 // coach-lab/results/api-2026-10-09-coach) Haiku 5.5 rindió igual o mejor
 // que Haiku 4.5 a ~1/6 del costo; en la revisión mensual con fatiga solo
 // Haiku 5.5 medium acertó el veredicto y no leyó una baja del 20 min como
-// pérdida de forma. Lógica pura.
+// pérdida de forma.
+// 2026-11-05: weekly_eval pasa a Sonnet siempre. Con los comentarios de Joe
+// (luz verde/amarilla, días reales, semana de carrera) la evaluación razona
+// mucho más, y en las simulaciones contra producción Haiku falló justo ahí:
+// no siempre adelantó el test con luz amarilla, llamó "descarga" a una semana
+// de carga y repitió una pregunta ya contestada. Cuesta ~US$0.07 por
+// evaluación contra ~US$0.005 (docs/evaluaciones/2026-11-05-evaluacion-v4.md).
+// Lógica pura.
 import type { Mode } from './schemas.ts';
 
 export const SONNET = 'claude-sonnet-5-5';
@@ -51,7 +58,7 @@ export function plannerFor(mode: Mode, ctx: Record<string, unknown>): ModelChoic
   if (mode === 'finished_training_eval_comment') return null;
   if (mode === 'weekly_eval') {
     const why = weekNeedsFtpReasoning(ctx);
-    return why ? { model: SONNET, effort: 'low', reason: why } : { model: HAIKU, effort: 'low', reason: 'semana sin FTP ni test de por medio' };
+    return { model: SONNET, effort: 'low', reason: why ?? 'evaluación semanal' };
   }
   // create_plan y publish_block: pocos al mes y son la base de todo lo
   // demás; Haiku dejó un coachNote vacío, olvidó la escalera de ajuste y

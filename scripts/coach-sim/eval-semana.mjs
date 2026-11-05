@@ -52,6 +52,15 @@ const ESCENARIOS = [
     pmc: { ctl: 47, atl: 56, tsb: -9, ctlRampLast4Weeks: 6 },
     unplanned: (sat) => [{ date: sat, dayOfWeek: 'sat', name: 'Salida de montaña con amigos', minutes: 150, tss: 165, rpe: 8, note: 'Se volvió carrera en las subidas.' }],
   },
+  {
+    id: 'dias-daniel',
+    perfil: 'p08',
+    titulo: 'Bajar días: no le alcanzan 4 y confirma con cuáles sigue',
+    // Debe guardar planDays [tue, thu, sat] y armar la semana en esos días.
+    sesion: (x) => (x.day === 'mon' ? { completed: false } : { completed: true, rpe: x.hard ? 5 : 3, drift: 3, note: null }),
+    nota: 'El lunes no pude, salgo tarde del trabajo. No me alcanzan 4 días: de ahora en adelante puedo sin problema martes, jueves y sábado. Lo que sí hice me sentó bien.',
+    pmc: { ctl: 12, atl: 15, tsb: -3, ctlRampLast4Weeks: 7 },
+  },
 ];
 
 async function cleanDummy() {
@@ -162,7 +171,7 @@ async function runEscenario(sc) {
   target.forEach((id) => created.workouts.add(id));
   const nueva = (await workoutsByIds(target)).sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate)).map((w) => ({ ...describeWorkout(w), intervals: undefined }));
   const extras = await rest('GET', `planned_routines?athlete_id=eq.${DUMMY_ID}&source=eq.ai&scheduled_date=gte.${today}&select=scheduled_date,kind,name,payload&order=scheduled_date`);
-  const out = { escenario: sc.id, titulo: sc.titulo, perfil: p.id, at: new Date().toISOString(), create: create.body?.result ?? null, context, status: resp.status, ms: resp.ms, result: resp.body?.result ?? null, error: resp.status === 200 ? null : resp.body, semanaNueva: nueva, extras };
+  const out = { diasAntes: plan.data.form?.days ?? null, diasDespues: after?.data?.form?.days ?? null, escenario: sc.id, titulo: sc.titulo, perfil: p.id, at: new Date().toISOString(), create: create.body?.result ?? null, context, status: resp.status, ms: resp.ms, result: resp.body?.result ?? null, error: resp.status === 200 ? null : resp.body, semanaNueva: nueva, extras };
   save(`${sc.id}.json`, out);
   return out;
 }

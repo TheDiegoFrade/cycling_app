@@ -9,8 +9,8 @@ describe('plannerFor', () => {
     expect(plannerFor('publish_block', {})).toMatchObject({ model: SONNET, effort: 'low' });
   });
 
-  it('una semana normal va con Haiku low', () => {
-    expect(plannerFor('weekly_eval', week({ athleteNote: 'Dormí mal, piernas pesadas.' }))).toMatchObject({ model: HAIKU, effort: 'low' });
+  it('la evaluación semanal va con Sonnet low, también una semana normal', () => {
+    expect(plannerFor('weekly_eval', week({ athleteNote: 'Dormí mal, piernas pesadas.' }))).toMatchObject({ model: SONNET, effort: 'low', reason: 'evaluación semanal' });
   });
 
   it('test en la semana, test reciente o nota sobre el FTP → Sonnet', () => {
@@ -20,8 +20,8 @@ describe('plannerFor', () => {
     expect(plannerFor('weekly_eval', { ...week(), nextWeekStart: '2026-10-12', lastTest: { date: '2026-10-07' } }).model).toBe(SONNET);
   });
 
-  it('un test viejo no basta', () => {
-    expect(plannerFor('weekly_eval', { ...week(), nextWeekStart: '2026-10-12', lastTest: { date: '2026-09-01' } }).model).toBe(HAIKU);
+  it('un test viejo no cuenta como razón de FTP', () => {
+    expect(plannerFor('weekly_eval', { ...week(), nextWeekStart: '2026-10-12', lastTest: { date: '2026-09-01' } }).reason).toBe('evaluación semanal');
   });
 });
 
