@@ -35,7 +35,7 @@ import type { RemovedWorkout } from '../sync/plan-removals';
 import { dayKeyOf, daysAgoKey, todayKey as localTodayKey } from '../core/day-key';
 
 // «X» para miércoles, como en los calendarios en español: dos «M» no se distinguen.
-const DAY_LABELS: Record<string, string> = { mon: 'L', tue: 'M', wed: 'X', thu: 'J', fri: 'V', sat: 'S', sun: 'D' };
+const DAY_LABELS: Record<string, string> = { mon: 'Lun', tue: 'Mar', wed: 'Mié', thu: 'Jue', fri: 'Vie', sat: 'Sáb', sun: 'Dom' };
 const DAY_NAMES: Record<string, string> = { mon: 'Lunes', tue: 'Martes', wed: 'Miércoles', thu: 'Jueves', fri: 'Viernes', sat: 'Sábado', sun: 'Domingo' };
 const DAY_ORDER = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 
@@ -526,7 +526,7 @@ function createCardHtml(actionsUsed: number): string {
         <h2 class="perfil-h2" style="margin:0">${aiCoachTitle()}</h2>
         <p class="hint" style="margin-top:8px">Todavía no tienes un plan — el coach arma tu periodización y va ajustando cada semana según cómo te va.</p>
         <button class="btn-light" id="coach-open-create" style="margin-top:10px" ${atLimit ? 'disabled' : ''}>Crear mi plan</button>
-        <p class="hint" style="margin-top:6px">${isUnlimited() ? UNLIMITED_HINT : atLimit ? 'Ya usaste tus 3 creaciones/cambios de plan de este mes — vuelve el próximo mes.' : `Te quedan ${remaining} de ${MONTHLY_PLAN_ACTION_LIMIT} creaciones/cambios de plan este mes.`}</p>
+        ${isUnlimited() ? `<p class="hint" style="margin-top:6px">${UNLIMITED_HINT}</p>` : atLimit ? '<p class="hint" style="margin-top:6px">Ya usaste tus 3 creaciones o cambios de plan de este mes: vuelve el próximo mes.</p>' : remaining === 1 ? '<p class="hint" style="margin-top:6px">Te queda 1 creación o cambio de plan este mes.</p>' : ''}
       </div>
     </div>`;
 }
@@ -535,27 +535,56 @@ function createCardHtml(actionsUsed: number): string {
 // onboarding.ts) — este modal solo pregunta lo específico de ESTE plan.
 // create_plan los lee directo de appState.profile al armar el context.
 function modalHtml(): string {
-  const days = DAY_ORDER.map((d) => `<button class="plan-chip" data-day="${d}" aria-label="${DAY_NAMES[d]}" title="${DAY_NAMES[d]}">${DAY_LABELS[d]}</button>`).join('');
+  const days = DAY_ORDER.map(
+    (d) => `<button type="button" class="ob-chip plan-chip" data-day="${d}" aria-pressed="false" aria-label="${DAY_NAMES[d]}" title="${DAY_NAMES[d]}">${DAY_LABELS[d]}</button>`,
+  ).join('');
+  // Lo que contestó en el cuestionario (horas que entrena hoy) es el mejor
+  // punto de partida; si no lo dio, 6 h.
+  const known = appState.profile.intake?.recentHoursPerWeek;
+  const hours = known && known >= 1 ? Math.min(20, Math.round(known)) : 6;
   return `
     <div class="modal-backdrop" id="coach-modal-backdrop">
-      <div class="panel plan-coach-modal" id="coach-modal">
-        <div class="plan-create-head">
-          <h2 class="perfil-h2" style="margin:0">Crear tu plan</h2>
-          <button class="plan-create-close" id="coach-modal-close" aria-label="Cerrar">✕</button>
+      <div class="panel ob-modal plan-coach-modal" id="coach-modal" role="dialog" aria-modal="true" aria-labelledby="coach-modal-title">
+        <header class="ob-head">
+          <div>
+            <h2 class="ob-title" id="coach-modal-title">Crear tu plan</h2>
+            <p class="ob-subtitle" id="coach-modal-subtitle">Lo último: para qué entrenas y cuánto tiempo tienes. El coach arma tu plan en alrededor de 1 minuto.</p>
+          </div>
+          <button type="button" class="ob-close" id="coach-modal-close" aria-label="Cerrar">✕</button>
+        </header>
+        <div class="ob-body" id="coach-form">
+          <label class="ob-field">¿Para qué entrenas?
+            <textarea id="coach-goal" rows="4" placeholder="Ej.: quiero terminar el Gran Fondo de 120 km el 14 de marzo sin sufrir en las subidas, o simplemente rodar más fuerte y constante"></textarea>
+          </label>
+          <p class="ob-note" style="margin-top:6px">Si hay una carrera o una fecha, dila: el plan se arma hacia ella.</p>
+          <p class="ob-q">¿Qué días puedes entrenar?</p>
+          <div class="ob-chips" id="coach-days">${days}</div>
+          <div class="ob-grid">
+            <label class="ob-field">Horas por semana
+              <span class="ob-input-unit"><input type="number" id="coach-hours" value="${hours}" min="1" max="20" step="0.5" inputmode="decimal"><span>h</span></span>
+            </label>
+            <label class="ob-field"><span>Máximo por sesión <span class="ob-optional">opcional</span></span>
+              <span class="ob-input-unit"><input type="number" id="coach-max-minutes" placeholder="Ej. 60" min="20" max="90" inputmode="numeric"><span>min</span></span>
+            </label>
+          </div>
         </div>
-        <label class="live-col-label">¿Para qué entrenas?
-          <textarea id="coach-goal" rows="4" placeholder="Cuéntanos con calma: para qué te preparas, qué quieres lograr, si hay una carrera o fecha objetivo, cualquier contexto que ayude a armar tu plan" style="width:100%;resize:vertical;font-family:inherit"></textarea>
-        </label>
-        <label class="live-col-label" style="margin-top:10px;display:block">Horas por semana disponibles
-          <input type="number" id="coach-hours" value="6" min="1" max="20" style="width:100%">
-        </label>
-        <label class="live-col-label" style="margin-top:10px;display:block">Minutos máximos por sesión (opcional)
-          <input type="number" id="coach-max-minutes" placeholder="Ej. 60 — déjalo vacío si no te importa" min="20" max="90" style="width:100%">
-        </label>
-        <label class="live-col-label" style="margin-top:10px;display:block">Días disponibles</label>
-        <div class="plan-chip-row" id="coach-days">${days}</div>
-        <button class="btn-light" id="coach-submit" style="margin-top:14px">Crear plan</button>
-        <p class="hint" id="coach-status" style="margin-top:8px"></p>
+        <div class="ob-body coach-wait" id="coach-wait" hidden>
+          <div class="coach-wait-head">
+            ${pinonFigureHtml('habla', 64)}
+            <div>
+              <p class="coach-wait-title">Armando tu plan…</p>
+              <p class="hint" style="margin:2px 0 0">Tarda alrededor de 1 minuto. Puedes cambiar de pestaña: te avisamos cuando esté.</p>
+            </div>
+          </div>
+          <ol class="coach-wait-steps" id="coach-wait-steps">
+            ${THINKING_MESSAGES.map((m) => `<li>${escapeHtml(m)}</li>`).join('')}
+          </ol>
+        </div>
+        <div class="ob-body" id="coach-result" hidden></div>
+        <footer class="ob-foot">
+          <span class="ob-status" id="coach-status" aria-live="polite"></span>
+          <button type="button" class="ob-save" id="coach-submit">Crear mi plan</button>
+        </footer>
       </div>
     </div>`;
 }
@@ -1074,23 +1103,41 @@ function openCreateModal(onChange: () => void): void {
   backdrop.querySelectorAll<HTMLButtonElement>('#coach-days .plan-chip').forEach((chip) => {
     chip.addEventListener('click', () => {
       const day = chip.dataset.day!;
-      if (selectedDays.has(day)) {
-        selectedDays.delete(day);
-        chip.classList.remove('on');
-      } else {
-        selectedDays.add(day);
-        chip.classList.add('on');
-      }
+      const on = !selectedDays.has(day);
+      if (on) selectedDays.add(day);
+      else selectedDays.delete(day);
+      chip.classList.toggle('on', on);
+      chip.setAttribute('aria-pressed', String(on));
     });
   });
 
-  const close = () => backdrop.remove();
-  backdrop.querySelector('#coach-modal-close')?.addEventListener('click', close);
-  backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) close();
-  });
-
+  // Mientras el coach arma el plan (~1 min) no se puede cerrar: si se
+  // cerraba con un clic afuera, el plan se creaba pero la persona no veía
+  // el resultado (y podía pedir otro, gastando de los 3 del mes).
+  let waiting = false;
   const submitBtn = backdrop.querySelector<HTMLButtonElement>('#coach-submit')!;
+  const closeBtn = backdrop.querySelector<HTMLButtonElement>('#coach-modal-close')!;
+  const close = () => backdrop.remove();
+  closeBtn.addEventListener('click', () => {
+    if (!waiting) close();
+  });
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop && !waiting) close();
+  });
+  const formEl = backdrop.querySelector<HTMLElement>('#coach-form')!;
+  const waitEl = backdrop.querySelector<HTMLElement>('#coach-wait')!;
+  const resultEl = backdrop.querySelector<HTMLElement>('#coach-result')!;
+  const steps = [...backdrop.querySelectorAll<HTMLElement>('#coach-wait-steps li')];
+  const subtitleEl = backdrop.querySelector<HTMLElement>('#coach-modal-subtitle');
+  const setWaiting = (on: boolean) => {
+    waiting = on;
+    formEl.hidden = on;
+    waitEl.hidden = !on;
+    closeBtn.hidden = on;
+    if (subtitleEl) subtitleEl.hidden = on;
+    submitBtn.hidden = on;
+  };
+
   backdrop.querySelector('#coach-submit')?.addEventListener('click', async () => {
     if (!supabase) return;
     const goal = (backdrop.querySelector<HTMLInputElement>('#coach-goal')!).value.trim();
@@ -1110,14 +1157,28 @@ function openCreateModal(onChange: () => void): void {
 
     // Deshabilitado mientras espera — la llamada tarda ~1-2 min y sin esto
     // un doble click manda dos create_plan (gasta 2 de las 3 del mes en vez
-    // de 1). El texto rota para que no se sienta colgado a ese tiempo.
+    // de 1). Mientras, una pantalla de espera que no se cierra por accidente.
     submitBtn.disabled = true;
+    setWaiting(true);
+    // Los pasos se van marcando (el último se queda hasta que llegue la
+    // respuesta) y al pie corre el tiempo: a ~1 min, un texto fijo se siente
+    // colgado.
+    const started = Date.now();
     let msgIndex = 0;
-    status.textContent = THINKING_MESSAGES[0];
+    const paint = () => {
+      steps.forEach((li, i) => {
+        li.classList.toggle('done', i < msgIndex);
+        li.classList.toggle('on', i === msgIndex);
+      });
+      const secs = Math.floor((Date.now() - started) / 1000);
+      status.textContent = `Llevamos ${secs} s`;
+    };
+    paint();
+    const tickTimer = window.setInterval(paint, 1000);
     const thinkingTimer = window.setInterval(() => {
-      msgIndex = (msgIndex + 1) % THINKING_MESSAGES.length;
-      status.textContent = THINKING_MESSAGES[msgIndex];
-    }, 4000);
+      msgIndex = Math.min(msgIndex + 1, THINKING_MESSAGES.length - 1);
+      paint();
+    }, 9000);
 
     // Todo lo de abajo ya vive en el Perfil (llenado por el cuestionario
     // inicial, ver onboarding.ts) — nunca se vuelve a preguntar aquí.
@@ -1152,6 +1213,8 @@ function openCreateModal(onChange: () => void): void {
 
     const { data, error } = await supabase.functions.invoke('coach-chat', { body: { mode: 'create_plan', context } });
     window.clearInterval(thinkingTimer);
+    window.clearInterval(tickTimer);
+    setWaiting(false);
     if (error || data?.error) {
       // En respuestas non-2xx, supabase-js deja `data` en null y pone en
       // `error.message` un texto genérico ("Edge Function returned a non-2xx
@@ -1185,22 +1248,28 @@ function openCreateModal(onChange: () => void): void {
     // atleta la cierre él mismo — ya no es un auto-cierre con timer, hay
     // algo real que leer.
     status.textContent = '';
-    const form = backdrop.querySelectorAll('label, .plan-chip-row, #coach-submit');
-    form.forEach((el) => ((el as HTMLElement).style.display = 'none'));
-    status.insertAdjacentHTML('beforebegin', coachBubbleHtml(data.result.coachNote, true));
-    if (status.parentElement) speakFreshBubbles(status.parentElement);
-    if (data.result.sentToCoach) status.insertAdjacentHTML('beforebegin', sentToCoachHtml());
+    formEl.hidden = true;
+    resultEl.hidden = false;
+    backdrop.querySelector('#coach-modal-title')!.textContent = 'Tu plan está listo';
+    backdrop.querySelector('#coach-modal-subtitle')?.remove();
+    resultEl.insertAdjacentHTML('beforeend', coachBubbleHtml(data.result.coachNote, true));
+    speakFreshBubbles(resultEl);
+    if (data.result.sentToCoach) resultEl.insertAdjacentHTML('beforeend', sentToCoachHtml());
     // El servidor puede correr el arranque al lunes siguiente si esta semana ya
     // no quedan días disponibles: manda la fecha con la que guardó el plan.
-    if (data.result.nextTest) status.insertAdjacentHTML('beforebegin', plannedTestHtml(data.result.nextTest, data.result.startDate ?? startDate));
+    if (data.result.nextTest) resultEl.insertAdjacentHTML('beforeend', plannedTestHtml(data.result.nextTest, data.result.startDate ?? startDate));
     if (data.result.suggestedFtp) {
-      status.insertAdjacentHTML('beforebegin', ftpOfferHtml({ watts: Math.round(data.result.suggestedFtp), from: 'create_plan', at: new Date().toISOString() }));
+      resultEl.insertAdjacentHTML('beforeend', ftpOfferHtml({ watts: Math.round(data.result.suggestedFtp), from: 'create_plan', at: new Date().toISOString() }));
       wireFtpOffer(backdrop);
     }
-    status.insertAdjacentHTML(
-      'afterend',
-      '<button class="btn-light" id="coach-done" style="margin-top:12px">Entendido</button>',
-    );
+    submitBtn.remove();
+    status.insertAdjacentHTML('afterend', '<button type="button" class="ob-save" id="coach-done">Ver mi plan</button>');
+    // Si cambió de pestaña mientras esperaba, el título se lo dice.
+    if (document.hidden) {
+      const before = document.title;
+      document.title = '✅ Tu plan está listo · Torq';
+      document.addEventListener('visibilitychange', () => (document.title = before), { once: true });
+    }
     // El servidor ya agendó los entrenamientos: se traen ahora, mientras la
     // persona lee la nota, para que el calendario no aparezca vacío.
     const reloaded = appState.reloadWorkoutsFromCloud().catch((err) => console.error('[coach] no se pudieron releer los workouts', err));

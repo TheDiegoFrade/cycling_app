@@ -3021,6 +3021,51 @@ a {
   max-height: 90vh;
   overflow-y: auto;
 }
+/* «Crear tu plan» usa el mismo diseño que el cuestionario (ob-*), un poco
+   más angosto. */
+.ob-modal.plan-coach-modal {
+  max-width: 560px;
+}
+/* Pantalla de espera mientras el coach arma el plan (~1 min) */
+.coach-wait-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 18px;
+}
+.coach-wait-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+}
+.coach-wait-steps {
+  list-style: none;
+  margin: 18px 0 6px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.coach-wait-steps li {
+  font-size: 14px;
+  color: var(--text-muted);
+  opacity: 0.55;
+  transition: opacity 0.3s ease, color 0.3s ease;
+}
+.coach-wait-steps li.on {
+  opacity: 1;
+  color: var(--text);
+  font-weight: 600;
+}
+.coach-wait-steps li.done {
+  opacity: 0.85;
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent);
+}
+#coach-result {
+  padding-top: 18px;
+}
 /* Desglose bloque por bloque de un workout (nombre, minutos, %FTP) — se
  * repite igual en el popup de detalle del calendario y en "Antes de
  * empezar" (ver intervalBlockHtml en calendar.ts/connect.ts). */
