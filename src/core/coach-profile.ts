@@ -16,6 +16,48 @@ export function ftpSourceOf(p: Pick<Profile, 'ftpSource' | 'ftpConfirmed'>): Ftp
   return p.ftpSource ?? (p.ftpConfirmed ? 'manual' : 'default');
 }
 
+/** FTP con el que arranca alguien de quien no sabemos nada todavía (antes
+ * del cuestionario). Antes era 200 W: el de alguien que ya entrena, y a un
+ * principiante le dejaba la Z2 en 130 W. */
+export const STARTING_FTP_FALLBACK = 150;
+/** El default que traían los perfiles viejos (se reemplaza al cargar). */
+export const LEGACY_DEFAULT_FTP = 200;
+
+/** W/kg de arranque según qué tan activo ha estado (conservador: el test de
+ * las primeras semanas lo afina). */
+const START_WKG: Record<NonNullable<Profile['generalFitnessLevel']>, number> = {
+  sedentary: 1.7,
+  active_other_sport: 2.1,
+  active_cyclist: 2.5,
+};
+
+/** FTP estimado para quien no sabe el suyo, con lo que contestó en el
+ * cuestionario: peso, actividad, experiencia, sexo y edad. Redondeado a 5 W,
+ * entre 80 y 280. Sin peso, el de respaldo. */
+export function estimatedStartingFtp(
+  p: Pick<Profile, 'weight_kg' | 'sex' | 'birth_date' | 'generalFitnessLevel' | 'experienceLevel'>,
+  today: Date = new Date(),
+): number {
+  if (!p.weight_kg || p.weight_kg <= 0) return STARTING_FTP_FALLBACK;
+  let wkg = p.generalFitnessLevel ? START_WKG[p.generalFitnessLevel] : 1.9;
+  if (p.generalFitnessLevel === 'active_cyclist' && p.experienceLevel === 'experienced') wkg = 2.9;
+  if (p.sex === 'F') wkg *= 0.88;
+  const age = ageFromBirthDate(p.birth_date, today);
+  if (age !== null && age >= 60) wkg *= 0.85;
+  else if (age !== null && age >= 50) wkg *= 0.92;
+  return Math.min(280, Math.max(80, Math.round((p.weight_kg * wkg) / 5) * 5));
+}
+
+/** Perfil cargado con el FTP por defecto de antes (200, o el de respaldo):
+ * se cambia por el estimado si ya contestó su peso. Un FTP medido, escrito
+ * por la persona o provisional no se toca. */
+export function withStartingFtpEstimate(p: Profile, today: Date = new Date()): Profile {
+  if (ftpSourceOf(p) !== 'default' || !p.weight_kg) return p;
+  if (p.ftp !== LEGACY_DEFAULT_FTP && p.ftp !== STARTING_FTP_FALLBACK) return p;
+  const ftp = estimatedStartingFtp(p, today);
+  return ftp === p.ftp ? p : { ...p, ftp };
+}
+
 /** Un número que el atleta midió o escribió como suyo (no default ni
  * provisional). Es lo que significa `ftpConfirmed`. */
 export function isMeasuredFtp(source: FtpSource): boolean {

@@ -5,7 +5,7 @@
 // appState.profile existente (mutación de campos + persistProfile()), igual
 // que ya hace Perfil — nunca se reemplaza el objeto completo.
 import type { Profile } from '../core/types';
-import { coachProfileError, ftpSourceOf, isMeasuredFtp, withFtp } from '../core/coach-profile';
+import { coachProfileError, estimatedStartingFtp, ftpSourceOf, isMeasuredFtp, withFtp } from '../core/coach-profile';
 import { CHRONIC_CONDITIONS, CHRONIC_CONDITION_LABELS } from '../core/intake';
 import type { HealthIntake } from '../core/intake';
 import { DAY_CODES, DAY_SHORT_LABELS, QUESTIONNAIRE_KINDS, QUESTIONNAIRE_KIND_LABELS } from '../core/other-activities';
@@ -49,8 +49,10 @@ function ftpFromForm(p: Profile, typed: number, unknown: boolean): Profile {
   const hasNumber = Number.isFinite(typed) && typed > 0;
   if (unknown) {
     if (hasNumber) return withFtp(p, typed, 'provisional');
-    const source = ftpSourceOf(p) === 'provisional' ? 'provisional' : 'default';
-    return { ...p, ftpSource: source, ftpConfirmed: false };
+    if (ftpSourceOf(p) === 'provisional') return { ...p, ftpSource: 'provisional', ftpConfirmed: false };
+    // No sabe su FTP: uno conservador con lo que contestó (no el default de
+    // 200 W). El test de las primeras semanas lo afina.
+    return { ...p, ftp: estimatedStartingFtp(p), ftpSource: 'default', ftpConfirmed: false };
   }
   return hasNumber ? withFtp(p, typed, 'manual') : { ...p, ftpSource: 'manual', ftpConfirmed: true };
 }

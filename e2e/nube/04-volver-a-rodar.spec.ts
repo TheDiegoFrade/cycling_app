@@ -56,3 +56,19 @@ test('Beto vuelve tras 6 días sin rodar: Piñón lo recibe sin regañar', async
     ux.finding('UX-REG', 'No apareció la burbuja de «bienvenido de vuelta» tras 6 días sin rodar.');
   }
 });
+
+test('quien no sabe su FTP no arranca con 200 W: uno estimado y marcado como aproximado', async ({ page, backend, ux }) => {
+  // Ana: 68 kg, apenas arranca, «No sé mi FTP» (traía el 200 por defecto de antes)
+  const u = user('ana');
+  backend.users.push(u);
+  seedProfile(backend, u, 'ana');
+  seedActivePlan(backend, u);
+  seedWorkout(backend, u, { template: 'z2', minutes: 45, name: 'Base Z2 · 45 min' });
+  await backend.seedSession(page, u);
+  await page.addInitScript(() => localStorage.setItem('torq.pinon.guides', 'off'));
+  await page.goto('/');
+  await ux.click(page.locator('.home-ride-btn').first(), 'Empezar a rodar');
+  await expect(page).toHaveURL(/#\/prepare/);
+  await expect(page.locator('body')).toContainText('con FTP 100 (aproximado: lo afinamos con tu test)');
+  await expect(page.locator('body')).not.toContainText('FTP 200');
+});

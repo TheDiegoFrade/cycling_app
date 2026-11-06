@@ -1,4 +1,5 @@
 import { hasWebBluetooth, noBluetoothMessage } from '../../devices/ble-support';
+import { ftpSourceOf, isMeasuredFtp } from '../../core/coach-profile';
 import { BleTrainerAdapter } from '../../devices/ftms';
 import { BleHrAdapter } from '../../devices/heart-rate';
 import { SimulatedHrAdapter, SimulatedTrainerAdapter } from '../../devices/simulated';
@@ -90,7 +91,7 @@ export function renderConnect(container: HTMLElement): void {
           <div class="prepare-stats">
             <div><div class="prepare-stat-num num">${fmtMinutes(estimate.durationS)}</div><div class="live-col-label">duración</div></div>
             <div><div class="prepare-stat-num num">${estimate.tss ?? '—'}</div><div class="live-col-label">TSS estimado</div></div>
-            <div><div class="prepare-stat-num num">${wattsLabel}</div><div class="live-col-label">en los bloques, con FTP ${appState.profile.ftp}</div></div>
+            <div><div class="prepare-stat-num num">${wattsLabel}</div><div class="live-col-label">en los bloques, con FTP ${appState.profile.ftp}${isMeasuredFtp(ftpSourceOf(appState.profile)) ? '' : ' (aproximado: lo afinamos con tu test)'}</div></div>
           </div>
           <div class="workout-detail-blocks" style="margin-top:10px">
             ${workout.intervals.map(intervalBlockHtml).join('')}
