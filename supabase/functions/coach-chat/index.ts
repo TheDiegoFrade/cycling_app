@@ -1003,6 +1003,10 @@ async function applyModeEffects(
           hoursPerWeek: (context.availability as { hoursPerWeek: number }).hoursPerWeek,
         },
         nextTest: output.nextTest ?? null,
+        // La explicación del coach al crear el plan: sin esto se perdía al
+        // cerrar el modal y la primera semana el Plan no decía por qué es así.
+        // weekly_eval la reemplaza con su propia nota.
+        lastEvalNote: output.coachNote,
       },
       current_block_exhausted: firstBlockExhausted,
     });

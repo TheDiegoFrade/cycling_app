@@ -21,7 +21,7 @@ import { confirmAiWithHumanCoach, humanCoachName } from './coach-notice';
 import { celebratePinon, pinonFigureHtml, pinonSpeak } from './pinon';
 import { coachFtpFields, coachProfileExtras, ftpSourceOf, isMeasuredFtp, sourceForAcceptedSuggestion, withFtp } from '../core/coach-profile';
 import { planContextFor, plannedTestLabel, weekStartOf } from '../core/plan-context';
-import { evalWeekTarget, planTotalWeeks } from '../core/eval-week';
+import { evalWeekTarget, planTotalWeeks, planWeekOf } from '../core/eval-week';
 import { ruleTriggersOf } from '../core/rule-triggers';
 import { readTest } from '../core/test-reading';
 import type { LastTest } from '../core/test-reading';
@@ -331,6 +331,21 @@ function evalFormHtml(isRefresh: boolean, hint: string): string {
     </div>`;
 }
 
+/** «Semana 1 de 3 · Base», o cuándo arranca si empieza el lunes. */
+function planWeekLine(plan: ActivePlanRow): string {
+  const today = localTodayKey();
+  const total = planTotalWeeks(plan.data.blocks);
+  if (plan.data.startDate > today) {
+    const d = new Date(`${plan.data.startDate}T12:00:00Z`).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+    return `Tu plan arranca el ${d}.`;
+  }
+  const week = planWeekOf(plan.data.startDate, today) + 1;
+  if (week > total) return `Terminaste las ${total} semanas del plan.`;
+  let acc = 0;
+  const block = plan.data.blocks.find((b) => (acc += b.weeks) >= week);
+  return `Semana ${week} de ${total}${block ? ` · ${escapeHtml(block.name)}` : ''}.`;
+}
+
 function planSummaryHtml(plan: ActivePlanRow, weeklyEvalsUsed: number, planActionsUsed: number): string {
   const blocks = plan.data.blocks
     .map((b) => `<span class="plan-chip${b.published ? ' on' : ''}">${b.name} · ${b.weeks} sem</span>`)
@@ -340,7 +355,7 @@ function planSummaryHtml(plan: ActivePlanRow, weeklyEvalsUsed: number, planActio
     <div class="panel plan-coach-card" data-pinon-perch>
       <h2 class="perfil-h2" style="margin:0">${aiCoachTitle()} — ${plan.goal}</h2>
       <div class="plan-chip-row" style="margin-top:10px">${blocks}</div>
-      <p class="hint" style="margin-top:8px">Semana en curso dentro del plan.</p>
+      <p class="hint" style="margin-top:8px">${planWeekLine(plan)}</p>
       ${plan.data.lastEvalNote ? coachBubbleHtml(plan.data.lastEvalNote) : ''}
       ${plan.data.nextTest ? plannedTestHtml(plan.data.nextTest, plan.data.startDate) : ''}
       ${ftpOfferHtml(plan.data.ftpSuggestion)}
@@ -348,8 +363,8 @@ function planSummaryHtml(plan: ActivePlanRow, weeklyEvalsUsed: number, planActio
       <div id="coach-abandon-zone" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
         <a href="#" class="prepare-link" id="coach-abandon">Dar de baja este plan</a>
         <p class="hint" style="margin-top:4px">
-          ${isUnlimited() ? UNLIMITED_HINT : planActionsRemaining > 0 ? `Te quedan ${planActionsRemaining} de ${MONTHLY_PLAN_ACTION_LIMIT} cambios de plan este mes.` : `Ya usaste tus ${MONTHLY_PLAN_ACTION_LIMIT} cambios de plan de este mes — vuelve el próximo mes.`}
           Para crear un plan nuevo primero tienes que dar de baja el actual.
+          ${isUnlimited() ? UNLIMITED_HINT : planActionsRemaining <= 0 ? `Ya usaste tus ${MONTHLY_PLAN_ACTION_LIMIT} cambios de plan de este mes: vuelve el próximo mes.` : planActionsRemaining === 1 ? 'Te queda 1 cambio de plan este mes.' : ''}
         </p>
       </div>
       <p class="hint" id="coach-abandon-error" style="margin-top:8px;display:none"></p>
@@ -1255,6 +1270,11 @@ function openCreateModal(onChange: () => void): void {
     resultEl.insertAdjacentHTML('beforeend', coachBubbleHtml(data.result.coachNote, true));
     speakFreshBubbles(resultEl);
     if (data.result.sentToCoach) resultEl.insertAdjacentHTML('beforeend', sentToCoachHtml());
+    else
+      resultEl.insertAdjacentHTML(
+        'beforeend',
+        `<p class="hint coach-plan-email">📧 También te mandamos ${appState.user?.email ? `a <strong>${escapeHtml(appState.user.email)}</strong>` : 'a tu correo'} el plan completo con la explicación del coach, en PDF.</p>`,
+      );
     // El servidor puede correr el arranque al lunes siguiente si esta semana ya
     // no quedan días disponibles: manda la fecha con la que guardó el plan.
     if (data.result.nextTest) resultEl.insertAdjacentHTML('beforeend', plannedTestHtml(data.result.nextTest, data.result.startDate ?? startDate));

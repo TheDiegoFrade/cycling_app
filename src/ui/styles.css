@@ -8474,3 +8474,31 @@ body.remote-body {
     flex-direction: column;
   }
 }
+
+/* Cuestionario «Tus números»: con cuánto arranca quien no sabe su FTP y
+   cómo ajustarlo mientras el coach lo mide. */
+.ob-ftp-help {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  font-size: 14px;
+  line-height: 1.45;
+}
+.ob-ftp-help p {
+  margin: 0 0 6px;
+}
+.ob-ftp-help ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.ob-ftp-help li + li {
+  margin-top: 4px;
+}
+.prepare-ftp-hint {
+  margin: 6px 0 0;
+}
+.coach-plan-email {
+  margin-top: 12px;
+}

@@ -53,7 +53,10 @@ describe('matchIntent', () => {
     expect(matchIntent('¿qué me toca el sábado?')).toBeNull();
     expect(matchIntent('¿qué me toca este fin de semana?')).toBeNull();
     expect(matchIntent('¿cómo viene la semana que entra?')).toBeNull();
-    expect(matchIntent('¿qué es el FTP y para qué sirve?')).toBeNull();
+    // el FTP lo explica Piñón sin IA; otros conceptos van a la IA
+    expect(matchIntent('¿qué es el FTP y para qué sirve?')).toBe('ftp');
+    expect(matchIntent('no sé mi ftp')).toBe('ftp');
+    expect(matchIntent('¿qué es el sweet spot?')).toBeNull();
     expect(matchIntent('¿por qué mi coach me puso umbral si estoy tan cansado?')).toBeNull();
     expect(matchIntent('¿para qué sirve el entreno de hoy?')).toBe('why');
   });
@@ -125,5 +128,16 @@ describe('PINON_QUICK', () => {
   });
   it('los botones no dan por hecho el género', () => {
     for (const q of PINON_QUICK) expect(q.label).not.toMatch(/\b\w+(ado|ada)\b/);
+  });
+});
+
+describe('Piñón explica el FTP', () => {
+  it('estimado: qué es, cuánto usa, que el coach lo mide y cómo ajustarlo', () => {
+    const r = localAnswer('ftp', { ...base, ftp: 100, ftpApprox: true });
+    expect(r.text).toBe('El FTP es la potencia que aguantas cerca de 1 hora; tus zonas salen de ahí. Usamos 100 W estimados y el coach te pondrá un test. ¿Muy duro o suave? Usa + / − al rodar, también desde el celular.');
+    expect(r.action?.href).toBe('#/profile');
+  });
+  it('medido: dice el suyo', () => {
+    expect(localAnswer('ftp', { ...base, ftp: 265 }).text).toContain('El tuyo: 265 W.');
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ageFromBirthDate, bodyDataError, coachFtpFields, coachProfileError, coachProfileExtras, ftpSourceOf, sourceForAcceptedSuggestion, withFtp } from './coach-profile';
+import { STARTING_FTP_FALLBACK, ageFromBirthDate, bodyDataError, coachFtpFields, coachProfileError, coachProfileExtras, estimatedStartingFtp, ftpSourceOf, sourceForAcceptedSuggestion, withFtp, withStartingFtpEstimate } from './coach-profile';
 import type { Profile } from './types';
 
 // Mismos números que DEFAULT_PROFILE (storage/profile-store.ts), sin
@@ -121,5 +121,36 @@ describe('mayoría de edad', () => {
     const today = new Date(2026, 9, 20);
     expect(bodyDataError({ birth_date: '2010-03-01', weight_kg: 60, height_cm: 165 }, today)).toMatch(/solo para mayores de 18/);
     expect(bodyDataError({ birth_date: '2008-10-20', weight_kg: 60, height_cm: 165 }, today)).toBeNull();
+  });
+});
+
+describe('FTP de arranque para quien no sabe el suyo', () => {
+  const today = new Date('2026-11-06T12:00:00Z');
+  const novata = { weight_kg: 68, sex: 'F' as const, birth_date: '1992-03-15', generalFitnessLevel: 'sedentary' as const, experienceLevel: 'new_to_cycling' as const };
+  it('principiante de 68 kg: ~100 W, no 200', () => {
+    expect(estimatedStartingFtp(novata, today)).toBe(100);
+  });
+  it('sube con la actividad y la experiencia', () => {
+    const otro = estimatedStartingFtp({ ...novata, generalFitnessLevel: 'active_other_sport' }, today);
+    const ciclista = estimatedStartingFtp({ ...novata, generalFitnessLevel: 'active_cyclist' }, today);
+    const experto = estimatedStartingFtp({ ...novata, sex: 'M', weight_kg: 74, generalFitnessLevel: 'active_cyclist', experienceLevel: 'experienced' }, today);
+    expect(otro).toBe(125);
+    expect(ciclista).toBe(150);
+    expect(experto).toBe(215);
+  });
+  it('baja con la edad, y queda entre 80 y 280', () => {
+    expect(estimatedStartingFtp({ ...novata, sex: 'M', birth_date: '1960-01-01' }, today)).toBe(100);
+    expect(estimatedStartingFtp({ ...novata, weight_kg: 40 }, today)).toBe(80);
+    expect(estimatedStartingFtp({ ...novata, weight_kg: 130, sex: 'M', generalFitnessLevel: 'active_cyclist', experienceLevel: 'experienced' }, today)).toBe(280);
+    expect(estimatedStartingFtp({}, today)).toBe(STARTING_FTP_FALLBACK);
+  });
+  it('al cargar: cambia el 200 por defecto, pero nunca un FTP medido, escrito o provisional', () => {
+    const viejo = { ...base, ...novata, ftp: 200 };
+    expect(withStartingFtpEstimate(viejo, today).ftp).toBe(100);
+    expect(withStartingFtpEstimate({ ...viejo, ftpSource: 'manual', ftpConfirmed: true }, today).ftp).toBe(200);
+    expect(withStartingFtpEstimate({ ...viejo, ftpSource: 'test_ramp', ftpConfirmed: true }, today).ftp).toBe(200);
+    expect(withStartingFtpEstimate({ ...viejo, ftpSource: 'provisional' }, today).ftp).toBe(200);
+    // sin peso todavía (no contestó el cuestionario): se queda
+    expect(withStartingFtpEstimate({ ...base, ftp: 200 }, today).ftp).toBe(200);
   });
 });

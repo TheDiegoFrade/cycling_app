@@ -5,7 +5,7 @@
 // appState.profile existente (mutación de campos + persistProfile()), igual
 // que ya hace Perfil — nunca se reemplaza el objeto completo.
 import type { Profile } from '../core/types';
-import { coachProfileError, ftpSourceOf, isMeasuredFtp, withFtp } from '../core/coach-profile';
+import { coachProfileError, estimatedStartingFtp, ftpSourceOf, isMeasuredFtp, withFtp } from '../core/coach-profile';
 import { CHRONIC_CONDITIONS, CHRONIC_CONDITION_LABELS } from '../core/intake';
 import type { HealthIntake } from '../core/intake';
 import { DAY_CODES, DAY_SHORT_LABELS, QUESTIONNAIRE_KINDS, QUESTIONNAIRE_KIND_LABELS } from '../core/other-activities';
@@ -49,8 +49,10 @@ function ftpFromForm(p: Profile, typed: number, unknown: boolean): Profile {
   const hasNumber = Number.isFinite(typed) && typed > 0;
   if (unknown) {
     if (hasNumber) return withFtp(p, typed, 'provisional');
-    const source = ftpSourceOf(p) === 'provisional' ? 'provisional' : 'default';
-    return { ...p, ftpSource: source, ftpConfirmed: false };
+    if (ftpSourceOf(p) === 'provisional') return { ...p, ftpSource: 'provisional', ftpConfirmed: false };
+    // No sabe su FTP: uno conservador con lo que contestó (no el default de
+    // 200 W). El test de las primeras semanas lo afina.
+    return { ...p, ftp: estimatedStartingFtp(p), ftpSource: 'default', ftpConfirmed: false };
   }
   return hasNumber ? withFtp(p, typed, 'manual') : { ...p, ftpSource: 'manual', ftpConfirmed: true };
 }
@@ -114,7 +116,7 @@ export function obGuideLine(step: number, name: string | undefined, gender: Gend
     case 5:
       return `Vas a la mitad. ¿Qué rodadas haces? Esto cambia el tipo de sesiones que te tocan.`;
     case 6:
-      return 'Si no sabes tu FTP o tu pulso, márcalo y ya: el plan trae un test para medirlos con seguridad.';
+      return 'El FTP es la potencia (en watts) que podrías sostener más o menos una hora; con él se calculan tus zonas. Si no lo sabes, no te preocupes: arrancamos con uno estimado y el coach te pone un test para medirlo.';
     case 7:
       return 'Correr, gym o fútbol también cansan. Dímelo y tu coach lo acomoda junto a tus rodadas.';
     default:
@@ -300,7 +302,7 @@ function modalHtml(p: Profile): string {
             `<div class="ob-grid">
               <div class="ob-field">
                 <label for="ob-ftp" id="ob-ftp-label">${ftpMeasured ? 'FTP actual' : 'FTP provisional (si tienes uno)'}</label>
-                <span class="ob-input-unit"><input type="number" id="ob-ftp" value="${ftpMeasured || ftpSourceOf(p) === 'provisional' ? esc(p.ftp) : ''}" placeholder="${ftpMeasured ? 'Ej. 200' : 'Si no, el coach te propone uno'}" inputmode="numeric"><span>W</span></span>
+                <span class="ob-input-unit"><input type="number" id="ob-ftp" value="${ftpMeasured || ftpSourceOf(p) === 'provisional' ? esc(p.ftp) : ''}" placeholder="${ftpMeasured ? 'Ej. 200' : 'Opcional'}" inputmode="numeric"><span>W</span></span>
                 ${toggleHtml('ob-no-ftp', !!p.ftpSource && !ftpMeasured, 'No sé mi FTP todavía', 'Puedes escribir uno provisional: el coach lo toma como punto de partida, no como medición.')}
               </div>
               <div class="ob-field">
@@ -313,6 +315,13 @@ function modalHtml(p: Profile): string {
                 <span class="ob-input-unit"><input type="number" id="ob-resting-hr" value="${esc(intake?.restingHr)}" placeholder="Ej. 58" inputmode="numeric" ${intake && intake.restingHr === null ? 'disabled' : ''}><span>lpm</span></span>
                 ${toggleHtml('ob-no-resting-hr', !!intake && intake.restingHr === null, 'No sé mi pulso en reposo')}
               </div>
+            </div>
+            <div class="ob-ftp-help" id="ob-ftp-help"${!!p.ftpSource && !ftpMeasured ? '' : ' hidden'}>
+              <p><strong>Arrancas con unos <span id="ob-ftp-estimate">${esc(estimatedStartingFtp(p))}</span> W</strong>, estimado con tu peso y tu actividad.</p>
+              <ul>
+                <li>El coach te pone un test para medirlo y te pedirá actualizarlo en tu Perfil.</li>
+                <li>Mientras: si una sesión se siente muy dura o muy suave, súbele o bájale con <strong>+ / −</strong> durante el entrenamiento (también desde tu celular), o cambia tu FTP en Perfil.</li>
+              </ul>
             </div>
             <p class="ob-note">No pasa nada si no los sabes: el plan arranca con un protocolo para calibrarlos con seguridad.</p>`,
           )}
@@ -536,8 +545,20 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
 
   const noFtpCheckbox = backdrop.querySelector<HTMLInputElement>('#ob-no-ftp')!;
   const ftpLabel = backdrop.querySelector<HTMLElement>('#ob-ftp-label')!;
+  // «No sé mi FTP»: se dice con cuánto arranca (estimado con lo contestado
+  // en los pasos anteriores) y cómo ajustarlo mientras se mide.
+  const ftpHelp = backdrop.querySelector<HTMLElement>('#ob-ftp-help')!;
+  const ftpEstimate = backdrop.querySelector<HTMLElement>('#ob-ftp-estimate')!;
+  const refreshFtpHelp = () => {
+    ftpHelp.hidden = !noFtpCheckbox.checked;
+    const weight = Number(backdrop.querySelector<HTMLInputElement>('#ob-weight')!.value) || undefined;
+    ftpEstimate.textContent = String(
+      estimatedStartingFtp({ weight_kg: weight, sex, birth_date: backdrop.querySelector<HTMLInputElement>('#ob-birth-date')!.value || undefined, generalFitnessLevel, experienceLevel }),
+    );
+  };
   noFtpCheckbox.addEventListener('change', () => {
     ftpLabel.textContent = noFtpCheckbox.checked ? 'FTP provisional (si tienes uno)' : 'FTP actual';
+    refreshFtpHelp();
   });
   const hrMaxInput = backdrop.querySelector<HTMLInputElement>('#ob-hrmax')!;
   const noHrMaxCheckbox = backdrop.querySelector<HTMLInputElement>('#ob-no-hrmax')!;
@@ -805,6 +826,7 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
       else dot.removeAttribute('aria-current');
     });
     modalEl.classList.toggle('ob-compact', step > 1);
+    if (step === 6) refreshFtpHelp();
     backBtn.hidden = step === 1;
     nextBtn.hidden = step === sections.length;
     saveBtn.hidden = step !== sections.length && !editing;

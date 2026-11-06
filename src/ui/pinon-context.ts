@@ -1,6 +1,7 @@
 // El consejo de Piñón con datos que la app ya tiene en memoria (workouts,
 // sesiones de este dispositivo y de la nube, PMC). No llama a la IA ni a
 // Supabase. Se carga solo al tocar al Piñón asomado (import dinámico), así
+import { ftpSourceOf, isMeasuredFtp } from '../core/coach-profile';
 // pinon.ts queda libre de dependencias pesadas y se puede probar solo.
 import { estimateWorkout } from '../core/workout-estimate';
 import { mainZoneOf } from '../core/workout-zone';
@@ -159,6 +160,7 @@ export async function buildPinonChatData(): Promise<PinonChatData> {
     // llegado se le dice «hoy toca descansar»).
     hasPlan: knownCoachPlanState() ?? appState.workouts.some((w) => !!w.scheduledDate && w.scheduledDate >= todayKey),
     ftp: appState.profile.ftp,
+    ftpApprox: !isMeasuredFtp(ftpSourceOf(appState.profile)),
     ...(todayWorkout
       ? {
           today: {

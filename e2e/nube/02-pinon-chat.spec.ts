@@ -57,7 +57,7 @@ test.describe('Llegar a Piñón', () => {
     await ux.shot('10-chat-abierto');
     const first = chat(page).locator('.pinon-chat-msg.pinon').first();
     await expect(first).toContainText(/pregúntame|botón/i);
-    await expect(chat(page).locator('.pinon-chat-quick [data-intent]')).toHaveCount(6);
+    await expect(chat(page).locator('.pinon-chat-quick [data-intent]')).toHaveCount(7);
     await expect(chat(page)).toContainText('Solo opino');
   });
 });

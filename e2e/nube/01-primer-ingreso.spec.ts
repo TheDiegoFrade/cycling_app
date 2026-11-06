@@ -298,6 +298,34 @@ test.describe('Cuestionario inicial', () => {
     await expect(m.locator('#ob-no-other')).toBeChecked();
   });
 
+  test('Tus números: Piñón explica el FTP y, si no lo sabe, cuánto usa y cómo ajustarlo', async ({ page, backend, ux }) => {
+    const ana = user('ana');
+    backend.users.push(ana);
+    await login(page, ux, ana);
+    await dismissGuide(page, ux);
+    await ux.click(page.locator('#welcome-plan'), 'Armar mi plan con el coach');
+    const m = page.locator('#onboarding-modal');
+    // Ana: mujer, 68 kg, apenas arranca → ~100 W
+    await ux.click(m.locator('#ob-sex .ob-chip', { hasText: 'Mujer' }), 'Sexo');
+    await m.locator('[role=spinbutton][aria-label="Día"]').focus();
+    await page.keyboard.type('15031992', { delay: 30 });
+    await ux.fill(m.locator('#ob-weight'), '68', 'Peso');
+    await ux.fill(m.locator('#ob-height'), '165', 'Altura');
+    await m.evaluate((el) => {
+      (el.querySelector('#ob-fitness [data-level="sedentary"]') as HTMLElement).click();
+      (el.querySelector('#ob-experience [data-level="new_to_cycling"]') as HTMLElement).click();
+    });
+    await m.evaluate((el) => {
+      el.querySelectorAll<HTMLElement>('.ob-step-dot').forEach((d) => ((d as HTMLButtonElement).disabled = false));
+      (el.querySelector('.ob-step-dot[data-go="6"]') as HTMLElement).click();
+    });
+    await expect(m.locator('#ob-guide-text')).toContainText('El FTP es la potencia (en watts) que podrías sostener más o menos una hora');
+    await expect(m.locator('#ob-ftp-help')).toBeHidden();
+    await ux.click(m.locator('label.ob-toggle:has(#ob-no-ftp)'), 'No sé mi FTP');
+    await expect(m.locator('#ob-ftp-help')).toContainText('Arrancas con unos 100 W');
+    await ux.shot('09-cuestionario-ftp', m);
+  });
+
   test('si falta un dato, lo señala en el campo (no solo un texto al pie)', async ({ page, backend, ux }) => {
     const ana = user('ana');
     backend.users.push(ana);

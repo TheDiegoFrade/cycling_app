@@ -8,7 +8,7 @@ import type { WorkoutZone } from './workout-zone';
 import { byGender } from './gender';
 import type { Gender } from './gender';
 
-export type PinonIntent = 'today' | 'week' | 'form' | 'why' | 'tired' | 'cheer' | 'change';
+export type PinonIntent = 'today' | 'week' | 'form' | 'why' | 'tired' | 'cheer' | 'ftp' | 'change';
 
 /** Botones del chat, en este orden. ('change' no tiene botón: sale del texto). */
 export const PINON_QUICK: readonly { intent: Exclude<PinonIntent, 'change'>; label: string }[] = [
@@ -18,6 +18,7 @@ export const PINON_QUICK: readonly { intent: Exclude<PinonIntent, 'change'>; lab
   { intent: 'why', label: '¿Para qué sirve el entreno de hoy?' },
   { intent: 'tired', label: 'Ando sin energía' }, // neutro: «cansado/a» da por hecho el género
   { intent: 'cheer', label: 'Dame ánimo' },
+  { intent: 'ftp', label: '¿Qué es el FTP?' },
 ];
 
 /** Lo más largo que se puede escribir. */
@@ -43,6 +44,8 @@ export interface PinonChatData {
   humanCoach: boolean;
   hasPlan: boolean;
   ftp: number;
+  /** El FTP es estimado (no lo midió ni lo escribió): se dice cómo ajustarlo. */
+  ftpApprox?: boolean;
   today?: { name: string; minutes: number; zone: WorkoutZone | null; description: string | null; done: boolean };
   week: { done: number; planned: number };
   form?: { ctl: number; atl: number; tsb: number };
@@ -89,6 +92,8 @@ const CHANGE_RE = new RegExp(
   `\\b(${CHANGE_VERBS}(me|le|lo|la|melo|mela|selo|sela)?|${CHANGE_ONLY_ENCLITIC})\\b.*\\b(entreno|entrenamiento|entrenamientos|plan|sesion|sesiones|dia|semana|workout|rodada|intervalos?|intensidad|ftp|zonas?)\\b`,
 );
 const RULES: [PinonIntent, RegExp][] = [
+  // «¿qué es el FTP?», «mi FTP», «no sé mi FTP»: lo explica Piñón, sin IA
+  ['ftp', /\b(que es (el |mi )?ftp|que significa (el )?ftp|para que sirve (el )?ftp|no se (cual es )?mi ftp|cual es mi ftp|mi ftp)\b/],
   ['tired', /\b(cansad[oa]|agotad[oa]|fundid[oa]|reventad[oa]|sin energia|piernas pesadas|no tengo ganas|desvelad[oa]|dormi mal|me siento mal|adolorid[oa])\b/],
   ['cheer', /\b(animo|animame|motivame|motivacion|echame porras|porras|dame fuerza)\b/],
   ['why', /\b(para que (sirve|es)|por que (toca|hago|este|esto)|de que sirve|que gano)\b/],
@@ -144,6 +149,7 @@ function plural(n: number, one: string, many: string): string {
 }
 
 const PLAN: PinonReplyAction = { label: 'Ver mi plan', href: '#/plan' };
+const PROFILE: PinonReplyAction = { label: 'Ver mi Perfil', href: '#/profile' };
 const RIDE: PinonReplyAction = { label: 'Empezar a rodar', href: '#/prepare' };
 const FORM: PinonReplyAction = { label: 'Ver Forma', href: '#/form' };
 
@@ -193,6 +199,13 @@ export function localAnswer(intent: PinonIntent, d: PinonChatData, seed = 0): Pi
     case 'cheer': {
       const streak = d.week.done > 0 ? ` Ya llevas ${plural(d.week.done, 'rodada', 'rodadas')} esta semana.` : '';
       return { text: `${CHEERS[Math.abs(seed) % CHEERS.length]}${streak}` };
+    }
+    case 'ftp': {
+      // ≤ 200 caracteres, como todas: el botón «Ver mi Perfil» completa.
+      const what = 'El FTP es la potencia que aguantas cerca de 1 hora; tus zonas salen de ahí.';
+      if (d.ftpApprox)
+        return { text: `${what} Usamos ${d.ftp} W estimados y el coach te pondrá un test. ¿Muy duro o suave? Usa + / − al rodar, también desde el celular.`, action: PROFILE };
+      return { text: `${what} El tuyo: ${d.ftp} W. ¿Muy duro o suave? Usa + / − al rodar, también desde el celular, o cámbialo en Perfil.`, action: PROFILE };
     }
     case 'change':
       return d.humanCoach

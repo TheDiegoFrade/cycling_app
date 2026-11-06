@@ -162,7 +162,7 @@ export function renderPerfil(container: HTMLElement): void {
                 <span class="ob-switch" aria-hidden="true"></span>
               </label>
               <div>
-                <div class="live-col-label" style="margin-bottom:8px">Tus zonas de potencia con FTP ${appState.profile.ftp}</div>
+                <div class="live-col-label" style="margin-bottom:8px">Tus zonas de potencia con FTP ${appState.profile.ftp}${isMeasuredFtp(ftpSourceOf(appState.profile)) ? '' : ' (aproximado hasta tu test)'}</div>
                 <div class="perfil-zones">
                   ${zoneRanges(appState.profile.ftp)
                     .map((z) => `<div class="perfil-zone"><div class="perfil-zone-bar" style="background:var(--z${z.zone})"></div><div class="perfil-zone-name">Z${z.zone} ${ZONE_NAMES[z.zone]}</div><div class="live-col-label">${z.range}</div></div>`)

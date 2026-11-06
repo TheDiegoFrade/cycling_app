@@ -2,6 +2,7 @@ import type { Session } from '@supabase/supabase-js';
 import type { Profile, Workout } from '../core/types';
 import type { HrAdapter, TrainerAdapter } from '../devices/types';
 import { DEFAULT_PROFILE, loadProfile, saveProfile } from '../storage/profile-store';
+import { withStartingFtpEstimate } from '../core/coach-profile';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../storage/settings-store';
 import type { AppSettings } from '../storage/settings-store';
 import { listSessions } from '../storage/session-store';
@@ -113,7 +114,7 @@ class AppState {
     await ensureLocalDataOwnership(initialUser?.id ?? null);
 
     const [profile, settings, workouts] = await Promise.all([loadProfile(), loadSettings(), listWorkouts()]);
-    this.profile = profile;
+    this.profile = withStartingFtpEstimate(profile);
     this.settings = settings;
     this.workouts = workouts;
 
@@ -133,7 +134,7 @@ class AppState {
         await ensureLocalDataOwnership(user?.id ?? null);
         if (user) {
           const [profile, settings, workouts] = await Promise.all([loadProfile(), loadSettings(), listWorkouts()]);
-          this.profile = profile;
+          this.profile = withStartingFtpEstimate(profile);
           this.settings = settings;
           this.workouts = workouts;
           await this.syncFromCloud(user.id);
@@ -181,7 +182,7 @@ class AppState {
     this.plannedRoutines = plannedRoutines;
 
     if (cloudProfile) {
-      this.profile = cloudProfile;
+      this.profile = withStartingFtpEstimate(cloudProfile);
       await saveProfile(cloudProfile);
     } else if (cloudProfile === null) {
       await pushProfileToCloud(this.profile, userId);
