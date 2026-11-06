@@ -151,7 +151,9 @@ Deno.serve(async (req) => {
       const email = user?.user?.email;
       if (!email) return json({ error: 'sin correo en la cuenta' }, 400);
       const price = await checkoutPrice();
-      const customer = row?.stripe_customer_id ?? (await stripe.customers.create({ email, metadata: { user_id: userId } })).id;
+      const customer = row?.stripe_customer_id ?? (await stripe.customers.create({ email, metadata: { user_id: userId }, preferred_locales: ['es-419', 'es'] })).id;
+      // preferred_locales: los correos de Stripe (pago fallido, tarjeta por
+      // vencer, recibos) le llegan en español.
       // Se guarda antes de abrir Checkout: así no se crea otro Customer si la
       // persona lo abre dos veces. Se conservan paid_until y grace_until, y
       // «cancelled» (si le quedan días pagados, no los pierde por abrir Checkout).
