@@ -10,7 +10,7 @@ import { seedProfile } from '../support/seed';
  * espera para administradores y registro solo con invitación.
  */
 
-const NONE = { ai: false, reason: 'none', subscription: null, priceMxn: 299, billingReady: true, isAdmin: false };
+const NONE = { ai: false, reason: 'none', subscription: null, priceMxn: 329, billingReady: true, isAdmin: false };
 const future = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString();
 
 async function enter(page: Page, backend: MockSupabase, id = 'ana', withProfile = true): Promise<MockUser> {
@@ -83,11 +83,11 @@ test.describe('Precio y suscripción', () => {
     backend.functions.set('billing', (body) => {
       if (body?.action === 'subscribe') {
         // Mercado Pago autoriza y nos avisa (webhook): el acceso cambia
-        backend.billingStatus = { ai: true, reason: 'subscription', subscription: { status: 'authorized', price_mxn: 299, paid_until: future(30), grace_until: null }, priceMxn: 299, billingReady: true, isAdmin: false };
-        return { body: { initPoint: '/?billing=return#/profile', priceMxn: 299 } };
+        backend.billingStatus = { ai: true, reason: 'subscription', subscription: { status: 'authorized', price_mxn: 329, paid_until: future(30), grace_until: null }, priceMxn: 329, billingReady: true, isAdmin: false };
+        return { body: { initPoint: '/?billing=return#/profile', priceMxn: 329 } };
       }
       if (body?.action === 'cancel') {
-        backend.billingStatus = { ...(backend.billingStatus as object), subscription: { status: 'cancelled', price_mxn: 299, paid_until: future(30), grace_until: null } };
+        backend.billingStatus = { ...(backend.billingStatus as object), subscription: { status: 'cancelled', price_mxn: 329, paid_until: future(30), grace_until: null } };
         return { body: { ok: true } };
       }
       return { body: backend.billingStatus };
@@ -98,7 +98,7 @@ test.describe('Precio y suscripción', () => {
     await ux.click(card.locator('[data-subscribe]'), 'Suscribirme con Mercado Pago');
     await expect(page).toHaveURL(/#\/profile/);
     await expect(page.locator('.billing-toast')).toContainText('ya tienes Torq Coach IA');
-    await expect(page.locator('.perfil-panel[data-pricing]')).toContainText('$299 al mes');
+    await expect(page.locator('.perfil-panel[data-pricing]')).toContainText('$329 al mes');
     await ux.shot('72-perfil-suscrito', page.locator('.perfil-panel[data-pricing]'));
     // cancelar: dos pasos y explica qué pasa
     await ux.click(page.locator('#subscription-cancel'), 'Cancelar suscripción');
@@ -119,7 +119,7 @@ test.describe('Precio y suscripción', () => {
 
   test('cobro rechazado: días de gracia y cómo arreglarlo', async ({ page, backend, ux }) => {
     await enter(page, backend);
-    backend.billingStatus = { ai: true, reason: 'grace', subscription: { status: 'authorized', price_mxn: 399, paid_until: future(-2), grace_until: future(5) }, priceMxn: 399, billingReady: true, isAdmin: false };
+    backend.billingStatus = { ai: true, reason: 'grace', subscription: { status: 'authorized', price_mxn: 329, paid_until: future(-2), grace_until: future(5) }, priceMxn: 329, billingReady: true, isAdmin: false };
     await page.goto('/#/profile');
     await expect(page.locator('.perfil-panel[data-pricing]')).toContainText('No pudimos cobrar tu mes');
     void ux;
@@ -144,7 +144,7 @@ test.describe('Precio y suscripción', () => {
 test.describe('Con coach, Torq va incluido', () => {
   test('el atleta de un coach no ve precios, y el plan es «de» su coach', async ({ page, backend, ux }) => {
     await enter(page, backend);
-    backend.billingStatus = { ai: true, reason: 'coached', subscription: null, priceMxn: 399, billingReady: true, isAdmin: false };
+    backend.billingStatus = { ai: true, reason: 'coached', subscription: null, priceMxn: 329, billingReady: true, isAdmin: false };
     backend.rpcs.set('my_coach', () => [{ coach_name: 'Joe Hernández', tier: 'todo', started_at: new Date().toISOString() }]);
     await page.goto('/#/plan');
     await expect(page.locator('.plan-coach-brand')).toHaveText('Plan de Joe Hernández');
@@ -159,7 +159,7 @@ test.describe('Con coach, Torq va incluido', () => {
 test.describe('Registro solo con invitación', () => {
   test('administrador: lista de espera e invitar en 1 clic', async ({ page, backend, ux }) => {
     await enter(page, backend, 'diego');
-    backend.billingStatus = { ai: true, reason: 'comp', subscription: null, priceMxn: 399, billingReady: true, isAdmin: true };
+    backend.billingStatus = { ai: true, reason: 'comp', subscription: null, priceMxn: 329, billingReady: true, isAdmin: true };
     const rows = [
       { id: 'w1', email: 'luis@correo.com', name: 'Luis', discipline: 'gravel', created_at: '2026-10-18T10:00:00Z', invited_at: null },
       { id: 'w2', email: 'sofi@correo.com', name: null, discipline: null, created_at: '2026-10-19T10:00:00Z', invited_at: '2026-10-19T12:00:00Z' },

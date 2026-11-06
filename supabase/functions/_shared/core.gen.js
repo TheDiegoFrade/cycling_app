@@ -755,8 +755,8 @@ ${req.message}
 }
 
 // src/core/access.ts
-var PRICE_MXN = 399;
-var FOUNDER_PRICE_MXN = 299;
+var PRICE_MXN = 329;
+var TRIAL_DAYS = 7;
 var GRACE_DAYS = 7;
 var after = (iso, now) => !!iso && new Date(iso).getTime() > now.getTime();
 function aiAccess(i) {
@@ -770,18 +770,6 @@ function aiAccess(i) {
     if ((s.status === "cancelled" || s.status === "paused") && after(s.paidUntil, i.now)) return { ai: true, reason: "subscription" };
   }
   return { ai: false, reason: "none" };
-}
-var FOUNDER_DAYS = 60;
-function founderUntilFromLaunch(launchDate) {
-  if (!launchDate || !/^\d{4}-\d{2}-\d{2}$/.test(launchDate)) return null;
-  const d = /* @__PURE__ */ new Date(`${launchDate}T12:00:00Z`);
-  if (Number.isNaN(d.getTime())) return null;
-  d.setUTCDate(d.getUTCDate() + FOUNDER_DAYS - 1);
-  return d.toISOString().slice(0, 10);
-}
-function priceForNewSubscription(now, founderUntil) {
-  if (!founderUntil || !/^\d{4}-\d{2}-\d{2}$/.test(founderUntil)) return PRICE_MXN;
-  return now.getTime() < (/* @__PURE__ */ new Date(`${founderUntil}T23:59:59-06:00`)).getTime() ? FOUNDER_PRICE_MXN : PRICE_MXN;
 }
 
 // src/core/mercadopago.ts
@@ -881,9 +869,9 @@ function clampMaxAthletes(v) {
 }
 export {
   DEFAULT_MAX_ATHLETES,
-  FOUNDER_PRICE_MXN,
   GRACE_DAYS,
   PRICE_MXN,
+  TRIAL_DAYS,
   addDays,
   aiAccess,
   applyPayment,
@@ -892,7 +880,6 @@ export {
   defaultReviewMonth,
   emailKpis,
   evalWeekTarget,
-  founderUntilFromLaunch,
   hasUnlimitedCoach,
   localDateKey,
   mondayOfWeek,
@@ -904,7 +891,6 @@ export {
   pinonUserMessage,
   planTotalWeeks,
   planWeekOf,
-  priceForNewSubscription,
   reviewAiContext,
   rpeRampIntervals,
   shiftMonth,

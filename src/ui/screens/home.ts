@@ -6,7 +6,6 @@ import type { WorkoutTemplate } from '../../core/workout-templates';
 import { byGender, genderOf } from '../../core/gender';
 import { pinonFigureHtml } from '../pinon';
 import { hasAi, openPricingModal } from '../pricing';
-import { FOUNDER_PRICE_MXN } from '../../core/access';
 import { computeSessionAnalytics } from '../../engine/analytics';
 import { isBikeSession } from '../../core/session-kind';
 import { clearDraft, listDrafts } from '../../storage/session-draft';
@@ -178,7 +177,7 @@ export function renderHome(container: HTMLElement): void {
           </div>
           <div class="home-scene-cta home-welcome-cta">
             ${coach ? `<button type="button" class="home-ride-btn" id="welcome-plan">Armar mi plan con el coach</button>` : ''}
-            ${coach && !hasAi() && appState.billing ? `<span class="home-scene-hint">Torq Coach IA · $${appState.billing.priceMxn} al mes${appState.billing.priceMxn === FOUNDER_PRICE_MXN ? ' (fundador)' : ''}</span>` : ''}
+            ${coach && !hasAi() && appState.billing ? `<span class="home-scene-hint">Torq Coach IA · $${appState.billing.priceMxn} al mes</span>` : ''}
             <button type="button" class="${coach ? 'home-welcome-alt' : 'home-ride-btn'}" id="welcome-ride">Rodar 30 min suave ahora</button>
           </div>
         </div>`;

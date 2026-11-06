@@ -7880,15 +7880,6 @@ body:has(.pinon-bubble-layer) .pinon-chat-launcher {
   font-weight: 700;
   color: var(--text);
 }
-.pricing-founder {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 2px 8px;
-  border-radius: 99px;
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  color: var(--text);
-  font-size: 12px;
-}
 .pricing-list {
   margin: 0;
   padding-left: 18px;

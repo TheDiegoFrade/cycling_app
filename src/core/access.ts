@@ -2,13 +2,18 @@
 // la usa el servidor para decidir (supabase/functions/_shared/access.ts) y la
 // app para mostrar el estado. Ver docs/evaluaciones/2026-10-20-ux-flujos.md,
 // «Decisión de planes»:
-//  - Atleta sin coach: suscripción Torq Coach IA ($399, o $299 de fundador).
+//  - Atleta sin coach: suscripción Torq Coach IA ($329 al mes, cobro con Stripe;
+//    ver docs/cobro-stripe.md).
 //  - Coach (por invitación) y atleta con coach vinculado: gratis.
 //  - Cuentas de cortesía (equipo y pruebas): gratis.
 
-/** Precios en MXN al mes, IVA incluido. */
-export const PRICE_MXN = 399;
-export const FOUNDER_PRICE_MXN = 299;
+/** Precio en MXN al mes, IVA incluido. Es el de respaldo: el que se cobra de
+ * verdad sale del precio de Stripe del lookup key vigente
+ * (STRIPE_CHECKOUT_LOOKUP_KEY), y cada suscripción guarda el suyo. */
+export const PRICE_MXN = 329;
+
+/** Días de prueba la primera vez que alguien se suscribe (una por cuenta). */
+export const TRIAL_DAYS = 7;
 
 /** Días de gracia tras un cobro rechazado antes de quitar el acceso. */
 export const GRACE_DAYS = 7;
@@ -54,29 +59,6 @@ export function aiAccess(i: AccessInput): Access {
     if ((s.status === 'cancelled' || s.status === 'paused') && after(s.paidUntil, i.now)) return { ai: true, reason: 'subscription' };
   }
   return { ai: false, reason: 'none' };
-}
-
-/** El precio de fundador dura los primeros 60 días desde el lanzamiento. */
-export const FOUNDER_DAYS = 60;
-
-/** Último día con precio de fundador (YYYY-MM-DD) a partir del día de
- * lanzamiento (YYYY-MM-DD): el lanzamiento cuenta como día 1. Sin fecha
- * válida, no hay precio de fundador. */
-export function founderUntilFromLaunch(launchDate: string | null | undefined): string | null {
-  if (!launchDate || !/^\d{4}-\d{2}-\d{2}$/.test(launchDate)) return null;
-  const d = new Date(`${launchDate}T12:00:00Z`);
-  if (Number.isNaN(d.getTime())) return null;
-  d.setUTCDate(d.getUTCDate() + FOUNDER_DAYS - 1);
-  return d.toISOString().slice(0, 10);
-}
-
-/** Precio al suscribirse: el de fundador si es antes de la fecha límite
- * (`founderUntil`, YYYY-MM-DD; sin fecha, no hay precio de fundador). Se
- * conserva mientras la suscripción siga activa: lo decide quien la crea, una
- * sola vez. */
-export function priceForNewSubscription(now: Date, founderUntil: string | null | undefined): number {
-  if (!founderUntil || !/^\d{4}-\d{2}-\d{2}$/.test(founderUntil)) return PRICE_MXN;
-  return now.getTime() < new Date(`${founderUntil}T23:59:59-06:00`).getTime() ? FOUNDER_PRICE_MXN : PRICE_MXN;
 }
 
 /** Edad mínima para usar Torq (términos §2). */

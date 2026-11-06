@@ -1,7 +1,7 @@
 // Torq Coach IA: precio, suscripción con Mercado Pago y su estado. El precio
 // se ve ANTES del cuestionario (nunca después del esfuerzo). Los coaches y
 // sus atletas no pagan; a un atleta con coach nunca se le ofrece esto.
-import { FOUNDER_PRICE_MXN, PRICE_MXN } from '../core/access';
+import { PRICE_MXN } from '../core/access';
 import { cancelSubscription, startSubscription } from '../sync/billing';
 import type { BillingStatus } from '../sync/billing';
 import { refresh } from './router';
@@ -16,14 +16,8 @@ export function hasAi(): boolean {
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
 
-const fmtDay = (ymd: string) => new Date(`${ymd}T12:00:00Z`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', timeZone: 'UTC' });
-
 function priceHtml(b: BillingStatus | null): string {
-  const price = b?.priceMxn ?? PRICE_MXN;
-  const until = b?.founderUntil ? ` hasta el ${fmtDay(b.founderUntil)}` : '';
-  return price === FOUNDER_PRICE_MXN
-    ? `<span class="pricing-price">$${FOUNDER_PRICE_MXN}</span> al mes <span class="pricing-founder">Precio de fundador${until} · normal $${PRICE_MXN}</span>`
-    : `<span class="pricing-price">$${price}</span> al mes`;
+  return `<span class="pricing-price">$${b?.priceMxn ?? PRICE_MXN}</span> al mes`;
 }
 
 export function pricingPanelHtml(b: BillingStatus | null = appState.billing): string {
@@ -102,7 +96,7 @@ export function subscriptionPanelHtml(b: BillingStatus | null = appState.billing
     body = `<p>Cancelaste tu suscripción. Tienes el coach IA${s.paid_until ? ` hasta el ${fmtDate(s.paid_until)}` : ''}.</p>
       <div class="row-actions"><button class="btn-light" data-subscribe>Volver a suscribirme · $${s.price_mxn} al mes</button></div><p class="hint" data-subscribe-status aria-live="polite"></p>`;
   else if (b.reason === 'subscription' && s)
-    body = `<p>Torq Coach IA · <strong>$${s.price_mxn} al mes</strong>${s.price_mxn === FOUNDER_PRICE_MXN ? ' (precio de fundador)' : ''}${s.paid_until ? ` · pagado hasta el ${fmtDate(s.paid_until)}` : ''}.</p>
+    body = `<p>Torq Coach IA · <strong>$${s.price_mxn} al mes</strong>${s.paid_until ? ` · pagado hasta el ${fmtDate(s.paid_until)}` : ''}.</p>
       <div class="row-actions"><button class="btn-light" id="subscription-cancel">Cancelar suscripción</button></div>
       <p class="hint" id="subscription-cancel-status" aria-live="polite"></p>`;
   else return `<div data-pricing-host>${pricingPanelHtml(b)}</div>`;

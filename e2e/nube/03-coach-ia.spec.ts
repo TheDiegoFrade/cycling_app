@@ -98,20 +98,20 @@ test.describe('Crear mi plan', () => {
 
   test('cuenta sin acceso al coach: ve el precio ANTES de pedirle el cuestionario', async ({ page, backend, ux }) => {
     await enterAs(page, backend, 'carla', false);
-    backend.billingStatus = { ai: false, reason: 'none', subscription: null, priceMxn: 299, founderUntil: '2026-12-30', billingReady: true, isAdmin: false };
+    backend.billingStatus = { ai: false, reason: 'none', subscription: null, priceMxn: 329, billingReady: true, isAdmin: false };
     await page.goto('/#/plan');
     // en lugar de «Crear mi plan» (que abriría 29 preguntas), el precio
     await expect(page.locator('#coach-slot [data-pricing]')).toBeVisible();
-    await expect(page.locator('#coach-slot')).toContainText('$299');
-    // fundadores: los primeros 60 días, y se dice hasta cuándo
-    await expect(page.locator('#coach-slot .pricing-founder')).toHaveText('Precio de fundador hasta el 30 de diciembre · normal $399');
+    await expect(page.locator('#coach-slot')).toContainText('$329 al mes');
+    // un solo precio: nada de «fundador»
+    await expect(page.locator('#coach-slot')).not.toContainText('fundador');
     await expect(page.locator('#coach-open-create')).toHaveCount(0);
     await ux.shot('70-plan-sin-acceso-precio');
   });
 
   test('cuenta sin acceso: cuánto esfuerzo cuesta enterarse (antes: ~4 min)', async ({ page, backend, ux }) => {
     await enterAs(page, backend, 'carla', false);
-    backend.billingStatus = { ai: false, reason: 'none', subscription: null, priceMxn: 399, billingReady: true, isAdmin: false };
+    backend.billingStatus = { ai: false, reason: 'none', subscription: null, priceMxn: 329, billingReady: true, isAdmin: false };
     await page.goto('/#/home');
     await ux.click(page.locator('#welcome-plan'), 'Armar mi plan con el coach');
     await expect(page.locator('#pricing-backdrop [data-pricing]')).toBeVisible();

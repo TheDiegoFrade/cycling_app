@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { FOUNDER_PRICE_MXN, PRICE_MXN, aiAccess, founderUntilFromLaunch, priceForNewSubscription } from './access';
+import { PRICE_MXN, aiAccess } from './access';
 import type { AccessInput, SubscriptionState } from './access';
 
 const now = new Date('2026-11-15T12:00:00Z');
 const none: AccessInput = { comp: false, isCoach: false, hasActiveCoach: false, subscription: null, now };
-const sub = (s: Partial<SubscriptionState>): SubscriptionState => ({ status: 'authorized', paidUntil: '2026-12-01T00:00:00Z', graceUntil: null, priceMxn: 399, ...s });
+const sub = (s: Partial<SubscriptionState>): SubscriptionState => ({ status: 'authorized', paidUntil: '2026-12-01T00:00:00Z', graceUntil: null, priceMxn: PRICE_MXN, ...s });
 
 describe('aiAccess', () => {
   it('sin nada no hay IA', () => {
@@ -35,20 +35,8 @@ describe('aiAccess', () => {
   });
 });
 
-describe('priceForNewSubscription', () => {
-  it('fundador hasta el fin del día límite (hora de CDMX)', () => {
-    expect(priceForNewSubscription(new Date('2026-12-31T18:00:00Z'), '2026-12-31')).toBe(FOUNDER_PRICE_MXN);
-    expect(priceForNewSubscription(new Date('2027-01-01T07:00:00Z'), '2026-12-31')).toBe(PRICE_MXN);
-  });
-  it('60 días desde el lanzamiento (el lanzamiento es el día 1)', () => {
-    expect(founderUntilFromLaunch('2026-11-01')).toBe('2026-12-30');
-    expect(priceForNewSubscription(new Date('2026-12-30T20:00:00Z'), founderUntilFromLaunch('2026-11-01'))).toBe(FOUNDER_PRICE_MXN);
-    expect(priceForNewSubscription(new Date('2026-12-31T12:00:00Z'), founderUntilFromLaunch('2026-11-01'))).toBe(PRICE_MXN);
-    expect(founderUntilFromLaunch(null)).toBeNull();
-    expect(founderUntilFromLaunch('pronto')).toBeNull();
-  });
-  it('sin fecha límite, precio normal', () => {
-    expect(priceForNewSubscription(now, null)).toBe(PRICE_MXN);
-    expect(priceForNewSubscription(now, 'mañana')).toBe(PRICE_MXN);
+describe('precio', () => {
+  it('$329 al mes con IVA, sin precio de fundador', () => {
+    expect(PRICE_MXN).toBe(329);
   });
 });

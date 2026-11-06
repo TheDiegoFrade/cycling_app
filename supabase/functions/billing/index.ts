@@ -12,7 +12,7 @@ import { loadAiAccess } from '../_shared/access.ts';
 import { ADMIN_USER_IDS } from '../_shared/coach-access.ts';
 import { appUrl as appUrlFromEnv } from '../_shared/mailer.ts';
 import { cancelPreapproval, createPreapproval, mpConfigured } from '../_shared/mercadopago.ts';
-import { FOUNDER_PRICE_MXN, founderUntilFromLaunch, priceForNewSubscription } from '../_shared/core.gen.js';
+import { PRICE_MXN } from '../_shared/core.gen.js';
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -28,18 +28,14 @@ Deno.serve(async (req) => {
     const now = new Date();
     const access = await loadAiAccess(admin, userId, now);
     // Quien vuelve a suscribirse sin haber perdido lo pagado conserva su
-    // precio (el de fundador se mantiene mientras no se interrumpa).
+    // precio; si ya venció, entra al precio vigente.
     const keptPrice = access.subscription && access.subscription.paid_until && new Date(access.subscription.paid_until) > now ? access.subscription.price_mxn : null;
-    // Precio de fundador: los primeros 60 días desde TORQ_LAUNCH_DATE.
-    const founderUntil = founderUntilFromLaunch(Deno.env.get('TORQ_LAUNCH_DATE'));
-    const price = keptPrice ?? priceForNewSubscription(now, founderUntil);
+    const price = keptPrice ?? PRICE_MXN;
 
     if (action === 'status') {
       return json({
         ...access,
         priceMxn: price,
-        // Para decir «hasta el 30 de diciembre» junto al precio de fundador.
-        founderUntil: keptPrice === null && price === FOUNDER_PRICE_MXN ? founderUntil : null,
         billingReady: mpConfigured(),
         isAdmin: ADMIN_USER_IDS.has(userId),
       });
