@@ -99,7 +99,7 @@ export async function fillOnboarding(page: Page, ux: Ux, p: Persona): Promise<vo
   await ux.click(chip('ob-medication', 'No'), 'Medicamento: No');
   await ux.click(chip('ob-recent-injury', 'No'), 'Lesión reciente: No');
   await ux.click(chip('ob-injury-limits', 'No'), 'Lesión limita: No');
-  await ux.click(toggle('ob-no-injuries'), 'No tengo lesiones');
+  // «No» a las dos = sin lesiones: ya no hace falta otro clic
   await next(2);
   // 3. Hábitos
   await ux.click(chip('ob-smoking', 'No'), 'Fuma: No');
@@ -129,12 +129,11 @@ export async function fillOnboarding(page: Page, ux: Ux, p: Persona): Promise<vo
   await ux.click(toggle('ob-no-resting-hr'), 'No sé pulso en reposo');
   await next(6);
   // 7. Otras actividades
-  await ux.click(toggle('ob-no-other'), 'No hago otra actividad');
+  await ux.click(chip('ob-other-any', 'No, solo bici'), 'Otra actividad: No');
   await next(7);
   // 8. Metas
   await ux.fill(m.locator('#ob-best-result'), p.bestResult, 'Mejor resultado');
-  // 9. Entrenamientos recientes (opcional): no sube nada
-  await next(8);
+  // los .fit son opcionales (dentro de Metas): no sube nada
   await ux.click(m.locator('#onboarding-submit'), 'Guardar');
   await expect(page.locator('#onboarding-modal')).toBeHidden();
 }

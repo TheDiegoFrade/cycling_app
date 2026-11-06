@@ -96,7 +96,7 @@ function sectionHtml(n: number, title: string, body: string): string {
 }
 
 /** Los pasos del cuestionario, en el orden del formulario. */
-export const OB_STEPS = ['Sobre ti', 'Salud', 'Hábitos', 'Tu experiencia', 'Tu bici', 'Tus números', 'Otras actividades', 'Metas', 'Entrenamientos recientes'] as const;
+export const OB_STEPS = ['Sobre ti', 'Salud', 'Hábitos', 'Tu experiencia', 'Tu bici', 'Tus números', 'Otras actividades', 'Metas'] as const;
 
 /** Lo que dice Piñón en cada paso: acompaña y explica para qué sirve, sin
  * acortar nada (todas las preguntas son necesarias para un plan serio). */
@@ -117,10 +117,8 @@ export function obGuideLine(step: number, name: string | undefined, gender: Gend
       return 'Si no sabes tu FTP o tu pulso, márcalo y ya: el plan trae un test para medirlos con seguridad.';
     case 7:
       return 'Correr, gym o fútbol también cansan. Dímelo y tu coach lo acomoda junto a tus rodadas.';
-    case 8:
-      return `${byGender(gender, '¿Listo? Ya casi terminamos.', '¿Lista? Ya casi terminamos.', 'Ya casi terminamos.')} Cuéntame qué quieres lograr.`;
     default:
-      return 'Último paso, y es opcional: si entrenaste con otra app, sube tus .fit y el plan arranca con datos reales. Si no, dale a Guardar.';
+      return `${byGender(gender, '¿Listo? Último paso.', '¿Lista? Último paso.', 'Último paso.')} Cuéntame qué quieres lograr y dale a Guardar. Si entrenaste con otra app, puedes subir tus .fit (opcional).`;
   }
 }
 
@@ -145,10 +143,9 @@ function modalHtml(p: Profile): string {
         </header>
 
         <div class="ob-guide">
-          ${pinonFigureHtml('habla', 56)}
+          ${pinonFigureHtml('habla', 44)}
           <div class="ob-guide-main">
             <p class="ob-guide-text" id="ob-guide-text" aria-live="polite"></p>
-            <div class="ob-progress" aria-hidden="true"><span class="ob-progress-bar" id="ob-progress-bar"></span></div>
             <nav class="ob-steps" id="ob-steps" aria-label="Pasos del cuestionario">
               ${OB_STEPS.map((t, i) => `<button type="button" class="ob-step-dot" data-go="${i + 1}" aria-label="Paso ${i + 1}: ${t}" title="${t}">${i + 1}</button>`).join('')}
             </nav>
@@ -187,8 +184,7 @@ function modalHtml(p: Profile): string {
           ${sectionHtml(
             2,
             'Salud',
-            `<p class="ob-note" style="margin-top:0">Va primero porque manda sobre todo lo demás: con esto tu coach cuida qué tan fuerte y qué tan rápido subir.</p>
-            <p class="ob-q">¿Tienes alguna enfermedad crónica o condición de salud?</p>
+            `<p class="ob-q">¿Tienes alguna enfermedad crónica o condición de salud?</p>
             <div class="ob-chips" id="ob-conditions">
               <button type="button" class="ob-chip${intake && intake.conditions.length === 0 ? ' on' : ''}" data-value="none" aria-pressed="${!!intake && intake.conditions.length === 0}">Ninguna</button>
               ${CHRONIC_CONDITIONS.map((c) => `<button type="button" class="ob-chip${intake?.conditions.includes(c) ? ' on' : ''}" data-value="${c}" aria-pressed="${!!intake?.conditions.includes(c)}">${CHRONIC_CONDITION_LABELS[c]}</button>`).join('')}
@@ -205,19 +201,20 @@ function modalHtml(p: Profile): string {
             ${chipGroupHtml('ob-recent-injury', [['no', 'No'], ['yes', 'Sí']], yesNo(intake?.recentInjury))}
             <p class="ob-q">¿Hoy tienes una lesión o molestia que te impida hacer esfuerzos fuertes?</p>
             ${chipGroupHtml('ob-injury-limits', [['no', 'No'], ['yes', 'Sí']], yesNo(intake?.injuryLimitsIntensity))}
-            <label class="ob-field"><span>Lesiones o limitaciones actuales</span>
-              <textarea id="ob-injuries" rows="3" placeholder="Ej. molestia en rodilla izquierda, evitar sentadilla profunda" ${noInjuries ? 'disabled' : ''}>${noInjuries ? '' : esc(p.injuries)}</textarea>
-            </label>
-            <div class="ob-toggles">
-              ${toggleHtml('ob-no-injuries', noInjuries, 'No tengo lesiones ni limitaciones')}
+            <div id="ob-injuries-box"${intake?.recentInjury || intake?.injuryLimitsIntensity ? '' : ' hidden'}>
+              <label class="ob-field"><span>Lesiones o limitaciones actuales</span>
+                <textarea id="ob-injuries" rows="3" placeholder="Ej. molestia en rodilla izquierda, evitar sentadilla profunda" ${noInjuries ? 'disabled' : ''}>${noInjuries ? '' : esc(p.injuries)}</textarea>
+              </label>
+              <div class="ob-toggles">
+                ${toggleHtml('ob-no-injuries', noInjuries, 'Hoy no tengo lesiones ni limitaciones')}
+              </div>
             </div>`,
           )}
 
           ${sectionHtml(
             3,
             'Hábitos',
-            `<p class="ob-note" style="margin-top:0">No es para juzgarte: nos dice cómo arrancar para que el plan te funcione.</p>
-            <p class="ob-q">¿Fumas?</p>
+            `<p class="ob-q">¿Fumas?</p>
             ${chipGroupHtml('ob-smoking', [['no', 'No'], ['occasional', 'De vez en cuando'], ['daily', 'Diario']], intake?.smoking)}
             <p class="ob-q">¿Tomas alcohol?</p>
             ${chipGroupHtml('ob-alcohol', [['rarely', 'Nunca o rara vez'], ['weekly', '1-2 veces por semana'], ['frequent', '3 o más por semana']], intake?.alcohol)}
@@ -324,11 +321,12 @@ function modalHtml(p: Profile): string {
             7,
             'Otras actividades',
             `<p class="ob-q">¿Haces algo más además de la bici? Correr, gym, crossfit… también cansa, y tu coach lo acomoda junto a tus rodadas.</p>
-            <div id="ob-other-list" class="ob-other-list"></div>
-            <button type="button" class="ob-chip" id="ob-other-add">+ Agregar actividad</button>
-            <div class="ob-toggles">
-              ${toggleHtml('ob-no-other', p.otherActivities?.length === 0, 'No hago otra actividad además de la bici')}
-            </div>`,
+            ${chipGroupHtml('ob-other-any', [['no', 'No, solo bici'], ['yes', 'Sí']], p.otherActivities === undefined ? undefined : p.otherActivities.length ? 'yes' : 'no')}
+            <div id="ob-other-box"${p.otherActivities?.length ? '' : ' hidden'}>
+              <div id="ob-other-list" class="ob-other-list"></div>
+              <button type="button" class="ob-chip" id="ob-other-add">+ Agregar otra actividad</button>
+            </div>
+            <input type="checkbox" id="ob-no-other" hidden ${p.otherActivities?.length === 0 ? 'checked' : ''}>`,
           )}
 
           ${sectionHtml(
@@ -343,19 +341,16 @@ function modalHtml(p: Profile): string {
             <label class="ob-field"><span>Mejor resultado o logro reciente</span>
               <input type="text" id="ob-best-result" value="${esc(p.recentBestResult)}" placeholder="Ej. terminé mi primer XC local, o «ninguno todavía»">
             </label>
-`,
-          )}
-
-          ${sectionHtml(
-            9,
-            'Entrenamientos recientes fuera de Torq',
-            `<p class="ob-note" style="margin-top:0">¿Entrenaste con otra app o dispositivo las últimas 1 o 2 semanas? Sube esos archivos .fit para que el plan arranque con contexto real. Lo que ya grabaste en Torq no hace falta. <span class="ob-optional">opcional</span></p>
-            <label class="ob-upload">
-              <span class="ob-upload-icon" aria-hidden="true">↑</span>
-              <span><strong>Elegir archivos .fit</strong><span class="ob-toggle-desc">Puedes elegir varios a la vez.</span></span>
-              <input type="file" id="ob-fit-files" accept=".fit" multiple>
-            </label>
-            <p class="ob-note" id="ob-fit-status" aria-live="polite"></p>`,
+            <details class="ob-fit">
+              <summary>¿Entrenaste con otra app las últimas 1 o 2 semanas? Sube tus .fit <span class="ob-optional">opcional</span></summary>
+              <p class="ob-note">El plan arranca con contexto real. Lo que ya grabaste en Torq no hace falta.</p>
+              <label class="ob-upload">
+                <span class="ob-upload-icon" aria-hidden="true">↑</span>
+                <span><strong>Elegir archivos .fit</strong><span class="ob-toggle-desc">Puedes elegir varios a la vez.</span></span>
+                <input type="file" id="ob-fit-files" accept=".fit" multiple>
+              </label>
+              <p class="ob-note" id="ob-fit-status" aria-live="polite"></p>
+            </details>`,
           )}
         </div>
 
@@ -402,7 +397,7 @@ const MISSING_TARGETS: [RegExp, string][] = [
   [/rodar afuera/i, '#ob-rides-outside'],
   [/FTP/, '#ob-ftp'],
   [/pulso m[aá]ximo/i, '#ob-hrmax'],
-  [/actividad/i, '#ob-other-add'],
+  [/actividad/i, '#ob-other-any'],
   [/categor[ií]a/i, '#ob-category'],
   [/compites/i, '#ob-competes'],
   [/mejor resultado/i, '#ob-best-result'],
@@ -483,6 +478,9 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
   const p = appState.profile;
   document.body.insertAdjacentHTML('beforeend', modalHtml(p));
   const backdrop = document.getElementById('onboarding-backdrop')!;
+  // Lo contestado y no guardado todavía (si cerró a la mitad): se retoma.
+  const draft = isCoachProfileComplete(p) ? null : loadDraft();
+  if (draft?.fields['ob-birth-date']) backdrop.querySelector<HTMLInputElement>('#ob-birth-date')!.value = String(draft.fields['ob-birth-date']);
   let experienceLevel: Profile['experienceLevel'] = p.experienceLevel;
   let generalFitnessLevel: Profile['generalFitnessLevel'] = p.generalFitnessLevel;
   let discipline: Profile['discipline'] = p.discipline;
@@ -642,6 +640,26 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     injuriesInput.disabled = noInjuriesCheckbox.checked;
     if (noInjuriesCheckbox.checked) injuriesInput.value = '';
   });
+  // «No» a las dos preguntas de lesiones = sin lesiones: no hace falta otro
+  // clic. El detalle (o «Hoy no tengo…») solo se pide si contestó «Sí».
+  const injuriesBox = backdrop.querySelector<HTMLElement>('#ob-injuries-box')!;
+  let autoNoInjuries = false;
+  const syncInjuries = () => {
+    const recent = picked('ob-recent-injury');
+    const limits = picked('ob-injury-limits');
+    const anyYes = recent === 'yes' || limits === 'yes';
+    injuriesBox.hidden = !anyYes;
+    if (recent === 'no' && limits === 'no' && !noInjuriesCheckbox.checked) {
+      noInjuriesCheckbox.checked = true;
+      noInjuriesCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+      autoNoInjuries = true;
+    } else if (anyYes && autoNoInjuries) {
+      noInjuriesCheckbox.checked = false;
+      noInjuriesCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+      autoNoInjuries = false;
+    }
+  };
+  ['#ob-recent-injury', '#ob-injury-limits'].forEach((id) => backdrop.querySelector(id)!.addEventListener('click', () => queueMicrotask(syncInjuries)));
 
   // Otras actividades: estado en memoria, se pinta de nuevo al agregar,
   // quitar o cambiar el tipo; los campos de texto solo actualizan el estado.
@@ -661,6 +679,19 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     if (noOtherCheckbox.checked) activities.length = 0;
     paintActivities();
   });
+  // «¿Haces algo más?»: No = ninguna; Sí = aparece la primera fila para llenarla.
+  const otherBox = backdrop.querySelector<HTMLElement>('#ob-other-box')!;
+  backdrop.querySelector('#ob-other-any')!.addEventListener('click', () =>
+    queueMicrotask(() => {
+      const v = picked('ob-other-any');
+      if (!v) return;
+      noOtherCheckbox.checked = v === 'no';
+      if (v === 'no') activities.length = 0;
+      else if (!activities.length) activities.push({ kind: 'strength', perWeek: 0, minutes: 0, days: [] });
+      otherBox.hidden = v !== 'yes';
+      paintActivities();
+    }),
+  );
   otherList.addEventListener('input', (e) => {
     const el = e.target as HTMLInputElement | HTMLSelectElement;
     const i = Number(el.closest<HTMLElement>('.ob-other-row')?.dataset.i);
@@ -752,11 +783,11 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
   const editing = isCoachProfileComplete(p);
   const statusEl = backdrop.querySelector<HTMLElement>('#onboarding-status')!;
   const guideEl = backdrop.querySelector<HTMLElement>('#ob-guide-text')!;
-  const bar = backdrop.querySelector<HTMLElement>('#ob-progress-bar')!;
   const backBtn = backdrop.querySelector<HTMLButtonElement>('#onboarding-back')!;
   const nextBtn = backdrop.querySelector<HTMLButtonElement>('#onboarding-next')!;
   const saveBtn = backdrop.querySelector<HTMLButtonElement>('#onboarding-submit')!;
   const bodyEl = backdrop.querySelector<HTMLElement>('.ob-body')!;
+  const modalEl = backdrop.querySelector<HTMLElement>('#onboarding-modal')!;
   let step = 1;
   // hasta dónde llegó: a esos pasos se puede saltar con los puntitos (al
   // editar un perfil ya completo, a todos)
@@ -766,7 +797,6 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     reached = Math.max(reached, step);
     sections.forEach((s, i) => (s.hidden = i + 1 !== step));
     guideEl.textContent = obGuideLine(step, appState.displayName() || undefined, genderOf(sex));
-    bar.style.width = `${(step / sections.length) * 100}%`;
     backdrop.querySelectorAll<HTMLButtonElement>('.ob-step-dot').forEach((dot) => {
       const n2 = Number(dot.dataset.go);
       dot.classList.toggle('done', n2 < step && n2 <= reached);
@@ -774,6 +804,7 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
       if (n2 === step) dot.setAttribute('aria-current', 'step');
       else dot.removeAttribute('aria-current');
     });
+    modalEl.classList.toggle('ob-compact', step > 1);
     backBtn.hidden = step === 1;
     nextBtn.hidden = step === sections.length;
     saveBtn.hidden = step !== sections.length && !editing;
@@ -801,7 +832,28 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
   });
   // el saludo de Piñón cambia de género en cuanto se elige el sexo
   backdrop.querySelector('#ob-sex')?.addEventListener('click', () => (guideEl.textContent = obGuideLine(step, appState.displayName() || undefined, genderOf(sex))));
-  showStep(1, false);
+  // Retomar el borrador: se reproducen las respuestas con sus mismos
+  // eventos, así se muestran/ocultan las preguntas que dependen de ellas.
+  if (draft) {
+    restoreDraft(backdrop, draft, (list) => {
+      activities.splice(0, activities.length, ...list);
+      paintActivities();
+    });
+    reached = Math.min(Math.max(draft.reached, 1), sections.length);
+  }
+  showStep(draft ? Math.min(draft.step, reached) : 1, false);
+  if (draft) statusEl.textContent = 'Seguimos donde te quedaste.';
+  // Cada cambio se guarda en este dispositivo hasta que se guarde el perfil.
+  if (!editing) {
+    let pending = 0;
+    const saveSoon = () => {
+      clearTimeout(pending);
+      pending = window.setTimeout(() => saveDraft(snapshotDraft(backdrop, step, reached, activities)), 250);
+    };
+    backdrop.addEventListener('input', saveSoon);
+    backdrop.addEventListener('change', saveSoon);
+    backdrop.addEventListener('click', saveSoon);
+  }
 
   backdrop.querySelector('#onboarding-submit')?.addEventListener('click', async () => {
     const status = statusEl;
@@ -880,7 +932,96 @@ export function openOnboardingForm(onComplete: () => void, allowSkip: boolean): 
     appState.profile = candidate;
     status.textContent = 'Guardando…';
     await appState.persistProfile();
+    clearDraft();
     close();
     onComplete();
+  });
+}
+
+// ── Borrador del cuestionario ──────────────────────────────────────────
+// Si la persona cierra a la mitad (✕, «Saltar», se cierra la pestaña), lo
+// que contestó se queda en este dispositivo y al volver sigue en el mismo
+// paso. Se borra al guardar el perfil. Solo vive en localStorage: no sale
+// del navegador hasta que se guarda.
+
+interface OnboardingDraft {
+  v: 1;
+  step: number;
+  reached: number;
+  /** id → valor (o marcado, en las casillas). */
+  fields: Record<string, string | boolean>;
+  /** id del grupo → opciones elegidas. */
+  groups: Record<string, string[]>;
+  activities: OtherActivity[];
+}
+
+const draftKey = () => `torq.onboarding.draft.${appState.user?.id ?? 'local'}`;
+
+function loadDraft(): OnboardingDraft | null {
+  try {
+    const raw = localStorage.getItem(draftKey());
+    const d = raw ? (JSON.parse(raw) as OnboardingDraft) : null;
+    return d && d.v === 1 ? d : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(d: OnboardingDraft): void {
+  try {
+    localStorage.setItem(draftKey(), JSON.stringify(d));
+  } catch {
+    /* sin almacenamiento: no se guarda el avance */
+  }
+}
+
+export function clearDraft(): void {
+  try {
+    localStorage.removeItem(draftKey());
+  } catch {
+    /* sin almacenamiento */
+  }
+}
+
+const optionValue = (el: HTMLElement) => el.dataset.value ?? el.dataset.sex ?? el.dataset.discipline ?? el.dataset.level ?? '';
+
+function snapshotDraft(root: HTMLElement, step: number, reached: number, activities: OtherActivity[]): OnboardingDraft {
+  const fields: OnboardingDraft['fields'] = {};
+  root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('.ob-body input[id], .ob-body textarea[id]').forEach((el) => {
+    if (el instanceof HTMLInputElement && el.type === 'file') return;
+    fields[el.id] = el instanceof HTMLInputElement && el.type === 'checkbox' ? el.checked : el.value;
+  });
+  const groups: OnboardingDraft['groups'] = {};
+  root.querySelectorAll<HTMLElement>('.ob-body .ob-chips[id], .ob-body .ob-options[id]').forEach((g) => {
+    groups[g.id] = [...g.querySelectorAll<HTMLElement>('.on')].map(optionValue);
+  });
+  return { v: 1, step, reached, fields, groups, activities: activities.map((a) => ({ ...a, days: [...a.days] })) };
+}
+
+function restoreDraft(root: HTMLElement, d: OnboardingDraft, setActivities: (a: OtherActivity[]) => void): void {
+  // 1) opciones: un clic real en cada una (dispara lo que depende de ellas)
+  for (const [id, values] of Object.entries(d.groups)) {
+    const g = root.querySelector<HTMLElement>(`#${CSS.escape(id)}`);
+    if (!g) continue;
+    for (const v of values) {
+      const opt = [...g.querySelectorAll<HTMLElement>('.ob-chip, .ob-option')].find((o) => optionValue(o) === v);
+      if (opt && !opt.classList.contains('on')) opt.click();
+    }
+  }
+  // 2) actividades (después de «¿Haces algo más?», que agrega una fila vacía)
+  queueMicrotask(() => {
+    setActivities(d.activities.map((a) => ({ ...a, days: [...a.days] })));
+    // 3) casillas y campos de texto
+    for (const [id, v] of Object.entries(d.fields)) {
+      if (id === 'ob-birth-date' || id === 'ob-no-other') continue;
+      const el = root.querySelector<HTMLInputElement | HTMLTextAreaElement>(`#${CSS.escape(id)}`);
+      if (!el) continue;
+      if (el instanceof HTMLInputElement && el.type === 'checkbox') {
+        if (el.checked !== v) el.click();
+      } else if (el.value !== v) {
+        el.value = String(v);
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
   });
 }

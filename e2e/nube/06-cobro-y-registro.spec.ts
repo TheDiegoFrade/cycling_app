@@ -71,7 +71,7 @@ test.describe('Términos antes de empezar', () => {
     await m.locator('#ob-height').fill('155');
     // pasa el paso 1 (está completo) pero al guardar lo regresa con el aviso
     await m.locator('#onboarding-next').click();
-    for (let n = 2; n <= 9; n++) await m.locator('.ob-step-dot[data-go="' + n + '"]').count();
+    for (let n = 2; n <= 8; n++) await m.locator('.ob-step-dot[data-go="' + n + '"]').count();
     await m.evaluate((el) => (el.querySelector('#onboarding-submit') as HTMLElement).click());
     await expect(page.locator('#onboarding-status')).toContainText('solo para mayores de 18');
   });

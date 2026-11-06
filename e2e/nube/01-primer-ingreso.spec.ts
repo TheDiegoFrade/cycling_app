@@ -193,7 +193,7 @@ test.describe('Cuestionario inicial', () => {
     await ux.shot('07-cuestionario-paso-1', m);
     // cuántas preguntas tiene cada paso (grupos de opciones + campos visibles)
     const perStep: number[] = [];
-    for (let n = 1; n <= 9; n++) {
+    for (let n = 1; n <= 8; n++) {
       const sec = m.locator(`.ob-section[data-step="${n}"]`);
       perStep.push(await sec.evaluate((el) => {
         el.removeAttribute('hidden');
@@ -230,16 +230,72 @@ test.describe('Cuestionario inicial', () => {
         const sec = el.querySelector(`.ob-section[data-step="${step}"]`)!;
         sec.querySelectorAll('.ob-chips, .ob-options').forEach((g) => (g.querySelector('.ob-chip, .ob-option') as HTMLElement | null)?.click());
         sec.querySelectorAll<HTMLInputElement>('input[type=number]:not(:disabled)').forEach((i) => { if (!i.closest('label')?.querySelector('.ob-optional')) { i.value = '1'; i.dispatchEvent(new Event('input', { bubbles: true })); } });
-        sec.querySelectorAll<HTMLInputElement>('#ob-no-injuries, #ob-no-ftp, #ob-no-hrmax, #ob-no-resting-hr, #ob-no-other').forEach((c) => { if (!c.checked) c.click(); });
+        sec.querySelectorAll<HTMLInputElement>('#ob-no-ftp, #ob-no-hrmax, #ob-no-resting-hr').forEach((c) => { if (!c.checked) c.click(); });
       }, n);
       await m.locator('#onboarding-next').click();
     }
-    await expect(m.locator('#ob-guide-text')).toContainText('¿Lista? Ya casi terminamos.');
+    await expect(m.locator('#ob-guide-text')).toContainText('¿Lista? Último paso.');
     await ux.shot('08-cuestionario-paso-8', m);
     // volver al paso 1 por los puntitos: lo contestado sigue ahí
     await m.locator('.ob-step-dot[data-go="1"]').click();
     await expect(m.locator('#ob-weight')).toHaveValue('68');
     await expect(m.locator('#ob-sex .ob-chip.on')).toHaveText('Mujer');
+  });
+
+  test('si lo cierra a la mitad, al volver sigue donde se quedó con lo contestado', async ({ page, backend, ux }) => {
+    const ana = user('ana');
+    backend.users.push(ana);
+    await login(page, ux, ana);
+    await dismissGuide(page, ux);
+    await ux.click(page.locator('#welcome-plan'), 'Armar mi plan con el coach');
+    const m = page.locator('#onboarding-modal');
+    await ux.click(m.locator('#ob-sex .ob-chip', { hasText: 'Mujer' }), 'Sexo');
+    await m.locator('[role=spinbutton][aria-label="Día"]').focus();
+    await page.keyboard.type('15031992', { delay: 30 });
+    await ux.fill(m.locator('#ob-weight'), '68', 'Peso');
+    await ux.fill(m.locator('#ob-height'), '165', 'Altura');
+    await ux.click(m.locator('#onboarding-next'), 'Siguiente');
+    // Salud: «No» a las dos de lesiones ya cuenta como sin lesiones
+    await ux.click(m.locator('#ob-conditions .ob-chip', { hasText: 'Ninguna' }), 'Ninguna');
+    await ux.click(m.locator('#ob-medication .ob-chip', { hasText: 'No' }), 'Medicamento');
+    await ux.click(m.locator('#ob-recent-injury .ob-chip', { hasText: 'No' }), 'Lesión reciente');
+    await ux.click(m.locator('#ob-injury-limits .ob-chip', { hasText: 'No' }), 'Lesión hoy');
+    await expect(m.locator('#ob-injuries-box')).toBeHidden();
+    await ux.click(m.locator('#onboarding-next'), 'Siguiente');
+    await expect(m.locator('.ob-section[data-step="3"]')).toBeVisible();
+    // del paso 2 en adelante el encabezado es compacto
+    await expect(m).toHaveClass(/ob-compact/);
+    await page.waitForTimeout(400);
+    await ux.click(m.locator('#onboarding-close'), 'Cerrar a la mitad');
+    await expect(m).toHaveCount(0);
+    // vuelve: sigue en el paso 3, con lo contestado
+    await ux.click(page.locator('#welcome-plan'), 'Armar mi plan (otra vez)');
+    await expect(page.locator('.ob-section[data-step="3"]')).toBeVisible();
+    await expect(page.locator('#onboarding-status')).toHaveText('Seguimos donde te quedaste.');
+    await page.locator('.ob-step-dot[data-go="1"]').click();
+    await expect(page.locator('#ob-weight')).toHaveValue('68');
+    await expect(page.locator('#ob-sex .ob-chip.on')).toHaveText('Mujer');
+    await expect(page.locator('#ob-birth-date')).toHaveValue('1992-03-15');
+    await page.locator('.ob-step-dot[data-go="2"]').click();
+    await expect(page.locator('#ob-injury-limits .ob-chip.on')).toHaveText('No');
+    await expect(page.locator('#ob-no-injuries')).toBeChecked();
+  });
+
+  test('otras actividades: «Sí» muestra la primera fila; «No, solo bici» la quita', async ({ page, backend, ux }) => {
+    const ana = user('ana');
+    backend.users.push(ana);
+    await login(page, ux, ana);
+    await dismissGuide(page, ux);
+    await ux.click(page.locator('#welcome-plan'), 'Armar mi plan con el coach');
+    const m = page.locator('#onboarding-modal');
+    await m.locator('.ob-section[data-step="7"]').evaluate((el) => el.removeAttribute('hidden'));
+    await ux.click(m.locator('#ob-other-any .ob-chip', { hasText: 'Sí' }), 'Sí');
+    await expect(m.locator('.ob-other-row')).toHaveCount(1);
+    await expect(m.locator('#ob-no-other')).not.toBeChecked();
+    await ux.click(m.locator('#ob-other-any .ob-chip', { hasText: 'No, solo bici' }), 'No');
+    await expect(m.locator('.ob-other-row')).toHaveCount(0);
+    await expect(m.locator('#ob-other-box')).toBeHidden();
+    await expect(m.locator('#ob-no-other')).toBeChecked();
   });
 
   test('si falta un dato, lo señala en el campo (no solo un texto al pie)', async ({ page, backend, ux }) => {
