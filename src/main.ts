@@ -151,6 +151,6 @@ appState.boot().then(async () => {
   maybeShowPasswordReset();
   // Volvimos del correo de invitación: crear la contraseña.
   await maybeCompleteSignup();
-  // Volvimos de Mercado Pago: confirmar la suscripción.
+  // Volvimos del pago (Stripe Checkout): confirmar la suscripción.
   maybeConfirmBillingReturn();
 });

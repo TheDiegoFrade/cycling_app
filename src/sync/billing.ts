@@ -10,7 +10,9 @@ export interface BillingStatus {
   subscription: { status: string; price_mxn: number; paid_until: string | null; grace_until: string | null } | null;
   /** Precio al que se suscribiría ahora (MXN al mes, IVA incluido). */
   priceMxn: number;
-  /** false = Mercado Pago todavía no está configurado (no se puede cobrar). */
+  /** Días de prueba que tendría al suscribirse (0 si ya tuvo una suscripción). */
+  trialDays?: number;
+  /** false = el cobro (Stripe) todavía no está configurado. */
   billingReady: boolean;
   isAdmin: boolean;
 }
@@ -35,6 +37,13 @@ export async function startSubscription(): Promise<SubscribeResult> {
   if (!error && typeof data?.initPoint === 'string') return { initPoint: data.initPoint };
   const code = await errorCode(error, data);
   return { error: code === 'not_needed' || code === 'billing_not_ready' ? code : 'failed' };
+}
+
+/** Link al portal de Stripe para actualizar la tarjeta (null si no se pudo). */
+export async function openBillingPortal(): Promise<string | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.functions.invoke('billing', { body: { action: 'portal' } });
+  return !error && typeof data?.url === 'string' ? data.url : null;
 }
 
 export async function cancelSubscription(): Promise<boolean> {

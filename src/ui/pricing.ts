@@ -1,8 +1,8 @@
-// Torq Coach IA: precio, suscripción con Mercado Pago y su estado. El precio
+// Torq Coach IA: precio, suscripción (cobro con Stripe) y su estado. El precio
 // se ve ANTES del cuestionario (nunca después del esfuerzo). Los coaches y
 // sus atletas no pagan; a un atleta con coach nunca se le ofrece esto.
 import { PRICE_MXN } from '../core/access';
-import { cancelSubscription, startSubscription } from '../sync/billing';
+import { cancelSubscription, openBillingPortal, startSubscription } from '../sync/billing';
 import type { BillingStatus } from '../sync/billing';
 import { refresh } from './router';
 import { appState } from './state';
@@ -17,7 +17,14 @@ export function hasAi(): boolean {
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
 
 function priceHtml(b: BillingStatus | null): string {
-  return `<span class="pricing-price">$${b?.priceMxn ?? PRICE_MXN}</span> al mes`;
+  const trial = b?.trialDays ? ` <span class="pricing-trial">${b.trialDays} días de prueba</span>` : '';
+  return `<span class="pricing-price">$${b?.priceMxn ?? PRICE_MXN}</span> al mes${trial}`;
+}
+
+function fineHtml(b: BillingStatus | null): string {
+  return b?.trialDays
+    ? `Mes con mes. IVA incluido. Pones tu tarjeta al empezar y el primer cobro es al terminar los ${b.trialDays} días de prueba. Cancela cuando quieras desde Perfil.`
+    : 'Mes con mes. IVA incluido. Cancela cuando quieras desde Perfil.';
 }
 
 export function pricingPanelHtml(b: BillingStatus | null = appState.billing): string {
@@ -32,8 +39,8 @@ export function pricingPanelHtml(b: BillingStatus | null = appState.billing): st
         <li>Se ajusta cada semana a lo que de verdad rodaste</li>
         <li>Piñón te acompaña todos los días y comenta cada sesión</li>
       </ul>
-      <button class="primary" data-subscribe ${ready ? '' : 'disabled'}>Suscribirme con Mercado Pago</button>
-      <p class="hint pricing-fine">Mes con mes. IVA incluido. Cancela cuando quieras desde Perfil.${ready ? '' : ' <strong>El cobro todavía no está activo (modo de prueba).</strong>'}</p>
+      <button class="primary" data-subscribe ${ready ? '' : 'disabled'}>Suscribirme</button>
+      <p class="hint pricing-fine">${fineHtml(b)}${ready ? '' : ' <strong>El cobro todavía no está activo (modo de prueba).</strong>'}</p>
       <p class="hint pricing-fine">¿Tu coach usa Torq? Pídele tu invitación: con coach, Torq va incluido.</p>
       <p class="hint" data-subscribe-status aria-live="polite"></p>
     </div>`;
@@ -45,7 +52,7 @@ export function wirePricing(root: ParentNode): void {
     btn.addEventListener('click', async () => {
       const status = btn.closest('[data-pricing]')?.querySelector<HTMLElement>('[data-subscribe-status]');
       btn.disabled = true;
-      if (status) status.textContent = 'Abriendo Mercado Pago…';
+      if (status) status.textContent = 'Abriendo el pago…';
       const res = await startSubscription();
       if ('initPoint' in res) {
         location.assign(res.initPoint);
@@ -58,7 +65,7 @@ export function wirePricing(root: ParentNode): void {
             ? 'Ya tienes Torq Coach IA.'
             : res.error === 'billing_not_ready'
               ? 'El cobro todavía no está activo. Pronto podrás suscribirte.'
-              : 'No se pudo abrir Mercado Pago. Intenta de nuevo en un momento.';
+              : 'No se pudo abrir el pago. Intenta de nuevo en un momento.';
     });
   });
 }
@@ -90,8 +97,9 @@ export function subscriptionPanelHtml(b: BillingStatus | null = appState.billing
   else if (b.reason === 'coach') body = '<p>Como coach, usas Torq gratis con tus atletas.</p>';
   else if (b.reason === 'coached') body = `<p>Torq va incluido por tu coach${coachName ? ` <strong>${escapeHtml(coachName)}</strong>` : ''}.</p>`;
   else if (b.reason === 'grace')
-    body = `<p><strong>No pudimos cobrar tu mes.</strong> Actualiza tu tarjeta en Mercado Pago${s?.grace_until ? ` antes del ${fmtDate(s.grace_until)}` : ''} para no perder el coach IA. Tus datos no se borran.</p>
-      <div class="row-actions"><a class="btn-light" href="https://www.mercadopago.com.mx/subscriptions" target="_blank" rel="noopener">Ir a Mercado Pago</a></div>`;
+    body = `<p><strong>No pudimos cobrar tu mes.</strong> Actualiza tu tarjeta${s?.grace_until ? ` antes del ${fmtDate(s.grace_until)}` : ''} para no perder el coach IA. Tus datos no se borran.</p>
+      <div class="row-actions"><button class="btn-light" id="billing-portal">Actualizar tarjeta</button></div>
+      <p class="hint" id="billing-portal-status" aria-live="polite"></p>`;
   else if (b.reason === 'subscription' && s?.status === 'cancelled')
     body = `<p>Cancelaste tu suscripción. Tienes el coach IA${s.paid_until ? ` hasta el ${fmtDate(s.paid_until)}` : ''}.</p>
       <div class="row-actions"><button class="btn-light" data-subscribe>Volver a suscribirme · $${s.price_mxn} al mes</button></div><p class="hint" data-subscribe-status aria-live="polite"></p>`;
@@ -105,6 +113,19 @@ export function subscriptionPanelHtml(b: BillingStatus | null = appState.billing
 
 export function wireSubscriptionPanel(root: ParentNode): void {
   wirePricing(root);
+  const portal = root.querySelector<HTMLButtonElement>('#billing-portal');
+  portal?.addEventListener('click', async () => {
+    const status = root.querySelector<HTMLElement>('#billing-portal-status');
+    portal.disabled = true;
+    if (status) status.textContent = 'Abriendo…';
+    const url = await openBillingPortal();
+    if (url) {
+      location.assign(url);
+      return;
+    }
+    portal.disabled = false;
+    if (status) status.textContent = 'No se pudo abrir. Intenta de nuevo en un momento.';
+  });
   const cancel = root.querySelector<HTMLButtonElement>('#subscription-cancel');
   cancel?.addEventListener('click', async () => {
     const status = root.querySelector<HTMLElement>('#subscription-cancel-status');
@@ -137,14 +158,14 @@ function toast(text: string): HTMLElement {
   return el;
 }
 
-/** Al volver de Mercado Pago (`?billing=return`): Mercado Pago avisa al
- * servidor por su cuenta (webhook), así que se pregunta unas veces hasta que
- * el acceso aparezca. */
+/** Al volver del pago (`?billing=return`): Stripe avisa al servidor por su
+ * cuenta (webhook), así que se pregunta unas veces hasta que el acceso
+ * aparezca. */
 export function maybeConfirmBillingReturn(): void {
   const params = new URLSearchParams(location.search);
   if (params.get('billing') !== 'return') return;
   history.replaceState(null, '', location.pathname + location.hash);
-  const el = toast('Estamos confirmando tu pago con Mercado Pago…');
+  const el = toast('Estamos confirmando tu pago…');
   let tries = 0;
   const tick = async () => {
     tries++;
@@ -156,7 +177,7 @@ export function maybeConfirmBillingReturn(): void {
       return;
     }
     if (tries >= 10) {
-      el.textContent = 'Todavía no nos llega la confirmación de Mercado Pago. Puede tardar unos minutos; revisa Perfil más tarde.';
+      el.textContent = 'Todavía no nos llega la confirmación del pago. Puede tardar unos minutos; revisa Perfil más tarde.';
       setTimeout(() => el.remove(), 8000);
       return;
     }

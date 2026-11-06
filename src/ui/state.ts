@@ -153,7 +153,7 @@ class AppState {
    * es error/offline — ver el patrón de 3 estados en sync/*-sync.ts), sube lo
    * que había local una sola vez, cubriendo tanto usuarios nuevos como la
    * migración de quien ya usaba la app solo en este navegador. */
-  /** Vuelve a preguntar el acceso a la IA (p. ej. al volver de Mercado Pago). */
+  /** Vuelve a preguntar el acceso a la IA (p. ej. al volver del pago). */
   async refreshBilling(): Promise<BillingStatus | null> {
     if (!this.user) return null;
     this.billing = await fetchBillingStatus();

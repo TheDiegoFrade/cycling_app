@@ -53,7 +53,7 @@ Antes de participar en cualquier programa de ejercicio o actividad física, toma
 
 1. **Precio:** $329 MXN al mes, IVA incluido. El precio puede cambiar; si cambia, aplica lo del punto 6.
 2. **Prueba:** la primera vez que te suscribes tienes 7 días de prueba. Registras tu tarjeta al empezar y el primer cobro se hace al terminar la prueba, salvo que canceles antes. Hay una sola prueba por cuenta.
-3. **Cobro:** mes con mes y automático, a través de Mercado Pago, con el método de pago que registres.
+3. **Cobro:** mes con mes y automático, con la tarjeta que registres. El pago lo procesa Stripe; Torq no guarda los datos de tu tarjeta.
 4. **Cancelación:** puedes cancelar cuando quieras desde Perfil. Conservas el acceso hasta el final del periodo ya pagado. No hay reembolsos de periodos parciales, salvo lo que diga la ley.
 5. **Pago rechazado:** si un cobro no pasa, te avisaremos y tendrás 7 días para actualizar tu método de pago antes de que se suspenda el plan. Tus datos e historial no se borran.
 6. **Cambios de precio:** te avisaremos con al menos 30 días de anticipación antes de cobrarte un precio distinto. Si no estás de acuerdo, puedes cancelar y conservas el acceso hasta el final del periodo ya pagado.

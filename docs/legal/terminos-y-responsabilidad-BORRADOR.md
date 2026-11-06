@@ -60,7 +60,7 @@ Antes de participar en cualquier programa de ejercicio o actividad física, toma
 
 1. **Precio:** $329 MXN al mes, IVA incluido. El precio puede cambiar; si cambia, aplica lo del punto 6.
 2. **Prueba:** la primera vez que te suscribes tienes 7 días de prueba. Registras tu tarjeta al empezar y el primer cobro se hace al terminar la prueba, salvo que canceles antes. Hay una sola prueba por cuenta.
-3. **Cobro:** mes con mes y automático, a través de Mercado Pago, con el método de pago que registres.
+3. **Cobro:** mes con mes y automático, con la tarjeta que registres. El pago lo procesa Stripe; Torq no guarda los datos de tu tarjeta.
 4. **Cancelación:** puedes cancelar cuando quieras desde Perfil. Conservas el acceso hasta el final del periodo ya pagado. No hay reembolsos de periodos parciales, salvo lo que diga la ley.
 5. **Pago rechazado:** si un cobro no pasa, te avisaremos y tendrás 7 días para actualizar tu método de pago antes de que se suspenda el plan. Tus datos e historial no se borran.
 6. **Cambios de precio:** te avisaremos con al menos 30 días de anticipación antes de cobrarte un precio distinto. Si no estás de acuerdo, puedes cancelar y conservas el acceso hasta el final del periodo ya pagado.
@@ -115,5 +115,5 @@ Se envía una copia por correo.
 3. **Coaches (§5 y §6).** Los coaches usan Torq gratis y cobran por su cuenta. Revisar que quede claro que la relación de entrenamiento es entre atleta y coach. Uno de los fundadores (Joe Hernández) también es coach: confirmar que §6 lo cubre en ambos papeles.
 4. **Aceptación electrónica.** Es un clic con dos casillas, con registro de fecha, versión, hash y dispositivo, más copia por correo. Confirmar que basta como consentimiento (Código de Comercio y LFPDPPP para los datos sensibles).
 5. **Menores (§2).** La decisión es no permitir menores de 18. Confirmar que basta con la fecha de nacimiento declarada.
-6. **Pagos (§7).** Confirmar los plazos (aviso de cambio de precio, días de gracia, reembolsos) contra la LFPC y las condiciones de Mercado Pago.
+6. **Pagos (§7).** Confirmar los plazos (aviso de cambio de precio, prueba de 7 días, días de gracia, reembolsos) contra la LFPC y las condiciones de Stripe.
 7. **Responsable.** Si se constituye una S.A.S., el responsable debe ser la sociedad, no una persona física.
