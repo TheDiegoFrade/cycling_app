@@ -23,7 +23,7 @@ import { montanasVideoHtml } from '../montanas-video';
 import { maybeCelebrateStreak, maybeCelebrateWeek, maybeWelcomeBack } from '../pinon';
 import { computeWeeklyStreak } from '../../engine/streaks';
 import { humanCoachName } from '../coach-notice';
-import { requestCoachCreate } from '../coach';
+import { fetchWeeklyEvalDue, requestCoachCreate, requestCoachEval } from '../coach';
 import type { Token } from '../workout-token';
 import { isNonBikeKind } from '../../core/session-kind';
 import { wireDatePicker } from '../date-picker';
@@ -237,6 +237,7 @@ export function renderHome(container: HTMLElement): void {
     <div class="screen home-screen">
       <div id="draft-recovery"></div>
       ${browserBannerHtml()}
+      <div id="eval-due-slot"></div>
 
       ${
         needsOnboarding
@@ -292,6 +293,24 @@ export function renderHome(container: HTMLElement): void {
     });
   });
 
+  // ¿Le toca cerrar su semana con el coach? El plan solo trae armadas las
+  // primeras semanas: las demás existen si evalúa. Se avisa aquí, no solo en Plan.
+  void fetchWeeklyEvalDue().then((due) => {
+    const slot = container.querySelector<HTMLElement>('#eval-due-slot');
+    if (!due || !slot || !container.isConnected) return;
+    slot.innerHTML = `<div class="recovery-banner eval-due${due.nextEmpty ? ' urgent' : ''}" id="eval-due" role="status">
+      <p>${
+        due.nextEmpty
+          ? `<strong>Tu semana ${due.nextWeek} todavía no tiene entrenamientos.</strong> Cuéntale al coach cómo te fue la semana ${due.week} y te arma la siguiente (tarda unos 30 segundos).`
+          : `<strong>Cierra tu semana ${due.week} con el coach.</strong> Cuéntale cómo te fue y ajusta la siguiente con eso (tarda unos 30 segundos).`
+      }</p>
+      <div class="row-actions"><button class="primary" id="eval-due-go">Evaluar mi semana</button></div>
+    </div>`;
+    slot.querySelector('#eval-due-go')?.addEventListener('click', () => {
+      requestCoachEval();
+      navigate('plan');
+    });
+  });
   container.querySelector('#browser-banner-close')?.addEventListener('click', () => {
     try {
       sessionStorage.setItem(BROWSER_BANNER_KEY, '1');

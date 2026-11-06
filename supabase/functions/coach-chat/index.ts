@@ -701,12 +701,13 @@ async function sendWeekToCoachDraft(admin: AdminClient, athleteId: string, coach
 
 interface PlannedExtra {
   dayOfWeek: string;
-  kind: 'outdoor' | 'skills' | 'gym';
+  kind: 'outdoor' | 'skills' | 'gym' | 'home' | 'walk';
   name: string;
   minutes: number;
   description: string;
 }
-const EXTRA_ROUTINE_KIND = { outdoor: 'outdoor', skills: 'skills', gym: 'strength' } as const;
+// home (fuerza en casa) se registra como fuerza; walk (caminar o trotar), como correr.
+const EXTRA_ROUTINE_KIND = { outdoor: 'outdoor', skills: 'skills', gym: 'strength', home: 'strength', walk: 'running' } as const;
 
 async function materializeExtras(
   admin: AdminClient,
@@ -727,7 +728,7 @@ async function materializeExtras(
       scheduled_date: dateForWeek(startDate, weekIndex, x.dayOfWeek),
       kind: EXTRA_ROUTINE_KIND[x.kind],
       name: x.name.trim().slice(0, 80) || 'Fuera del rodillo',
-      payload: { description: x.description.trim().slice(0, 400), durationMin: x.minutes, exercises: [] },
+      payload: { description: x.description.trim().slice(0, 400), durationMin: x.minutes, exercises: [], ...(x.kind === 'home' ? { where: 'home' } : {}) },
       source: 'ai',
     }))
     .filter((r) => r.scheduled_date >= today);
@@ -1115,6 +1116,9 @@ async function applyModeEffects(
           blocks,
           weeks,
           lastEvalNote: output.reasoning,
+          // Qué semana del plan se evaluó: la app avisa «cierra tu semana»
+          // solo si la que acaba de terminar no se ha evaluado.
+          lastEvaluatedWeek: t.evaluated,
           // Días que el atleta confirmó en su nota para seguir (subir o bajar):
           // quedan como los del plan y las semanas siguientes se arman con ellos.
           ...(Array.isArray(output.planDays) && output.planDays.length

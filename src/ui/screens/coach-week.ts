@@ -290,7 +290,9 @@ export function renderCoachWeek(container: HTMLElement): void {
             dayOfWeek: dayCodeOf(day, monday),
             name: itemName(i),
             // Salida o técnica (solo del coach de IA, nunca en un borrador del coach) se ruedan.
-            kind: i.workout || isRideKind(i.routine.kind) ? ('bike' as const) : i.routine.kind,
+            // Caminar/trotar (del coach de IA cuando no tiene bici; un coach
+            // humano no lo agenda) va como carga ligera.
+            kind: i.workout || isRideKind(i.routine.kind) ? ('bike' as const) : i.routine.kind === 'running' ? ('mobility' as const) : i.routine.kind,
             minutes: est ? Math.round(est.durationS / 60) : (i.routine?.payload.durationMin ?? null),
             tss: est?.tss ?? null,
             reason: day < todayKey ? ('past' as const) : i.routine ? ('routine' as const) : ('coach_edit' as const),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { evalWeekTarget, planTotalWeeks, planWeekOf } from './eval-week';
+import { evalWeekTarget, planTotalWeeks, planWeekOf, weeklyEvalDue } from './eval-week';
 
 describe('planWeekOf', () => {
   it('cuenta semanas calendario desde el lunes de la semana de arranque', () => {
@@ -30,5 +30,36 @@ describe('evalWeekTarget', () => {
 describe('planTotalWeeks', () => {
   it('suma las semanas de todos los bloques', () => {
     expect(planTotalWeeks([{ weeks: 4 }, { weeks: 4 }, { weeks: 3 }, { weeks: 1 }])).toBe(12);
+  });
+});
+
+describe('weeklyEvalDue: ¿le toca evaluar su semana?', () => {
+  // plan de 4 semanas que arrancó el lunes 19-oct; create_plan armó 3
+  const plan = {
+    startDate: '2026-10-19',
+    blocks: [{ weeks: 4 }],
+    weeks: [0, 1, 2].map((weekIndex) => ({ weekIndex, workoutIds: [`w${weekIndex}`] })),
+  };
+  it('antes de que termine la primera semana: nada', () => {
+    expect(weeklyEvalDue(plan, '2026-10-24', '2026-W43')).toBeNull();
+  });
+  it('el domingo ya toca evaluar la semana 1', () => {
+    expect(weeklyEvalDue(plan, '2026-10-25', '2026-W43')).toEqual({ week: 1, nextWeek: 2, nextEmpty: false });
+  });
+  it('ya evaluada (aunque fuera el domingo y hoy sea lunes): nada', () => {
+    expect(weeklyEvalDue({ ...plan, lastEvaluatedWeek: 0 }, '2026-10-26', '2026-W44')).toBeNull();
+  });
+  it('la semana 2 terminó sin evaluar: toca, y la 3 ya está armada', () => {
+    expect(weeklyEvalDue({ ...plan, lastEvaluatedWeek: 0 }, '2026-11-02', '2026-W45')).toEqual({ week: 2, nextWeek: 3, nextEmpty: false });
+  });
+  it('sin evaluar, la semana siguiente queda vacía', () => {
+    expect(weeklyEvalDue(plan, '2026-11-09', '2026-W46')).toEqual({ week: 3, nextWeek: 4, nextEmpty: true });
+  });
+  it('plan terminado: nada', () => {
+    expect(weeklyEvalDue(plan, '2026-11-16', '2026-W47')).toBeNull();
+  });
+  it('planes de antes (solo con la semana ISO): evaluado esta semana = hecho', () => {
+    expect(weeklyEvalDue({ ...plan, lastEvalIsoWeek: '2026-W45' }, '2026-11-04', '2026-W45')).toBeNull();
+    expect(weeklyEvalDue({ ...plan, lastEvalIsoWeek: '2026-W44' }, '2026-11-04', '2026-W45')).toEqual({ week: 2, nextWeek: 3, nextEmpty: false });
   });
 });

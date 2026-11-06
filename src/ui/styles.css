@@ -8502,3 +8502,42 @@ body.remote-body {
 .coach-plan-email {
   margin-top: 12px;
 }
+
+/* Inicio: «Cierra tu semana con el coach» (más visible si la siguiente está vacía) */
+.recovery-banner.eval-due.urgent {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+
+/* «Así funciona tu plan»: al crear el plan y en la tarjeta del coach */
+.plan-how {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+.plan-how-title {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+.plan-how-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.plan-how-list li + li {
+  margin-top: 6px;
+}
+.plan-how-toggle {
+  margin-top: 10px;
+  font-size: 14px;
+}
+.plan-how-toggle summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+.plan-how-toggle .plan-how-list {
+  margin-top: 8px;
+}

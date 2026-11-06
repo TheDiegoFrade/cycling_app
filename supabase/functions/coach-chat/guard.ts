@@ -196,7 +196,7 @@ function checkText(f: Finding[], field: string, text: unknown) {
 /** Máximo de extras (lo que no es rodillo) por semana. */
 const MAX_EXTRAS_PER_WEEK = 4;
 const DAYS_ES: Record<string, string> = { mon: 'lunes', tue: 'martes', wed: 'miércoles', thu: 'jueves', fri: 'viernes', sat: 'sábado', sun: 'domingo' };
-const EXTRA_KIND_LABEL: Record<string, string> = { outdoor: 'salida afuera', skills: 'técnica', gym: 'gimnasio' };
+const EXTRA_KIND_LABEL: Record<string, string> = { outdoor: 'salida afuera', skills: 'técnica', gym: 'gimnasio', home: 'fuerza en casa', walk: 'caminar' };
 
 /** Los extras de cada semana (outdoor, skills, gym), en el mismo orden que weeksOf. */
 function extrasOf(mode: Mode, out: Any): Any[][] {

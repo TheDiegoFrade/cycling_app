@@ -24,7 +24,7 @@ export const TEMPLATE_KIND_LABELS: Record<TemplateKind, string> = {
  * arriba (del coach humano o la sugerencia de gimnasio del coach de IA) y,
  * solo del coach de IA, la salida afuera y la técnica en montaña. Esas dos
  * se rueda: cuentan con la sesión de bici de ese día, no con Registrar. */
-export type PlannedKind = RoutineKind | 'outdoor' | 'skills';
+export type PlannedKind = RoutineKind | 'outdoor' | 'skills' | 'running';
 
 export const PLANNED_KIND_LABELS: Record<PlannedKind, string> = {
   strength: 'Fuerza',
@@ -32,12 +32,15 @@ export const PLANNED_KIND_LABELS: Record<PlannedKind, string> = {
   flexibility: 'Flexibilidad',
   outdoor: 'Salida afuera',
   skills: 'Técnica en montaña',
+  // del coach de IA cuando no tiene bici (viaje): se registra como «correr»
+  running: 'Caminar o trotar suave',
 };
 
 /** Etiqueta en el calendario: el gimnasio del coach de IA es una sugerencia,
  * no una rutina armada. */
-export function plannedKindLabel(r: Pick<PlannedRoutine, 'kind' | 'source'>): string {
-  return r.source === 'ai' && r.kind === 'strength' ? 'Gimnasio (sugerencia)' : PLANNED_KIND_LABELS[r.kind];
+export function plannedKindLabel(r: Pick<PlannedRoutine, 'kind' | 'source'> & { payload?: Pick<RoutinePayload, 'where'> }): string {
+  if (r.source === 'ai' && r.kind === 'strength') return r.payload?.where === 'home' ? 'Fuerza en casa' : 'Gimnasio (sugerencia)';
+  return PLANNED_KIND_LABELS[r.kind];
 }
 
 export const isRideKind = (kind: PlannedKind): kind is 'outdoor' | 'skills' => kind === 'outdoor' || kind === 'skills';
@@ -56,6 +59,8 @@ export interface RoutinePayload {
   exercises: RoutineExercise[];
   /** Nota del coach para el atleta ("si la rodilla molesta…"). */
   note?: string;
+  /** 'home' = fuerza en casa sin equipo (el coach de IA, cuando no tiene bici). */
+  where?: 'home';
 }
 
 export interface BikePayload {

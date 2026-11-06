@@ -44,3 +44,15 @@ export function addDaysKey(key: string, days: number): string {
 export function daysAgoKey(days: number, now: Date = new Date()): string {
   return addDaysKey(todayKey(now), -days);
 }
+
+/** A partir de esta hora, un plan nuevo arranca mañana: si lo crea un jueves
+ * a las 6 pm ya no le toca entrenar ese día. */
+export const PLAN_START_CUTOFF_HOUR = 16;
+
+/** Día de arranque de un plan creado en `now` (hora local): hoy si es antes
+ * de las 4 pm, si no mañana. */
+export function planStartKey(now: Date = new Date()): string {
+  if (now.getHours() < PLAN_START_CUTOFF_HOUR) return localDateKey(now);
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 12);
+  return localDateKey(tomorrow);
+}
