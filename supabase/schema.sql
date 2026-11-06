@@ -1385,7 +1385,7 @@ create policy "waitlist: cualquiera se apunta" on waitlist for insert
 grant insert on waitlist to anon, authenticated;
 
 -- ─────────────────────────────────────────────────────────────────────────
--- Suscripción Torq Coach IA (Mercado Pago). Solo para atletas sin coach: los
+-- Suscripción Torq Coach IA (Stripe; antes Mercado Pago). Solo para atletas sin coach: los
 -- coaches y sus atletas no pagan (ver src/core/access.ts). Una fila por
 -- usuario; la escriben solo las Edge Functions billing-* con service role
 -- (el atleta la puede leer, nunca escribir).
@@ -1393,7 +1393,7 @@ grant insert on waitlist to anon, authenticated;
 create table if not exists subscriptions (
   user_id uuid primary key references auth.users (id) on delete cascade,
   status text not null default 'pending' check (status in ('pending', 'authorized', 'paused', 'cancelled')),
-  -- precio fijado al suscribirse: 399, o 299 si fue antes de la fecha de fundador
+  -- precio que paga esta persona (MXN al mes, IVA incluido), fijado al suscribirse
   price_mxn integer not null check (price_mxn > 0),
   mp_preapproval_id text unique,
   -- hasta cuándo está pagado y, si el último cobro falló, hasta cuándo hay gracia
@@ -1405,9 +1405,18 @@ create table if not exists subscriptions (
 alter table subscriptions enable row level security;
 drop policy if exists "subscriptions: leer la propia" on subscriptions;
 create policy "subscriptions: leer la propia" on subscriptions for select using (auth.uid() = user_id);
+-- Stripe (docs/cobro-stripe.md). mp_preapproval_id se queda (nullable) por
+-- historial. Las filas que ya existían eran de Mercado Pago.
+alter table subscriptions add column if not exists provider text not null default 'stripe'
+  check (provider in ('mercadopago', 'stripe'));
+alter table subscriptions add column if not exists stripe_customer_id text unique;
+alter table subscriptions add column if not exists stripe_subscription_id text unique;
+update subscriptions set provider = 'mercadopago'
+  where mp_preapproval_id is not null and stripe_subscription_id is null and provider <> 'mercadopago';
 
--- Cada aviso de Mercado Pago que ya se procesó (los reenvía si no contestamos
--- a tiempo): evita aplicar dos veces el mismo cobro.
+-- Cada aviso del proveedor de cobro que ya se procesó (id = event.id de
+-- Stripe; los reenvía si no contestamos a tiempo): evita aplicar dos veces el
+-- mismo cobro.
 create table if not exists billing_events (
   id text primary key,
   kind text not null,
@@ -1415,6 +1424,30 @@ create table if not exists billing_events (
   received_at timestamptz not null default now()
 );
 alter table billing_events enable row level security;
+
+-- Un renglón por cobro pagado (lo escribe billing-webhook con invoice.paid):
+-- fuente de la factura global mensual (docs/cobro-stripe.md, fase 5).
+create table if not exists billing_payments (
+  stripe_invoice_id text primary key,
+  user_id uuid references auth.users (id) on delete set null,
+  stripe_subscription_id text,
+  stripe_charge_id text,           -- folio de la línea en la factura global
+  total_cents integer not null,    -- con IVA
+  base_cents integer not null,     -- sin IVA
+  iva_cents integer not null,
+  currency text not null default 'mxn',
+  card_funding text,               -- credit | debit → forma de pago SAT 04 / 28
+  paid_at timestamptz not null,
+  refunded_at timestamptz,
+  -- global = va en la global del mes; individual = se le hizo factura con RFC
+  cfdi_mode text not null default 'global' check (cfdi_mode in ('global', 'individual')),
+  cfdi_uuid text,                  -- UUID del CFDI (global o individual) cuando se emita
+  created_at timestamptz not null default now()
+);
+alter table billing_payments enable row level security;
+-- sin políticas: solo la service role (webhook y admin) la lee y escribe.
+create index if not exists billing_payments_paid_at_idx on billing_payments (paid_at);
+create index if not exists billing_payments_charge_idx on billing_payments (stripe_charge_id);
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- Aceptación de términos y del uso de datos de salud (docs/legal/). Es la
