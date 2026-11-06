@@ -105,6 +105,8 @@ test.describe('Precio y suscripción', () => {
     await expect(page).toHaveURL(/#\/profile/);
     await expect(page.locator('.billing-toast')).toContainText('ya tienes Torq Coach IA');
     await expect(page.locator('.perfil-panel[data-pricing]')).toContainText('$329 al mes');
+    // con la suscripción al corriente también puede cambiar de tarjeta (portal de Stripe)
+    await expect(page.locator('.perfil-panel[data-pricing] #billing-portal')).toHaveText('Cambiar tarjeta');
     await ux.shot('72-perfil-suscrito', page.locator('.perfil-panel[data-pricing]'));
     // cancelar: dos pasos y explica qué pasa
     await ux.click(page.locator('#subscription-cancel'), 'Cancelar suscripción');

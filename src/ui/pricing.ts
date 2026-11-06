@@ -113,7 +113,8 @@ export function subscriptionPanelHtml(b: BillingStatus | null = appState.billing
       <div class="row-actions"><button class="btn-light" data-subscribe>Volver a suscribirme · ${fmtMxn(s.price_mxn)} al mes</button></div><p class="hint" data-subscribe-status aria-live="polite"></p>`;
   else if (b.reason === 'subscription' && s)
     body = `<p>Torq Coach IA · <strong>${fmtMxn(s.price_mxn)} al mes</strong>${s.paid_until ? ` · pagado hasta el ${fmtDate(s.paid_until)}` : ''}.</p>
-      <div class="row-actions"><button class="btn-light" id="subscription-cancel">Cancelar suscripción</button></div>
+      <div class="row-actions"><button class="btn-light" id="billing-portal">Cambiar tarjeta</button><button class="btn-light" id="subscription-cancel">Cancelar suscripción</button></div>
+      <p class="hint" id="billing-portal-status" aria-live="polite"></p>
       <p class="hint" id="subscription-cancel-status" aria-live="polite"></p>`;
   else return `<div data-pricing-host>${pricingPanelHtml(b)}</div>`;
   return `<div class="panel perfil-panel" data-pricing><h2 class="perfil-h2">Tu plan</h2>${body}</div>`;
