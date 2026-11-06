@@ -843,6 +843,27 @@ function isCfdiUuid(v) {
   return typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v.trim());
 }
 
+// src/core/billing-guard.ts
+var BILLING_LIMITS = {
+  subscribe: { perHour: 5, perDay: 15 },
+  portal: { perHour: 10, perDay: 30 },
+  cancel: { perHour: 10, perDay: 30 }
+};
+function isGuardedAction(a) {
+  return a === "subscribe" || a === "portal" || a === "cancel";
+}
+function billingLimitReached(action, lastHour, lastDay) {
+  const l = BILLING_LIMITS[action];
+  return lastHour >= l.perHour || lastDay >= l.perDay;
+}
+function trialCardReused(previous, userId) {
+  return !!previous && previous.user_id !== userId;
+}
+var FRAUD_DISPUTES = /* @__PURE__ */ new Set(["fraudulent", "unrecognized"]);
+function disputeIsFraud(reason) {
+  return FRAUD_DISPUTES.has(reason ?? "");
+}
+
 // src/core/stripe.ts
 var PAID_MARGIN_DAYS = 2;
 var LIVE = /* @__PURE__ */ new Set(["active", "trialing", "past_due"]);
@@ -940,13 +961,16 @@ export {
   addDays,
   aiAccess,
   applyPayment,
+  billingLimitReached,
   buildMonthlyReport,
   clampMaxAthletes,
   defaultReviewMonth,
+  disputeIsFraud,
   emailKpis,
   evalWeekTarget,
   hasUnlimitedCoach,
   isCfdiUuid,
+  isGuardedAction,
   isValidMonthKey,
   ivaSplit,
   laterIso,
@@ -973,6 +997,7 @@ export {
   stripeStatusOf,
   subscriptionChangeOf,
   subscriptionStatusOf,
+  trialCardReused,
   trialEligible,
   validateCoachApplication,
   verifyMpSignature

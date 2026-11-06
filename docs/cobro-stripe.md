@@ -92,6 +92,8 @@ con aviso previo de 30 días (subir `TERMS_VERSION`).
      `customer.subscription.deleted`
    - `invoice.paid`, `invoice.payment_failed`
    - `charge.refunded`
+   - `charge.dispute.created`, `radar.early_fraud_warning.created` (fraude,
+     ver «Abuso y fraude»)
 
    Copiar el *signing secret* (`whsec_…`).
 
@@ -319,6 +321,10 @@ stripe trigger invoice.payment_failed
 | Cancelar | — | `cancel_at_period_end`; mantiene la IA hasta `paid_until`; al vencer → sin IA |
 | Aviso repetido | reenviar el mismo evento desde el dashboard | No duplica `billing_payments` |
 | Firma falsa | `curl` sin `stripe-signature` | 400 |
+| Demasiados intentos | Abrir y cerrar el pago 6 veces en una hora | La 6.ª dice «Lo intentaste muchas veces seguidas» |
+| Prueba repetida | Otra cuenta con la misma `4242…` | La prueba se termina y cobra $329 hoy |
+| Fraude | Tarjeta `4000 0000 0000 0259` (disputa por fraude) o `4000 0000 0000 5423` (alerta de fraude temprana) | Cuenta marcada: sin IA y «No podemos procesar una suscripción en esta cuenta»; con la alerta, además se reembolsa el cargo |
+| Radar bloquea | `4100 0000 0000 0019` | Checkout rechaza la tarjeta; no se crea nada |
 
 Actualizar `e2e/nube/06-cobro-y-registro.spec.ts` (backend simulado) con
 `portal` y los textos nuevos.
@@ -359,6 +365,36 @@ Actualizar `e2e/nube/06-cobro-y-registro.spec.ts` (backend simulado) con
 | 1 | Factura global del mes anterior (fase 5) | Andrea o Diego |
 | ≤ 17 | Declaración mensual RESICO: ISR (1%–2.5% sobre la base cobrada) e IVA | Andrea o contador |
 | Abril | Declaración anual (sueldo + RESICO) | Andrea o contador |
+
+## Abuso y fraude
+
+Lo que hace Torq (código) y lo que se configura en Stripe (dashboard).
+
+**En Torq:**
+
+| Riesgo | Qué hace |
+|---|---|
+| Muchos intentos seguidos (abrir el pago, el portal o cancelar en loop; probar tarjetas) | `billing` cuenta los intentos en `billing_attempts`: **subscribe 5 por hora y 15 por día**, portal y cancel 10 por hora y 30 por día (`src/core/billing-guard.ts`). Al pasarse responde 429 `too_many_attempts` y la app dice «espera una hora». El intento cuenta aunque falle. |
+| Links de pago sin fin / dos suscripciones a la vez | Un solo Checkout abierto por persona: si ya hay uno con el mismo precio se reutiliza y los demás se cierran (`checkout.sessions.expire`). Cada link dura 1 hora. Si aun así se pagan dos, el webhook cancela y reembolsa el segundo. |
+| Prueba gratis repetida con varias cuentas | Además de una prueba por cuenta, **una por tarjeta**: la huella de la tarjeta (`card.fingerprint`, no el número) se guarda en `billing_trial_cards`. Si ya empezó una prueba en otra cuenta, la prueba se termina en ese momento (`trial_end: 'now'`) y se cobra hoy. El registro es solo con invitación, así que crear cuentas en masa ya es difícil. |
+| Tarjeta sin fondos para alargar lo gratis | Los 7 días de gracia son solo para quien **ya pagó al menos una vez**. Si falla el primer cobro tras la prueba, se pierde la IA al terminar la prueba (+2 días de margen). |
+| Tarjeta robada | `radar.early_fraud_warning.created`: se **reembolsa** el cargo (así no llega a disputa) y se marca la cuenta. `charge.dispute.created` con motivo `fraudulent` o `unrecognized`: se marca la cuenta (las demás disputas se atienden a mano). Marcar = cancelar de inmediato sus suscripciones, quitar la IA (`paid_until = now`) y poner `subscriptions.fraud_flag_at`: ya no puede suscribirse (403 `blocked`). Para quitar la marca: `update subscriptions set fraud_flag_at = null, fraud_reason = null where user_id = '…';` |
+| Avisos falsos al webhook | Firma de Stripe sobre el cuerpo crudo (400 si no cuadra) y cada `event.id` una sola vez. |
+
+**En Stripe (dashboard, modo de prueba y live):**
+
+1. **Radar** (incluido en la cuenta): dejar activas las reglas por default
+   (bloquea riesgo alto) y en *Radar → Rules* activar «Request 3D Secure if
+   3D Secure is recommended». Checkout ya trae protección contra *card
+   testing*.
+2. **Webhook:** agregar `charge.dispute.created` y
+   `radar.early_fraud_warning.created` a los eventos.
+3. **Smart Retries** (*Billing → Revenue recovery → Retries*): 4 intentos en
+   7 días, y al final **cancelar** la suscripción (no dejarla `unpaid`).
+4. **Correos a clientes** (*Billing → Customer emails*): avisar de pago
+   fallido y de tarjeta por vencer, con link al portal.
+5. Revisar *Payments → Disputes* cuando llegue una; las de fraude ya quitan
+   el acceso solas.
 
 ## Notas de implementación
 

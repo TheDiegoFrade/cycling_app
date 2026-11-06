@@ -52,10 +52,10 @@ Antes de participar en cualquier programa de ejercicio o actividad física, toma
 ## 7. Suscripción y pagos (Torq Coach IA)
 
 1. **Precio:** $329 MXN al mes, IVA incluido. El precio puede cambiar; si cambia, aplica lo del punto 6.
-2. **Prueba:** la primera vez que te suscribes tienes 7 días de prueba. Registras tu tarjeta al empezar y el primer cobro se hace al terminar la prueba, salvo que canceles antes. Hay una sola prueba por cuenta.
+2. **Prueba:** la primera vez que te suscribes tienes 7 días de prueba. Registras tu tarjeta al empezar y el primer cobro se hace al terminar la prueba, salvo que canceles antes. Hay una sola prueba por persona: si la tarjeta ya se usó para una prueba en otra cuenta, el cobro se hace al suscribirte.
 3. **Cobro:** mes con mes y automático, con la tarjeta que registres. El pago lo procesa Stripe; Torq no guarda los datos de tu tarjeta.
 4. **Cancelación:** puedes cancelar cuando quieras desde Perfil. Conservas el acceso hasta el final del periodo ya pagado. No hay reembolsos de periodos parciales, salvo lo que diga la ley.
-5. **Pago rechazado:** si un cobro no pasa, te avisaremos y tendrás 7 días para actualizar tu método de pago antes de que se suspenda el plan. Tus datos e historial no se borran.
+5. **Pago rechazado:** si un cobro de renovación no pasa, te avisaremos y tendrás 7 días para actualizar tu método de pago antes de que se suspenda el plan. Tus datos e historial no se borran.
 6. **Cambios de precio:** te avisaremos con al menos 30 días de anticipación antes de cobrarte un precio distinto. Si no estás de acuerdo, puedes cancelar y conservas el acceso hasta el final del periodo ya pagado.
 7. **Facturación:** si necesitas factura, solicítala en [medio] dentro del mes en que se hizo el cargo.
 8. **Atletas con coach:** si tu coach usa Torq contigo, la app va incluida y Torq no te cobra nada.
@@ -64,7 +64,7 @@ Antes de participar en cualquier programa de ejercicio o actividad física, toma
 
 1. Tu cuenta es personal. Cuida tu contraseña.
 2. No uses Torq para fines distintos al entrenamiento, ni intentes alterar su funcionamiento o sus límites de uso.
-3. Torq puede suspender cuentas que incumplan estos términos.
+3. Torq puede suspender cuentas que incumplan estos términos, y la suscripción de cuentas con pagos que el banco o la persona titular de la tarjeta reporten como fraude.
 
 ## 9. Tus datos
 

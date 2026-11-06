@@ -4,6 +4,7 @@
 //   customer.subscription.created / updated / deleted
 //   invoice.paid, invoice.payment_failed
 //   charge.refunded
+//   charge.dispute.created, radar.early_fraud_warning.created   (fraude)
 // Va con --no-verify-jwt: Stripe no manda sesión; en su lugar se verifica su
 // firma (stripe-signature) con STRIPE_WEBHOOK_SECRET sobre el cuerpo crudo.
 // El estado de una suscripción se vuelve a pedir a Stripe (los avisos pueden
@@ -12,7 +13,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { cryptoProvider, idOf, stripe } from '../_shared/stripe.ts';
 import type { Stripe } from '../_shared/stripe.ts';
-import { GRACE_DAYS, ivaSplit, laterIso, paidUntilFromPeriodEnd, stillLive, subscriptionChangeOf } from '../_shared/core.gen.js';
+import { GRACE_DAYS, disputeIsFraud, ivaSplit, laterIso, paidUntilFromPeriodEnd, stillLive, subscriptionChangeOf, trialCardReused } from '../_shared/core.gen.js';
 
 const text = (body: string, status: number) => new Response(body, { status });
 
@@ -80,7 +81,21 @@ async function handle(admin: SupabaseClient, event: Stripe.Event): Promise<strin
       if (!subId) return null;
       const row = await rowForSubscription(admin, subId);
       if (!row) return null;
-      // La gracia se abre una vez; los reintentos no la alargan.
+      // La gracia es para quien ya pagó al menos una vez (se le venció la
+      // tarjeta, no tenía saldo ese día). El primer cobro tras la prueba, o el
+      // de una prueba cortada por tarjeta repetida, no la abre: si no, una
+      // tarjeta sin fondos daría 7 días más gratis. Se abre una vez; los
+      // reintentos no la alargan.
+      const { count: paidBefore, error: payErr } = await admin
+        .from('billing_payments')
+        .select('stripe_invoice_id', { count: 'exact', head: true })
+        .eq('user_id', row.user_id)
+        .is('refunded_at', null);
+      if (payErr) throw new Error(`billing_payments: ${payErr.message}`);
+      if (!paidBefore) {
+        console.warn('[billing-webhook] primer cobro rechazado: sin gracia', row.user_id, subId);
+        return row.user_id;
+      }
       if (!row.grace_until || new Date(row.grace_until) <= now) {
         const graceUntil = new Date(now.getTime() + GRACE_DAYS * 86_400_000).toISOString();
         await mustUpdate(admin.from('subscriptions').update({ grace_until: graceUntil, updated_at: now.toISOString() }).eq('user_id', row.user_id));
@@ -103,9 +118,76 @@ async function handle(admin: SupabaseClient, event: Stripe.Event): Promise<strin
         .select('user_id');
       return data?.[0]?.user_id ?? null;
     }
+    case 'radar.early_fraud_warning.created': {
+      // El banco avisa que el cargo parece fraude. Stripe recomienda
+      // reembolsarlo ya: evita la disputa y su comisión.
+      const efw = event.data.object;
+      const chargeId = idOf(efw.charge);
+      if (!chargeId) return null;
+      await refundCharge(chargeId);
+      return flagFraud(admin, chargeId, `alerta de fraude (${efw.fraud_type})`);
+    }
+    case 'charge.dispute.created': {
+      const dispute = event.data.object;
+      const chargeId = idOf(dispute.charge);
+      if (!chargeId) return null;
+      if (!disputeIsFraud(dispute.reason)) {
+        console.warn('[billing-webhook] disputa (no es fraude): revisar a mano', dispute.id, dispute.reason);
+        return null;
+      }
+      return flagFraud(admin, chargeId, `disputa (${dispute.reason})`);
+    }
     default:
       return null;
   }
+}
+
+async function refundCharge(chargeId: string): Promise<void> {
+  try {
+    await stripe.refunds.create({ charge: chargeId });
+  } catch (err) {
+    if ((err as { code?: string }).code !== 'charge_already_refunded') throw err;
+  }
+}
+
+/** Cargo fraudulento: se cancelan de inmediato las suscripciones de ese
+ * cliente, se quita la IA y la cuenta queda marcada (no puede volver a
+ * suscribirse hasta que un administrador quite la marca). */
+async function flagFraud(admin: SupabaseClient, chargeId: string, reason: string): Promise<string | null> {
+  const charge = await stripe.charges.retrieve(chargeId);
+  const customerId = idOf(charge.customer);
+  if (!customerId) return null;
+  const subs = await stripe.subscriptions.list({ customer: customerId, status: 'all', limit: 20 });
+  for (const s of subs.data) if (stillLive(s)) await stripe.subscriptions.cancel(s.id);
+  const now = new Date().toISOString();
+  const { data, error } = await admin
+    .from('subscriptions')
+    .update({ status: 'cancelled', paid_until: now, grace_until: null, fraud_flag_at: now, fraud_reason: reason, updated_at: now })
+    .eq('stripe_customer_id', customerId)
+    .select('user_id');
+  if (error) throw new Error(`subscriptions: ${error.message}`);
+  console.warn('[billing-webhook] cuenta marcada por fraude', customerId, reason);
+  return data?.[0]?.user_id ?? null;
+}
+
+/** Una prueba por persona: si la tarjeta con la que empezó esta prueba ya
+ * empezó otra en OTRA cuenta, la prueba se termina ya y se cobra hoy.
+ * Regresa true si la terminó. */
+async function endTrialIfCardReused(admin: SupabaseClient, sub: Stripe.Subscription, userId: string): Promise<boolean> {
+  const pmId = idOf(sub.default_payment_method);
+  if (!pmId) return false;
+  const pm = await stripe.paymentMethods.retrieve(pmId);
+  const fingerprint = pm.card?.fingerprint;
+  if (!fingerprint) return false;
+  const { error } = await admin
+    .from('billing_trial_cards')
+    .upsert({ fingerprint, user_id: userId, stripe_subscription_id: sub.id }, { onConflict: 'fingerprint', ignoreDuplicates: true });
+  if (error) throw new Error(`billing_trial_cards: ${error.message}`);
+  const { data: first } = await admin.from('billing_trial_cards').select('user_id, stripe_subscription_id').eq('fingerprint', fingerprint).maybeSingle();
+  if (!trialCardReused(first, userId) || first?.stripe_subscription_id === sub.id) return false;
+  console.warn('[billing-webhook] tarjeta ya usada en la prueba de otra cuenta: se cobra hoy', sub.id, userId);
+  await stripe.subscriptions.update(sub.id, { trial_end: 'now' });
+  return true;
 }
 
 interface Row {
@@ -165,11 +247,19 @@ async function syncSubscription(admin: SupabaseClient, subId: string, hintUserId
     );
     row = { ...(mine as Row), stripe_subscription_id: subId };
   }
-  const change = subscriptionChangeOf(sub);
+  let current = sub;
+  let trialEnded = false;
+  if (sub.status === 'trialing' && (await endTrialIfCardReused(admin, sub, row.user_id))) {
+    current = await stripe.subscriptions.retrieve(subId);
+    trialEnded = true;
+  }
+  const change = subscriptionChangeOf(current);
   const patch: Record<string, unknown> = { status: change.status, updated_at: new Date().toISOString() };
-  if (change.paid_until) patch.paid_until = sub.cancel_at_period_end || sub.cancel_at ? change.paid_until : laterIso(row.paid_until, change.paid_until);
+  if (change.paid_until) patch.paid_until = current.cancel_at_period_end || current.cancel_at ? change.paid_until : laterIso(row.paid_until, change.paid_until);
+  // Sin prueba: el acceso lo da el cobro (invoice.paid), no la prueba que ya se terminó.
+  if (trialEnded) patch.paid_until = new Date().toISOString();
   // Precio que paga (cambia si algún día se migra a otro precio).
-  const unit = sub.items.data[0]?.price?.unit_amount;
+  const unit = current.items.data[0]?.price?.unit_amount;
   if (unit != null) patch.price_mxn = unit / 100;
   await mustUpdate(admin.from('subscriptions').update(patch).eq('user_id', row.user_id).eq('stripe_subscription_id', subId));
   return row.user_id;

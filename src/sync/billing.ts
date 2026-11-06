@@ -30,21 +30,25 @@ export async function fetchBillingStatus(): Promise<BillingStatus | null> {
   }
 }
 
-export type SubscribeResult = { initPoint: string } | { error: 'not_needed' | 'billing_not_ready' | 'failed' };
+export type SubscribeError = 'not_needed' | 'billing_not_ready' | 'too_many_attempts' | 'blocked' | 'failed';
+export type SubscribeResult = { initPoint: string } | { error: SubscribeError };
+
+const KNOWN: readonly string[] = ['not_needed', 'billing_not_ready', 'too_many_attempts', 'blocked'];
 
 export async function startSubscription(): Promise<SubscribeResult> {
   if (!supabase) return { error: 'failed' };
   const { data, error } = await supabase.functions.invoke('billing', { body: { action: 'subscribe' } });
   if (!error && typeof data?.initPoint === 'string') return { initPoint: data.initPoint };
   const code = await errorCode(error, data);
-  return { error: code === 'not_needed' || code === 'billing_not_ready' ? code : 'failed' };
+  return { error: code && KNOWN.includes(code) ? (code as SubscribeError) : 'failed' };
 }
 
-/** Link al portal de Stripe para actualizar la tarjeta (null si no se pudo). */
-export async function openBillingPortal(): Promise<string | null> {
-  if (!supabase) return null;
+/** Link al portal de Stripe para actualizar la tarjeta. */
+export async function openBillingPortal(): Promise<{ url: string } | { error: 'too_many_attempts' | 'failed' }> {
+  if (!supabase) return { error: 'failed' };
   const { data, error } = await supabase.functions.invoke('billing', { body: { action: 'portal' } });
-  return !error && typeof data?.url === 'string' ? data.url : null;
+  if (!error && typeof data?.url === 'string') return { url: data.url };
+  return { error: (await errorCode(error, data)) === 'too_many_attempts' ? 'too_many_attempts' : 'failed' };
 }
 
 export async function cancelSubscription(): Promise<boolean> {

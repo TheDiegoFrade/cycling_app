@@ -132,6 +132,23 @@ test.describe('Precio y suscripción', () => {
     await expect(panel.locator('#subscription-cancel')).toBeVisible();
   });
 
+  test('demasiados intentos o cuenta bloqueada: lo dice sin abrir el pago', async ({ page, backend, ux }) => {
+    await enter(page, backend);
+    backend.billingStatus = { ...NONE };
+    let reply: { status: number; body: unknown } = { status: 429, body: { error: 'too_many_attempts' } };
+    backend.functions.set('billing', (body) => (body?.action === 'subscribe' ? reply : { body: backend.billingStatus }));
+    await page.goto('/#/plan');
+    const card = page.locator('#coach-slot [data-pricing]');
+    await ux.click(card.locator('[data-subscribe]'), 'Suscribirme');
+    await expect(card.locator('[data-subscribe-status]')).toHaveText('Lo intentaste muchas veces seguidas. Espera una hora y vuelve a intentarlo.');
+    await expect(card.locator('[data-subscribe]')).toBeEnabled();
+    await expect(page).toHaveURL(/#\/plan/);
+    reply = { status: 403, body: { error: 'blocked' } };
+    await ux.click(card.locator('[data-subscribe]'), 'Suscribirme');
+    await expect(card.locator('[data-subscribe-status]')).toContainText('No podemos procesar una suscripción en esta cuenta');
+    await expect(card.locator('[data-subscribe]')).toBeDisabled();
+  });
+
   test('cobro sin configurar: el botón se apaga y lo dice', async ({ page, backend, ux }) => {
     await enter(page, backend);
     backend.billingStatus = { ...NONE, billingReady: false };

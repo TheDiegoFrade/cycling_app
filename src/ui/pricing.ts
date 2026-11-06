@@ -3,7 +3,7 @@
 // sus atletas no pagan; a un atleta con coach nunca se le ofrece esto.
 import { PRICE_MXN } from '../core/access';
 import { cancelSubscription, openBillingPortal, startSubscription } from '../sync/billing';
-import type { BillingStatus } from '../sync/billing';
+import type { BillingStatus, SubscribeError } from '../sync/billing';
 import { refresh } from './router';
 import { appState } from './state';
 import { escapeHtml } from './workout-cover';
@@ -58,17 +58,19 @@ export function wirePricing(root: ParentNode): void {
         location.assign(res.initPoint);
         return;
       }
-      btn.disabled = false;
-      if (status)
-        status.textContent =
-          res.error === 'not_needed'
-            ? 'Ya tienes Torq Coach IA.'
-            : res.error === 'billing_not_ready'
-              ? 'El cobro todavía no está activo. Pronto podrás suscribirte.'
-              : 'No se pudo abrir el pago. Intenta de nuevo en un momento.';
+      btn.disabled = res.error === 'blocked';
+      if (status) status.textContent = SUBSCRIBE_ERRORS[res.error];
     });
   });
 }
+
+const SUBSCRIBE_ERRORS: Record<SubscribeError, string> = {
+  not_needed: 'Ya tienes Torq Coach IA.',
+  billing_not_ready: 'El cobro todavía no está activo. Pronto podrás suscribirte.',
+  too_many_attempts: 'Lo intentaste muchas veces seguidas. Espera una hora y vuelve a intentarlo.',
+  blocked: 'No podemos procesar una suscripción en esta cuenta. Escríbenos para revisarlo.',
+  failed: 'No se pudo abrir el pago. Intenta de nuevo en un momento.',
+};
 
 export function openPricingModal(): void {
   if (document.getElementById('pricing-backdrop')) return;
@@ -118,13 +120,13 @@ export function wireSubscriptionPanel(root: ParentNode): void {
     const status = root.querySelector<HTMLElement>('#billing-portal-status');
     portal.disabled = true;
     if (status) status.textContent = 'Abriendo…';
-    const url = await openBillingPortal();
-    if (url) {
-      location.assign(url);
+    const res = await openBillingPortal();
+    if ('url' in res) {
+      location.assign(res.url);
       return;
     }
     portal.disabled = false;
-    if (status) status.textContent = 'No se pudo abrir. Intenta de nuevo en un momento.';
+    if (status) status.textContent = res.error === 'too_many_attempts' ? SUBSCRIBE_ERRORS.too_many_attempts : 'No se pudo abrir. Intenta de nuevo en un momento.';
   });
   const cancel = root.querySelector<HTMLButtonElement>('#subscription-cancel');
   cancel?.addEventListener('click', async () => {

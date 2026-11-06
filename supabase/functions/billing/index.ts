@@ -9,6 +9,11 @@
 //    factura global y el UUID del CFDI ya timbrado.
 // Los avisos de Stripe llegan a billing-webhook (otra función: esa no lleva
 // sesión de usuario). Ver docs/cobro-stripe.md.
+//
+// Contra abuso (docs/cobro-stripe.md, «Abuso y fraude»): subscribe, portal y
+// cancel tienen un límite de intentos por hora y por día (billing_attempts);
+// una cuenta marcada por fraude no puede suscribirse; y solo hay un Checkout
+// abierto por persona (se reutiliza en vez de crear otro en cada clic).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
@@ -16,7 +21,7 @@ import { loadAiAccess } from '../_shared/access.ts';
 import { ADMIN_USER_IDS } from '../_shared/coach-access.ts';
 import { appUrl as appUrlFromEnv } from '../_shared/mailer.ts';
 import { checkoutPrice, idOf, stripe, stripeConfigured } from '../_shared/stripe.ts';
-import { PRICE_MXN, TRIAL_DAYS, isCfdiUuid, isValidMonthKey, mxMonthRange, previousMonthKey, resumable, stillLive, trialEligible } from '../_shared/core.gen.js';
+import { PRICE_MXN, TRIAL_DAYS, billingLimitReached, isCfdiUuid, isGuardedAction, isValidMonthKey, mxMonthRange, previousMonthKey, resumable, stillLive, trialEligible } from '../_shared/core.gen.js';
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -30,7 +35,11 @@ interface SubRow {
   provider: string | null;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
+  fraud_flag_at: string | null;
 }
+
+/** Cuánto dura abierto un link de Checkout (Stripe pide entre 30 min y 24 h). */
+const CHECKOUT_TTL_S = 60 * 60;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -42,7 +51,7 @@ Deno.serve(async (req) => {
     const now = new Date();
     const [access, rowRes] = await Promise.all([
       loadAiAccess(admin, userId, now),
-      admin.from('subscriptions').select('status, price_mxn, paid_until, grace_until, provider, stripe_customer_id, stripe_subscription_id').eq('user_id', userId).maybeSingle(),
+      admin.from('subscriptions').select('status, price_mxn, paid_until, grace_until, provider, stripe_customer_id, stripe_subscription_id, fraud_flag_at').eq('user_id', userId).maybeSingle(),
     ]);
     if (rowRes.error) throw new Error(`no se pudo leer la suscripción: ${rowRes.error.message}`);
     const row = rowRes.data as SubRow | null;
@@ -65,10 +74,27 @@ Deno.serve(async (req) => {
         ...access,
         priceMxn,
         // Días de prueba que tendría al suscribirse (0 si ya tuvo).
-        trialDays: !keepsPrice && trialEligible(row) ? TRIAL_DAYS : 0,
+        trialDays: !keepsPrice && !row?.fraud_flag_at && trialEligible(row) ? TRIAL_DAYS : 0,
         billingReady: stripeConfigured(),
         isAdmin: ADMIN_USER_IDS.has(userId),
       });
+    }
+
+    // Antes de cualquier acción que llame a Stripe por esta persona: ¿cuenta
+    // bloqueada o demasiados intentos? El intento cuenta aunque luego falle.
+    if (isGuardedAction(action)) {
+      if (action === 'subscribe' && row?.fraud_flag_at) return json({ error: 'blocked' }, 403);
+      const attempts = (since: number) =>
+        admin.from('billing_attempts').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('action', action).gte('at', new Date(now.getTime() - since).toISOString());
+      const [hour, day] = await Promise.all([attempts(3_600_000), attempts(86_400_000)]);
+      if (hour.error || day.error) throw new Error(`billing_attempts: ${(hour.error ?? day.error)!.message}`);
+      if (billingLimitReached(action, hour.count ?? 0, day.count ?? 0)) {
+        console.warn('[billing] demasiados intentos', userId, action, hour.count, day.count);
+        return json({ error: 'too_many_attempts' }, 429);
+      }
+      await admin.from('billing_attempts').insert({ user_id: userId, action });
+      // los de hace más de 2 días ya no cuentan para nada
+      await admin.from('billing_attempts').delete().eq('user_id', userId).lt('at', new Date(now.getTime() - 2 * 86_400_000).toISOString());
     }
 
     if (action === 'subscribe') {
@@ -114,12 +140,21 @@ Deno.serve(async (req) => {
       });
       if (error) throw new Error(`no se pudo guardar la suscripción: ${error.message}`);
       const firstTime = trialEligible(row);
+      const trial = firstTime ? '1' : '0';
+      // Un solo Checkout abierto por persona: si ya hay uno con el mismo precio
+      // y la misma prueba, se reutiliza; los demás se cierran. Así no se pueden
+      // pagar dos suscripciones a la vez ni generar links sin fin.
+      const open = await stripe.checkout.sessions.list({ customer, status: 'open', limit: 10 });
+      const reuse = open.data.find((s) => s.url && s.metadata?.user_id === userId && s.metadata?.price_id === price.id && s.metadata?.trial === trial);
+      for (const s of open.data) if (s.id !== reuse?.id) await stripe.checkout.sessions.expire(s.id).catch(() => null);
+      if (reuse?.url) return json({ initPoint: reuse.url, priceMxn: price.priceMxn });
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer,
         line_items: [{ price: price.id, quantity: 1 }],
         client_reference_id: userId,
-        metadata: { user_id: userId },
+        metadata: { user_id: userId, price_id: price.id, trial },
+        expires_at: Math.floor(now.getTime() / 1000) + CHECKOUT_TTL_S,
         // La prueba pide tarjeta y cobra al terminar si no cancela.
         subscription_data: { metadata: { user_id: userId }, ...(firstTime ? { trial_period_days: TRIAL_DAYS } : {}) },
         payment_method_collection: 'always',

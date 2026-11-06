@@ -14,7 +14,8 @@ de producto están en
 > prueba)». Los términos vigentes son `TERMS_VERSION = '2026-11-06'` (precio
 > único, prueba de 7 días, Stripe). La revisión de un abogado queda para
 > después. Lo de Mercado Pago (secciones 2 y 4) se queda como historial hasta
-> que Stripe cobre en producción.
+> que Stripe cobre en producción. Límites de intentos y fraude:
+> [`cobro-stripe.md`, «Abuso y fraude»](cobro-stripe.md#abuso-y-fraude).
 
 ## Quién tiene la IA
 

@@ -15,7 +15,7 @@ export const PRIVACY_TEXT = `## 1. Responsable
 | **Datos de entrenamiento** | Sesiones (potencia, cadencia, pulso, duración), RPE, notas, archivos .fit | Medir tu progreso y ajustar tu plan |
 | **Lo que escribes a Piñón, en tus notas o al coach** | Preguntas, notas de cada sesión y de la semana. **Pueden contener datos de salud** (cansancio, molestias, lesiones), y se tratan como tales | Contestarte y ajustar tu plan |
 | **Tu expediente de entrenamiento** | Un resumen que el coach IA actualiza con lo que observa de cómo respondes a los entrenamientos | Que los siguientes ajustes tomen en cuenta tu historia. **Lo puedes ver y borrar en Perfil** |
-| **Pago** | Lo gestiona Stripe. Torq **no** guarda los datos de tu tarjeta; solo el estado de tu suscripción y de cada cobro (monto, fecha y si la tarjeta es de crédito o débito, para la factura) | Cobrar tu suscripción y facturar |
+| **Pago** | Lo gestiona Stripe. Torq **no** guarda los datos de tu tarjeta; solo el estado de tu suscripción y de cada cobro (monto, fecha y si la tarjeta es de crédito o débito, para la factura) y una huella de la tarjeta que da Stripe (no es el número) | Cobrar tu suscripción, facturar y evitar abusos de la prueba y fraude |
 | **Técnicos** | Dispositivo, navegador, fecha y hora de aceptación de estos documentos | Seguridad y evidencia de tu consentimiento |
 
 ## 3. Finalidades
