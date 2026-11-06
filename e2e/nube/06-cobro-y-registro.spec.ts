@@ -4,13 +4,14 @@ import type { MockSupabase, MockUser } from '../support/mock-supabase';
 import { seedProfile } from '../support/seed';
 
 /**
- * Cobro y registro (modo de prueba, Mercado Pago simulado):
+ * Cobro y registro (modo de prueba, Stripe simulado):
  * términos antes de todo, precio antes del cuestionario, suscribirse y
- * volver de Mercado Pago, cancelar, atletas con coach sin cobro, lista de
- * espera para administradores y registro solo con invitación.
+ * volver del pago, cancelar, volver a suscribirse, actualizar la tarjeta en
+ * la gracia, atletas con coach sin cobro, lista de espera y ventas del mes
+ * para administradores y registro solo con invitación.
  */
 
-const NONE = { ai: false, reason: 'none', subscription: null, priceMxn: 329, billingReady: true, isAdmin: false };
+const NONE = { ai: false, reason: 'none', subscription: null, priceMxn: 329, trialDays: 7, billingReady: true, isAdmin: false };
 const future = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString();
 
 async function enter(page: Page, backend: MockSupabase, id = 'ana', withProfile = true): Promise<MockUser> {
@@ -77,12 +78,12 @@ test.describe('Términos antes de empezar', () => {
 });
 
 test.describe('Precio y suscripción', () => {
-  test('sin acceso: suscribirse, volver de Mercado Pago y quedar activo', async ({ page, backend, ux }) => {
+  test('sin acceso: suscribirse, volver del pago y quedar activo', async ({ page, backend, ux }) => {
     await enter(page, backend);
     backend.billingStatus = { ...NONE };
     backend.functions.set('billing', (body) => {
       if (body?.action === 'subscribe') {
-        // Mercado Pago autoriza y nos avisa (webhook): el acceso cambia
+        // Stripe Checkout cobra (o empieza la prueba) y nos avisa (webhook): el acceso cambia
         backend.billingStatus = { ai: true, reason: 'subscription', subscription: { status: 'authorized', price_mxn: 329, paid_until: future(30), grace_until: null }, priceMxn: 329, billingReady: true, isAdmin: false };
         return { body: { initPoint: '/?billing=return#/profile', priceMxn: 329 } };
       }
@@ -94,8 +95,13 @@ test.describe('Precio y suscripción', () => {
     });
     await page.goto('/#/plan');
     const card = page.locator('#coach-slot [data-pricing]');
-    await expect(card).toContainText('Precio de fundador');
-    await ux.click(card.locator('[data-subscribe]'), 'Suscribirme con Mercado Pago');
+    // un solo precio, la prueba de 7 días y cuándo es el primer cobro
+    await expect(card.locator('.pricing-amount')).toHaveText('$329 al mes 7 días de prueba');
+    await expect(card).toContainText('el primer cobro es al terminar los 7 días de prueba');
+    await expect(card).not.toContainText('fundador');
+    await expect(card).not.toContainText('Mercado Pago');
+    await expect(card.locator('[data-subscribe]')).toHaveText('Suscribirme');
+    await ux.click(card.locator('[data-subscribe]'), 'Suscribirme');
     await expect(page).toHaveURL(/#\/profile/);
     await expect(page.locator('.billing-toast')).toContainText('ya tienes Torq Coach IA');
     await expect(page.locator('.perfil-panel[data-pricing]')).toContainText('$329 al mes');
@@ -108,7 +114,25 @@ test.describe('Precio y suscripción', () => {
     expect(backend.fnCalls('billing').map((c) => (c.body as { action?: string })?.action)).toEqual(expect.arrayContaining(['subscribe', 'cancel']));
   });
 
-  test('Mercado Pago sin configurar: el botón se apaga y lo dice', async ({ page, backend, ux }) => {
+  test('canceló y regresa antes de que termine lo pagado: conserva su precio', async ({ page, backend, ux }) => {
+    await enter(page, backend);
+    backend.billingStatus = { ai: true, reason: 'subscription', subscription: { status: 'cancelled', price_mxn: 329, paid_until: future(12), grace_until: null }, priceMxn: 329, trialDays: 0, billingReady: true, isAdmin: false };
+    backend.functions.set('billing', (body) => {
+      if (body?.action === 'subscribe') {
+        // se reactiva la misma suscripción en Stripe (sin Checkout ni cobro nuevo)
+        backend.billingStatus = { ...(backend.billingStatus as object), subscription: { status: 'authorized', price_mxn: 329, paid_until: future(12), grace_until: null } };
+        return { body: { initPoint: '/?billing=return#/profile', priceMxn: 329 } };
+      }
+      return { body: backend.billingStatus };
+    });
+    await page.goto('/#/profile');
+    const panel = page.locator('.perfil-panel[data-pricing]');
+    await ux.click(panel.locator('[data-subscribe]'), 'Volver a suscribirme · $329 al mes');
+    await expect(page.locator('.billing-toast')).toContainText('ya tienes Torq Coach IA');
+    await expect(panel.locator('#subscription-cancel')).toBeVisible();
+  });
+
+  test('cobro sin configurar: el botón se apaga y lo dice', async ({ page, backend, ux }) => {
     await enter(page, backend);
     backend.billingStatus = { ...NONE, billingReady: false };
     await page.goto('/#/plan');
@@ -121,8 +145,14 @@ test.describe('Precio y suscripción', () => {
     await enter(page, backend);
     backend.billingStatus = { ai: true, reason: 'grace', subscription: { status: 'authorized', price_mxn: 329, paid_until: future(-2), grace_until: future(5) }, priceMxn: 329, billingReady: true, isAdmin: false };
     await page.goto('/#/profile');
-    await expect(page.locator('.perfil-panel[data-pricing]')).toContainText('No pudimos cobrar tu mes');
-    void ux;
+    const panel = page.locator('.perfil-panel[data-pricing]');
+    await expect(panel).toContainText('No pudimos cobrar tu mes');
+    await expect(panel).not.toContainText('Mercado Pago');
+    // «Actualizar tarjeta» abre el portal de Stripe
+    backend.functions.set('billing', (body) => (body?.action === 'portal' ? { body: { url: '/?portal=stripe#/profile' } } : { body: backend.billingStatus }));
+    await ux.click(panel.locator('#billing-portal'), 'Actualizar tarjeta');
+    await expect(page).toHaveURL(/portal=stripe/);
+    expect(backend.fnCalls('billing').map((c) => (c.body as { action?: string })?.action)).toContain('portal');
   });
 
   test('Piñón sin acceso: la pregunta abierta explica y ofrece el plan', async ({ page, backend, ux }) => {
@@ -175,6 +205,35 @@ test.describe('Registro solo con invitación', () => {
     await expect(page.locator('#admin-status')).toHaveText('Invitación enviada.');
     await expect(page.locator('[data-invite]')).toHaveCount(0);
     expect(backend.fnCalls('invite').some((c) => (c.body as { action?: string; id?: string }).action === 'waitlist_invite' && (c.body as { id?: string }).id === 'w1')).toBe(true);
+  });
+
+  test('administrador: ventas del mes para la factura global', async ({ page, backend, ux }) => {
+    await enter(page, backend, 'diego');
+    backend.billingStatus = { ai: true, reason: 'comp', subscription: null, priceMxn: 329, billingReady: true, isAdmin: true };
+    const rows = [
+      { stripe_invoice_id: 'in_1', stripe_charge_id: 'ch_1', paid_at: '2026-10-03T18:00:00Z', total_cents: 32900, base_cents: 28362, iva_cents: 4538, card_funding: 'credit', cfdi_uuid: null },
+      { stripe_invoice_id: 'in_2', stripe_charge_id: 'ch_2', paid_at: '2026-10-20T18:00:00Z', total_cents: 32900, base_cents: 28362, iva_cents: 4538, card_funding: 'debit', cfdi_uuid: null },
+    ];
+    backend.functions.set('billing', (body) => {
+      if (body?.action === 'sales') return { body: { month: body.month, rows } };
+      if (body?.action === 'sales_set_cfdi') {
+        rows.forEach((r) => (r.cfdi_uuid = body.uuid as never));
+        return { body: { ok: true, updated: rows.length } };
+      }
+      return { body: backend.billingStatus };
+    });
+    await page.goto('/#/home');
+    await ux.click(page.locator('.sidebar-link', { hasText: 'Ventas del mes' }), 'Ventas del mes');
+    const screen = page.locator('.admin-screen');
+    await expect(screen.locator('tfoot')).toContainText('2 cobros');
+    await expect(screen.locator('tfoot')).toContainText('567.24'); // base
+    await expect(screen.locator('tfoot')).toContainText('90.76'); // IVA
+    const download = page.waitForEvent('download');
+    await ux.click(screen.locator('#sales-csv'), 'Descargar CSV');
+    expect((await download).suggestedFilename()).toMatch(/^torq-ventas-\d{4}-\d{2}\.csv$/);
+    await screen.locator('#sales-uuid').fill('6F2B1A3C-1234-4ABC-9DEF-0123456789AB');
+    await ux.click(screen.locator('#sales-uuid-save'), 'Guardar UUID');
+    await expect(page.locator('.admin-screen')).toContainText('Todos los cobros de este mes ya tienen CFDI');
   });
 
   test('quien no es administrador no ve la lista', async ({ page, backend }) => {
