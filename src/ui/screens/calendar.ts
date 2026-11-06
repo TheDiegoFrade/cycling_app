@@ -15,13 +15,13 @@ import { downloadSessionSamples, pushSessionToCloud } from '../../sync/cloud-syn
 import type { CloudSessionSummary } from '../../sync/cloud-sync';
 import { importStravaActivity, isStravaConfigured, listStravaActivities } from '../../sync/strava';
 import { pushWorkoutToCloud } from '../../sync/workout-sync';
-import { navigate, refresh } from '../router';
+import { getRouteParam, navigate, refresh } from '../router';
 import { appState } from '../state';
 import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { tokenForIntervals, tokenForWorkout, tokenHtml } from '../workout-token';
 import type { Token } from '../workout-token';
 import { wireDatePicker } from '../date-picker';
-import { renderCoachSection, requestCoachCreate } from '../coach';
+import { renderCoachSection, requestCoachCreate, requestCoachEval } from '../coach';
 import { isSupabaseConfigured } from '../../supabase/client';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
 import { notifyPlanChange, planChangeNotice } from '../coach-notice';
@@ -218,6 +218,12 @@ function errorsHtml(errors: string[]): string {
 }
 
 export function renderCalendar(container: HTMLElement): () => void {
+  // Link del correo del domingo (#/plan/evaluar): abre la evaluación de la
+  // semana. Se quita del hash para que recargar no la vuelva a abrir.
+  if (getRouteParam() === 'evaluar') {
+    requestCoachEval();
+    history.replaceState(null, '', '#/plan');
+  }
   const today = new Date();
   const todayKey = toDateKey(today);
   let viewMode: ViewMode = 'week';

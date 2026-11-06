@@ -535,6 +535,21 @@ function evalWeekTarget(startDate, todayKey) {
 function planTotalWeeks(blocks) {
   return blocks.reduce((s, b) => s + b.weeks, 0);
 }
+function weeklyEvalDue(plan, todayKey, isoWeekOfToday) {
+  const t = evalWeekTarget(plan.startDate, todayKey);
+  if (!t || t.target >= planTotalWeeks(plan.blocks)) return null;
+  const done = typeof plan.lastEvaluatedWeek === "number" ? plan.lastEvaluatedWeek >= t.evaluated : !!plan.lastEvalIsoWeek && plan.lastEvalIsoWeek === isoWeekOfToday;
+  if (done) return null;
+  const nextEmpty = !plan.weeks.some((w) => w.weekIndex === t.target && w.workoutIds.length > 0);
+  return { week: t.evaluated + 1, nextWeek: t.target + 1, nextEmpty };
+}
+function storedIsoWeekKey(now) {
+  const target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  target.setUTCDate(target.getUTCDate() - (target.getUTCDay() + 6) % 7 + 3);
+  const firstThursday = new Date(Date.UTC(target.getUTCFullYear(), 0, 4));
+  const week = 1 + Math.round(((target.getTime() - firstThursday.getTime()) / DAY_MS - 3) / 7);
+  return `${target.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+}
 
 // src/core/intake.ts
 var CHRONIC_CONDITION_LABELS = {
@@ -1050,11 +1065,13 @@ export {
   startPhase,
   startingProfile,
   stillLive,
+  storedIsoWeekKey,
   stripeStatusOf,
   subscriptionChangeOf,
   subscriptionStatusOf,
   trialCardReused,
   trialEligible,
   validateCoachApplication,
-  verifyMpSignature
+  verifyMpSignature,
+  weeklyEvalDue
 };

@@ -53,6 +53,16 @@ test.describe('Ajuste semanal', () => {
     await expect(page.locator('#coach-eval-zone')).toContainText('todavía no tiene entrenamientos');
   });
 
+  test('link del correo del domingo: abre Plan con la evaluación lista', async ({ page, backend, ux }) => {
+    const u = await enterAs(page, backend, 'ana', true);
+    seedActivePlan(backend, u);
+    await page.goto('/#/plan/evaluar');
+    await expect(page.locator('#coach-eval-form')).toBeVisible();
+    await expect(page.locator('#coach-eval-note')).toBeFocused();
+    await expect(page).toHaveURL(/#\/plan$/);
+    void ux;
+  });
+
   test('semana de viaje sin bici: el calendario dice «Fuerza en casa» y «Caminar o trotar suave»', async ({ page, backend, ux }) => {
     const u = await enterAs(page, backend, 'ana', true);
     seedActivePlan(backend, u);

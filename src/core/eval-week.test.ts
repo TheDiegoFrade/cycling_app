@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { evalWeekTarget, planTotalWeeks, planWeekOf, weeklyEvalDue } from './eval-week';
+import { evalWeekTarget, storedIsoWeekKey, planTotalWeeks, planWeekOf, weeklyEvalDue } from './eval-week';
 
 describe('planWeekOf', () => {
   it('cuenta semanas calendario desde el lunes de la semana de arranque', () => {
@@ -61,5 +61,16 @@ describe('weeklyEvalDue: ¿le toca evaluar su semana?', () => {
   it('planes de antes (solo con la semana ISO): evaluado esta semana = hecho', () => {
     expect(weeklyEvalDue({ ...plan, lastEvalIsoWeek: '2026-W45' }, '2026-11-04', '2026-W45')).toBeNull();
     expect(weeklyEvalDue({ ...plan, lastEvalIsoWeek: '2026-W44' }, '2026-11-04', '2026-W45')).toEqual({ week: 2, nextWeek: 3, nextEmpty: false });
+  });
+});
+
+describe('storedIsoWeekKey', () => {
+  it('misma clave de lunes a domingo; cambia el lunes', () => {
+    const k = (iso: string) => storedIsoWeekKey(new Date(iso));
+    expect(k('2026-11-02T00:00:00Z')).toBe(k('2026-11-08T23:59:59Z'));
+    expect(k('2026-11-09T00:00:00Z')).not.toBe(k('2026-11-08T23:59:59Z'));
+  });
+  it('es la clave que ya guardan la app y coach-chat', () => {
+    expect(storedIsoWeekKey(new Date('2026-11-08T12:00:00Z'))).toBe('2026-W44');
   });
 });
