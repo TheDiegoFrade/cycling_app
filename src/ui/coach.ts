@@ -21,7 +21,7 @@ import { confirmAiWithHumanCoach, humanCoachName } from './coach-notice';
 import { celebratePinon, pinonFigureHtml, pinonSpeak } from './pinon';
 import { coachFtpFields, coachProfileExtras, ftpSourceOf, isMeasuredFtp, sourceForAcceptedSuggestion, withFtp } from '../core/coach-profile';
 import { planContextFor, plannedTestLabel, weekStartOf } from '../core/plan-context';
-import { evalWeekTarget, planTotalWeeks, planWeekOf } from '../core/eval-week';
+import { evalWeekTarget, planTotalWeeks, planWeekOf, weeklyEvalDue } from '../core/eval-week';
 import { ruleTriggersOf } from '../core/rule-triggers';
 import { readTest } from '../core/test-reading';
 import type { LastTest } from '../core/test-reading';
@@ -75,6 +75,14 @@ const THINKING_MESSAGES = [
   '✍️ Escribiendo las notas del coach…',
 ];
 
+// Mientras el coach evalúa la semana (~30 s).
+const EVAL_MESSAGES = [
+  '🧠 Revisando tu semana…',
+  '📊 Viendo cómo respondiste a la carga…',
+  '🗓️ Armando tu siguiente semana…',
+  '✍️ Escribiendo la nota del coach…',
+];
+
 /** Con coach humano, lo que genera la IA del atleta llega como borrador a
  * su coach (ver sendWeekToCoachDraft en coach-chat) — hay que decirlo, si
  * no el atleta busca en su Plan algo que todavía no está. */
@@ -125,6 +133,34 @@ export function requestCoachCreate(): void {
   pendingCreate = true;
 }
 
+/** Inicio pidió «Evaluar mi semana»: al pintar la tarjeta del coach se abre
+ * el formulario de la evaluación. Vale unos segundos (no una sola vez): Plan
+ * se pinta de nuevo al cargar sus datos y eso cerraba el formulario. */
+let pendingEvalUntil = 0;
+export function requestCoachEval(): void {
+  pendingEvalUntil = Date.now() + 5000;
+}
+
+function evalDueOf(plan: ActivePlanRow) {
+  return weeklyEvalDue(
+    { startDate: plan.data.startDate, blocks: plan.data.blocks, weeks: plan.data.weeks, lastEvaluatedWeek: plan.data.lastEvaluatedWeek, lastEvalIsoWeek: plan.last_eval_iso_week },
+    localTodayKey(),
+    currentIsoWeek(),
+  );
+}
+
+/** ¿Le toca evaluar su semana? Para el aviso de Inicio. Solo con el coach de
+ * IA a su cargo: con coach humano, la semana la ve su coach. */
+export async function fetchWeeklyEvalDue(): Promise<{ week: number; nextWeek: number; nextEmpty: boolean } | null> {
+  if (!supabase || !appState.user || !hasAi() || humanCoachName()) return null;
+  try {
+    const plan = await fetchActivePlan(appState.user.id);
+    return plan ? evalDueOf(plan) : null;
+  } catch {
+    return null;
+  }
+}
+
 interface PlanWeek {
   weekIndex: number;
   workoutIds: string[];
@@ -137,6 +173,8 @@ interface ActivePlanRow {
     startDate: string;
     blocks: StoredPlanData['blocks'];
     weeks: PlanWeek[];
+    // Semana del plan que se evaluó la última vez (weekly_eval la guarda).
+    lastEvaluatedWeek?: number;
     // Lo último que dijo el coach en una weekly_eval — sin esto se perdía
     // apenas se recargaba la página (ver applyModeEffects en coach-chat).
     lastEvalNote?: string;
@@ -305,9 +343,15 @@ function evalZoneHtml(plan: ActivePlanRow, weeklyEvalsUsed: number): string {
   if (remainingThisWeek <= 0) {
     return `<p class="hint" style="margin-top:10px">Ya usaste tus ${MAX_EVALS_PER_ISO_WEEK} evaluaciones de esta semana — vuelve la próxima para seguir ajustando.</p>`;
   }
+  // Si le toca cerrar su semana, se dice claro (y más si la siguiente está vacía).
+  const due = evalDueOf(plan);
   return evalFormHtml(
     isRefresh,
-    `Te quedan ${remainingThisWeek} de ${MAX_EVALS_PER_ISO_WEEK} evaluaciones de esta semana. Mejor espérate al final de la semana (ej. domingo) para evaluarla — así el coach ve cómo te fue completa y arma o actualiza la semana siguiente con esa info real, no a medias.`,
+    due?.nextEmpty
+      ? `<strong>Tu semana ${due.nextWeek} todavía no tiene entrenamientos.</strong> Evalúa tu semana ${due.week} y el coach la arma con lo que te pasó.`
+      : due
+        ? `<strong>Toca cerrar tu semana ${due.week}.</strong> Cuéntale al coach cómo te fue y ajusta la siguiente con eso.`
+        : `Te quedan ${remainingThisWeek} de ${MAX_EVALS_PER_ISO_WEEK} evaluaciones de esta semana. Mejor espérate al final de la semana (ej. domingo) para evaluarla — así el coach ve cómo te fue completa y arma o actualiza la semana siguiente con esa info real, no a medias.`,
   );
 }
 
@@ -432,25 +476,33 @@ function wireWeeklyEvalButton(slot: HTMLElement, plan: ActivePlanRow, onChange: 
   submitBtn.addEventListener('click', async () => {
     if (!supabase) return;
     submitBtn.disabled = true;
+    // ~25-30 s (coach_calls): mensajes de la evaluación (no los de crear
+    // plan) y el tiempo que lleva.
+    const started = Date.now();
     let msgIndex = 0;
-    status.textContent = THINKING_MESSAGES[0];
-    const thinkingTimer = window.setInterval(() => {
-      msgIndex = (msgIndex + 1) % THINKING_MESSAGES.length;
-      status.textContent = THINKING_MESSAGES[msgIndex];
-    }, 4000);
+    const paintStatus = () => {
+      status.textContent = `${EVAL_MESSAGES[msgIndex]} · ${Math.floor((Date.now() - started) / 1000)} s (tarda unos 30 s)`;
+    };
+    paintStatus();
+    const tick = window.setInterval(paintStatus, 1000);
+    const steps = window.setInterval(() => {
+      msgIndex = Math.min(msgIndex + 1, EVAL_MESSAGES.length - 1);
+      paintStatus();
+    }, 7000);
+    const thinkingTimer = { clear: () => (window.clearInterval(tick), window.clearInterval(steps)) };
 
     const athleteNote = noteInput.value.trim() || null;
     const otherNote = slot.querySelector<HTMLTextAreaElement>('#coach-eval-other')?.value.trim() || null;
     const context = await computeWeekEvalContext(plan, athleteNote, otherNote);
     if (!context) {
-      window.clearInterval(thinkingTimer);
+      thinkingTimer.clear();
       status.textContent = 'Todavía no hay ninguna sesión real registrada para evaluar — entrena esta semana primero.';
       submitBtn.disabled = false;
       return;
     }
 
     const { data, error } = await supabase.functions.invoke('coach-chat', { body: { mode: 'weekly_eval', context } });
-    window.clearInterval(thinkingTimer);
+    thinkingTimer.clear();
     if (error || data?.error) {
       let serverMessage = data?.error as string | undefined;
       if (!serverMessage && error && 'context' in error) {
@@ -650,6 +702,15 @@ export function renderCoachSection(container: HTMLElement, onChange: () => void)
       wireFtpOffer(slot);
       wireAbandonButton(slot, container, onChange);
       wireWeeklyEvalButton(slot, plan, onChange);
+      if (Date.now() < pendingEvalUntil) {
+        const open = slot.querySelector<HTMLButtonElement>('#coach-eval-open');
+        if (open) {
+          open.click();
+          const form = slot.querySelector<HTMLElement>('#coach-eval-form');
+          form?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          slot.querySelector<HTMLTextAreaElement>('#coach-eval-note')?.focus({ preventScroll: true });
+        }
+      }
     }
   });
 }

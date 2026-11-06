@@ -8502,3 +8502,9 @@ body.remote-body {
 .coach-plan-email {
   margin-top: 12px;
 }
+
+/* Inicio: «Cierra tu semana con el coach» (más visible si la siguiente está vacía) */
+.recovery-banner.eval-due.urgent {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}

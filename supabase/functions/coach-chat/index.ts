@@ -1115,6 +1115,9 @@ async function applyModeEffects(
           blocks,
           weeks,
           lastEvalNote: output.reasoning,
+          // Qué semana del plan se evaluó: la app avisa «cierra tu semana»
+          // solo si la que acaba de terminar no se ha evaluado.
+          lastEvaluatedWeek: t.evaluated,
           // Días que el atleta confirmó en su nota para seguir (subir o bajar):
           // quedan como los del plan y las semanas siguientes se arman con ellos.
           ...(Array.isArray(output.planDays) && output.planDays.length

@@ -35,6 +35,37 @@ async function enterAs(page: Page, backend: MockSupabase, id: string, withProfil
   return u;
 }
 
+test.describe('Ajuste semanal', () => {
+  test('terminó su semana sin evaluar: Inicio lo avisa y lleva directo al formulario', async ({ page, backend, ux }) => {
+    const u = await enterAs(page, backend, 'ana', true);
+    // plan que arrancó hace una semana y solo trae armada la primera
+    seedActivePlan(backend, u);
+    await page.goto('/#/home');
+    const banner = page.locator('#eval-due');
+    await expect(banner).toBeVisible();
+    await expect(banner).toHaveClass(/urgent/);
+    await expect(banner).toContainText('todavía no tiene entrenamientos');
+    await ux.shot('27-inicio-cierra-tu-semana', banner);
+    await ux.click(banner.locator('#eval-due-go'), 'Evaluar mi semana');
+    await expect(page).toHaveURL(/#\/plan/);
+    await expect(page.locator('#coach-eval-form')).toBeVisible();
+    await expect(page.locator('#coach-eval-note')).toBeFocused();
+    await expect(page.locator('#coach-eval-zone')).toContainText('todavía no tiene entrenamientos');
+  });
+
+  test('ya evaluó esa semana: Inicio no insiste', async ({ page, backend, ux }) => {
+    const u = await enterAs(page, backend, 'ana', true);
+    seedActivePlan(backend, u);
+    const plan = backend.table('training_plans').at(-1) as { data: Record<string, unknown> };
+    plan.data.lastEvaluatedWeek = 5;
+    await page.goto('/#/home');
+    await expect(page.locator('.home-screen')).toBeVisible();
+    await page.waitForTimeout(800);
+    await expect(page.locator('#eval-due')).toHaveCount(0);
+    void ux;
+  });
+});
+
 test.describe('Crear mi plan', () => {
   test('perfil completo: de Inicio a plan creado en ≤ 8 interacciones', async ({ page, backend, ux }) => {
     const u = await enterAs(page, backend, 'ana', true);

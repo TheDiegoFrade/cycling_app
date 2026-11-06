@@ -46,3 +46,32 @@ export function evalWeekTarget(startDate: string, todayKey: string): EvalTarget 
 export function planTotalWeeks(blocks: readonly { weeks: number }[]): number {
   return blocks.reduce((s, b) => s + b.weeks, 0);
 }
+
+/** ¿Le toca evaluar su semana? (para avisarle en Inicio y en Plan). Si la
+ * semana que se acaba de terminar no se ha evaluado: `week` es esa (1 = la
+ * primera) y `nextEmpty` dice si la siguiente todavía no tiene
+ * entrenamientos (create_plan arma hasta 3 semanas; las demás solo existen
+ * si evalúa). null = no hay nada que evaluar (todavía no termina la primera
+ * semana, ya la evaluó, o el plan terminó). */
+export function weeklyEvalDue(
+  plan: {
+    startDate: string;
+    blocks: readonly { weeks: number }[];
+    weeks: readonly { weekIndex: number; workoutIds: readonly string[] }[];
+    /** Semana del plan (0 = la de arranque) que se evaluó la última vez. */
+    lastEvaluatedWeek?: number | null;
+    /** Planes de antes de guardar lastEvaluatedWeek: la semana ISO de la última evaluación. */
+    lastEvalIsoWeek?: string | null;
+  },
+  todayKey: string,
+  isoWeekOfToday: string,
+): { week: number; nextWeek: number; nextEmpty: boolean } | null {
+  const t = evalWeekTarget(plan.startDate, todayKey);
+  if (!t || t.target >= planTotalWeeks(plan.blocks)) return null;
+  const done =
+    typeof plan.lastEvaluatedWeek === 'number' ? plan.lastEvaluatedWeek >= t.evaluated : !!plan.lastEvalIsoWeek && plan.lastEvalIsoWeek === isoWeekOfToday;
+  if (done) return null;
+  const nextEmpty = !plan.weeks.some((w) => w.weekIndex === t.target && w.workoutIds.length > 0);
+  return { week: t.evaluated + 1, nextWeek: t.target + 1, nextEmpty };
+}
+
