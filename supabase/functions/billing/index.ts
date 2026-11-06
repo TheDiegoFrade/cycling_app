@@ -100,10 +100,11 @@ Deno.serve(async (req) => {
       const price = await checkoutPrice();
       const customer = row?.stripe_customer_id ?? (await stripe.customers.create({ email, metadata: { user_id: userId } })).id;
       // Se guarda antes de abrir Checkout: así no se crea otro Customer si la
-      // persona lo abre dos veces. Se conservan paid_until y grace_until.
+      // persona lo abre dos veces. Se conservan paid_until y grace_until, y
+      // «cancelled» (si le quedan días pagados, no los pierde por abrir Checkout).
       const { error } = await admin.from('subscriptions').upsert({
         user_id: userId,
-        status: 'pending',
+        status: row?.status === 'cancelled' ? 'cancelled' : 'pending',
         price_mxn: price.priceMxn,
         provider: 'stripe',
         stripe_customer_id: customer,
