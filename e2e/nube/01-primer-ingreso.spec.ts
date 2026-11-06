@@ -20,6 +20,45 @@ test.describe('Entrar a la app', () => {
     await expect(page.locator('.home-scene-hello')).toContainText('Ana');
   });
 
+  test('la entrada dice que Torq es para Google Chrome en computadora', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('#entry-browser')).toHaveText('Torq está hecho para Google Chrome en computadora.');
+    await expect(page.locator('#entry-browser')).not.toHaveClass(/warn/);
+  });
+
+  test('en un navegador sin Bluetooth (Safari, Firefox) se avisa desde la entrada y en Inicio', async ({ page, backend, ux }) => {
+    await page.addInitScript(() => {
+      delete (Navigator.prototype as unknown as { bluetooth?: unknown }).bluetooth;
+    });
+    const ana = user('ana');
+    backend.users.push(ana);
+    await page.goto('/');
+    await expect(page.locator('#entry-browser')).toHaveClass(/warn/);
+    await expect(page.locator('#entry-browser')).toContainText('Google Chrome en tu computadora');
+    await login(page, ux, ana);
+    const banner = page.locator('#browser-banner');
+    await expect(banner).toContainText('Usa Google Chrome en tu computadora.');
+    await ux.click(banner.locator('#browser-banner-close'), 'Entendido');
+    await expect(banner).toHaveCount(0);
+    // cerrado: no vuelve a salir en esta sesión
+    await page.goto('/#/plan');
+    await page.goto('/#/home');
+    await expect(page.locator('.home-screen')).toBeVisible();
+    await expect(page.locator('#browser-banner')).toHaveCount(0);
+  });
+
+  test('en Edge (tiene Bluetooth, pero no es Chrome) también recomienda Chrome', async ({ page, backend, ux }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(Navigator.prototype, 'userAgent', { configurable: true, get: () => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0' });
+    });
+    const ana = user('ana');
+    backend.users.push(ana);
+    await page.goto('/');
+    await expect(page.locator('#entry-browser')).toContainText('probado en Google Chrome');
+    await login(page, ux, ana);
+    await expect(page.locator('#browser-banner')).toContainText('Usa Google Chrome en tu computadora.');
+  });
+
   test('Enter en la contraseña inicia sesión (no obliga a buscar el botón)', async ({ page, backend, ux }) => {
     const ana = user('ana');
     backend.users.push(ana);

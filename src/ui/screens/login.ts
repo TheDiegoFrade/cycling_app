@@ -4,6 +4,7 @@ import { navigate } from '../router';
 import { appState } from '../state';
 import { requestPasswordReset } from '../password-reset';
 import { joinWaitlist } from '../../sync/waitlist';
+import { BROWSER_HINT, browserWarning } from '../../devices/ble-support';
 
 /** Supabase contesta en inglés ("Invalid login credentials"…): a la persona
  * se le dice en español qué pasó y qué hacer. */
@@ -22,6 +23,7 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
       <div class="entry-pill">
         <div class="brand"><img class="brand-logo" src="/brand/logo-torq.webp" alt="torq" width="150" height="70"></div>
         <div class="tag">Entrena sin mirar la pantalla.</div>
+        <p class="entry-browser${browserWarning() ? ' warn' : ''}" id="entry-browser">${browserWarning() ?? BROWSER_HINT}</p>
         <button type="button" class="ghost-btn" id="entry-toggle">Entrar</button>
         <form class="entry-fields" id="entry-fields" novalidate>
           <label>Correo<input type="email" id="login-email" placeholder="tucorreo@ejemplo.com" autocomplete="email"></label>
