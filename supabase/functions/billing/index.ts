@@ -193,6 +193,10 @@ Deno.serve(async (req) => {
         success_url: `${appUrl}/?billing=return#/profile`,
         cancel_url: `${appUrl}/#/profile`,
         locale: 'es-419',
+        // Solo pesos: sin Adaptive Pricing (Stripe ofrecería pagar en la
+        // moneda del país del navegador, p. ej. EUR, y el cobro y la factura
+        // global dejarían de ser en MXN).
+        adaptive_pricing: { enabled: false },
         // Stripe no deja mandar a la vez un descuento y códigos promocionales.
         ...(coupon ? { discounts: [{ coupon }] } : { allow_promotion_codes: false }),
       });
