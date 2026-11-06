@@ -4,13 +4,14 @@ import type { MockSupabase, MockUser } from '../support/mock-supabase';
 import { seedProfile } from '../support/seed';
 
 /**
- * Cobro y registro (modo de prueba, Mercado Pago simulado):
+ * Cobro y registro (modo de prueba, Stripe simulado):
  * términos antes de todo, precio antes del cuestionario, suscribirse y
- * volver de Mercado Pago, cancelar, atletas con coach sin cobro, lista de
- * espera para administradores y registro solo con invitación.
+ * volver del pago, cancelar, volver a suscribirse, actualizar la tarjeta en
+ * la gracia, atletas con coach sin cobro, lista de espera y ventas del mes
+ * para administradores y registro solo con invitación.
  */
 
-const NONE = { ai: false, reason: 'none', subscription: null, priceMxn: 299, billingReady: true, isAdmin: false };
+const NONE = { ai: false, reason: 'none', subscription: null, priceMxn: 329, trialDays: 7, billingReady: true, isAdmin: false };
 const future = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString();
 
 async function enter(page: Page, backend: MockSupabase, id = 'ana', withProfile = true): Promise<MockUser> {
@@ -77,28 +78,35 @@ test.describe('Términos antes de empezar', () => {
 });
 
 test.describe('Precio y suscripción', () => {
-  test('sin acceso: suscribirse, volver de Mercado Pago y quedar activo', async ({ page, backend, ux }) => {
+  test('sin acceso: suscribirse, volver del pago y quedar activo', async ({ page, backend, ux }) => {
     await enter(page, backend);
     backend.billingStatus = { ...NONE };
     backend.functions.set('billing', (body) => {
       if (body?.action === 'subscribe') {
-        // Mercado Pago autoriza y nos avisa (webhook): el acceso cambia
-        backend.billingStatus = { ai: true, reason: 'subscription', subscription: { status: 'authorized', price_mxn: 299, paid_until: future(30), grace_until: null }, priceMxn: 299, billingReady: true, isAdmin: false };
-        return { body: { initPoint: '/?billing=return#/profile', priceMxn: 299 } };
+        // Stripe Checkout cobra (o empieza la prueba) y nos avisa (webhook): el acceso cambia
+        backend.billingStatus = { ai: true, reason: 'subscription', subscription: { status: 'authorized', price_mxn: 329, paid_until: future(30), grace_until: null }, priceMxn: 329, billingReady: true, isAdmin: false };
+        return { body: { initPoint: '/?billing=return#/profile', priceMxn: 329 } };
       }
       if (body?.action === 'cancel') {
-        backend.billingStatus = { ...(backend.billingStatus as object), subscription: { status: 'cancelled', price_mxn: 299, paid_until: future(30), grace_until: null } };
+        backend.billingStatus = { ...(backend.billingStatus as object), subscription: { status: 'cancelled', price_mxn: 329, paid_until: future(30), grace_until: null } };
         return { body: { ok: true } };
       }
       return { body: backend.billingStatus };
     });
     await page.goto('/#/plan');
     const card = page.locator('#coach-slot [data-pricing]');
-    await expect(card).toContainText('Precio de fundador');
-    await ux.click(card.locator('[data-subscribe]'), 'Suscribirme con Mercado Pago');
+    // un solo precio, la prueba de 7 días y cuándo es el primer cobro
+    await expect(card.locator('.pricing-amount')).toHaveText('$329 al mes 7 días de prueba');
+    await expect(card).toContainText('el primer cobro es al terminar los 7 días de prueba');
+    await expect(card).not.toContainText('fundador');
+    await expect(card).not.toContainText('Mercado Pago');
+    await expect(card.locator('[data-subscribe]')).toHaveText('Suscribirme');
+    await ux.click(card.locator('[data-subscribe]'), 'Suscribirme');
     await expect(page).toHaveURL(/#\/profile/);
     await expect(page.locator('.billing-toast')).toContainText('ya tienes Torq Coach IA');
-    await expect(page.locator('.perfil-panel[data-pricing]')).toContainText('$299 al mes');
+    await expect(page.locator('.perfil-panel[data-pricing]')).toContainText('$329 al mes');
+    // con la suscripción al corriente también puede cambiar de tarjeta (portal de Stripe)
+    await expect(page.locator('.perfil-panel[data-pricing] #billing-portal')).toHaveText('Cambiar tarjeta');
     await ux.shot('72-perfil-suscrito', page.locator('.perfil-panel[data-pricing]'));
     // cancelar: dos pasos y explica qué pasa
     await ux.click(page.locator('#subscription-cancel'), 'Cancelar suscripción');
@@ -108,7 +116,61 @@ test.describe('Precio y suscripción', () => {
     expect(backend.fnCalls('billing').map((c) => (c.body as { action?: string })?.action)).toEqual(expect.arrayContaining(['subscribe', 'cancel']));
   });
 
-  test('Mercado Pago sin configurar: el botón se apaga y lo dice', async ({ page, backend, ux }) => {
+  test('canceló y regresa antes de que termine lo pagado: conserva su precio', async ({ page, backend, ux }) => {
+    await enter(page, backend);
+    backend.billingStatus = { ai: true, reason: 'subscription', subscription: { status: 'cancelled', price_mxn: 329, paid_until: future(12), grace_until: null }, priceMxn: 329, trialDays: 0, billingReady: true, isAdmin: false };
+    backend.functions.set('billing', (body) => {
+      if (body?.action === 'subscribe') {
+        // se reactiva la misma suscripción en Stripe (sin Checkout ni cobro nuevo)
+        backend.billingStatus = { ...(backend.billingStatus as object), subscription: { status: 'authorized', price_mxn: 329, paid_until: future(12), grace_until: null } };
+        return { body: { initPoint: '/?billing=return#/profile', priceMxn: 329 } };
+      }
+      return { body: backend.billingStatus };
+    });
+    await page.goto('/#/profile');
+    const panel = page.locator('.perfil-panel[data-pricing]');
+    await ux.click(panel.locator('[data-subscribe]'), 'Volver a suscribirme · $329 al mes');
+    await expect(page.locator('.billing-toast')).toContainText('ya tienes Torq Coach IA');
+    await expect(panel.locator('#subscription-cancel')).toBeVisible();
+  });
+
+  test('demasiados intentos o cuenta bloqueada: lo dice sin abrir el pago', async ({ page, backend, ux }) => {
+    await enter(page, backend);
+    backend.billingStatus = { ...NONE };
+    let reply: { status: number; body: unknown } = { status: 429, body: { error: 'too_many_attempts' } };
+    backend.functions.set('billing', (body) => (body?.action === 'subscribe' ? reply : { body: backend.billingStatus }));
+    await page.goto('/#/plan');
+    const card = page.locator('#coach-slot [data-pricing]');
+    await ux.click(card.locator('[data-subscribe]'), 'Suscribirme');
+    await expect(card.locator('[data-subscribe-status]')).toHaveText('Lo intentaste muchas veces seguidas. Espera una hora y vuelve a intentarlo.');
+    await expect(card.locator('[data-subscribe]')).toBeEnabled();
+    await expect(page).toHaveURL(/#\/plan/);
+    reply = { status: 403, body: { error: 'blocked' } };
+    await ux.click(card.locator('[data-subscribe]'), 'Suscribirme');
+    await expect(card.locator('[data-subscribe-status]')).toContainText('No podemos procesar una suscripción en esta cuenta');
+    await expect(card.locator('[data-subscribe]')).toBeDisabled();
+  });
+
+  test('cliente con descuento: ve su precio, por cuánto tiempo y cuánto paga después', async ({ page, backend, ux }) => {
+    await enter(page, backend);
+    backend.billingStatus = { ...NONE, priceMxn: 164.5, listPriceMxn: 329, discountPercent: 50, discountMonths: 3 };
+    await page.goto('/#/plan');
+    const card = page.locator('#coach-slot [data-pricing]');
+    await expect(card.locator('.pricing-amount')).toHaveText('$164.50 al mes 50 % de descuento por 3 meses 7 días de prueba');
+    await expect(card).toContainText('Después de esos 3 meses, $329 al mes.');
+    void ux;
+  });
+
+  test('cliente gratis: cortesía y hasta cuándo', async ({ page, backend, ux }) => {
+    await enter(page, backend);
+    backend.billingStatus = { ai: true, reason: 'comp', subscription: null, priceMxn: 329, compUntil: '2027-02-06T12:00:00Z', billingReady: true, isAdmin: false };
+    await page.goto('/#/profile');
+    await expect(page.locator('.perfil-panel[data-pricing]')).toContainText('Cuenta de cortesía: tienes Torq Coach IA sin costo hasta el 6 de febrero de 2027.');
+    await expect(page.locator('[data-subscribe]')).toHaveCount(0);
+    void ux;
+  });
+
+  test('cobro sin configurar: el botón se apaga y lo dice', async ({ page, backend, ux }) => {
     await enter(page, backend);
     backend.billingStatus = { ...NONE, billingReady: false };
     await page.goto('/#/plan');
@@ -119,10 +181,16 @@ test.describe('Precio y suscripción', () => {
 
   test('cobro rechazado: días de gracia y cómo arreglarlo', async ({ page, backend, ux }) => {
     await enter(page, backend);
-    backend.billingStatus = { ai: true, reason: 'grace', subscription: { status: 'authorized', price_mxn: 399, paid_until: future(-2), grace_until: future(5) }, priceMxn: 399, billingReady: true, isAdmin: false };
+    backend.billingStatus = { ai: true, reason: 'grace', subscription: { status: 'authorized', price_mxn: 329, paid_until: future(-2), grace_until: future(5) }, priceMxn: 329, billingReady: true, isAdmin: false };
     await page.goto('/#/profile');
-    await expect(page.locator('.perfil-panel[data-pricing]')).toContainText('No pudimos cobrar tu mes');
-    void ux;
+    const panel = page.locator('.perfil-panel[data-pricing]');
+    await expect(panel).toContainText('No pudimos cobrar tu mes');
+    await expect(panel).not.toContainText('Mercado Pago');
+    // «Actualizar tarjeta» abre el portal de Stripe
+    backend.functions.set('billing', (body) => (body?.action === 'portal' ? { body: { url: '/?portal=stripe#/profile' } } : { body: backend.billingStatus }));
+    await ux.click(panel.locator('#billing-portal'), 'Actualizar tarjeta');
+    await expect(page).toHaveURL(/portal=stripe/);
+    expect(backend.fnCalls('billing').map((c) => (c.body as { action?: string })?.action)).toContain('portal');
   });
 
   test('Piñón sin acceso: la pregunta abierta explica y ofrece el plan', async ({ page, backend, ux }) => {
@@ -144,7 +212,7 @@ test.describe('Precio y suscripción', () => {
 test.describe('Con coach, Torq va incluido', () => {
   test('el atleta de un coach no ve precios, y el plan es «de» su coach', async ({ page, backend, ux }) => {
     await enter(page, backend);
-    backend.billingStatus = { ai: true, reason: 'coached', subscription: null, priceMxn: 399, billingReady: true, isAdmin: false };
+    backend.billingStatus = { ai: true, reason: 'coached', subscription: null, priceMxn: 329, billingReady: true, isAdmin: false };
     backend.rpcs.set('my_coach', () => [{ coach_name: 'Joe Hernández', tier: 'todo', started_at: new Date().toISOString() }]);
     await page.goto('/#/plan');
     await expect(page.locator('.plan-coach-brand')).toHaveText('Plan de Joe Hernández');
@@ -159,7 +227,7 @@ test.describe('Con coach, Torq va incluido', () => {
 test.describe('Registro solo con invitación', () => {
   test('administrador: lista de espera e invitar en 1 clic', async ({ page, backend, ux }) => {
     await enter(page, backend, 'diego');
-    backend.billingStatus = { ai: true, reason: 'comp', subscription: null, priceMxn: 399, billingReady: true, isAdmin: true };
+    backend.billingStatus = { ai: true, reason: 'comp', subscription: null, priceMxn: 329, billingReady: true, isAdmin: true };
     const rows = [
       { id: 'w1', email: 'luis@correo.com', name: 'Luis', discipline: 'gravel', created_at: '2026-10-18T10:00:00Z', invited_at: null },
       { id: 'w2', email: 'sofi@correo.com', name: null, discipline: null, created_at: '2026-10-19T10:00:00Z', invited_at: '2026-10-19T12:00:00Z' },
@@ -175,6 +243,75 @@ test.describe('Registro solo con invitación', () => {
     await expect(page.locator('#admin-status')).toHaveText('Invitación enviada.');
     await expect(page.locator('[data-invite]')).toHaveCount(0);
     expect(backend.fnCalls('invite').some((c) => (c.body as { action?: string; id?: string }).action === 'waitlist_invite' && (c.body as { id?: string }).id === 'w1')).toBe(true);
+  });
+
+  test('administrador: ventas del mes para la factura global', async ({ page, backend, ux }) => {
+    await enter(page, backend, 'diego');
+    backend.billingStatus = { ai: true, reason: 'comp', subscription: null, priceMxn: 329, billingReady: true, isAdmin: true };
+    const rows = [
+      { stripe_invoice_id: 'in_1', stripe_charge_id: 'ch_1', paid_at: '2026-10-03T18:00:00Z', total_cents: 32900, base_cents: 28362, iva_cents: 4538, card_funding: 'credit', cfdi_uuid: null },
+      { stripe_invoice_id: 'in_2', stripe_charge_id: 'ch_2', paid_at: '2026-10-20T18:00:00Z', total_cents: 32900, base_cents: 28362, iva_cents: 4538, card_funding: 'debit', cfdi_uuid: null },
+    ];
+    backend.functions.set('billing', (body) => {
+      if (body?.action === 'sales') return { body: { month: body.month, rows } };
+      if (body?.action === 'sales_set_cfdi') {
+        rows.forEach((r) => (r.cfdi_uuid = body.uuid as never));
+        return { body: { ok: true, updated: rows.length } };
+      }
+      return { body: backend.billingStatus };
+    });
+    await page.goto('/#/home');
+    await ux.click(page.locator('.sidebar-link', { hasText: 'Ventas del mes' }), 'Ventas del mes');
+    const screen = page.locator('.admin-screen');
+    await expect(screen.locator('tfoot')).toContainText('2 cobros');
+    await expect(screen.locator('tfoot')).toContainText('567.24'); // base
+    await expect(screen.locator('tfoot')).toContainText('90.76'); // IVA
+    const download = page.waitForEvent('download');
+    await ux.click(screen.locator('#sales-csv'), 'Descargar CSV');
+    expect((await download).suggestedFilename()).toMatch(/^torq-ventas-\d{4}-\d{2}\.csv$/);
+    await screen.locator('#sales-uuid').fill('6F2B1A3C-1234-4ABC-9DEF-0123456789AB');
+    await ux.click(screen.locator('#sales-uuid-save'), 'Guardar UUID');
+    await expect(page.locator('.admin-screen')).toContainText('Todos los cobros de este mes ya tienen CFDI');
+  });
+
+  test('administrador: clientes gratis o con descuento', async ({ page, backend, ux }) => {
+    await enter(page, backend, 'diego');
+    backend.billingStatus = { ai: true, reason: 'comp', subscription: null, priceMxn: 329, billingReady: true, isAdmin: true };
+    const rows: Record<string, unknown>[] = [];
+    backend.functions.set('billing', (body) => {
+      if (body?.action === 'overrides_list') return { body: { rows } };
+      if (body?.action === 'override_set') {
+        if (body.email === 'nadie@correo.com') return { status: 404, body: { error: 'user_not_found' } };
+        rows.unshift({ user_id: 'u-' + rows.length, email: body.email, kind: body.kind, percent_off: body.percentOff ?? null, months: body.months ?? null, until: null, note: body.note ?? null, created_at: '2026-11-06T12:00:00Z' });
+        return { body: { ok: true } };
+      }
+      if (body?.action === 'override_remove') {
+        rows.splice(rows.findIndex((r) => r.user_id === body.userId), 1);
+        return { body: { ok: true } };
+      }
+      return { body: backend.billingStatus };
+    });
+    await page.goto('/#/home');
+    await ux.click(page.locator('.sidebar-link', { hasText: 'Clientes especiales' }), 'Clientes especiales');
+    const screen = page.locator('.admin-screen');
+    await expect(screen).toContainText('Todavía no hay clientes especiales');
+    // correo sin cuenta: lo dice
+    await screen.locator('input[name=email]').fill('nadie@correo.com');
+    await ux.click(screen.locator('#client-save'), 'Guardar');
+    await expect(screen.locator('#client-status')).toContainText('No hay ninguna cuenta con ese correo');
+    // descuento del 50 % por 3 meses
+    await screen.locator('input[name=email]').fill('luis@correo.com');
+    await screen.locator('#client-kind').selectOption('discount');
+    await screen.locator('input[name=percentOff]').fill('50');
+    await screen.locator('input[name=months]').fill('3');
+    await screen.locator('input[name=note]').fill('Amigo del equipo');
+    await ux.click(screen.locator('#client-save'), 'Guardar');
+    await expect(page.locator('.admin-table')).toContainText('50 % de descuento por 3 meses');
+    expect(backend.fnCalls('billing').some((c) => (c.body as { action?: string; percentOff?: number; months?: number }).action === 'override_set' && (c.body as { percentOff?: number }).percentOff === 50 && (c.body as { months?: number }).months === 3)).toBe(true);
+    // quitar: pide confirmar
+    await ux.click(page.locator('[data-remove]'), 'Quitar');
+    await ux.click(page.locator('[data-remove]'), 'Sí, quitar');
+    await expect(page.locator('.admin-screen')).toContainText('Todavía no hay clientes especiales');
   });
 
   test('quien no es administrador no ve la lista', async ({ page, backend }) => {

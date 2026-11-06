@@ -7880,7 +7880,7 @@ body:has(.pinon-bubble-layer) .pinon-chat-launcher {
   font-weight: 700;
   color: var(--text);
 }
-.pricing-founder {
+.pricing-trial {
   display: inline-block;
   margin-left: 8px;
   padding: 2px 8px;

@@ -7,7 +7,7 @@
 #   ./scripts/deploy-functions.sh # desde la raíz del repo
 #
 # Ojo con --no-verify-jwt: solo en las que NO reciben sesión de usuario
-# (Mercado Pago y el cron). Las demás validan la sesión.
+# (avisos de Stripe y el cron). Las demás validan la sesión.
 set -euo pipefail
 
 PROJECT_REF="${SUPABASE_PROJECT_REF:-pmshhyyqoghoyjnsedza}"
@@ -22,7 +22,7 @@ deploy() {
 
 # Nuevas
 deploy billing
-deploy billing-webhook --no-verify-jwt # avisos de Mercado Pago: se valida su firma (MP_WEBHOOK_SECRET)
+deploy billing-webhook --no-verify-jwt # avisos de Stripe: se valida su firma (STRIPE_WEBHOOK_SECRET)
 deploy invite
 deploy coach-apply
 

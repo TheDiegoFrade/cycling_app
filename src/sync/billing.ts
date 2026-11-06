@@ -2,17 +2,26 @@
 // supabase/functions/billing). El servidor decide el acceso; aquí solo se
 // pregunta y se muestra.
 import type { AccessReason } from '../core/access';
+import type { SaleRow } from '../core/sales';
+import type { OverrideKind, OverrideRow } from '../core/billing-override';
 import { supabase } from '../supabase/client';
 
 export interface BillingStatus {
   ai: boolean;
   reason: AccessReason;
   subscription: { status: string; price_mxn: number; paid_until: string | null; grace_until: string | null } | null;
-  /** Precio al que se suscribiría ahora (399, o 299 de fundador). */
+  /** Precio al que se suscribiría ahora (MXN al mes, IVA incluido). */
   priceMxn: number;
-  /** Último día (YYYY-MM-DD) del precio de fundador, si aplica. */
-  founderUntil?: string | null;
-  /** false = Mercado Pago todavía no está configurado (no se puede cobrar). */
+  /** Días de prueba que tendría al suscribirse (0 si ya tuvo una suscripción). */
+  trialDays?: number;
+  /** Cliente especial con descuento: el % y por cuántos meses (null = siempre). */
+  discountPercent?: number | null;
+  discountMonths?: number | null;
+  /** Precio sin descuento (solo si tiene descuento). */
+  listPriceMxn?: number | null;
+  /** Cliente especial gratis: hasta cuándo (null = siempre o no aplica). */
+  compUntil?: string | null;
+  /** false = el cobro (Stripe) todavía no está configurado. */
   billingReady: boolean;
   isAdmin: boolean;
 }
@@ -29,14 +38,25 @@ export async function fetchBillingStatus(): Promise<BillingStatus | null> {
   }
 }
 
-export type SubscribeResult = { initPoint: string } | { error: 'not_needed' | 'billing_not_ready' | 'failed' };
+export type SubscribeError = 'not_needed' | 'billing_not_ready' | 'too_many_attempts' | 'blocked' | 'failed';
+export type SubscribeResult = { initPoint: string } | { error: SubscribeError };
+
+const KNOWN: readonly string[] = ['not_needed', 'billing_not_ready', 'too_many_attempts', 'blocked'];
 
 export async function startSubscription(): Promise<SubscribeResult> {
   if (!supabase) return { error: 'failed' };
   const { data, error } = await supabase.functions.invoke('billing', { body: { action: 'subscribe' } });
   if (!error && typeof data?.initPoint === 'string') return { initPoint: data.initPoint };
   const code = await errorCode(error, data);
-  return { error: code === 'not_needed' || code === 'billing_not_ready' ? code : 'failed' };
+  return { error: code && KNOWN.includes(code) ? (code as SubscribeError) : 'failed' };
+}
+
+/** Link al portal de Stripe para actualizar la tarjeta. */
+export async function openBillingPortal(): Promise<{ url: string } | { error: 'too_many_attempts' | 'failed' }> {
+  if (!supabase) return { error: 'failed' };
+  const { data, error } = await supabase.functions.invoke('billing', { body: { action: 'portal' } });
+  if (!error && typeof data?.url === 'string') return { url: data.url };
+  return { error: (await errorCode(error, data)) === 'too_many_attempts' ? 'too_many_attempts' : 'failed' };
 }
 
 export async function cancelSubscription(): Promise<boolean> {
@@ -44,6 +64,37 @@ export async function cancelSubscription(): Promise<boolean> {
   const { data, error } = await supabase.functions.invoke('billing', { body: { action: 'cancel' } });
   return !error && data?.ok === true;
 }
+
+/** Solo administradores: cobros del mes (YYYY-MM) para la factura global. */
+export async function fetchSales(month: string): Promise<{ data?: { month: string; rows: SaleRow[] }; error?: string }> {
+  if (!supabase) return { error: 'failed' };
+  const { data, error } = await supabase.functions.invoke('billing', { body: { action: 'sales', month } });
+  if (!error && Array.isArray(data?.rows)) return { data };
+  return { error: (await errorCode(error, data)) ?? 'failed' };
+}
+
+/** Solo administradores: guarda el UUID de la global del mes. */
+export async function setSalesCfdi(month: string, uuid: string): Promise<{ updated?: number; error?: string }> {
+  if (!supabase) return { error: 'failed' };
+  const { data, error } = await supabase.functions.invoke('billing', { body: { action: 'sales_set_cfdi', month, uuid } });
+  if (!error && data?.ok === true) return { updated: data.updated };
+  return { error: (await errorCode(error, data)) ?? 'failed' };
+}
+
+/** Solo administradores: clientes especiales (gratis o con descuento). */
+async function adminCall<T>(body: Record<string, unknown>): Promise<{ data?: T; error?: string }> {
+  if (!supabase) return { error: 'failed' };
+  const { data, error } = await supabase.functions.invoke('billing', { body });
+  if (!error && data && !data.error) return { data: data as T };
+  return { error: (await errorCode(error, data)) ?? 'failed' };
+}
+
+export const listOverrides = () => adminCall<{ rows: OverrideRow[] }>({ action: 'overrides_list' });
+
+export const setOverride = (o: { email: string; kind: OverrideKind; percentOff?: number | null; months?: number | null; note?: string | null }) =>
+  adminCall<{ ok: true }>({ action: 'override_set', ...o });
+
+export const removeOverride = (userId: string) => adminCall<{ ok: true }>({ action: 'override_remove', userId });
 
 async function errorCode(error: unknown, data: { error?: string } | null): Promise<string | undefined> {
   if (data?.error) return data.error;

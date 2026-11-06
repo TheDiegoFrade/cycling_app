@@ -9,7 +9,7 @@ import { seedProfile } from '../support/seed';
  * que otros usen la IA sin pagar (máximo de atletas, default 20).
  */
 
-const ADMIN = { ai: true, reason: 'comp', subscription: null, priceMxn: 399, billingReady: true, isAdmin: true };
+const ADMIN = { ai: true, reason: 'comp', subscription: null, priceMxn: 329, billingReady: true, isAdmin: true };
 const TOKEN = 'c'.repeat(43);
 
 const ANSWERS = {

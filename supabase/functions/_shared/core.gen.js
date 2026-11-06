@@ -755,8 +755,8 @@ ${req.message}
 }
 
 // src/core/access.ts
-var PRICE_MXN = 399;
-var FOUNDER_PRICE_MXN = 299;
+var PRICE_MXN = 329;
+var TRIAL_DAYS = 7;
 var GRACE_DAYS = 7;
 var after = (iso, now) => !!iso && new Date(iso).getTime() > now.getTime();
 function aiAccess(i) {
@@ -770,18 +770,6 @@ function aiAccess(i) {
     if ((s.status === "cancelled" || s.status === "paused") && after(s.paidUntil, i.now)) return { ai: true, reason: "subscription" };
   }
   return { ai: false, reason: "none" };
-}
-var FOUNDER_DAYS = 60;
-function founderUntilFromLaunch(launchDate) {
-  if (!launchDate || !/^\d{4}-\d{2}-\d{2}$/.test(launchDate)) return null;
-  const d = /* @__PURE__ */ new Date(`${launchDate}T12:00:00Z`);
-  if (Number.isNaN(d.getTime())) return null;
-  d.setUTCDate(d.getUTCDate() + FOUNDER_DAYS - 1);
-  return d.toISOString().slice(0, 10);
-}
-function priceForNewSubscription(now, founderUntil) {
-  if (!founderUntil || !/^\d{4}-\d{2}-\d{2}$/.test(founderUntil)) return PRICE_MXN;
-  return now.getTime() < (/* @__PURE__ */ new Date(`${founderUntil}T23:59:59-06:00`)).getTime() ? FOUNDER_PRICE_MXN : PRICE_MXN;
 }
 
 // src/core/mercadopago.ts
@@ -833,6 +821,141 @@ async function verifyMpSignature(opts) {
   return diff === 0;
 }
 
+// src/core/sales.ts
+var MX_OFFSET = "-06:00";
+var isMonthKey = (ym) => /^\d{4}-(0[1-9]|1[0-2])$/.test(ym);
+function mxMonthRange(ym) {
+  if (!isMonthKey(ym)) throw new Error(`mes inv\xE1lido: ${ym}`);
+  const [y, m] = ym.split("-").map(Number);
+  const next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
+  return { from: (/* @__PURE__ */ new Date(`${ym}-01T00:00:00${MX_OFFSET}`)).toISOString(), to: (/* @__PURE__ */ new Date(`${next}-01T00:00:00${MX_OFFSET}`)).toISOString() };
+}
+function previousMonthKey(now) {
+  const local = new Date(now.getTime() - 6 * 36e5);
+  const y = local.getUTCFullYear();
+  const m = local.getUTCMonth();
+  return m === 0 ? `${y - 1}-12` : `${y}-${String(m).padStart(2, "0")}`;
+}
+function isValidMonthKey(ym) {
+  return typeof ym === "string" && isMonthKey(ym);
+}
+function isCfdiUuid(v) {
+  return typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v.trim());
+}
+
+// src/core/billing-guard.ts
+var BILLING_LIMITS = {
+  subscribe: { perHour: 5, perDay: 15 },
+  portal: { perHour: 10, perDay: 30 },
+  cancel: { perHour: 10, perDay: 30 }
+};
+function isGuardedAction(a) {
+  return a === "subscribe" || a === "portal" || a === "cancel";
+}
+function billingLimitReached(action, lastHour, lastDay) {
+  const l = BILLING_LIMITS[action];
+  return lastHour >= l.perHour || lastDay >= l.perDay;
+}
+function trialCardReused(previous, userId) {
+  return !!previous && previous.user_id !== userId;
+}
+var FRAUD_DISPUTES = /* @__PURE__ */ new Set(["fraudulent", "unrecognized"]);
+function disputeIsFraud(reason) {
+  return FRAUD_DISPUTES.has(reason ?? "");
+}
+
+// src/core/billing-override.ts
+var EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+var MAX_OVERRIDE_MONTHS = 36;
+var intOrNull = (v) => {
+  if (v === null || v === void 0 || v === "") return null;
+  const n = Number(v);
+  return Number.isInteger(n) ? n : NaN;
+};
+function parseOverrideInput(body) {
+  const b = body ?? {};
+  const email = String(b.email ?? "").trim().toLowerCase();
+  if (!EMAIL_RE.test(email) || email.length > 254) return { ok: false, error: "correo inv\xE1lido" };
+  const kind = b.kind;
+  if (kind !== "free" && kind !== "discount") return { ok: false, error: "tipo inv\xE1lido" };
+  const months = intOrNull(b.months);
+  if (months !== null && (Number.isNaN(months) || months < 1 || months > MAX_OVERRIDE_MONTHS)) return { ok: false, error: `meses entre 1 y ${MAX_OVERRIDE_MONTHS}` };
+  let percentOff = null;
+  if (kind === "discount") {
+    percentOff = intOrNull(b.percentOff);
+    if (percentOff === null || Number.isNaN(percentOff) || percentOff < 1 || percentOff > 99) return { ok: false, error: "descuento entre 1 y 99 %" };
+  }
+  const note = String(b.note ?? "").trim().slice(0, 200) || null;
+  return { ok: true, value: { email, kind, percentOff, months, note } };
+}
+function freeActive(o, now) {
+  return !!o && o.kind === "free" && (o.until === null || new Date(o.until).getTime() > now.getTime());
+}
+function freeUntil(now, months) {
+  if (!months) return null;
+  const d = new Date(now);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  return d.toISOString();
+}
+function discountedPriceMxn(priceMxn, percentOff) {
+  if (!percentOff) return priceMxn;
+  return Math.round(priceMxn * (100 - percentOff)) / 100;
+}
+function couponIdFor(percentOff, months) {
+  return `torq_${percentOff}off_${months ? `${months}m` : "siempre"}`;
+}
+function effectivePriceMxn(unitAmountCents, discounts, nowS) {
+  let cents = unitAmountCents;
+  for (const d of discounts) {
+    if (d.end !== null && d.end <= nowS) continue;
+    if (d.percent_off) cents = Math.round(cents * (100 - d.percent_off) / 100);
+    else if (d.amount_off) cents = Math.max(0, cents - d.amount_off);
+  }
+  return cents / 100;
+}
+
+// src/core/stripe.ts
+var PAID_MARGIN_DAYS = 2;
+var LIVE = /* @__PURE__ */ new Set(["active", "trialing", "past_due"]);
+function cancelsAtPeriodEnd(sub) {
+  return sub.cancel_at_period_end || !!sub.cancel_at;
+}
+function stripeStatusOf(sub) {
+  if (LIVE.has(sub.status)) return cancelsAtPeriodEnd(sub) ? "cancelled" : "authorized";
+  if (sub.status === "paused") return "paused";
+  if (sub.status === "canceled" || sub.status === "unpaid" || sub.status === "incomplete_expired") return "cancelled";
+  return "pending";
+}
+function paidUntilFromPeriodEnd(periodEndS) {
+  return new Date((periodEndS + PAID_MARGIN_DAYS * 86400) * 1e3).toISOString();
+}
+function subscriptionChangeOf(sub) {
+  const status = stripeStatusOf(sub);
+  if (sub.status === "trialing" && sub.trial_end) {
+    return {
+      status,
+      paid_until: cancelsAtPeriodEnd(sub) ? new Date(sub.trial_end * 1e3).toISOString() : paidUntilFromPeriodEnd(sub.trial_end)
+    };
+  }
+  return { status };
+}
+function resumable(sub) {
+  return (sub.status === "active" || sub.status === "trialing") && cancelsAtPeriodEnd(sub);
+}
+function stillLive(sub) {
+  return LIVE.has(sub.status) || sub.status === "unpaid" || sub.status === "paused";
+}
+function trialEligible(row) {
+  return !row || !row.stripe_subscription_id && !row.paid_until;
+}
+function laterIso(current, next) {
+  return current && new Date(current).getTime() > new Date(next).getTime() ? current : next;
+}
+function ivaSplit(totalCents) {
+  const base = Math.round(totalCents / 1.16);
+  return { base_cents: base, iva_cents: totalCents - base };
+}
+
 // src/core/coach-application.ts
 var DEFAULT_MAX_ATHLETES = 20;
 var MAX_ATHLETES_LIMIT = 200;
@@ -881,36 +1004,57 @@ function clampMaxAthletes(v) {
 }
 export {
   DEFAULT_MAX_ATHLETES,
-  FOUNDER_PRICE_MXN,
   GRACE_DAYS,
+  PAID_MARGIN_DAYS,
   PRICE_MXN,
+  TRIAL_DAYS,
   addDays,
   aiAccess,
   applyPayment,
+  billingLimitReached,
   buildMonthlyReport,
   clampMaxAthletes,
+  couponIdFor,
   defaultReviewMonth,
+  discountedPriceMxn,
+  disputeIsFraud,
+  effectivePriceMxn,
   emailKpis,
   evalWeekTarget,
-  founderUntilFromLaunch,
+  freeActive,
+  freeUntil,
   hasUnlimitedCoach,
+  isCfdiUuid,
+  isGuardedAction,
+  isValidMonthKey,
+  ivaSplit,
+  laterIso,
   localDateKey,
   mondayOfWeek,
   monthEnd,
   monthStart,
+  mxMonthRange,
   normalizeCoachApplication,
+  paidUntilFromPeriodEnd,
+  parseOverrideInput,
   parsePinonRequest,
   pinonLimitReached,
   pinonUserMessage,
   planTotalWeeks,
   planWeekOf,
-  priceForNewSubscription,
+  previousMonthKey,
+  resumable,
   reviewAiContext,
   rpeRampIntervals,
   shiftMonth,
   startPhase,
   startingProfile,
+  stillLive,
+  stripeStatusOf,
+  subscriptionChangeOf,
   subscriptionStatusOf,
+  trialCardReused,
+  trialEligible,
   validateCoachApplication,
   verifyMpSignature
 };

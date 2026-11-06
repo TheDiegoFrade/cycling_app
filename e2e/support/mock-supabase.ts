@@ -83,7 +83,7 @@ export class MockSupabase {
   /** Correo de quien llega del correo de invitación (verifyOtp). */
   invitedEmail: string | null = null;
   /** Lo que contesta `billing` → status. Por defecto, cuenta con acceso. */
-  billingStatus: Record<string, unknown> = { ai: true, reason: 'comp', subscription: null, priceMxn: 299, billingReady: true, isAdmin: false };
+  billingStatus: Record<string, unknown> = { ai: true, reason: 'comp', subscription: null, priceMxn: 329, billingReady: true, isAdmin: false };
 
   constructor(users: MockUser[] = []) {
     this.users.push(...users);
