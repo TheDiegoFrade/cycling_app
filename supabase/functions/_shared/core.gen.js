@@ -821,6 +821,48 @@ async function verifyMpSignature(opts) {
   return diff === 0;
 }
 
+// src/core/stripe.ts
+var PAID_MARGIN_DAYS = 2;
+var LIVE = /* @__PURE__ */ new Set(["active", "trialing", "past_due"]);
+function cancelsAtPeriodEnd(sub) {
+  return sub.cancel_at_period_end || !!sub.cancel_at;
+}
+function stripeStatusOf(sub) {
+  if (LIVE.has(sub.status)) return cancelsAtPeriodEnd(sub) ? "cancelled" : "authorized";
+  if (sub.status === "paused") return "paused";
+  if (sub.status === "canceled" || sub.status === "unpaid" || sub.status === "incomplete_expired") return "cancelled";
+  return "pending";
+}
+function paidUntilFromPeriodEnd(periodEndS) {
+  return new Date((periodEndS + PAID_MARGIN_DAYS * 86400) * 1e3).toISOString();
+}
+function subscriptionChangeOf(sub) {
+  const status = stripeStatusOf(sub);
+  if (sub.status === "trialing" && sub.trial_end) {
+    return {
+      status,
+      paid_until: cancelsAtPeriodEnd(sub) ? new Date(sub.trial_end * 1e3).toISOString() : paidUntilFromPeriodEnd(sub.trial_end)
+    };
+  }
+  return { status };
+}
+function resumable(sub) {
+  return (sub.status === "active" || sub.status === "trialing") && cancelsAtPeriodEnd(sub);
+}
+function stillLive(sub) {
+  return LIVE.has(sub.status) || sub.status === "unpaid" || sub.status === "paused";
+}
+function trialEligible(row) {
+  return !row || !row.stripe_subscription_id && !row.paid_until;
+}
+function laterIso(current, next) {
+  return current && new Date(current).getTime() > new Date(next).getTime() ? current : next;
+}
+function ivaSplit(totalCents) {
+  const base = Math.round(totalCents / 1.16);
+  return { base_cents: base, iva_cents: totalCents - base };
+}
+
 // src/core/coach-application.ts
 var DEFAULT_MAX_ATHLETES = 20;
 var MAX_ATHLETES_LIMIT = 200;
@@ -870,6 +912,7 @@ function clampMaxAthletes(v) {
 export {
   DEFAULT_MAX_ATHLETES,
   GRACE_DAYS,
+  PAID_MARGIN_DAYS,
   PRICE_MXN,
   TRIAL_DAYS,
   addDays,
@@ -881,22 +924,30 @@ export {
   emailKpis,
   evalWeekTarget,
   hasUnlimitedCoach,
+  ivaSplit,
+  laterIso,
   localDateKey,
   mondayOfWeek,
   monthEnd,
   monthStart,
   normalizeCoachApplication,
+  paidUntilFromPeriodEnd,
   parsePinonRequest,
   pinonLimitReached,
   pinonUserMessage,
   planTotalWeeks,
   planWeekOf,
+  resumable,
   reviewAiContext,
   rpeRampIntervals,
   shiftMonth,
   startPhase,
   startingProfile,
+  stillLive,
+  stripeStatusOf,
+  subscriptionChangeOf,
   subscriptionStatusOf,
+  trialEligible,
   validateCoachApplication,
   verifyMpSignature
 };

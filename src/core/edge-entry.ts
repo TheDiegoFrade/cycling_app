@@ -12,5 +12,8 @@ export { rpeRampIntervals } from './rpe-ramp';
 export { hasUnlimitedCoach } from './coach-testers';
 export { parsePinonRequest, pinonLimitReached, pinonUserMessage } from './pinon-chat-request';
 export { GRACE_DAYS, PRICE_MXN, TRIAL_DAYS, aiAccess } from './access';
+// Mercado Pago: ya no lo usa ninguna función (se cobra con Stripe); se queda
+// mientras Stripe no esté en producción (docs/cobro-stripe.md, 3.4).
 export { applyPayment, subscriptionStatusOf, verifyMpSignature } from './mercadopago';
+export { PAID_MARGIN_DAYS, ivaSplit, laterIso, paidUntilFromPeriodEnd, resumable, stillLive, stripeStatusOf, subscriptionChangeOf, trialEligible } from './stripe';
 export { DEFAULT_MAX_ATHLETES, clampMaxAthletes, normalizeCoachApplication, validateCoachApplication } from './coach-application';
