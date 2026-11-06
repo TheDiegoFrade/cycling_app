@@ -5,6 +5,8 @@
 //    que se canceló pero sigue pagada, sin volver a cobrar).
 //  - cancel: cancela al final del periodo; conserva el acceso hasta lo pagado.
 //  - portal: link al portal de Stripe para actualizar la tarjeta.
+//  - sales / sales_set_cfdi (solo administradores): cobros del mes para la
+//    factura global y el UUID del CFDI ya timbrado.
 // Los avisos de Stripe llegan a billing-webhook (otra función: esa no lleva
 // sesión de usuario). Ver docs/cobro-stripe.md.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -14,7 +16,7 @@ import { loadAiAccess } from '../_shared/access.ts';
 import { ADMIN_USER_IDS } from '../_shared/coach-access.ts';
 import { appUrl as appUrlFromEnv } from '../_shared/mailer.ts';
 import { checkoutPrice, idOf, stripe, stripeConfigured } from '../_shared/stripe.ts';
-import { PRICE_MXN, TRIAL_DAYS, resumable, stillLive, trialEligible } from '../_shared/core.gen.js';
+import { PRICE_MXN, TRIAL_DAYS, isCfdiUuid, isValidMonthKey, mxMonthRange, previousMonthKey, resumable, stillLive, trialEligible } from '../_shared/core.gen.js';
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -142,6 +144,39 @@ Deno.serve(async (req) => {
       if (!row?.stripe_customer_id) return json({ error: 'no tienes una suscripción con tarjeta' }, 404);
       const portal = await stripe.billingPortal.sessions.create({ customer: row.stripe_customer_id, return_url: `${appUrl}/#/profile`, locale: 'es-419' });
       return json({ url: portal.url });
+    }
+
+    // ── Solo administradores: ventas del mes para la factura global (fase 5) ──
+    if (action === 'sales' || action === 'sales_set_cfdi') {
+      if (!ADMIN_USER_IDS.has(userId)) return json({ error: 'solo administradores' }, 403);
+      const month = isValidMonthKey(body?.month) ? body.month : previousMonthKey(now);
+      const { from, to } = mxMonthRange(month);
+      if (action === 'sales_set_cfdi') {
+        // UUID de la global ya timbrada: se guarda en los cobros del mes que
+        // van en la global y todavía no tienen uno.
+        if (!isCfdiUuid(body?.uuid)) return json({ error: 'UUID inválido' }, 400);
+        const { data, error } = await admin
+          .from('billing_payments')
+          .update({ cfdi_uuid: body.uuid.trim().toUpperCase() })
+          .gte('paid_at', from)
+          .lt('paid_at', to)
+          .eq('cfdi_mode', 'global')
+          .is('refunded_at', null)
+          .is('cfdi_uuid', null)
+          .select('stripe_invoice_id');
+        if (error) throw new Error(`billing_payments: ${error.message}`);
+        return json({ ok: true, updated: data?.length ?? 0 });
+      }
+      const { data, error } = await admin
+        .from('billing_payments')
+        .select('stripe_invoice_id, stripe_charge_id, paid_at, total_cents, base_cents, iva_cents, card_funding, cfdi_uuid')
+        .gte('paid_at', from)
+        .lt('paid_at', to)
+        .eq('cfdi_mode', 'global')
+        .is('refunded_at', null)
+        .order('paid_at');
+      if (error) throw new Error(`billing_payments: ${error.message}`);
+      return json({ month, rows: data ?? [] });
     }
 
     return json({ error: 'acción desconocida' }, 400);

@@ -39,6 +39,7 @@ import { maybeCompleteSignup } from './ui/invite-signup';
 import { maybeConfirmBillingReturn } from './ui/pricing';
 import { renderAdminWaitlist } from './ui/screens/admin-waitlist';
 import { renderAdminCoaches } from './ui/screens/admin-coaches';
+import { renderAdminSales } from './ui/screens/admin-sales';
 import { renderCoachApply } from './ui/screens/coach-apply';
 
 type RenderFn = (container: HTMLElement) => (() => void) | void;
@@ -104,9 +105,10 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['review', withSidebar('profile', renderReview)],
   // Detalle de una sesión de un atleta, con descarga del .fit.
   ['coach-session', withSidebar('coach-athletes', renderCoachSession)],
-  // Solo administradores: #/admin (lista de espera) y #/admin/coaches
-  // (invitar y aprobar coaches), ver admin-waitlist.ts y admin-coaches.ts.
-  ['admin', withSidebar(null, (c) => (getRouteParam() === 'coaches' ? renderAdminCoaches(c) : renderAdminWaitlist(c)))],
+  // Solo administradores: #/admin (lista de espera), #/admin/coaches
+  // (invitar y aprobar coaches) y #/admin/sales (ventas del mes para la
+  // factura global), ver admin-waitlist.ts, admin-coaches.ts y admin-sales.ts.
+  ['admin', withSidebar(null, (c) => (getRouteParam() === 'coaches' ? renderAdminCoaches(c) : getRouteParam() === 'sales' ? renderAdminSales(c) : renderAdminWaitlist(c)))],
   // Solicitud para ser coach: solo con la invitación de Torq (#/coach-apply/:token).
   ['coach-apply', withSidebar(null, renderCoachApply)],
 ];

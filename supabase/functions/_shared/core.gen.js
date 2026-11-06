@@ -821,6 +821,28 @@ async function verifyMpSignature(opts) {
   return diff === 0;
 }
 
+// src/core/sales.ts
+var MX_OFFSET = "-06:00";
+var isMonthKey = (ym) => /^\d{4}-(0[1-9]|1[0-2])$/.test(ym);
+function mxMonthRange(ym) {
+  if (!isMonthKey(ym)) throw new Error(`mes inv\xE1lido: ${ym}`);
+  const [y, m] = ym.split("-").map(Number);
+  const next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
+  return { from: (/* @__PURE__ */ new Date(`${ym}-01T00:00:00${MX_OFFSET}`)).toISOString(), to: (/* @__PURE__ */ new Date(`${next}-01T00:00:00${MX_OFFSET}`)).toISOString() };
+}
+function previousMonthKey(now) {
+  const local = new Date(now.getTime() - 6 * 36e5);
+  const y = local.getUTCFullYear();
+  const m = local.getUTCMonth();
+  return m === 0 ? `${y - 1}-12` : `${y}-${String(m).padStart(2, "0")}`;
+}
+function isValidMonthKey(ym) {
+  return typeof ym === "string" && isMonthKey(ym);
+}
+function isCfdiUuid(v) {
+  return typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v.trim());
+}
+
 // src/core/stripe.ts
 var PAID_MARGIN_DAYS = 2;
 var LIVE = /* @__PURE__ */ new Set(["active", "trialing", "past_due"]);
@@ -924,12 +946,15 @@ export {
   emailKpis,
   evalWeekTarget,
   hasUnlimitedCoach,
+  isCfdiUuid,
+  isValidMonthKey,
   ivaSplit,
   laterIso,
   localDateKey,
   mondayOfWeek,
   monthEnd,
   monthStart,
+  mxMonthRange,
   normalizeCoachApplication,
   paidUntilFromPeriodEnd,
   parsePinonRequest,
@@ -937,6 +962,7 @@ export {
   pinonUserMessage,
   planTotalWeeks,
   planWeekOf,
+  previousMonthKey,
   resumable,
   reviewAiContext,
   rpeRampIntervals,
