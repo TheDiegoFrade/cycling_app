@@ -13,7 +13,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { cryptoProvider, idOf, stripe } from '../_shared/stripe.ts';
 import type { Stripe } from '../_shared/stripe.ts';
-import { GRACE_DAYS, disputeIsFraud, ivaSplit, laterIso, paidUntilFromPeriodEnd, stillLive, subscriptionChangeOf, trialCardReused } from '../_shared/core.gen.js';
+import { GRACE_DAYS, disputeIsFraud, effectivePriceMxn, ivaSplit, laterIso, paidUntilFromPeriodEnd, stillLive, subscriptionChangeOf, trialCardReused } from '../_shared/core.gen.js';
 
 const text = (body: string, status: number) => new Response(body, { status });
 
@@ -215,7 +215,7 @@ async function rowForSubscription(admin: SupabaseClient, subId: string): Promise
 /** Trae la suscripción de Stripe (estado actual, no el del aviso), la liga a
  * su usuario si hace falta y copia su estado a `subscriptions`. */
 async function syncSubscription(admin: SupabaseClient, subId: string, hintUserId: string | null): Promise<string | null> {
-  const sub = await stripe.subscriptions.retrieve(subId);
+  const sub = await stripe.subscriptions.retrieve(subId, { expand: ['discounts.source.coupon'] });
   const customerId = idOf(sub.customer);
   const { data: linked } = await admin.from('subscriptions').select(ROW_COLS).eq('stripe_subscription_id', subId).maybeSingle();
   let row = linked as Row | null;
@@ -250,7 +250,7 @@ async function syncSubscription(admin: SupabaseClient, subId: string, hintUserId
   let current = sub;
   let trialEnded = false;
   if (sub.status === 'trialing' && (await endTrialIfCardReused(admin, sub, row.user_id))) {
-    current = await stripe.subscriptions.retrieve(subId);
+    current = await stripe.subscriptions.retrieve(subId, { expand: ['discounts.source.coupon'] });
     trialEnded = true;
   }
   const change = subscriptionChangeOf(current);
@@ -258,9 +258,9 @@ async function syncSubscription(admin: SupabaseClient, subId: string, hintUserId
   if (change.paid_until) patch.paid_until = current.cancel_at_period_end || current.cancel_at ? change.paid_until : laterIso(row.paid_until, change.paid_until);
   // Sin prueba: el acceso lo da el cobro (invoice.paid), no la prueba que ya se terminó.
   if (trialEnded) patch.paid_until = new Date().toISOString();
-  // Precio que paga (cambia si algún día se migra a otro precio).
+  // Precio que paga: el de lista menos su descuento vigente (cliente especial).
   const unit = current.items.data[0]?.price?.unit_amount;
-  if (unit != null) patch.price_mxn = unit / 100;
+  if (unit != null) patch.price_mxn = effectivePriceMxn(unit, discountsOf(current), Math.floor(Date.now() / 1000));
   await mustUpdate(admin.from('subscriptions').update(patch).eq('user_id', row.user_id).eq('stripe_subscription_id', subId));
   return row.user_id;
 }
@@ -341,4 +341,16 @@ async function chargeOfInvoice(invoiceId: string): Promise<Stripe.Charge | null>
 async function mustUpdate(q: PromiseLike<{ error: { message: string } | null }>): Promise<void> {
   const { error } = await q;
   if (error) throw new Error(`subscriptions: ${error.message}`);
+}
+
+/** Los descuentos de una suscripción (con su cupón expandido). */
+function discountsOf(sub: Stripe.Subscription): Array<{ end: number | null; percent_off: number | null; amount_off: number | null }> {
+  const out: Array<{ end: number | null; percent_off: number | null; amount_off: number | null }> = [];
+  for (const d of sub.discounts ?? []) {
+    if (typeof d === 'string') continue;
+    const c = d.source?.coupon;
+    if (!c || typeof c === 'string') continue;
+    out.push({ end: d.end, percent_off: c.percent_off, amount_off: c.amount_off });
+  }
+  return out;
 }

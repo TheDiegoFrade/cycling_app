@@ -864,6 +864,56 @@ function disputeIsFraud(reason) {
   return FRAUD_DISPUTES.has(reason ?? "");
 }
 
+// src/core/billing-override.ts
+var EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+var MAX_OVERRIDE_MONTHS = 36;
+var intOrNull = (v) => {
+  if (v === null || v === void 0 || v === "") return null;
+  const n = Number(v);
+  return Number.isInteger(n) ? n : NaN;
+};
+function parseOverrideInput(body) {
+  const b = body ?? {};
+  const email = String(b.email ?? "").trim().toLowerCase();
+  if (!EMAIL_RE.test(email) || email.length > 254) return { ok: false, error: "correo inv\xE1lido" };
+  const kind = b.kind;
+  if (kind !== "free" && kind !== "discount") return { ok: false, error: "tipo inv\xE1lido" };
+  const months = intOrNull(b.months);
+  if (months !== null && (Number.isNaN(months) || months < 1 || months > MAX_OVERRIDE_MONTHS)) return { ok: false, error: `meses entre 1 y ${MAX_OVERRIDE_MONTHS}` };
+  let percentOff = null;
+  if (kind === "discount") {
+    percentOff = intOrNull(b.percentOff);
+    if (percentOff === null || Number.isNaN(percentOff) || percentOff < 1 || percentOff > 99) return { ok: false, error: "descuento entre 1 y 99 %" };
+  }
+  const note = String(b.note ?? "").trim().slice(0, 200) || null;
+  return { ok: true, value: { email, kind, percentOff, months, note } };
+}
+function freeActive(o, now) {
+  return !!o && o.kind === "free" && (o.until === null || new Date(o.until).getTime() > now.getTime());
+}
+function freeUntil(now, months) {
+  if (!months) return null;
+  const d = new Date(now);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  return d.toISOString();
+}
+function discountedPriceMxn(priceMxn, percentOff) {
+  if (!percentOff) return priceMxn;
+  return Math.round(priceMxn * (100 - percentOff)) / 100;
+}
+function couponIdFor(percentOff, months) {
+  return `torq_${percentOff}off_${months ? `${months}m` : "siempre"}`;
+}
+function effectivePriceMxn(unitAmountCents, discounts, nowS) {
+  let cents = unitAmountCents;
+  for (const d of discounts) {
+    if (d.end !== null && d.end <= nowS) continue;
+    if (d.percent_off) cents = Math.round(cents * (100 - d.percent_off) / 100);
+    else if (d.amount_off) cents = Math.max(0, cents - d.amount_off);
+  }
+  return cents / 100;
+}
+
 // src/core/stripe.ts
 var PAID_MARGIN_DAYS = 2;
 var LIVE = /* @__PURE__ */ new Set(["active", "trialing", "past_due"]);
@@ -964,10 +1014,15 @@ export {
   billingLimitReached,
   buildMonthlyReport,
   clampMaxAthletes,
+  couponIdFor,
   defaultReviewMonth,
+  discountedPriceMxn,
   disputeIsFraud,
+  effectivePriceMxn,
   emailKpis,
   evalWeekTarget,
+  freeActive,
+  freeUntil,
   hasUnlimitedCoach,
   isCfdiUuid,
   isGuardedAction,
@@ -981,6 +1036,7 @@ export {
   mxMonthRange,
   normalizeCoachApplication,
   paidUntilFromPeriodEnd,
+  parseOverrideInput,
   parsePinonRequest,
   pinonLimitReached,
   pinonUserMessage,

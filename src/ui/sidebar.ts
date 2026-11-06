@@ -98,9 +98,9 @@ function sidebarHtml(active: SidebarScreen | null): string {
   const links =
     ITEMS.map(linkHtml).join('') +
     (appState.coach.isCoach ? `<div class="sidebar-group-title">Coach</div>${COACH_ITEMS.map(linkHtml).join('')}` : '') +
-    // Solo administradores: lista de espera, coaches y ventas (ver screens/admin-*.ts).
+    // Solo administradores: lista de espera, coaches, ventas y clientes especiales (ver screens/admin-*.ts).
     (appState.billing?.isAdmin
-      ? `<div class="sidebar-group-title">Admin</div><a href="#/admin" class="sidebar-link">${ADMIN_ICON}Lista de espera</a><a href="#/admin/coaches" class="sidebar-link">${ADMIN_ICON}Coaches</a><a href="#/admin/sales" class="sidebar-link">${ADMIN_ICON}Ventas del mes</a>`
+      ? `<div class="sidebar-group-title">Admin</div><a href="#/admin" class="sidebar-link">${ADMIN_ICON}Lista de espera</a><a href="#/admin/coaches" class="sidebar-link">${ADMIN_ICON}Coaches</a><a href="#/admin/sales" class="sidebar-link">${ADMIN_ICON}Ventas del mes</a><a href="#/admin/clients" class="sidebar-link">${ADMIN_ICON}Clientes especiales</a>`
       : '');
   return `
     <nav class="sidebar" id="app-sidebar">

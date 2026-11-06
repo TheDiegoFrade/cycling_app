@@ -149,6 +149,25 @@ test.describe('Precio y suscripción', () => {
     await expect(card.locator('[data-subscribe]')).toBeDisabled();
   });
 
+  test('cliente con descuento: ve su precio, por cuánto tiempo y cuánto paga después', async ({ page, backend, ux }) => {
+    await enter(page, backend);
+    backend.billingStatus = { ...NONE, priceMxn: 164.5, listPriceMxn: 329, discountPercent: 50, discountMonths: 3 };
+    await page.goto('/#/plan');
+    const card = page.locator('#coach-slot [data-pricing]');
+    await expect(card.locator('.pricing-amount')).toHaveText('$164.50 al mes 50 % de descuento por 3 meses 7 días de prueba');
+    await expect(card).toContainText('Después de esos 3 meses, $329 al mes.');
+    void ux;
+  });
+
+  test('cliente gratis: cortesía y hasta cuándo', async ({ page, backend, ux }) => {
+    await enter(page, backend);
+    backend.billingStatus = { ai: true, reason: 'comp', subscription: null, priceMxn: 329, compUntil: '2027-02-06T12:00:00Z', billingReady: true, isAdmin: false };
+    await page.goto('/#/profile');
+    await expect(page.locator('.perfil-panel[data-pricing]')).toContainText('Cuenta de cortesía: tienes Torq Coach IA sin costo hasta el 6 de febrero de 2027.');
+    await expect(page.locator('[data-subscribe]')).toHaveCount(0);
+    void ux;
+  });
+
   test('cobro sin configurar: el botón se apaga y lo dice', async ({ page, backend, ux }) => {
     await enter(page, backend);
     backend.billingStatus = { ...NONE, billingReady: false };
@@ -251,6 +270,46 @@ test.describe('Registro solo con invitación', () => {
     await screen.locator('#sales-uuid').fill('6F2B1A3C-1234-4ABC-9DEF-0123456789AB');
     await ux.click(screen.locator('#sales-uuid-save'), 'Guardar UUID');
     await expect(page.locator('.admin-screen')).toContainText('Todos los cobros de este mes ya tienen CFDI');
+  });
+
+  test('administrador: clientes gratis o con descuento', async ({ page, backend, ux }) => {
+    await enter(page, backend, 'diego');
+    backend.billingStatus = { ai: true, reason: 'comp', subscription: null, priceMxn: 329, billingReady: true, isAdmin: true };
+    const rows: Record<string, unknown>[] = [];
+    backend.functions.set('billing', (body) => {
+      if (body?.action === 'overrides_list') return { body: { rows } };
+      if (body?.action === 'override_set') {
+        if (body.email === 'nadie@correo.com') return { status: 404, body: { error: 'user_not_found' } };
+        rows.unshift({ user_id: 'u-' + rows.length, email: body.email, kind: body.kind, percent_off: body.percentOff ?? null, months: body.months ?? null, until: null, note: body.note ?? null, created_at: '2026-11-06T12:00:00Z' });
+        return { body: { ok: true } };
+      }
+      if (body?.action === 'override_remove') {
+        rows.splice(rows.findIndex((r) => r.user_id === body.userId), 1);
+        return { body: { ok: true } };
+      }
+      return { body: backend.billingStatus };
+    });
+    await page.goto('/#/home');
+    await ux.click(page.locator('.sidebar-link', { hasText: 'Clientes especiales' }), 'Clientes especiales');
+    const screen = page.locator('.admin-screen');
+    await expect(screen).toContainText('Todavía no hay clientes especiales');
+    // correo sin cuenta: lo dice
+    await screen.locator('input[name=email]').fill('nadie@correo.com');
+    await ux.click(screen.locator('#client-save'), 'Guardar');
+    await expect(screen.locator('#client-status')).toContainText('No hay ninguna cuenta con ese correo');
+    // descuento del 50 % por 3 meses
+    await screen.locator('input[name=email]').fill('luis@correo.com');
+    await screen.locator('#client-kind').selectOption('discount');
+    await screen.locator('input[name=percentOff]').fill('50');
+    await screen.locator('input[name=months]').fill('3');
+    await screen.locator('input[name=note]').fill('Amigo del equipo');
+    await ux.click(screen.locator('#client-save'), 'Guardar');
+    await expect(page.locator('.admin-table')).toContainText('50 % de descuento por 3 meses');
+    expect(backend.fnCalls('billing').some((c) => (c.body as { action?: string; percentOff?: number; months?: number }).action === 'override_set' && (c.body as { percentOff?: number }).percentOff === 50 && (c.body as { months?: number }).months === 3)).toBe(true);
+    // quitar: pide confirmar
+    await ux.click(page.locator('[data-remove]'), 'Quitar');
+    await ux.click(page.locator('[data-remove]'), 'Sí, quitar');
+    await expect(page.locator('.admin-screen')).toContainText('Todavía no hay clientes especiales');
   });
 
   test('quien no es administrador no ve la lista', async ({ page, backend }) => {

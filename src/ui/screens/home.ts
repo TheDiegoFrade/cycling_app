@@ -1,4 +1,5 @@
 import type { Workout } from '../../core/types';
+import { fmtMxn } from '../../core/billing-override';
 import { validateWorkout } from '../../core/validator';
 import { estimateWorkout } from '../../core/workout-estimate';
 import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
@@ -177,7 +178,7 @@ export function renderHome(container: HTMLElement): void {
           </div>
           <div class="home-scene-cta home-welcome-cta">
             ${coach ? `<button type="button" class="home-ride-btn" id="welcome-plan">Armar mi plan con el coach</button>` : ''}
-            ${coach && !hasAi() && appState.billing ? `<span class="home-scene-hint">Torq Coach IA · $${appState.billing.priceMxn} al mes</span>` : ''}
+            ${coach && !hasAi() && appState.billing ? `<span class="home-scene-hint">Torq Coach IA · ${fmtMxn(appState.billing.priceMxn)} al mes</span>` : ''}
             <button type="button" class="${coach ? 'home-welcome-alt' : 'home-ride-btn'}" id="welcome-ride">Rodar 30 min suave ahora</button>
           </div>
         </div>`;

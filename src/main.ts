@@ -40,6 +40,7 @@ import { maybeConfirmBillingReturn } from './ui/pricing';
 import { renderAdminWaitlist } from './ui/screens/admin-waitlist';
 import { renderAdminCoaches } from './ui/screens/admin-coaches';
 import { renderAdminSales } from './ui/screens/admin-sales';
+import { renderAdminClients } from './ui/screens/admin-clients';
 import { renderCoachApply } from './ui/screens/coach-apply';
 
 type RenderFn = (container: HTMLElement) => (() => void) | void;
@@ -78,6 +79,12 @@ function withPinon(screen: Screen, render: RenderFn): RenderFn {
 
 // Home, Plan, Historial, Forma y Perfil viven detrás de la barra lateral fija
 // (ver TORQ_DESIGN.md, "Navegación"); Prepare/Sesión en vivo/Login no la usan.
+const ADMIN_SCREENS: Record<string, (c: HTMLElement) => void> = {
+  coaches: renderAdminCoaches,
+  sales: renderAdminSales,
+  clients: renderAdminClients,
+};
+
 const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   ['home', withPinon('home', withSidebar('home', renderHome))],
   ['plan', withPinon('plan', withSidebar('plan', renderCalendar))],
@@ -106,9 +113,10 @@ const SCREENS_TO_GUARD: [Screen, RenderFn][] = [
   // Detalle de una sesión de un atleta, con descarga del .fit.
   ['coach-session', withSidebar('coach-athletes', renderCoachSession)],
   // Solo administradores: #/admin (lista de espera), #/admin/coaches
-  // (invitar y aprobar coaches) y #/admin/sales (ventas del mes para la
-  // factura global), ver admin-waitlist.ts, admin-coaches.ts y admin-sales.ts.
-  ['admin', withSidebar(null, (c) => (getRouteParam() === 'coaches' ? renderAdminCoaches(c) : getRouteParam() === 'sales' ? renderAdminSales(c) : renderAdminWaitlist(c)))],
+  // (invitar y aprobar coaches), #/admin/sales (ventas del mes para la
+  // factura global) y #/admin/clients (clientes gratis o con descuento), ver
+  // screens/admin-*.ts.
+  ['admin', withSidebar(null, (c) => (ADMIN_SCREENS[getRouteParam() ?? ''] ?? renderAdminWaitlist)(c))],
   // Solicitud para ser coach: solo con la invitación de Torq (#/coach-apply/:token).
   ['coach-apply', withSidebar(null, renderCoachApply)],
 ];

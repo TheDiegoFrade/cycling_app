@@ -2,6 +2,7 @@
 // se ve ANTES del cuestionario (nunca después del esfuerzo). Los coaches y
 // sus atletas no pagan; a un atleta con coach nunca se le ofrece esto.
 import { PRICE_MXN } from '../core/access';
+import { fmtMxn } from '../core/billing-override';
 import { cancelSubscription, openBillingPortal, startSubscription } from '../sync/billing';
 import type { BillingStatus, SubscribeError } from '../sync/billing';
 import { refresh } from './router';
@@ -16,15 +17,20 @@ export function hasAi(): boolean {
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
 
+const span = (months: number | null | undefined) => (months ? `por ${months} ${months === 1 ? 'mes' : 'meses'}` : '');
+
 function priceHtml(b: BillingStatus | null): string {
   const trial = b?.trialDays ? ` <span class="pricing-trial">${b.trialDays} días de prueba</span>` : '';
-  return `<span class="pricing-price">$${b?.priceMxn ?? PRICE_MXN}</span> al mes${trial}`;
+  const discount = b?.discountPercent ? ` <span class="pricing-trial pricing-discount">${b.discountPercent} % de descuento${b.discountMonths ? ` ${span(b.discountMonths)}` : ''}</span>` : '';
+  return `<span class="pricing-price">${fmtMxn(b?.priceMxn ?? PRICE_MXN)}</span> al mes${discount}${trial}`;
 }
 
 function fineHtml(b: BillingStatus | null): string {
-  return b?.trialDays
+  const base = b?.trialDays
     ? `Mes con mes. IVA incluido. Pones tu tarjeta al empezar y el primer cobro es al terminar los ${b.trialDays} días de prueba. Cancela cuando quieras desde Perfil.`
     : 'Mes con mes. IVA incluido. Cancela cuando quieras desde Perfil.';
+  // Descuento por unos meses: decir cuánto se paga después.
+  return b?.discountMonths && b.listPriceMxn ? `${base} Después de ${b.discountMonths === 1 ? 'ese mes' : `esos ${b.discountMonths} meses`}, ${fmtMxn(b.listPriceMxn)} al mes.` : base;
 }
 
 export function pricingPanelHtml(b: BillingStatus | null = appState.billing): string {
@@ -95,7 +101,7 @@ export function subscriptionPanelHtml(b: BillingStatus | null = appState.billing
   const coachName = appState.coach.myCoach?.coachName;
   const s = b.subscription;
   let body: string;
-  if (b.reason === 'comp') body = '<p>Cuenta de cortesía: tienes Torq Coach IA sin costo.</p>';
+  if (b.reason === 'comp') body = `<p>Cuenta de cortesía: tienes Torq Coach IA sin costo${b.compUntil ? ` hasta el ${fmtDate(b.compUntil)}` : ''}.</p>`;
   else if (b.reason === 'coach') body = '<p>Como coach, usas Torq gratis con tus atletas.</p>';
   else if (b.reason === 'coached') body = `<p>Torq va incluido por tu coach${coachName ? ` <strong>${escapeHtml(coachName)}</strong>` : ''}.</p>`;
   else if (b.reason === 'grace')
@@ -104,9 +110,9 @@ export function subscriptionPanelHtml(b: BillingStatus | null = appState.billing
       <p class="hint" id="billing-portal-status" aria-live="polite"></p>`;
   else if (b.reason === 'subscription' && s?.status === 'cancelled')
     body = `<p>Cancelaste tu suscripción. Tienes el coach IA${s.paid_until ? ` hasta el ${fmtDate(s.paid_until)}` : ''}.</p>
-      <div class="row-actions"><button class="btn-light" data-subscribe>Volver a suscribirme · $${s.price_mxn} al mes</button></div><p class="hint" data-subscribe-status aria-live="polite"></p>`;
+      <div class="row-actions"><button class="btn-light" data-subscribe>Volver a suscribirme · ${fmtMxn(s.price_mxn)} al mes</button></div><p class="hint" data-subscribe-status aria-live="polite"></p>`;
   else if (b.reason === 'subscription' && s)
-    body = `<p>Torq Coach IA · <strong>$${s.price_mxn} al mes</strong>${s.paid_until ? ` · pagado hasta el ${fmtDate(s.paid_until)}` : ''}.</p>
+    body = `<p>Torq Coach IA · <strong>${fmtMxn(s.price_mxn)} al mes</strong>${s.paid_until ? ` · pagado hasta el ${fmtDate(s.paid_until)}` : ''}.</p>
       <div class="row-actions"><button class="btn-light" id="subscription-cancel">Cancelar suscripción</button></div>
       <p class="hint" id="subscription-cancel-status" aria-live="polite"></p>`;
   else return `<div data-pricing-host>${pricingPanelHtml(b)}</div>`;

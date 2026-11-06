@@ -49,6 +49,24 @@ export async function checkoutPrice(): Promise<CheckoutPrice> {
   return price;
 }
 
+/** El cupón de un descuento de clientes especiales («torq_50off_siempre»,
+ * «torq_20off_3m»): se crea la primera vez y después se reutiliza. */
+export async function ensureCoupon(id: string, percentOff: number, months: number | null): Promise<string> {
+  try {
+    await stripe.coupons.retrieve(id);
+    return id;
+  } catch (err) {
+    if ((err as { code?: string }).code !== 'resource_missing') throw err;
+  }
+  await stripe.coupons.create({
+    id,
+    percent_off: percentOff,
+    name: `Torq ${percentOff} %${months ? ` · ${months} ${months === 1 ? 'mes' : 'meses'}` : ''}`,
+    ...(months ? { duration: 'repeating' as const, duration_in_months: months } : { duration: 'forever' as const }),
+  });
+  return id;
+}
+
 /** id de algo que puede venir como id o como objeto expandido. */
 export const idOf = (x: string | { id: string } | null | undefined): string | null => (typeof x === 'string' ? x : (x?.id ?? null));
 

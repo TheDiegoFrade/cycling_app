@@ -3,6 +3,7 @@
 // pregunta y se muestra.
 import type { AccessReason } from '../core/access';
 import type { SaleRow } from '../core/sales';
+import type { OverrideKind, OverrideRow } from '../core/billing-override';
 import { supabase } from '../supabase/client';
 
 export interface BillingStatus {
@@ -13,6 +14,13 @@ export interface BillingStatus {
   priceMxn: number;
   /** Días de prueba que tendría al suscribirse (0 si ya tuvo una suscripción). */
   trialDays?: number;
+  /** Cliente especial con descuento: el % y por cuántos meses (null = siempre). */
+  discountPercent?: number | null;
+  discountMonths?: number | null;
+  /** Precio sin descuento (solo si tiene descuento). */
+  listPriceMxn?: number | null;
+  /** Cliente especial gratis: hasta cuándo (null = siempre o no aplica). */
+  compUntil?: string | null;
   /** false = el cobro (Stripe) todavía no está configurado. */
   billingReady: boolean;
   isAdmin: boolean;
@@ -72,6 +80,21 @@ export async function setSalesCfdi(month: string, uuid: string): Promise<{ updat
   if (!error && data?.ok === true) return { updated: data.updated };
   return { error: (await errorCode(error, data)) ?? 'failed' };
 }
+
+/** Solo administradores: clientes especiales (gratis o con descuento). */
+async function adminCall<T>(body: Record<string, unknown>): Promise<{ data?: T; error?: string }> {
+  if (!supabase) return { error: 'failed' };
+  const { data, error } = await supabase.functions.invoke('billing', { body });
+  if (!error && data && !data.error) return { data: data as T };
+  return { error: (await errorCode(error, data)) ?? 'failed' };
+}
+
+export const listOverrides = () => adminCall<{ rows: OverrideRow[] }>({ action: 'overrides_list' });
+
+export const setOverride = (o: { email: string; kind: OverrideKind; percentOff?: number | null; months?: number | null; note?: string | null }) =>
+  adminCall<{ ok: true }>({ action: 'override_set', ...o });
+
+export const removeOverride = (userId: string) => adminCall<{ ok: true }>({ action: 'override_remove', userId });
 
 async function errorCode(error: unknown, data: { error?: string } | null): Promise<string | undefined> {
   if (data?.error) return data.error;

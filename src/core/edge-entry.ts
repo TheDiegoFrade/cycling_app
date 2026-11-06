@@ -17,5 +17,6 @@ export { GRACE_DAYS, PRICE_MXN, TRIAL_DAYS, aiAccess } from './access';
 export { applyPayment, subscriptionStatusOf, verifyMpSignature } from './mercadopago';
 export { isCfdiUuid, isValidMonthKey, mxMonthRange, previousMonthKey } from './sales';
 export { billingLimitReached, disputeIsFraud, isGuardedAction, trialCardReused } from './billing-guard';
+export { couponIdFor, discountedPriceMxn, effectivePriceMxn, freeActive, freeUntil, parseOverrideInput } from './billing-override';
 export { PAID_MARGIN_DAYS, ivaSplit, laterIso, paidUntilFromPeriodEnd, resumable, stillLive, stripeStatusOf, subscriptionChangeOf, trialEligible } from './stripe';
 export { DEFAULT_MAX_ATHLETES, clampMaxAthletes, normalizeCoachApplication, validateCoachApplication } from './coach-application';

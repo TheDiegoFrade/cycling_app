@@ -396,6 +396,25 @@ Lo que hace Torq (código) y lo que se configura en Stripe (dashboard).
 5. Revisar *Payments → Disputes* cuando llegue una; las de fraude ya quitan
    el acceso solas.
 
+## Clientes especiales (gratis o con descuento)
+
+Lo decide un administrador en **Admin → Clientes especiales**
+(`#/admin/clients`): correo de la cuenta, **Gratis** o **Descuento %**, por
+cuántos meses (vacío = para siempre) y una nota. Se guarda en
+`billing_overrides` (una fila por persona; solo la service role la lee).
+
+| Tipo | Qué pasa |
+|---|---|
+| Gratis | Cuenta como cortesía en `aiAccess` (igual que `COMP_USER_IDS`, pero sin desplegar). Con meses, vence sola (`until`) y la persona vuelve a ver el precio. Si ya pagaba, su suscripción se cancela al final del periodo: no se le vuelve a cobrar. Perfil dice «Cuenta de cortesía … hasta el …». |
+| Descuento | Un cupón de Stripe por combinación (`torq_50off_siempre`, `torq_20off_3m`; `duration` forever o repeating), creado la primera vez. Si ya tiene suscripción, se aplica desde su siguiente cobro; si no, en Checkout. La app muestra «$164.50 al mes · 50 % de descuento por 3 meses» y cuánto paga después. `subscriptions.price_mxn` guarda lo que paga de verdad (con descuento vigente). |
+| Quitar | Gratis: deja de tener la IA (tendrá que suscribirse). Descuento: se quita del siguiente cobro. |
+
+La factura global no cambia: `billing_payments` guarda el monto que de
+verdad se cobró (con descuento) y el IVA sale de ese monto. Un cliente gratis
+no genera cobros.
+
+`COMP_USER_IDS` (equipo y cuentas de pruebas, en el código) sigue igual.
+
 ## Notas de implementación
 
 - **SDK:** `npm:stripe@23.0.0` con `apiVersion: '2026-09-30.endive'` (la del

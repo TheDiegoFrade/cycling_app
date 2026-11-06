@@ -7,6 +7,8 @@
 //  - portal: link al portal de Stripe para actualizar la tarjeta.
 //  - sales / sales_set_cfdi (solo administradores): cobros del mes para la
 //    factura global y el UUID del CFDI ya timbrado.
+//  - overrides_list / override_set / override_remove (solo administradores):
+//    clientes especiales, gratis o con descuento (billing_overrides).
 // Los avisos de Stripe llegan a billing-webhook (otra función: esa no lleva
 // sesión de usuario). Ver docs/cobro-stripe.md.
 //
@@ -15,13 +17,14 @@
 // una cuenta marcada por fraude no puede suscribirse; y solo hay un Checkout
 // abierto por persona (se reutiliza en vez de crear otro en cada clic).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
 import { loadAiAccess } from '../_shared/access.ts';
 import { ADMIN_USER_IDS } from '../_shared/coach-access.ts';
 import { appUrl as appUrlFromEnv } from '../_shared/mailer.ts';
-import { checkoutPrice, idOf, stripe, stripeConfigured } from '../_shared/stripe.ts';
-import { PRICE_MXN, TRIAL_DAYS, billingLimitReached, isCfdiUuid, isGuardedAction, isValidMonthKey, mxMonthRange, previousMonthKey, resumable, stillLive, trialEligible } from '../_shared/core.gen.js';
+import { checkoutPrice, ensureCoupon, idOf, stripe, stripeConfigured } from '../_shared/stripe.ts';
+import { PRICE_MXN, TRIAL_DAYS, billingLimitReached, couponIdFor, discountedPriceMxn, freeActive, freeUntil, parseOverrideInput, isCfdiUuid, isGuardedAction, isValidMonthKey, mxMonthRange, previousMonthKey, resumable, stillLive, trialEligible } from '../_shared/core.gen.js';
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -38,6 +41,14 @@ interface SubRow {
   fraud_flag_at: string | null;
 }
 
+interface OverrideRow {
+  kind: 'free' | 'discount';
+  percent_off: number | null;
+  months: number | null;
+  until: string | null;
+  stripe_coupon_id: string | null;
+}
+
 /** Cuánto dura abierto un link de Checkout (Stripe pide entre 30 min y 24 h). */
 const CHECKOUT_TTL_S = 60 * 60;
 
@@ -49,12 +60,16 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body?.action ?? 'status';
     const now = new Date();
-    const [access, rowRes] = await Promise.all([
+    const [access, rowRes, overrideRes] = await Promise.all([
       loadAiAccess(admin, userId, now),
       admin.from('subscriptions').select('status, price_mxn, paid_until, grace_until, provider, stripe_customer_id, stripe_subscription_id, fraud_flag_at').eq('user_id', userId).maybeSingle(),
+      admin.from('billing_overrides').select('kind, percent_off, months, until, stripe_coupon_id').eq('user_id', userId).maybeSingle(),
     ]);
     if (rowRes.error) throw new Error(`no se pudo leer la suscripción: ${rowRes.error.message}`);
     const row = rowRes.data as SubRow | null;
+    // Cliente especial (lo decide un administrador). Sin la tabla, nadie lo es.
+    const override = overrideRes.error ? null : (overrideRes.data as OverrideRow | null);
+    const discount = override?.kind === 'discount' && override.percent_off ? override : null;
     // Quien canceló y regresa antes de que termine lo pagado reactiva su
     // misma suscripción y conserva su precio. Si ya venció, entra al vigente.
     const keepsPrice = !!row?.stripe_subscription_id && row.status === 'cancelled' && !!row.paid_until && new Date(row.paid_until) > now;
@@ -62,17 +77,29 @@ Deno.serve(async (req) => {
 
     if (action === 'status') {
       let priceMxn = PRICE_MXN;
+      let priceMxnList = PRICE_MXN;
+      // keepsPrice: price_mxn ya es lo que paga (con su descuento, si tiene).
       if (keepsPrice) priceMxn = row!.price_mxn;
-      else if (stripeConfigured()) {
-        try {
-          priceMxn = (await checkoutPrice()).priceMxn;
-        } catch (err) {
-          console.error('[billing] precio de Stripe', err);
+      else {
+        if (stripeConfigured()) {
+          try {
+            priceMxn = (await checkoutPrice()).priceMxn;
+          } catch (err) {
+            console.error('[billing] precio de Stripe', err);
+          }
         }
+        priceMxnList = priceMxn;
+        priceMxn = discountedPriceMxn(priceMxn, discount?.percent_off);
       }
       return json({
         ...access,
         priceMxn,
+        // Cliente especial: su descuento (para mostrarlo junto al precio) o
+        // hasta cuándo no paga (null = siempre).
+        discountPercent: discount?.percent_off ?? null,
+        listPriceMxn: discount && !keepsPrice ? priceMxnList : null,
+        discountMonths: discount?.months ?? null,
+        compUntil: freeActive(override, now) ? override!.until : null,
         // Días de prueba que tendría al suscribirse (0 si ya tuvo).
         trialDays: !keepsPrice && !row?.fraud_flag_at && trialEligible(row) ? TRIAL_DAYS : 0,
         billingReady: stripeConfigured(),
@@ -141,19 +168,22 @@ Deno.serve(async (req) => {
       if (error) throw new Error(`no se pudo guardar la suscripción: ${error.message}`);
       const firstTime = trialEligible(row);
       const trial = firstTime ? '1' : '0';
+      // Cliente con descuento: el cupón se aplica en Checkout y sigue en cada cobro.
+      const coupon = discount ? await ensureCoupon(couponIdFor(discount.percent_off!, discount.months), discount.percent_off!, discount.months) : '';
       // Un solo Checkout abierto por persona: si ya hay uno con el mismo precio
       // y la misma prueba, se reutiliza; los demás se cierran. Así no se pueden
       // pagar dos suscripciones a la vez ni generar links sin fin.
       const open = await stripe.checkout.sessions.list({ customer, status: 'open', limit: 10 });
-      const reuse = open.data.find((s) => s.url && s.metadata?.user_id === userId && s.metadata?.price_id === price.id && s.metadata?.trial === trial);
+      const reuse = open.data.find((s) => s.url && s.metadata?.user_id === userId && s.metadata?.price_id === price.id && s.metadata?.trial === trial && (s.metadata?.coupon ?? '') === coupon);
       for (const s of open.data) if (s.id !== reuse?.id) await stripe.checkout.sessions.expire(s.id).catch(() => null);
-      if (reuse?.url) return json({ initPoint: reuse.url, priceMxn: price.priceMxn });
+      const priceMxn = discountedPriceMxn(price.priceMxn, discount?.percent_off);
+      if (reuse?.url) return json({ initPoint: reuse.url, priceMxn });
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer,
         line_items: [{ price: price.id, quantity: 1 }],
         client_reference_id: userId,
-        metadata: { user_id: userId, price_id: price.id, trial },
+        metadata: { user_id: userId, price_id: price.id, trial, coupon },
         expires_at: Math.floor(now.getTime() / 1000) + CHECKOUT_TTL_S,
         // La prueba pide tarjeta y cobra al terminar si no cancela.
         subscription_data: { metadata: { user_id: userId }, ...(firstTime ? { trial_period_days: TRIAL_DAYS } : {}) },
@@ -161,11 +191,12 @@ Deno.serve(async (req) => {
         success_url: `${appUrl}/?billing=return#/profile`,
         cancel_url: `${appUrl}/#/profile`,
         locale: 'es-419',
-        allow_promotion_codes: false,
+        // Stripe no deja mandar a la vez un descuento y códigos promocionales.
+        ...(coupon ? { discounts: [{ coupon }] } : { allow_promotion_codes: false }),
       });
       if (!session.url) throw new Error('Stripe no regresó el link de Checkout');
       // `initPoint` se queda con el nombre de antes para no tocar la app.
-      return json({ initPoint: session.url, priceMxn: price.priceMxn });
+      return json({ initPoint: session.url, priceMxn });
     }
 
     if (action === 'cancel') {
@@ -215,9 +246,71 @@ Deno.serve(async (req) => {
       return json({ month, rows: data ?? [] });
     }
 
+    // ── Solo administradores: clientes especiales (gratis o con descuento) ──
+    if (action === 'overrides_list' || action === 'override_set' || action === 'override_remove') {
+      if (!ADMIN_USER_IDS.has(userId)) return json({ error: 'solo administradores' }, 403);
+      if (action === 'overrides_list') {
+        const { data, error } = await admin.from('billing_overrides').select('user_id, email, kind, percent_off, months, until, note, created_at').order('created_at', { ascending: false });
+        if (error) throw new Error(`billing_overrides: ${error.message}`);
+        return json({ rows: data ?? [] });
+      }
+      if (action === 'override_set') {
+        const parsed = parseOverrideInput(body);
+        if (!parsed.ok || !parsed.value) return json({ error: parsed.error ?? 'datos inválidos' }, 400);
+        const o: { email: string; kind: 'free' | 'discount'; percentOff: number | null; months: number | null; note: string | null } = parsed.value;
+        const { data: targetId, error: findErr } = await admin.rpc('billing_user_id_by_email', { p_email: o.email });
+        if (findErr) throw new Error(`billing_user_id_by_email: ${findErr.message}`);
+        if (!targetId) return json({ error: 'user_not_found' }, 404);
+        const target = targetId as string;
+        const couponId = o.kind === 'discount' ? couponIdFor(o.percentOff!, o.months) : null;
+        if (couponId && stripeConfigured()) await ensureCoupon(couponId, o.percentOff!, o.months);
+        const { error } = await admin.from('billing_overrides').upsert({
+          user_id: target,
+          email: o.email,
+          kind: o.kind,
+          percent_off: o.percentOff,
+          months: o.months,
+          until: o.kind === 'free' ? freeUntil(now, o.months) : null,
+          stripe_coupon_id: couponId,
+          note: o.note,
+          created_by: userId,
+          created_at: now.toISOString(),
+        });
+        if (error) throw new Error(`billing_overrides: ${error.message}`);
+        await applyOverrideToStripe(admin, target, o.kind === 'free' ? 'free' : couponId);
+        return json({ ok: true });
+      }
+      // override_remove
+      const target = String(body?.userId ?? '');
+      const { data: removed, error } = await admin.from('billing_overrides').delete().eq('user_id', target).select('kind');
+      if (error) throw new Error(`billing_overrides: ${error.message}`);
+      if (removed?.[0]?.kind === 'discount') await applyOverrideToStripe(admin, target, null);
+      return json({ ok: true });
+    }
+
     return json({ error: 'acción desconocida' }, 400);
   } catch (err) {
     console.error('[billing]', err);
     return json({ error: 'no se pudo completar; intenta de nuevo en un momento' }, 500);
   }
 });
+
+/** Lleva a Stripe lo que decidió el administrador sobre una suscripción que
+ * ya existe: 'free' = cancelar al final del periodo (ya no se le cobra; la
+ * IA sigue por la cortesía); un cupón = aplicarlo desde el siguiente cobro;
+ * null = quitar el descuento. Sin suscripción viva no hay nada que hacer: lo
+ * nuevo se aplica cuando se suscriba. */
+async function applyOverrideToStripe(admin: SupabaseClient, target: string, change: 'free' | string | null): Promise<void> {
+  if (!stripeConfigured()) return;
+  const { data: row } = await admin.from('subscriptions').select('stripe_subscription_id').eq('user_id', target).maybeSingle();
+  const subId = (row as { stripe_subscription_id: string | null } | null)?.stripe_subscription_id;
+  if (!subId) return;
+  const sub = await stripe.subscriptions.retrieve(subId);
+  if (!stillLive(sub)) return;
+  if (change === 'free') {
+    if (!sub.cancel_at_period_end) await stripe.subscriptions.update(subId, { cancel_at_period_end: true });
+    await admin.from('subscriptions').update({ status: 'cancelled', updated_at: new Date().toISOString() }).eq('user_id', target);
+  } else {
+    await stripe.subscriptions.update(subId, { discounts: change ? [{ coupon: change }] : '' });
+  }
+}

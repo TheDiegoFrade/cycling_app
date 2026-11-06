@@ -70,4 +70,38 @@ create table if not exists billing_trial_cards (
 alter table billing_trial_cards enable row level security;
 -- sin políticas: solo la service role.
 
+-- ═══ 4. Clientes especiales (docs/cobro-stripe.md, «Clientes especiales») ═
+-- A quién no se le cobra (gratis) o se le cobra con descuento. Lo decide un
+-- administrador en Admin → Clientes especiales. Una fila por usuario.
+create table if not exists billing_overrides (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  email text not null,
+  kind text not null check (kind in ('free', 'discount')),
+  percent_off integer check (percent_off between 1 and 99),
+  months integer check (months between 1 and 36),       -- null = para siempre
+  until timestamptz,                                    -- gratis: hasta cuándo (null = siempre)
+  stripe_coupon_id text,                                -- descuento: el cupón de Stripe
+  note text,
+  created_by uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default now(),
+  check ((kind = 'free' and percent_off is null) or (kind = 'discount' and percent_off is not null))
+);
+alter table billing_overrides enable row level security;
+-- sin políticas: solo la service role.
+
+-- Buscar la cuenta por correo (para dar de alta un cliente especial). Solo
+-- la llama la función billing con la service role.
+create or replace function billing_user_id_by_email(p_email text)
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select id from auth.users where lower(email) = lower(trim(p_email)) limit 1
+$$;
+revoke all on function billing_user_id_by_email(text) from public;
+revoke all on function billing_user_id_by_email(text) from anon, authenticated;
+grant execute on function billing_user_id_by_email(text) to service_role;
+
 commit;
