@@ -34,17 +34,19 @@ export function checkinTally(planned: number | null, done: number | null): strin
 
 export function buildCheckinEmail(d: CheckinEmailData): { subject: string; html: string; text: string } {
   const next = d.week + 1;
-  const subject = d.nextEmpty ? `Arma tu semana ${next}: cuéntale al coach cómo te fue` : `Cierra tu semana ${d.week} con el coach`;
+  // Semana siguiente vacía: hace falta evaluar para que exista. Ya armada:
+  // es opcional, solo si algo no le late (el coach se adapta a la persona).
+  const subject = d.nextEmpty ? `Arma tu semana ${next}: cuéntale al coach cómo te fue` : `Tu semana ${next} ya está lista. ¿Cómo te fue la ${d.week}?`;
   const tally = checkinTally(d.planned, d.done);
   const lead = d.nextEmpty
     ? `Terminó tu semana ${d.week}. Tu semana ${next} todavía no tiene entrenamientos: el coach la arma con lo que le cuentes.`
-    : `Terminó tu semana ${d.week}. Cuéntale al coach cómo te fue y ajusta la semana ${next} con lo que de verdad pasó.`;
+    : `Tu semana ${next} ya está lista. ¿Cómo te fue la semana ${d.week}? Si algo no te late (la carga, los días, cómo te sentiste), cuéntale al coach y la ajusta. Si todo va bien, no tienes que hacer nada.`;
   const tips = [
-    'Dime la verdad, no hay respuesta incorrecta: si estuviste cansado o sin ganas, con eso ajusto.',
+    'Dime la verdad, no hay respuesta incorrecta: si te faltó energía o ganas, con eso ajusto.',
     '¿Viajas o no tendrás bici esta semana? Dímelo en la evaluación y te pongo fuerza en casa o caminar.',
-    'Si hoy no puedes, hazlo en cuanto puedas: cada día que pasa es un día menos para armar tu semana.',
+    ...(d.nextEmpty ? ['Si hoy no puedes, hazlo en cuanto puedas: cada día que pasa es un día menos para armar tu semana.'] : []),
   ];
-  const footer = 'Recibes este correo porque entrenas con el coach de Torq: cada domingo te recordamos cerrar tu semana. Torq funciona en Google Chrome en computadora.';
+  const footer = 'Recibes este correo porque entrenas con el coach de Torq: cada domingo te preguntamos cómo te fue la semana. Torq funciona en Google Chrome en computadora.';
 
   const p = (text: string, extra = '') => `<p style="margin:0 0 12px;font-size:15px;line-height:1.5;color:#3c424d;${FONT}${extra}">${escapeHtml(text)}</p>`;
   const html = `<!doctype html>

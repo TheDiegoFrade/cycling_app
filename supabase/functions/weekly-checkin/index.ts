@@ -1,8 +1,9 @@
 // Check-in del domingo por correo. pg_cron la llama los domingos a las 6 pm
 // de la Ciudad de México (ver supabase/schema.sql). A cada atleta con plan
 // activo del coach de IA (sin coach humano) que todavía no evalúa la semana
-// que termina, le manda «Cierra tu semana N con el coach» con un botón que
-// abre la evaluación (#/plan/evaluar). La evaluación sigue siendo cuando la
+// que termina, le pregunta cómo le fue con un botón que abre la evaluación
+// (#/plan/evaluar). Si la semana siguiente ya está armada, es opcional (solo
+// si algo no le late); si está vacía, le pide evaluar para armarla. La evaluación sigue siendo cuando la
 // persona da clic: el domingo o cualquier día de la semana siguiente.
 //
 // Uno por plan y semana (tabla weekly_checkin_emails): si el cron corre dos
