@@ -62,5 +62,8 @@ describe('fmtMxn', () => {
   it('centavos solo si hacen falta', () => {
     expect(fmtMxn(329)).toBe('$329');
     expect(fmtMxn(164.5)).toBe('$164.50');
+    // numeric de Postgres puede llegar como texto
+    expect(fmtMxn('164.50')).toBe('$164.50');
+    expect(fmtMxn('329.00')).toBe('$329');
   });
 });

@@ -76,9 +76,11 @@ export function discountedPriceMxn(priceMxn: number, percentOff: number | null |
   return Math.round(priceMxn * (100 - percentOff)) / 100;
 }
 
-/** «$329» o «$164.50». */
-export function fmtMxn(price: number): string {
-  return Number.isInteger(price) ? `$${price}` : `$${price.toFixed(2)}`;
+/** «$329» o «$164.50». Acepta el precio como número o como texto
+ * (la base guarda price_mxn como numeric y puede llegar como "164.50"). */
+export function fmtMxn(price: number | string): string {
+  const n = Number(price);
+  return Number.isInteger(n) ? `$${n}` : `$${n.toFixed(2)}`;
 }
 
 /** Un cupón de Stripe por combinación: se crea la primera vez y se reutiliza. */
