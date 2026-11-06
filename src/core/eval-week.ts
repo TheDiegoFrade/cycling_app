@@ -75,3 +75,17 @@ export function weeklyEvalDue(
   return { week: t.evaluated + 1, nextWeek: t.target + 1, nextEmpty };
 }
 
+
+/** La clave de semana ("2026-W44") con la que la app y coach-chat guardan
+ * `last_eval_iso_week` (currentIsoWeek en coach.ts y coach-chat): mismo
+ * cálculo, en UTC, para poder compararla. Ojo: no es la semana ISO exacta
+ * (no ajusta por el día de la semana del 4 de enero; en 2026 queda una
+ * atrás), pero solo se usa para saber si dos fechas caen en la misma semana
+ * de lunes a domingo. */
+export function storedIsoWeekKey(now: Date): string {
+  const target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  target.setUTCDate(target.getUTCDate() - ((target.getUTCDay() + 6) % 7) + 3);
+  const firstThursday = new Date(Date.UTC(target.getUTCFullYear(), 0, 4));
+  const week = 1 + Math.round(((target.getTime() - firstThursday.getTime()) / DAY_MS - 3) / 7);
+  return `${target.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
+}

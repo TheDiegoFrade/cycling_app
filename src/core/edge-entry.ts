@@ -6,7 +6,7 @@ export { emailKpis } from './monthly-report-email';
 export { mondayOfWeek } from '../engine/streaks';
 export { localDateKey } from './day-key';
 export { startPhase } from './self-report-start';
-export { evalWeekTarget, planTotalWeeks, planWeekOf } from './eval-week';
+export { evalWeekTarget, planTotalWeeks, planWeekOf, storedIsoWeekKey, weeklyEvalDue } from './eval-week';
 export { startingProfile } from './intake';
 export { rpeRampIntervals } from './rpe-ramp';
 export { hasUnlimitedCoach } from './coach-testers';
