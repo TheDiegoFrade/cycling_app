@@ -67,6 +67,28 @@ test.describe('Crear mi plan', () => {
     expect(new Set(labels).size, `etiquetas: ${labels.join(' ')}`).toBe(labels.length);
   });
 
+  test('mientras arma el plan: pantalla de espera con tiempo, y no se cierra por accidente', async ({ page, backend, ux }) => {
+    const u = await enterAs(page, backend, 'ana', true);
+    coachOk(backend, u, 4_000);
+    await page.goto('/#/plan');
+    await ux.click(page.locator('#coach-open-create'), 'Crear mi plan');
+    // a quien todavía no crea ninguno no se le habla de su límite
+    await ux.fill(page.locator('#coach-goal'), 'Rodar 100 km en marzo', 'Meta');
+    await ux.click(page.locator('#coach-days [data-day=sat]'), 'Sábado');
+    await expect(page.locator('#coach-days [data-day=sat]')).toHaveAttribute('aria-pressed', 'true');
+    await ux.click(page.locator('#coach-submit'), 'Crear mi plan');
+    await expect(page.locator('#coach-wait')).toBeVisible();
+    await expect(page.locator('#coach-form')).toBeHidden();
+    await expect(page.locator('#coach-modal-close')).toBeHidden();
+    await expect(page.locator('#coach-status')).toContainText(/\d+ s$/);
+    // un clic afuera ya no la cierra a media creación
+    await page.mouse.click(5, 5);
+    await expect(page.locator('#coach-modal')).toBeVisible();
+    await ux.shot('21b-crear-plan-espera', page.locator('#coach-modal'));
+    await expect(page.locator('#coach-modal-title')).toHaveText('Tu plan está listo', { timeout: 10_000 });
+    await expect(page.locator('#coach-done')).toHaveText('Ver mi plan');
+  });
+
   test('mientras piensa no muestra siglas técnicas (CTL/ATL/TSB)', async ({ page, backend, ux }) => {
     const u = await enterAs(page, backend, 'ana', true);
     coachOk(backend, u, 14_000);
