@@ -104,4 +104,8 @@ revoke all on function billing_user_id_by_email(text) from public;
 revoke all on function billing_user_id_by_email(text) from anon, authenticated;
 grant execute on function billing_user_id_by_email(text) to service_role;
 
+-- ═══ 5. Precios con centavos ═════════════════════════════════════════════
+-- Con descuento el precio puede tener centavos ($329 con 50 % = $164.50).
+alter table subscriptions alter column price_mxn type numeric(10, 2);
+
 commit;

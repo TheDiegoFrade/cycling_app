@@ -1413,6 +1413,8 @@ alter table subscriptions add column if not exists stripe_customer_id text uniqu
 alter table subscriptions add column if not exists stripe_subscription_id text unique;
 update subscriptions set provider = 'mercadopago'
   where mp_preapproval_id is not null and stripe_subscription_id is null and provider <> 'mercadopago';
+-- Con descuento el precio puede tener centavos ($329 con 50 % = $164.50).
+alter table subscriptions alter column price_mxn type numeric(10, 2);
 
 -- Cada aviso del proveedor de cobro que ya se procesó (id = event.id de
 -- Stripe; los reenvía si no contestamos a tiempo): evita aplicar dos veces el
