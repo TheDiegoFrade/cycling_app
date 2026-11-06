@@ -170,6 +170,17 @@ export interface Fixtures {
 export const QUIET = { peek: 'off', ride: 'off' };
 
 export const test = base.extend<Fixtures>({
+  // Torq es para Chrome en computadora, que trae Web Bluetooth. El Chromium
+  // sin pantalla de las pruebas no lo trae: se simula para que la app se vea
+  // como en Chrome. Un test puede quitarlo para probar Safari/Firefox.
+  page: async ({ page }, use) => {
+    await page.addInitScript(() => {
+      if (!('bluetooth' in navigator)) {
+        Object.defineProperty(Navigator.prototype, 'bluetooth', { configurable: true, get: () => ({ requestDevice: () => Promise.reject(new Error('sin dispositivos en pruebas')) }) });
+      }
+    });
+    await use(page);
+  },
   consoleErrors: async ({ page }, use) => {
     const errors: string[] = [];
     page.on('console', (m) => {

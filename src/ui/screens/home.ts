@@ -28,6 +28,7 @@ import type { Token } from '../workout-token';
 import { isNonBikeKind } from '../../core/session-kind';
 import { wireDatePicker } from '../date-picker';
 import { isSupabaseConfigured } from '../../supabase/client';
+import { browserWarning } from '../../devices/ble-support';
 import { isCoachProfileComplete, openOnboardingForm } from '../onboarding';
 import { fmtMinutes, tipRow, tipTitle } from '../chart-hover';
 import { ZONE_NAMES } from '../../core/zones';
@@ -78,6 +79,25 @@ function startOfWeek(d: Date): Date {
 function greeting(): string {
   const h = new Date().getHours();
   return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+}
+
+/** Torq es para Google Chrome en computadora (Bluetooth del navegador). En
+ * cualquier otro navegador se avisa en Inicio desde el principio, no hasta
+ * que intenta rodar. Se puede cerrar (por sesión). */
+const BROWSER_BANNER_KEY = 'torq.browserBanner.closed';
+
+function browserBannerHtml(): string {
+  const warning = browserWarning();
+  if (!warning) return '';
+  try {
+    if (sessionStorage.getItem(BROWSER_BANNER_KEY)) return '';
+  } catch {
+    /* sin almacenamiento: se muestra */
+  }
+  return `<div class="recovery-banner browser-banner" id="browser-banner" role="status">
+    <p><strong>Usa Google Chrome en tu computadora.</strong> ${warning}</p>
+    <div class="row-actions"><button class="btn-light" id="browser-banner-close">Entendido</button></div>
+  </div>`;
 }
 
 export function renderHome(container: HTMLElement): void {
@@ -216,6 +236,7 @@ export function renderHome(container: HTMLElement): void {
   container.innerHTML = `
     <div class="screen home-screen">
       <div id="draft-recovery"></div>
+      ${browserBannerHtml()}
 
       ${
         needsOnboarding
@@ -271,6 +292,14 @@ export function renderHome(container: HTMLElement): void {
     });
   });
 
+  container.querySelector('#browser-banner-close')?.addEventListener('click', () => {
+    try {
+      sessionStorage.setItem(BROWSER_BANNER_KEY, '1');
+    } catch {
+      /* sin almacenamiento: solo se quita esta vez */
+    }
+    container.querySelector('#browser-banner')?.remove();
+  });
   container.querySelector('#home-open-onboarding')?.addEventListener('click', () => {
     // El cuestionario es «antes de tu plan»: al guardarlo se sigue directo
     // a crearlo en Plan, en vez de volver a Inicio sin saber qué sigue.
