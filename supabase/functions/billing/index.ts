@@ -52,6 +52,10 @@ interface OverrideRow {
 /** Cuánto dura abierto un link de Checkout (Stripe pide entre 30 min y 24 h). */
 const CHECKOUT_TTL_S = 60 * 60;
 
+/** Se sube cuando cambia cómo se crea el Checkout: los links abiertos de
+ * antes ya no se reutilizan (se cierran y se crea uno nuevo). 2 = solo MXN. */
+const CHECKOUT_VERSION = '2';
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
@@ -176,7 +180,7 @@ Deno.serve(async (req) => {
       // y la misma prueba, se reutiliza; los demás se cierran. Así no se pueden
       // pagar dos suscripciones a la vez ni generar links sin fin.
       const open = await stripe.checkout.sessions.list({ customer, status: 'open', limit: 10 });
-      const reuse = open.data.find((s) => s.url && s.metadata?.user_id === userId && s.metadata?.price_id === price.id && s.metadata?.trial === trial && (s.metadata?.coupon ?? '') === coupon);
+      const reuse = open.data.find((s) => s.url && s.metadata?.user_id === userId && s.metadata?.price_id === price.id && s.metadata?.trial === trial && (s.metadata?.coupon ?? '') === coupon && s.metadata?.v === CHECKOUT_VERSION);
       for (const s of open.data) if (s.id !== reuse?.id) await stripe.checkout.sessions.expire(s.id).catch(() => null);
       const priceMxn = discountedPriceMxn(price.priceMxn, discount?.percent_off);
       if (reuse?.url) return json({ initPoint: reuse.url, priceMxn });
@@ -185,7 +189,7 @@ Deno.serve(async (req) => {
         customer,
         line_items: [{ price: price.id, quantity: 1 }],
         client_reference_id: userId,
-        metadata: { user_id: userId, price_id: price.id, trial, coupon },
+        metadata: { user_id: userId, price_id: price.id, trial, coupon, v: CHECKOUT_VERSION },
         expires_at: Math.floor(now.getTime() / 1000) + CHECKOUT_TTL_S,
         // La prueba pide tarjeta y cobra al terminar si no cancela.
         subscription_data: { metadata: { user_id: userId }, ...(firstTime ? { trial_period_days: TRIAL_DAYS } : {}) },
