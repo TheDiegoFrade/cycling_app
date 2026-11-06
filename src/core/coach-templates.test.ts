@@ -110,3 +110,12 @@ describe('extras del coach de IA en el calendario', () => {
     expect(['outdoor', 'skills', 'strength'].map((k) => isRideKind(k as 'outdoor'))).toEqual([true, true, false]);
   });
 });
+
+describe('plannedKindLabel: lo que agenda el coach de IA cuando no tiene bici', () => {
+  it('fuerza en casa, gimnasio y caminar o trotar', () => {
+    expect(plannedKindLabel({ kind: 'strength', source: 'ai', payload: { where: 'home' } })).toBe('Fuerza en casa');
+    expect(plannedKindLabel({ kind: 'strength', source: 'ai', payload: {} })).toBe('Gimnasio (sugerencia)');
+    expect(plannedKindLabel({ kind: 'strength', source: 'coach' })).toBe('Fuerza');
+    expect(plannedKindLabel({ kind: 'running', source: 'ai' })).toBe('Caminar o trotar suave');
+  });
+});

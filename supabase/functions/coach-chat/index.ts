@@ -701,12 +701,13 @@ async function sendWeekToCoachDraft(admin: AdminClient, athleteId: string, coach
 
 interface PlannedExtra {
   dayOfWeek: string;
-  kind: 'outdoor' | 'skills' | 'gym';
+  kind: 'outdoor' | 'skills' | 'gym' | 'home' | 'walk';
   name: string;
   minutes: number;
   description: string;
 }
-const EXTRA_ROUTINE_KIND = { outdoor: 'outdoor', skills: 'skills', gym: 'strength' } as const;
+// home (fuerza en casa) se registra como fuerza; walk (caminar o trotar), como correr.
+const EXTRA_ROUTINE_KIND = { outdoor: 'outdoor', skills: 'skills', gym: 'strength', home: 'strength', walk: 'running' } as const;
 
 async function materializeExtras(
   admin: AdminClient,
@@ -727,7 +728,7 @@ async function materializeExtras(
       scheduled_date: dateForWeek(startDate, weekIndex, x.dayOfWeek),
       kind: EXTRA_ROUTINE_KIND[x.kind],
       name: x.name.trim().slice(0, 80) || 'Fuera del rodillo',
-      payload: { description: x.description.trim().slice(0, 400), durationMin: x.minutes, exercises: [] },
+      payload: { description: x.description.trim().slice(0, 400), durationMin: x.minutes, exercises: [], ...(x.kind === 'home' ? { where: 'home' } : {}) },
       source: 'ai',
     }))
     .filter((r) => r.scheduled_date >= today);

@@ -330,6 +330,16 @@ describe('extras (lo que no es rodillo)', () => {
     expect(fixes.some((f) => f.includes('ya hay rodillo'))).toBe(true);
   });
 
+  it('sin bici (viaje): fuerza en casa y caminar en días sin rodillo; con rodillo ese día, se quitan', () => {
+    const { out, fixes } = repairOutput(
+      'create_plan',
+      ctx,
+      plan([{ workouts: [easy('wed')], extras: [x('sat', 'home', 'Fuerza en casa'), x('sun', 'walk', 'Caminar 40 min'), x('wed', 'walk', 'mismo día que rodillo')] }]),
+    );
+    expect(out.firstBlockWeeks[0].extras.map((e: { kind: string; name: string }) => `${e.kind} ${e.name}`)).toEqual(['home Fuerza en casa', 'walk Caminar 40 min']);
+    expect(fixes.some((f) => f.includes('caminar «mismo día que rodillo»: quitado (ese día ya hay rodillo)'))).toBe(true);
+  });
+
   it('gimnasio: uno en cada día que declaró, aunque no sea de bici; fuera de ellos se quita', () => {
     const gctx = { ...ctx, profile: { ftp: 250, otherActivities: [{ kind: 'strength', perWeek: 2, minutes: 50, days: ['mon', 'thu'] }] } };
     const { out, fixes } = repairOutput(

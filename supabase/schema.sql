@@ -1007,8 +1007,9 @@ create index if not exists planned_routines_athlete_date_idx on planned_routines
 -- reemplacen los suyos, nunca los de un coach humano. publish_plan_week
 -- sigue aceptando solo fuerza/movilidad/flexibilidad.
 alter table planned_routines drop constraint if exists planned_routines_kind_check;
+-- 'running': «Caminar o trotar suave» del coach de IA cuando no tiene bici.
 alter table planned_routines add constraint planned_routines_kind_check
-  check (kind in ('strength', 'mobility', 'flexibility', 'outdoor', 'skills'));
+  check (kind in ('strength', 'mobility', 'flexibility', 'outdoor', 'skills', 'running'));
 alter table planned_routines add column if not exists source text not null default 'coach';
 alter table planned_routines drop constraint if exists planned_routines_source_check;
 alter table planned_routines add constraint planned_routines_source_check check (source in ('coach', 'ai'));

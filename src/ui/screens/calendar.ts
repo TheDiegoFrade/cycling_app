@@ -315,7 +315,7 @@ export function renderCalendar(container: HTMLElement): () => void {
     return `
       <div style="margin-top:16px">
         <div class="perfil-h2" style="font-size:15px">¿Por qué la quitas?</div>
-        <span class="hint">Tu coach lo toma en cuenta al armar la siguiente semana: no cuenta como falta.${coachNote ? ` ${escapeHtml(coachNote)}` : ''}</span>
+        <span class="hint">Dime la verdad, no hay respuesta incorrecta: tu coach lo toma en cuenta al armar la siguiente semana y no cuenta como falta.${coachNote ? ` ${escapeHtml(coachNote)}` : ''}</span>
         <div class="plan-chip-row" style="margin-top:8px">${REMOVAL_REASONS.map(
           (r) => `<button type="button" class="plan-chip${removal.reason === r.value ? ' on' : ''}" data-removal-reason="${r.value}">${r.label}</button>`,
         ).join('')}</div>

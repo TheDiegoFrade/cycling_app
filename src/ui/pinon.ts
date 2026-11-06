@@ -73,7 +73,7 @@ const CATCHES_KEY = 'torq.pinon.catches';
 /** Lo que Piñón explica la primera vez que entras a cada pantalla. */
 export const GUIDES: Record<GuideScreen, string> = {
   home: 'Aquí ves qué toca hoy. Dale a Empezar a rodar y en el siguiente paso conectas tu rodillo.',
-  plan: 'Tu semana. Toca un día para ver el detalle; arrastra un entrenamiento para moverlo.',
+  plan: 'Tu semana. Arrastra un entreno a otro día o, si no te sientes con ganas, quítalo y dime por qué: yo me adapto.',
   form: 'Fitness es tu base, Fatiga el cansancio que traes. Si la Forma es positiva, llegas con piernas frescas.',
   library: 'Todo lo que has rodado. Toca una sesión para ver cómo te fue y ponerle tu RPE.',
   profile: 'Pon tu FTP y tu pulso máximo: con eso calculo tus zonas.',

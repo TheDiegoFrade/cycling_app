@@ -32,7 +32,7 @@ import { stateSessionFromCloud, stateSessionFromLocal } from './athlete-state-da
 import type { WorkoutZone } from '../core/workout-zone';
 import type { CoachPlanContext, PlannedTest, StoredPlanData } from '../core/plan-context';
 import type { RemovedWorkout } from '../sync/plan-removals';
-import { dayKeyOf, daysAgoKey, todayKey as localTodayKey } from '../core/day-key';
+import { dayKeyOf, daysAgoKey, planStartKey, todayKey as localTodayKey } from '../core/day-key';
 
 // «X» para miércoles, como en los calendarios en español: dos «M» no se distinguen.
 const DAY_LABELS: Record<string, string> = { mon: 'Lun', tue: 'Mar', wed: 'Mié', thu: 'Jue', fri: 'Vie', sat: 'Sáb', sun: 'Dom' };
@@ -82,6 +82,22 @@ const EVAL_MESSAGES = [
   '🗓️ Armando tu siguiente semana…',
   '✍️ Escribiendo la nota del coach…',
 ];
+
+/** «Así funciona tu plan»: el coach se adapta a la persona, no al revés.
+ * Se muestra al crear el plan y queda en la tarjeta del coach («¿Cómo
+ * funciona mi plan?»). */
+function planHowItWorksItems(): string {
+  return `<ul class="plan-how-list">
+      <li><strong>Es tuyo.</strong> ¿Ese día no puedes? <strong>Arrastra</strong> el entrenamiento a otro día en tu Plan.</li>
+      <li><strong>Si no te sientes con energía o con ganas, no lo hagas.</strong> Quítalo y dime por qué. Dime la verdad, no hay respuesta incorrecta: con eso ajusto.</li>
+      <li><strong>Cada domingo evalúas tu semana</strong> y armo la siguiente con lo que de verdad pasó. Si no puedes el domingo, hazlo en cuanto puedas: cada día que pasa es un día menos para armarla.</li>
+      <li><strong>¿Viajas o no tendrás bici?</strong> Dímelo al evaluar tu semana: esa semana te pongo fuerza en casa o caminar, y luego volvemos a la bici.</li>
+    </ul>`;
+}
+
+function planHowItWorksHtml(): string {
+  return `<div class="plan-how" id="plan-how"><p class="plan-how-title">Así funciona tu plan</p>${planHowItWorksItems()}</div>`;
+}
 
 /** Con coach humano, lo que genera la IA del atleta llega como borrador a
  * su coach (ver sendWeekToCoachDraft en coach-chat) — hay que decirlo, si
@@ -403,6 +419,7 @@ function planSummaryHtml(plan: ActivePlanRow, weeklyEvalsUsed: number, planActio
       ${plan.data.lastEvalNote ? coachBubbleHtml(plan.data.lastEvalNote) : ''}
       ${plan.data.nextTest ? plannedTestHtml(plan.data.nextTest, plan.data.startDate) : ''}
       ${ftpOfferHtml(plan.data.ftpSuggestion)}
+      ${humanCoachName() ? '' : `<details class="plan-how-toggle"><summary>¿Cómo funciona mi plan?</summary>${planHowItWorksItems()}</details>`}
       <div id="coach-eval-zone">${evalZoneHtml(plan, weeklyEvalsUsed)}</div>
       <div id="coach-abandon-zone" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
         <a href="#" class="prepare-link" id="coach-abandon">Dar de baja este plan</a>
@@ -1259,7 +1276,9 @@ function openCreateModal(onChange: () => void): void {
     // Todo lo de abajo ya vive en el Perfil (llenado por el cuestionario
     // inicial, ver onboarding.ts) — nunca se vuelve a preguntar aquí.
     const p = appState.profile;
-    const startDate = localTodayKey();
+    // Hoy si es antes de las 4 pm; si no, mañana (el servidor lo corre al
+    // lunes si esa semana ya no le quedan días disponibles).
+    const startDate = planStartKey();
     const maxMinutesInput = (backdrop.querySelector<HTMLInputElement>('#coach-max-minutes')!).value.trim();
     const maxSessionMinutes = maxMinutesInput ? Number(maxMinutesInput) : null;
     const [recentHistory, occupiedDates, lastTest, athleteState] = await Promise.all([
@@ -1336,6 +1355,8 @@ function openCreateModal(onChange: () => void): void {
         'beforeend',
         `<p class="hint coach-plan-email">📧 También te mandamos ${appState.user?.email ? `a <strong>${escapeHtml(appState.user.email)}</strong>` : 'a tu correo'} el plan completo con la explicación del coach, en PDF.</p>`,
       );
+    // Con coach humano, cómo se mueve el plan lo decide su coach.
+    if (!data.result.sentToCoach) resultEl.insertAdjacentHTML('beforeend', planHowItWorksHtml());
     // El servidor puede correr el arranque al lunes siguiente si esta semana ya
     // no quedan días disponibles: manda la fecha con la que guardó el plan.
     if (data.result.nextTest) resultEl.insertAdjacentHTML('beforeend', plannedTestHtml(data.result.nextTest, data.result.startDate ?? startDate));

@@ -53,6 +53,27 @@ test.describe('Ajuste semanal', () => {
     await expect(page.locator('#coach-eval-zone')).toContainText('todavía no tiene entrenamientos');
   });
 
+  test('semana de viaje sin bici: el calendario dice «Fuerza en casa» y «Caminar o trotar suave»', async ({ page, backend, ux }) => {
+    const u = await enterAs(page, backend, 'ana', true);
+    seedActivePlan(backend, u);
+    const routine = (kind: string, name: string, extra: Record<string, unknown> = {}) => ({
+      id: `r-${kind}`,
+      athlete_id: u.id,
+      coach_id: null,
+      scheduled_date: todayKey(),
+      kind,
+      name,
+      payload: { description: 'Suave, sin prisa.', durationMin: 30, exercises: [], ...extra },
+      source: 'ai',
+    });
+    backend.table('planned_routines').push(routine('strength', 'Fuerza en casa 30 min', { where: 'home' }), routine('running', 'Caminata 40 min'));
+    await page.goto('/#/plan');
+    await expect(page.locator('body')).toContainText('Fuerza en casa');
+    await expect(page.locator('body')).toContainText('Caminar o trotar suave');
+    await expect(page.locator('body')).not.toContainText('Gimnasio (sugerencia)');
+    void ux;
+  });
+
   test('ya evaluó esa semana: Inicio no insiste', async ({ page, backend, ux }) => {
     const u = await enterAs(page, backend, 'ana', true);
     seedActivePlan(backend, u);
@@ -82,6 +103,12 @@ test.describe('Crear mi plan', () => {
     await expect(page.locator('#coach-status')).not.toBeEmpty();
     await ux.shot('21-crear-plan-pensando', page.locator('#coach-modal'));
     await expect(page.locator('.coach-bubble-text')).toContainText('3 semanas de base', { timeout: 10_000 });
+    // cómo funciona su plan: el coach se adapta a la persona, no al revés
+    const how = page.locator('#coach-result .plan-how');
+    await expect(how).toContainText('Así funciona tu plan');
+    await expect(how).toContainText('Arrastra');
+    await expect(how).toContainText('Dime la verdad');
+    await expect(how).toContainText('¿Viajas o no tendrás bici?');
     await ux.shot('22-crear-plan-listo', page.locator('#coach-modal'));
     await ux.click(page.locator('#coach-done'), 'Entendido');
     const m = ux.milestone('plan');
@@ -93,6 +120,9 @@ test.describe('Crear mi plan', () => {
     await expect(page.locator('#coach-slot')).toContainText('Semana 1 de 3 · Base.');
     await expect(page.locator('#coach-slot')).toContainText('Evalúa tu primera semana cuando termine');
     await expect(page.locator('#coach-slot')).not.toContainText('cambios de plan este mes');
+    // y queda a la mano en la tarjeta
+    await ux.click(page.locator('#coach-slot .plan-how-toggle summary'), '¿Cómo funciona mi plan?');
+    await expect(page.locator('#coach-slot .plan-how-toggle')).toContainText('Arrastra');
     // jerga en lo que ve mientras espera
     const call = backend.fnCalls('coach-chat')[0].body as { context: { availability: { days: string[] } } };
     expect(call.context.availability.days).toEqual(['tue', 'thu', 'sat']);

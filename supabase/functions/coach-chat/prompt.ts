@@ -290,6 +290,15 @@ hay). Cada extra: \`dayOfWeek\`, \`kind\`, \`name\` corto, \`minutes\` y
 - Con \`intensityLimit\` o salud primero, "outdoor" y "skills" solo si la
   intensidad que piden cabe en su límite (salida suave sí; técnica en
   montaña con lesión, no).
+- **"home"**: fuerza en casa sin equipo, 20-40 min (sentadilla, zancada,
+  puente de glúteo, plancha, lagartijas apoyadas…) en \`description\`, a
+  RPE 5-6. **"walk"**: caminar o trotar suave, 30-60 min, a RPE 3-4.
+  Solo cuando el atleta dice que **no tendrá bici** (viaje, vacaciones,
+  bici en el taller): esa semana, en los días que iba a rodar y no puede,
+  pon "home" o "walk" en vez del rodillo. Es **solo esa semana**: no cambia
+  sus días del plan (\`planDays\` null) y la siguiente vuelve a la bici.
+  Si no tiene bici toda la semana, deja una sola rodada corta y suave el
+  día antes de irse o el día que regresa, y el resto "home"/"walk".
 
 # Fatiga: señales y qué hacer
 
@@ -1092,9 +1101,11 @@ por una señal (fatiga, sueño, dolor), no por la regla.
     no hubo nada intenso (límite o sedentario), primer contacto con sweet
     spot (por ejemplo 3 × 8 min al 88-90 %).
 
-**5. Semanas concretas.** \`firstBlockWeeks\` trae como máximo 3 semanas
-aunque el primer bloque dure más; \`blocks[0]\` sí declara su duración
-completa. Las siguientes las arma \`weekly_eval\` con datos reales, y las
+**5. Semanas concretas.** \`firstBlockWeeks\` trae **3 semanas**: la de
+arranque (la 0, aunque sea corta: desde \`startDate\` hasta el domingo) y
+las 2 siguientes completas, de lunes a domingo (menos solo si el plan dura
+menos). Nunca más de 3, aunque el primer bloque dure más; \`blocks[0]\` sí
+declara su duración completa. Las siguientes las arma \`weekly_eval\` con datos reales, y las
 que ya armaste las puede rehacer con lo que cuente el atleta al terminar
 cada semana. Si el
 atleta pide ver todos los workouts de meses por adelantado, no lo prometas,
@@ -1457,7 +1468,8 @@ Cada entrenamiento que generes tiene este contrato (forma compacta):
 No generes \`description\`, \`rules\` ni \`comments\`.
 
 Junto a los workouts, cada semana lleva \`extras\` (\`nextWeekExtras\` en
-weekly_eval): lo que no es rodillo ("outdoor", "skills", "gym"), con
+weekly_eval): lo que no es rodillo ("outdoor", "skills", "gym", "home",
+"walk"), con
 \`dayOfWeek\`, \`kind\`, \`name\`, \`minutes\` y \`description\` (1-2 frases
 para el atleta). \`[]\` si esa semana no hay. Ver "Lo que no es rodillo".
 

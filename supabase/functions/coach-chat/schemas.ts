@@ -63,10 +63,11 @@ const HealthIntakeSchema = z.object({
 /** Lo que el coach agenda y no es rodillo (feedback de Joe): va al
  * calendario como rutina (planned_routines, source 'ai'). outdoor = salida
  * larga afuera · skills = técnica en montaña · gym = la sugerencia del día
- * de gimnasio (sin rutina). */
+ * de gimnasio (sin rutina) · home = fuerza en casa sin equipo · walk =
+ * caminar o trotar suave (estos dos, para cuando no tiene bici: viaje). */
 export const PlannedExtraSchema = z.object({
   dayOfWeek: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']),
-  kind: z.enum(['outdoor', 'skills', 'gym']),
+  kind: z.enum(['outdoor', 'skills', 'gym', 'home', 'walk']),
   name: z.string(),
   minutes: z.number().int().min(15).max(360),
   description: z.string(),
