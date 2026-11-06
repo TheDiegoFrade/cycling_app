@@ -1270,6 +1270,11 @@ function openCreateModal(onChange: () => void): void {
     resultEl.insertAdjacentHTML('beforeend', coachBubbleHtml(data.result.coachNote, true));
     speakFreshBubbles(resultEl);
     if (data.result.sentToCoach) resultEl.insertAdjacentHTML('beforeend', sentToCoachHtml());
+    else
+      resultEl.insertAdjacentHTML(
+        'beforeend',
+        `<p class="hint coach-plan-email">📧 También te mandamos ${appState.user?.email ? `a <strong>${escapeHtml(appState.user.email)}</strong>` : 'a tu correo'} el plan completo con la explicación del coach, en PDF.</p>`,
+      );
     // El servidor puede correr el arranque al lunes siguiente si esta semana ya
     // no quedan días disponibles: manda la fecha con la que guardó el plan.
     if (data.result.nextTest) resultEl.insertAdjacentHTML('beforeend', plannedTestHtml(data.result.nextTest, data.result.startDate ?? startDate));

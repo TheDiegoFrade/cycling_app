@@ -123,7 +123,17 @@ export async function fillOnboarding(page: Page, ux: Ux, p: Persona): Promise<vo
   await next(5);
   // 6. Números
   if (p.ftp) await ux.fill(m.locator('#ob-ftp'), p.ftp, 'FTP');
-  else await ux.click(toggle('ob-no-ftp'), 'No sé mi FTP');
+  else {
+    await ux.click(toggle('ob-no-ftp'), 'No sé mi FTP');
+    // quien no sabe su FTP ve con cuánto arranca y cómo ajustarlo (sin confundirse)
+    const help = m.locator('#ob-ftp-help');
+    await expect(help).toBeVisible();
+    await expect(help).toContainText(/Arrancas con unos \d+ W/);
+    await expect(help).toContainText('te pone un test para medirlo');
+    await expect(help).toContainText('+ / −');
+    await expect(help).toContainText('también desde tu celular');
+    await ux.readText(help, 'Cómo arranca su FTP');
+  }
   if (p.hrMax) await ux.fill(m.locator('#ob-hrmax'), p.hrMax, 'Pulso máx');
   else await ux.click(toggle('ob-no-hrmax'), 'No sé pulso máx');
   await ux.click(toggle('ob-no-resting-hr'), 'No sé pulso en reposo');
