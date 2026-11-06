@@ -1,17 +1,20 @@
 # Cobro, acceso y registro (modo de prueba)
 
-Cómo encender lo que se implementó para **Torq Coach IA** ($399 MXN al mes,
-$299 de fundador, IVA incluido, mes con mes), el acceso por plan, la
+Cómo encender lo que se implementó para **Torq Coach IA** ($329 MXN al mes,
+IVA incluido, mes con mes, 7 días de prueba la primera vez), el acceso por plan, la
 aceptación de términos y el **registro solo con invitación**. Las decisiones
 de producto están en
 [`evaluaciones/2026-10-20-ux-flujos.md`](evaluaciones/2026-10-20-ux-flujos.md)
 («Decisión de planes»).
 
-> **Estado:** todo funciona en **modo de prueba**. Mientras no se configure
-> Mercado Pago, el botón «Suscribirme» aparece apagado con el aviso «El cobro
-> todavía no está activo (modo de prueba)». Los términos ya son la versión
-> vigente (`TERMS_VERSION = '2026-10-20'`, decidido el 20-oct). La revisión de
-> un abogado queda para después.
+> **Estado:** todo funciona en **modo de prueba**. El cobro es con **Stripe**
+> (ver [`cobro-stripe.md`](cobro-stripe.md): dashboard, webhook, secretos y
+> factura global). Mientras no se configure Stripe, el botón «Suscribirme»
+> aparece apagado con el aviso «El cobro todavía no está activo (modo de
+> prueba)». Los términos vigentes son `TERMS_VERSION = '2026-11-06'` (precio
+> único, prueba de 7 días, Stripe). La revisión de un abogado queda para
+> después. Lo de Mercado Pago (secciones 2 y 4) se queda como historial hasta
+> que Stripe cobre en producción.
 
 ## Quién tiene la IA
 
@@ -34,9 +37,9 @@ plan explican el precio y llevan a «Conocer Torq Coach IA».
 
 ```mermaid
 flowchart LR
-  A[Atleta sin acceso] -->|Plan / Inicio / Perfil| P[Precio $299 / $399]
-  P -->|Suscribirme| MP[Mercado Pago]
-  MP -->|back_url ?billing=return| T[Toast: confirmando…]
+  A[Atleta sin acceso] -->|Plan / Inicio / Perfil| P[Precio $329]
+  P -->|Suscribirme| MP[Stripe Checkout]
+  MP -->|success_url ?billing=return| T[Toast: confirmando…]
   MP -.webhook firmado.-> W[billing-webhook]
   W --> S[(subscriptions)]
   T -->|consulta billing status| S
@@ -145,13 +148,18 @@ no debe regresar `null`.
 
 ### 2. Secretos
 
+> **Stripe:** los secretos nuevos (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
+> `STRIPE_CHECKOUT_LOOKUP_KEY`) están en [`cobro-stripe.md`](cobro-stripe.md),
+> fase 7. `TORQ_LAUNCH_DATE` ya no se usa. Los `MP_*` de abajo se borran cuando
+> Stripe cobre en producción.
+
 | Variable | Qué es |
 |---|---|
 | `MP_ACCESS_TOKEN` | Access token de Mercado Pago. En prueba, el que empieza con `TEST-` (credenciales de prueba). |
 | `MP_WEBHOOK_SECRET` | Clave secreta del webhook (Mercado Pago → Webhooks → «Clave secreta»). |
 | `MP_TEST_PAYER_EMAIL` | **Solo en pruebas:** el correo del usuario de prueba *comprador* de Mercado Pago. Mercado Pago exige que quien paga sea ese usuario; con esto se usa su correo en vez del de la cuenta de Torq. **Bórralo antes de cobrar de verdad.** |
 | `APP_URL` | URL pública de la app (ya existía; la usan correos, regreso de Mercado Pago e invitaciones). |
-| `TORQ_LAUNCH_DATE` | Día de lanzamiento, `YYYY-MM-DD`. El precio de fundador ($299) dura **60 días** contando ese día (`FOUNDER_DAYS` en `src/core/access.ts`); la app muestra «Precio de fundador hasta el …». Sin valor, todos pagan $399. |
+| `TORQ_LAUNCH_DATE` | **Ya no se usa** (era el precio de fundador): borrarlo. |
 
 ### 3. Funciones
 
@@ -160,8 +168,8 @@ npx supabase login              # una vez; abre el navegador
 ./scripts/deploy-functions.sh   # publica las 8 con las banderas correctas
 ```
 
-El script publica `billing`, `billing-webhook` (`--no-verify-jwt`: Mercado
-Pago no manda sesión; se valida la firma), `invite`, `coach-apply`, y vuelve
+El script publica `billing`, `billing-webhook` (`--no-verify-jwt`: Stripe
+no manda sesión; se valida la firma), `invite`, `coach-apply`, y vuelve
 a publicar `coach-chat`, `pinon-chat`, `coach-retire-plan` y
 `monthly-self-report` (**`--no-verify-jwt`**: la llama el cron con
 `x-cron-secret`; sin esa bandera el reporte mensual deja de correr).
@@ -171,7 +179,7 @@ a publicar `coach-chat`, `pinon-chat`, `coach-retire-plan` y
 > cuenta esté en `ADMIN_USER_IDS`; `coach_signup` exige un link de coach
 > vigente.
 
-### 4. Mercado Pago
+### 4. Mercado Pago (historial; ahora es Stripe, ver `cobro-stripe.md`)
 
 1. Crear la aplicación en *Tus integraciones* (producto: Suscripciones).
 2. Webhooks → URL `<SUPABASE_URL>/functions/v1/billing-webhook`, eventos
@@ -207,19 +215,20 @@ a publicar `coach-chat`, `pinon-chat`, `coach-retire-plan` y
 
 ## Cómo se prueba
 
-- Lógica: `src/core/access.test.ts`, `src/core/mercadopago.test.ts` (firma del
-  webhook, cobro aprobado/rechazado), `src/core/coach-application.test.ts`.
+- Lógica: `src/core/access.test.ts`, `src/core/stripe.test.ts` (estado de la
+  suscripción, paid_until, prueba una vez, IVA), `src/core/sales.test.ts`
+  (ventas del mes), `src/core/coach-application.test.ts`.
 - Base de datos: las reglas de coaches (no volverse coach, no escribir
   vínculos, máximo de atletas, coach quitado) se corrieron como el rol
   `authenticated` en un Postgres 16 local con `schema.sql` completo.
 - Flujos: `e2e/nube/06-cobro-y-registro.spec.ts` con backend simulado —
-  términos, menor de 18, suscribirse/volver/cancelar, cobro no configurado,
-  gracia, Piñón sin acceso, atleta con coach, lista de espera, alta desde link
+  términos, menor de 18, suscribirse/volver/cancelar, volver a suscribirse,
+  cobro no configurado, gracia con «Actualizar tarjeta», Piñón sin acceso,
+  atleta con coach, lista de espera, ventas del mes, alta desde link
   de coach, link vencido; y `e2e/nube/07-coaches.spec.ts`: invitar coach,
   solicitud con huecos y completa, link con otra cuenta, sin invitación,
   aprobar con máximo, quitar como coach, coach al máximo, atleta con coach
   lleno. Capturas 70–80 en
   `evaluaciones/2026-10-20-ux/img/`.
-- Pendiente con red real: un cobro de prueba de punta a punta con usuarios de
-  prueba de Mercado Pago (desde este entorno no hay salida a Mercado Pago ni a
-  Supabase).
+- Pendiente con red real: un cobro de prueba de punta a punta con la Stripe
+  CLI y tarjetas de prueba (`cobro-stripe.md`, fase 6).

@@ -10,6 +10,10 @@ Plan para cambiar el proveedor de cobro de **Torq Coach IA** de Mercado Pago a
 > `src/core/access.ts` (`aiAccess`, precios, gracia) salvo lo que diga la
 > fase 0. No hagas commit de llaves: todo va como secreto de Supabase.
 
+> **Estado (6-nov-2026):** fases 0, 2, 3, 4, 5 y 6 implementadas en la rama
+> `feat/stripe`. Las fases 1 y 7 son del dashboard de Stripe y de producción.
+> Ver «Notas de implementación» al final.
+
 ## Por qué así
 
 - `aiAccess` ya decide con `subscriptions.status`, `paid_until` y
@@ -249,12 +253,20 @@ factura global al mes** en el portal gratuito del SAT.
 1. **Vista para admin** (*Admin → Ventas del mes*, o al menos una consulta
    SQL guardada):
 
+   Implementado: **Admin → Ventas del mes** (`#/admin/sales`) y
+   [`supabase/consultas/ventas-del-mes.sql`](../supabase/consultas/ventas-del-mes.sql).
+   Los límites del mes son medianoche de CDMX (la consulta original truncaba
+   el mes en UTC y movía 6 horas los bordes):
+
    ```sql
+   with mes as (
+     select date_trunc('month', (now() at time zone 'America/Mexico_City') - interval '1 month') at time zone 'America/Mexico_City' as desde,
+            date_trunc('month', (now() at time zone 'America/Mexico_City')) at time zone 'America/Mexico_City' as hasta
+   )
    select stripe_charge_id as folio, paid_at, total_cents / 100.0 as total,
           base_cents / 100.0 as base, iva_cents / 100.0 as iva, card_funding
-   from billing_payments
-   where paid_at >= date_trunc('month', now() - interval '1 month') at time zone 'America/Mexico_City'
-     and paid_at <  date_trunc('month', now()) at time zone 'America/Mexico_City'
+   from billing_payments, mes
+   where paid_at >= mes.desde and paid_at < mes.hasta
      and cfdi_mode = 'global' and refunded_at is null
    order by paid_at;
    ```
@@ -347,3 +359,34 @@ Actualizar `e2e/nube/06-cobro-y-registro.spec.ts` (backend simulado) con
 | 1 | Factura global del mes anterior (fase 5) | Andrea o Diego |
 | ≤ 17 | Declaración mensual RESICO: ISR (1%–2.5% sobre la base cobrada) e IVA | Andrea o contador |
 | Abril | Declaración anual (sueldo + RESICO) | Andrea o contador |
+
+## Notas de implementación
+
+- **SDK:** `npm:stripe@23.0.0` con `apiVersion: '2026-09-30.endive'` (la del
+  webhook). Es la versión del SDK que trae esa misma por default, así los
+  tipos coinciden. En esta versión la suscripción de una factura está en
+  `invoice.parent.subscription_details.subscription`, el cargo sale de
+  `invoicePayments.list({ invoice })` y el periodo cobrado de
+  `invoice.lines.data[].period.end`.
+- **Estado traído de Stripe:** en `customer.subscription.*` y
+  `checkout.session.completed` se vuelve a pedir la suscripción
+  (`subscriptions.retrieve`): los avisos pueden llegar en desorden. Si
+  `invoice.paid` llega antes que el Checkout, la liga con `metadata.user_id`.
+- **Solo la suscripción de la fila:** `deleted`, `invoice.*` y los cambios de
+  estado solo tocan la fila cuyo `stripe_subscription_id` coincide (un aviso de
+  una suscripción anterior no la pisa). `paid_until` nunca retrocede.
+- **Volver antes de que termine lo pagado:** `subscribe` quita la cancelación
+  de la misma suscripción (`cancel_at_period_end: false`): sin Checkout, sin
+  cobro nuevo y con su precio. Si la suscripción está `past_due`/`unpaid`,
+  `subscribe` manda al portal en vez de abrir otra.
+- **Dos Checkouts a la vez:** si se completa un segundo con una suscripción
+  viva, el webhook cancela y reembolsa el segundo.
+- **Prueba una vez:** no la tiene quien ya tiene `stripe_subscription_id` o un
+  `paid_until` (también de Mercado Pago). Un Checkout abandonado no cuenta.
+  `status` regresa `trialDays` y la app muestra «7 días de prueba».
+- **Prueba:** `paid_until` = fin de la prueba + 2 días; si cancela durante la
+  prueba, justo el fin de la prueba.
+- **Reembolsos parciales:** no marcan `refunded_at` (necesitan nota de crédito
+  a mano); quedan en el log de la función.
+- **Mercado Pago:** `_shared/mercadopago.ts`, `src/core/mercadopago.ts` y los
+  secretos `MP_*` siguen en el repo hasta que Stripe cobre en producción.
