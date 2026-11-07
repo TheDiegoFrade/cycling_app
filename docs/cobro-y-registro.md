@@ -54,7 +54,11 @@ Supabase por uno de dos caminos (`supabase/functions/invite`):
 
 1. **Lista de espera → «Invitar»** (solo administradores, `ADMIN_USER_IDS`):
    en la app, *Admin → Lista de espera*, un clic manda el correo y marca
-   `waitlist.invited_at`.
+   `waitlist.invited_at`. Cada alta nueva en la lista te avisa por correo
+   (al correo de cada cuenta en `ADMIN_USER_IDS`; `SUPPORT_EMAIL` solo si no
+   hay ninguno), con «Responder a» la persona y un botón a la lista:
+   trigger `waitlist_notify` → función `waitlist-notify`, que marca
+   `waitlist.notified_at`. SQL: `supabase/pendientes/2026-11-07-aviso-lista-espera.sql`.
 2. **Link de coach** (`#/invite/<token>`): si quien lo abre no tiene cuenta,
    pone su correo y recibe la invitación. Solo funciona con un link vigente y
    sin usar.
@@ -202,6 +206,23 @@ a publicar `coach-chat`, `pinon-chat`, `coach-retire-plan` y
    ```
 
    (el `RedirectTo` ya trae `?signup=1&next=…`; por eso va `&`).
+   La app pide la contraseña y **solo al guardarla** canjea el token
+   (`verifyOtp`): si la persona abre el link y cierra la ventana, el link
+   sigue sirviendo. Vence a las 24 h (`mailer_otp_exp = 86400`, Authentication
+   → Providers → Email → «Email OTP expiration»).
+
+   **Reset password** («¿Olvidaste tu contraseña?»): asunto
+   `Cambia tu contraseña de Torq` y el botón apunta a
+
+   ```
+   {{ .SiteURL }}/?reset=1&token_hash={{ .TokenHash }}&type=recovery
+   ```
+
+   Con `token_hash` el link sirve en cualquier navegador o dispositivo (no
+   depende del `code_verifier` de PKCE guardado donde se pidió) y los
+   escáneres de Gmail/Outlook no lo gastan. **Site URL** debe ser
+   `https://ridetorq.app` (con `https://`). La app acepta también los links
+   viejos `?reset=1&code=…` (solo en el navegador donde se pidieron).
 2. Authentication → URL configuration → Redirect URLs: agregar
    `<APP_URL>/?signup=1*` (o `<APP_URL>/**`).
 3. Authentication → Providers → Email: **desactivar «Allow new users to sign

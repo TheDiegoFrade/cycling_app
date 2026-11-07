@@ -1,13 +1,17 @@
-// Recuperar contraseña. Antes no había forma: el login solo aceptaba
-// contraseña y el link de recuperación del dashboard de Supabase (flujo
-// implícito, token en el hash) chocaba con el router por hash y mandaba al
-// login. Ahora: "¿Olvidaste tu contraseña?" manda el correo con
-// resetPasswordForEmail; el link vuelve a la app con `?reset=1&code=…`
-// (PKCE, como pide supabase/client.ts), supabase-js canjea el code al
-// arrancar y aquí se pide la contraseña nueva.
+// Recuperar contraseña. "¿Olvidaste tu contraseña?" manda el correo con
+// resetPasswordForEmail. La plantilla «Reset password» de Supabase manda a
+// `<app>/?reset=1&token_hash=…&type=recovery` (ver docs/cobro-y-registro.md):
+// la app pide la contraseña nueva y solo al guardarla canjea el token con
+// verifyOtp. Así sirve en cualquier navegador o dispositivo (no depende del
+// code_verifier de PKCE guardado donde se pidió) y los escáneres de links de
+// Gmail/Outlook no lo gastan.
+//
+// Links viejos (`?reset=1&code=…`, PKCE): supabase-js canjea el code al
+// arrancar; solo funcionan en el navegador donde se pidieron.
 import { supabase } from '../supabase/client';
+import { linkErrorText, passwordSaveErrorText, resetRequestErrorText } from '../core/auth-link';
+import { showNotice, showPasswordModal } from './password-modal';
 import { appState } from './state';
-import { escapeHtml } from './workout-cover';
 
 const RESET_PARAM = 'reset';
 
@@ -17,7 +21,7 @@ export async function requestPasswordReset(email: string): Promise<string | null
   const redirectTo = `${location.origin}${location.pathname}?${RESET_PARAM}=1`;
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
   // el mensaje de Supabase viene en inglés: a la persona, en español
-  return error ? 'No se pudo mandar el correo. Revisa que esté bien escrito y vuelve a intentar en un minuto.' : null;
+  return error ? resetRequestErrorText(error) : null;
 }
 
 /** ¿Venimos del link de recuperación? (lo usa también handleStravaRedirect
@@ -30,49 +34,39 @@ function clearResetParams(): void {
   history.replaceState(null, '', location.pathname + location.hash);
 }
 
-/** Si la app abrió desde el link de recuperación y ya hay sesión, pide la
- * contraseña nueva. Sin sesión (link vencido o usado) avisa y deja el login. */
+/** Si la app abrió desde el link de recuperación, pide la contraseña nueva. */
 export function maybeShowPasswordReset(): void {
   if (!isPasswordResetReturn() || !supabase) return;
   const client = supabase;
-  if (!appState.user) {
-    clearResetParams();
-    window.alert('El link para cambiar tu contraseña ya no es válido (vence o se usa una sola vez). Pide otro desde «¿Olvidaste tu contraseña?».');
+  const params = new URLSearchParams(location.search);
+  const tokenHash = params.get('token_hash');
+  const isNewLink = !!tokenHash && params.get('type') === 'recovery';
+  clearResetParams();
+
+  if (!isNewLink && !appState.user) {
+    // Link viejo que no se pudo canjear: vencido, usado u otro navegador.
+    showNotice(
+      'pw-reset-notice',
+      'Este link ya no sirve',
+      'El link para cambiar tu contraseña venció, ya se usó o se abrió en otro navegador. Pide otro desde «¿Olvidaste tu contraseña?».',
+    );
     return;
   }
-  document.body.insertAdjacentHTML(
-    'beforeend',
-    `<div class="modal-backdrop" id="pw-reset-backdrop">
-      <div class="panel" style="max-width:380px;margin:auto">
-        <h2 class="perfil-h2" style="margin:0 0 8px">Nueva contraseña</h2>
-        <p class="hint" style="margin:0 0 10px">Para ${escapeHtml(appState.user.email || 'tu cuenta')}.</p>
-        <label class="live-col-label">Contraseña nueva<input type="password" id="pw-reset-1" autocomplete="new-password" style="width:100%"></label>
-        <label class="live-col-label" style="margin-top:8px;display:block">Repítela<input type="password" id="pw-reset-2" autocomplete="new-password" style="width:100%"></label>
-        <button class="primary" id="pw-reset-save" style="margin-top:12px">Guardar</button>
-        <p class="hint" id="pw-reset-status" style="margin-top:8px"></p>
-      </div>
-    </div>`,
-  );
-  const backdrop = document.getElementById('pw-reset-backdrop')!;
-  const status = backdrop.querySelector<HTMLElement>('#pw-reset-status')!;
-  backdrop.querySelector('#pw-reset-save')?.addEventListener('click', async () => {
-    const a = backdrop.querySelector<HTMLInputElement>('#pw-reset-1')!.value;
-    const b = backdrop.querySelector<HTMLInputElement>('#pw-reset-2')!.value;
-    if (a.length < 8) {
-      status.textContent = 'Usa al menos 8 caracteres.';
-      return;
-    }
-    if (a !== b) {
-      status.textContent = 'Las dos no coinciden.';
-      return;
-    }
-    status.textContent = 'Guardando…';
-    const { error } = await client.auth.updateUser({ password: a });
-    if (error) {
-      status.textContent = error.message;
-      return;
-    }
-    clearResetParams();
-    backdrop.remove();
+  let verified = !isNewLink;
+  showPasswordModal({
+    id: 'pw-reset',
+    title: 'Nueva contraseña',
+    intro: appState.user?.email && !isNewLink ? `Para ${appState.user.email}.` : 'Escribe tu contraseña nueva para Torq.',
+    submitLabel: 'Guardar',
+    save: async (password) => {
+      if (!verified) {
+        const { error } = await client.auth.verifyOtp({ token_hash: tokenHash!, type: 'recovery' });
+        if (error) return { text: linkErrorText('recovery', error), fatal: true };
+        verified = true;
+      }
+      const { error } = await client.auth.updateUser({ password });
+      return error ? { text: passwordSaveErrorText(error) } : null;
+    },
+    onDone: () => showNotice('pw-reset-done', 'Listo', 'Guardamos tu contraseña nueva. Úsala para entrar desde cualquier dispositivo.'),
   });
 }
