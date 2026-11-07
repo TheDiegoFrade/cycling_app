@@ -36,7 +36,7 @@ describe('aiAccess', () => {
 });
 
 describe('precio', () => {
-  it('$329 al mes con IVA, sin precio de fundador', () => {
-    expect(PRICE_MXN).toBe(329);
+  it('$349 al mes con IVA, sin precio de fundador', () => {
+    expect(PRICE_MXN).toBe(349);
   });
 });

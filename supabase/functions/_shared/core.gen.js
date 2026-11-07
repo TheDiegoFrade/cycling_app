@@ -770,7 +770,7 @@ ${req.message}
 }
 
 // src/core/access.ts
-var PRICE_MXN = 329;
+var PRICE_MXN = 349;
 var TRIAL_DAYS = 7;
 var GRACE_DAYS = 7;
 var after = (iso, now) => !!iso && new Date(iso).getTime() > now.getTime();

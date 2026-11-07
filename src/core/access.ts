@@ -2,7 +2,7 @@
 // la usa el servidor para decidir (supabase/functions/_shared/access.ts) y la
 // app para mostrar el estado. Ver docs/evaluaciones/2026-10-20-ux-flujos.md,
 // «Decisión de planes»:
-//  - Atleta sin coach: suscripción Torq Coach IA ($329 al mes, cobro con Stripe;
+//  - Atleta sin coach: suscripción Torq Coach IA ($349 al mes, cobro con Stripe;
 //    ver docs/cobro-stripe.md).
 //  - Coach (por invitación) y atleta con coach vinculado: gratis.
 //  - Cuentas de cortesía (equipo y pruebas): gratis.
@@ -10,7 +10,7 @@
 /** Precio en MXN al mes, IVA incluido. Es el de respaldo: el que se cobra de
  * verdad sale del precio de Stripe del lookup key vigente
  * (STRIPE_CHECKOUT_LOOKUP_KEY), y cada suscripción guarda el suyo. */
-export const PRICE_MXN = 329;
+export const PRICE_MXN = 349;
 
 /** Días de prueba la primera vez que alguien se suscribe (una por cuenta). */
 export const TRIAL_DAYS = 7;
