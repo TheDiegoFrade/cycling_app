@@ -198,7 +198,8 @@ a publicar `coach-chat`, `pinon-chat`, `coach-retire-plan` y
 
 ### 5. Supabase Auth (invitaciones)
 
-1. Authentication → Email templates → **Invite user**: el botón del correo
+1. Authentication → Email templates → **Invite user** (copia en
+   `supabase/auth-templates/`): el botón del correo
    debe apuntar a
 
    ```

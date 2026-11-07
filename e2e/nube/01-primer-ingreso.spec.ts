@@ -162,6 +162,26 @@ test.describe('Bienvenida', () => {
     expect((backend.table('workouts')[0] as { data: { scheduledDate?: string } }).data.scheduledDate).toBeUndefined();
   });
 
+  test('el modo demo (simuladores) no aparece para la gente; solo para el administrador', async ({ page, backend, ux }) => {
+    const ana = user('ana');
+    backend.users.push(ana);
+    await login(page, ux, ana);
+    await ux.click(page.locator('#welcome-ride'), 'Rodar 30 min suave ahora');
+    await expect(page).toHaveURL(/#\/prepare/);
+    await expect(page.locator('#continue')).toBeVisible();
+    await expect(page.locator('#demo-link')).toHaveCount(0);
+  });
+
+  test('el administrador sí ve el modo demo', async ({ page, backend, ux }) => {
+    const admin = user('ana');
+    backend.users.push(admin);
+    backend.billingStatus = { ...backend.billingStatus, isAdmin: true };
+    await login(page, ux, admin);
+    await ux.click(page.locator('#welcome-ride'), 'Rodar 30 min suave ahora');
+    await expect(page.locator('#continue')).toBeVisible();
+    await expect(page.locator('#demo-link')).toBeVisible();
+  });
+
   test('las guías se pueden apagar en 1 clic y no vuelven', async ({ page, backend, ux }) => {
     const ana = user('ana');
     backend.users.push(ana);

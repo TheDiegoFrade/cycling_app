@@ -41,6 +41,13 @@ function intervalBlockHtml(iv: Interval): string {
     </div>`;
 }
 
+/** El modo demo (simuladores) es solo para el administrador en la app con
+ * nube: a la gente no le sirve y podía confundirse con una rodada real. En la
+ * copia local sin nube (desarrollo) sigue disponible. */
+export function canUseDemo(): boolean {
+  return !appState.cloudEnabled || appState.billing?.isAdmin === true;
+}
+
 /** "Antes de empezar" — ver TORQ_DESIGN.md. Sin barra lateral. El botón
  * Empezar solo se habilita con el rodillo conectado (real) o en modo demo
  * explícito; nunca conecta un simulador por su cuenta (bug #1 del doc: antes
@@ -128,7 +135,7 @@ export function renderConnect(container: HTMLElement): void {
           </div>
           <button class="prepare-start" id="continue" disabled>▶ Empezar</button>
           <div class="prepare-hint">Arranca en cuanto pedaleas. Espacio para pausar. En el celular, deja Torq abierto durante la sesión: si cambias de app, el rodillo se puede desconectar.</div>
-          <a href="#" id="demo-link" class="prepare-demo-link">Probar sin rodillo (modo demo, no se graba)</a>
+          ${canUseDemo() ? '<a href="#" id="demo-link" class="prepare-demo-link">Probar sin rodillo (modo demo, no se graba)</a>' : ''}
         </div>
       </div>
     </div>
