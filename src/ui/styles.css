@@ -8684,7 +8684,7 @@ body.remote-body {
 .plan-nav {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px; /* igual que .row-actions: en computadora queda como antes */
 }
 .plan-range {
   width: 170px;
