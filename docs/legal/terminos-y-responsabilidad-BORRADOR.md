@@ -58,7 +58,7 @@ Antes de participar en cualquier programa de ejercicio o actividad física, toma
 
 ## 7. Suscripción y pagos (Torq Coach IA)
 
-1. **Precio:** $329 MXN al mes, IVA incluido. El precio puede cambiar; si cambia, aplica lo del punto 6.
+1. **Precio:** $349 MXN al mes, IVA incluido. El precio puede cambiar; si cambia, aplica lo del punto 6.
 2. **Prueba:** la primera vez que te suscribes tienes 7 días de prueba. Registras tu tarjeta al empezar y el primer cobro se hace al terminar la prueba, salvo que canceles antes. Hay una sola prueba por persona: si la tarjeta ya se usó para una prueba en otra cuenta, el cobro se hace al suscribirte.
 3. **Cobro:** mes con mes y automático, con la tarjeta que registres. El pago lo procesa Stripe; Torq no guarda los datos de tu tarjeta.
 4. **Cancelación:** puedes cancelar cuando quieras desde Perfil. Conservas el acceso hasta el final del periodo ya pagado. No hay reembolsos de periodos parciales, salvo lo que diga la ley.
