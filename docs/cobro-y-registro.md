@@ -54,7 +54,10 @@ Supabase por uno de dos caminos (`supabase/functions/invite`):
 
 1. **Lista de espera → «Invitar»** (solo administradores, `ADMIN_USER_IDS`):
    en la app, *Admin → Lista de espera*, un clic manda el correo y marca
-   `waitlist.invited_at`.
+   `waitlist.invited_at`. Cada alta nueva en la lista te avisa por correo
+   (a `SUPPORT_EMAIL`, con «Responder a» la persona y un botón a la lista):
+   trigger `waitlist_notify` → función `waitlist-notify`, que marca
+   `waitlist.notified_at`. SQL: `supabase/pendientes/2026-11-07-aviso-lista-espera.sql`.
 2. **Link de coach** (`#/invite/<token>`): si quien lo abre no tiene cuenta,
    pone su correo y recibe la invitación. Solo funciona con un link vigente y
    sin usar.
