@@ -11,6 +11,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
+import { supportEmail } from '../_shared/mailer.ts';
+import { coachReplyTo } from '../_shared/coach-access.ts';
 import { deliverDraft, type PlanDraft, type WeekDraft } from '../coach-chat/coach-email.ts';
 import type { ReportWeek } from '../coach-chat/report-email.ts';
 
@@ -143,7 +145,7 @@ Deno.serve(async (req) => {
     const coachEmail = coachUser?.user?.email ?? undefined;
     const coachName = nameOf(coachId) ?? coachEmail?.split('@')[0] ?? 'Tu coach';
 
-    const sent = await deliverDraft(key === 'plan' ? 'plan' : 'week', draft, { email: athleteEmail, name: nameOf(athleteId), replyTo: coachEmail }, { name: coachName, comment });
+    const sent = await deliverDraft(key === 'plan' ? 'plan' : 'week', draft, { email: athleteEmail, name: nameOf(athleteId), replyTo: coachReplyTo(coachId, coachEmail, supportEmail()) }, { name: coachName, comment });
     if (!sent.ok) return json({ error: `no se pudo enviar: ${sent.error}` }, 502);
 
     // Registro del envío: se relee el plan justo antes para no pisar otros cambios.

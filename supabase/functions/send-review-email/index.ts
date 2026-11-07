@@ -12,7 +12,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';
-import { EMAIL_TEST_RECIPIENT } from '../_shared/mailer.ts';
+import { EMAIL_TEST_RECIPIENT, supportEmail } from '../_shared/mailer.ts';
+import { coachReplyTo } from '../_shared/coach-access.ts';
 import { buildReviewEmail, cleanKpis } from './email.ts';
 
 // MODO DE PRUEBA: mientras haya un correo en EMAIL_TEST_RECIPIENT
@@ -103,6 +104,7 @@ Deno.serve(async (req) => {
       sendComment: comment,
     });
 
+    const replyTo = coachReplyTo(userId, coachUser?.user?.email, supportEmail());
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -112,8 +114,8 @@ Deno.serve(async (req) => {
         subject: TEST_RECIPIENT ? `[Prueba] ${email.subject}` : email.subject,
         html: email.html,
         text: email.text,
-        // si el atleta responde, le llega a su coach
-        ...(coachUser?.user?.email ? { reply_to: coachUser.user.email } : {}),
+        // si el atleta responde, le llega a su coach (al equipo de Torq, por soporte)
+        ...(replyTo ? { reply_to: replyTo } : {}),
       }),
     });
     if (!res.ok) {
