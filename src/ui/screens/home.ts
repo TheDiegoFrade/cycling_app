@@ -356,7 +356,8 @@ export function renderHome(container: HTMLElement): void {
     const whenRadios = container.querySelectorAll<HTMLInputElement>('input[name="gen-when"]');
     const dateInput = container.querySelector<HTMLInputElement>('#gen-date')!;
     wireDatePicker(dateInput);
-    const dateWrapper = dateInput.closest<HTMLElement>('.date-picker')!;
+    // en pantallas táctiles no hay campo segmentado (ver date-picker.ts): se oculta el input nativo
+    const dateWrapper = dateInput.closest<HTMLElement>('.date-picker') ?? dateInput;
     const submitBtn = container.querySelector<HTMLButtonElement>('#gen-create')!;
 
     function isLater(): boolean {

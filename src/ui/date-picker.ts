@@ -17,6 +17,11 @@ const WEEKDAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 const CALENDAR_ICON =
   '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"></rect><line x1="3" y1="9.5" x2="21" y2="9.5"></line><line x1="8" y1="2.5" x2="8" y2="6.5"></line><line x1="16" y1="2.5" x2="16" y2="6.5"></line></svg>';
 
+/** ¿El dispositivo se maneja con el dedo? Ahí se deja el selector de fecha nativo. */
+export function prefersNativeDatePicker(): boolean {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+}
+
 type SegKey = 'd' | 'm' | 'y';
 const SEG_ORDER: SegKey[] = ['d', 'm', 'y'];
 const SEG_LEN: Record<SegKey, number> = { d: 2, m: 2, y: 4 };
@@ -55,6 +60,11 @@ function clamp(n: number, min: number, max: number): number {
  * sigue cambiando `.value` y disparando `change`, así que cualquier listener
  * ya existente sobre ese input sigue funcionando sin tocarlo. */
 export function wireDatePicker(input: HTMLInputElement, opts: { showToday?: boolean } = {}): void {
+  // En pantallas táctiles (celular, tableta) el campo segmentado no sirve: sus
+  // partes no son campos de texto, así que no sale el teclado, y el calendario
+  // pasa el año de 12 en 12. El <input type="date"> nativo trae su propio
+  // selector (rueda o calendario con año), cómodo con el dedo.
+  if (prefersNativeDatePicker()) return;
   const showToday = opts.showToday ?? true;
   if (input.dataset.datePickerWired) return;
   input.dataset.datePickerWired = '1';
