@@ -455,7 +455,7 @@ test.describe('Recorrido de Piñón la primera vez', () => {
     await login(page, ux, ana);
     const tour = page.locator('.pinon-tour');
     await expect(tour).toBeVisible();
-    await expect(tour.locator('#pinon-tour-count')).toHaveText('1 de 10');
+    await expect(tour.locator('#pinon-tour-count')).toHaveText('1 de 11');
     await expect(tour.locator('#pinon-tour-title')).toContainText('¡Hola, Ana!');
     await ux.shot('03b-recorrido-hola', page.locator('body'));
     const next = tour.locator('#pinon-tour-next');
@@ -479,6 +479,9 @@ test.describe('Recorrido de Piñón la primera vez', () => {
     await ux.click(next, 'Siguiente');
     await ux.click(next, 'Siguiente');
     await expect(tour).toHaveAttribute('data-step', 'pinon');
+    await ux.click(next, 'Siguiente');
+    await expect(tour).toHaveAttribute('data-step', 'feedback');
+    await expect(tour.locator('#pinon-tour-text')).toContainText('startup pequeña');
     await ux.click(next, 'Siguiente');
     await expect(tour).toHaveAttribute('data-step', 'profile');
     await expect(next).toHaveText('¡Listo!');

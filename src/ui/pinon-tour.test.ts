@@ -5,7 +5,7 @@ describe('recorrido de Piñón', () => {
   const steps = tourSteps({ name: 'Ana', gender: 'f' });
 
   it('explica las secciones, cómo entrenar, el celular, a Piñón y Perfil, en ese orden', () => {
-    expect(steps.map((s) => s.id)).toEqual(['intro', 'home', 'plan', 'library', 'form', 'ride', 'erg', 'phone', 'pinon', 'profile']);
+    expect(steps.map((s) => s.id)).toEqual(['intro', 'home', 'plan', 'library', 'form', 'ride', 'erg', 'phone', 'pinon', 'feedback', 'profile']);
   });
 
   it('saluda por nombre y concuerda en género', () => {
@@ -29,6 +29,12 @@ describe('recorrido de Piñón', () => {
     expect(text).toContain('Bluetooth');
     expect(text).toContain('modo ERG');
     expect(text).toMatch(/escanea el código con tu celular/);
+  });
+
+  it('invita a mandar comentarios: es una startup y sí los toma en cuenta', () => {
+    const fb = steps.find((s) => s.id === 'feedback')!;
+    expect(fb.text).toContain('startup');
+    expect(fb.targets).toContain('#sidebar-feedback');
   });
 
   it('con coach humano, el plan lo arma su coach (no promete que Piñón lo ajusta)', () => {

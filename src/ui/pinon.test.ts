@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_PEEKS_PER_DAY, PEEK_PROBABILITY, pinonTip, shouldCelebrateWeek, shouldPeek } from './pinon';
+import { FEEDBACK_ASK_TEXT, MAX_PEEKS_PER_DAY, PEEK_PROBABILITY, pinonTip, shouldAskForFeedback, shouldCelebrateWeek, shouldPeek } from './pinon';
 import type { PinonTipContext } from './pinon';
 
 describe('shouldPeek', () => {
@@ -163,5 +163,17 @@ describe('guías, apoyo y juego', () => {
     expect(catchTitle(1)).toBe('ME ATRAPASTE 1 VEZ');
     expect(catchTitle(7)).toBe('ME ATRAPASTE 7 VECES');
     expect([9, 10, 11, 25, 50, 100].map(isCatchMilestone)).toEqual([false, true, false, true, true, true]);
+  });
+});
+
+describe('Piñón pide comentarios', () => {
+  it('después de 3 rodadas, una sola vez', () => {
+    expect(shouldAskForFeedback(2, false)).toBe(false);
+    expect(shouldAskForFeedback(3, false)).toBe(true);
+    expect(shouldAskForFeedback(10, true)).toBe(false);
+  });
+  it('dice que es una startup y que sí lo toma en cuenta', () => {
+    expect(FEEDBACK_ASK_TEXT).toContain('startup pequeña');
+    expect(FEEDBACK_ASK_TEXT).toContain('sí lo cambiamos');
   });
 });

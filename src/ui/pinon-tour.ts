@@ -95,6 +95,12 @@ export function tourSteps(ctx: TourContext = {}): TourStep[] {
       targets: ['.pinon-chat-launcher'],
     },
     {
+      id: 'feedback',
+      title: 'Tu opinión cambia Torq',
+      text: 'Somos una startup pequeña: lo que nos cuentas lo leemos y sí lo cambiamos. ¿Algo no funciona o tienes una idea? Mándanos un comentario desde aquí.',
+      targets: ['#sidebar-feedback', '#tabbar-more'],
+    },
+    {
       id: 'profile',
       title: 'Perfil',
       text: 'Tu FTP, tu pulso, los sonidos y mis guías. Desde ahí puedes repetir este recorrido cuando quieras.',

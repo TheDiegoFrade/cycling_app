@@ -20,7 +20,8 @@ import { appState } from '../state';
 import { escapeHtml } from '../workout-cover';
 import { tokenForIntervals, tokenForTemplate, tokenForWorkout, tokenHtml } from '../workout-token';
 import { montanasVideoHtml } from '../montanas-video';
-import { maybeCelebrateStreak, maybeCelebrateWeek, maybeWelcomeBack } from '../pinon';
+import { maybeAskForFeedback, maybeCelebrateStreak, maybeCelebrateWeek, maybeWelcomeBack } from '../pinon';
+import { openFeedbackDialog } from '../feedback';
 import { computeWeeklyStreak } from '../../engine/streaks';
 import { humanCoachName } from '../coach-notice';
 import { fetchWeeklyEvalDue, requestCoachCreate, requestCoachEval } from '../coach';
@@ -556,6 +557,8 @@ export function renderHome(container: HTMLElement): void {
       maybeCelebrateStreak(computeWeeklyStreak(rideDays, todayKey).currentWeeks);
       const lastRide = rideDays.length ? rideDays.reduce((a, b) => (a > b ? a : b)) : null;
       maybeWelcomeBack(lastRide, todayKey, humanCoachName() !== null);
+      // ya rodó unas veces: Piñón pregunta cómo le va (una sola vez)
+      if (appState.user) maybeAskForFeedback(rideDays.length, () => openFeedbackDialog('idea'));
     }
 
     container.querySelector('#week-hours')!.textContent = fmtHours(totalSeconds);

@@ -1,4 +1,4 @@
-import { test, expect, user } from '../support/ux';
+import { test, expect, user, withFeedbackAsk } from '../support/ux';
 import type { Page } from '@playwright/test';
 import type { MockSupabase, MockUser } from '../support/mock-supabase';
 import { bubbleText, openChat, tapQuick } from '../support/flows';
@@ -171,6 +171,47 @@ test.describe('Mandar comentario', () => {
     expect(String((sent as unknown as { device: string }).device)).toMatch(/^Computadora · Chrome \d+ · /);
     await ux.click(dlg.locator('#feedback-done'), 'Listo');
     await expect(page.locator('#feedback-backdrop')).toHaveCount(0);
+  });
+
+  test('después de 3 rodadas, Piñón pregunta cómo le va y abre el comentario', async ({ page, backend, ux }) => {
+    const u = user('beto');
+    backend.users.push(u);
+    seedProfile(backend, u, 'beto');
+    for (let d = 1; d <= 3; d++) {
+      const started = new Date(Date.now() - d * 86_400_000).toISOString();
+      backend.table('sessions').push({ id: `s-${d}`, user_id: u.id, workout_name: 'Z2', started_at: started, finished_at: started, kind: 'bike', source: 'app', training_stress_score: 40, duration_s: 3600 });
+    }
+    await backend.seedSession(page, u);
+    await withFeedbackAsk(page);
+    await page.addInitScript(() => {
+      localStorage.setItem('torq.pinon.guides', 'off');
+    });
+    await page.goto('/#/home');
+    const bubble = page.locator('.pinon-bubble-layer');
+    await expect(bubble).toContainText('startup pequeña', { timeout: 8000 });
+    await ux.click(bubble.locator('.pinon-btn-primary'), 'Mandar comentario');
+    await expect(page.locator('#feedback-form')).toBeVisible();
+    await expect(page.locator('[data-kind="idea"]')).toHaveAttribute('aria-checked', 'true');
+    // no vuelve a preguntar
+    await page.locator('#feedback-cancel').click();
+    await page.goto('/#/plan');
+    await page.goto('/#/home');
+    await page.waitForTimeout(1500);
+    await expect(page.locator('.pinon-bubble-layer')).toHaveCount(0);
+  });
+
+  test('el chat de Piñón siempre trae «Mandar comentario»', async ({ page, backend, ux }) => {
+    const u = user('ana');
+    backend.users.push(u);
+    seedProfile(backend, u, 'ana');
+    await backend.seedSession(page, u);
+    await page.addInitScript(() => localStorage.setItem('torq.pinon.guides', 'off'));
+    await page.goto('/#/plan');
+    await openChat(page, ux);
+    await ux.click(page.locator('.pinon-chat [data-feedback]'), 'Mandar comentario (chat)');
+    await expect(page.locator('.pinon-chat')).toHaveCount(0);
+    await expect(page.locator('#feedback-form')).toBeVisible();
+    await expect(page.locator('#feedback-message')).toBeFocused();
   });
 
   test('si falla, lo dice en español y deja reintentar sin perder el texto', async ({ page, backend, ux }) => {

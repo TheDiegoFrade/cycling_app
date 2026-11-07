@@ -208,6 +208,8 @@ export const test = base.extend<Fixtures>({
         // el recorrido de la primera vez tapa la pantalla: cada test que lo
         // evalúa lo pide con withTour()
         if (!sessionStorage.getItem('torq.e2e.tour')) localStorage.setItem('torq.pinon.tour', '1');
+        // «¿Cómo vas con Torq?» tras 3 rodadas: igual, solo donde se evalúa (withFeedbackAsk)
+        if (!sessionStorage.getItem('torq.e2e.feedbackAsk')) localStorage.setItem('torq.pinon.feedbackAsk', '1');
       } catch {
         /* sin storage */
       }
@@ -244,6 +246,19 @@ export async function withTour(page: Page): Promise<void> {
       if (sessionStorage.getItem('torq.e2e.tour')) return;
       sessionStorage.setItem('torq.e2e.tour', '1');
       localStorage.removeItem('torq.pinon.tour');
+    } catch {
+      /* sin storage */
+    }
+  });
+}
+
+/** Deja salir la pregunta de Piñón «¿Cómo vas con Torq?» (apagada por defecto). */
+export async function withFeedbackAsk(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    try {
+      if (sessionStorage.getItem('torq.e2e.feedbackAsk')) return;
+      sessionStorage.setItem('torq.e2e.feedbackAsk', '1');
+      localStorage.removeItem('torq.pinon.feedbackAsk');
     } catch {
       /* sin storage */
     }

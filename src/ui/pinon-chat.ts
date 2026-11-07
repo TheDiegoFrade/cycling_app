@@ -13,6 +13,7 @@ import { askPinon } from '../sync/pinon-chat';
 import { buildPinonChatData } from './pinon-context';
 import { pinonFigureHtml, setPinonPose } from './pinon';
 import { appState } from './state';
+import { openFeedbackDialog } from './feedback';
 
 interface ChatMessage {
   role: 'user' | 'pinon';
@@ -129,7 +130,7 @@ export function openPinonChat(opts: { onClose?: () => void; onNavigate?: () => v
       <button type="button" class="pinon-chat-close" aria-label="Cerrar">×</button>
     </header>
     <div class="pinon-chat-log" aria-live="polite"></div>
-    <div class="pinon-chat-quick">${PINON_QUICK.map((q) => `<button type="button" data-intent="${q.intent}">${q.label}</button>`).join('')}</div>
+    <div class="pinon-chat-quick">${PINON_QUICK.map((q) => `<button type="button" data-intent="${q.intent}">${q.label}</button>`).join('')}${appState.user ? `<button type="button" class="pinon-chat-feedback" data-feedback>💬 Mandar comentario</button>` : ''}</div>
     <form class="pinon-chat-form" autocomplete="off">
       <input type="text" name="q" maxlength="${PINON_MAX_CHARS}" placeholder="Pregúntale algo a Piñón…" aria-label="Tu pregunta para Piñón">
       <button type="submit" class="pinon-chat-send" aria-label="Enviar">Enviar</button>
@@ -210,6 +211,12 @@ export function openPinonChat(opts: { onClose?: () => void; onNavigate?: () => v
 
   panel.querySelector('.pinon-chat-close')!.addEventListener('click', () => closePinonChat());
   panel.querySelector('.pinon-chat-quick')!.addEventListener('click', (e) => {
+    // siempre a la mano: un problema o una idea va directo al equipo
+    if ((e.target as HTMLElement).closest('[data-feedback]')) {
+      closePinonChat(false);
+      openFeedbackDialog();
+      return;
+    }
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-intent]');
     if (!btn || busy) return;
     push({ role: 'user', text: btn.textContent ?? '' });
