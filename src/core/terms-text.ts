@@ -3,7 +3,7 @@
 // Aprobado como versión vigente el 20-oct-2026 (pendiente revisión de un
 // abogado). Al cambiar el texto se cambia TERMS_VERSION, y la app vuelve a
 // pedir aceptarlo a todos.
-export const TERMS_VERSION = '2026-11-07b';
+export const TERMS_VERSION = '2026-11-07c';
 export const TERMS_IS_DRAFT = false;
 
 export const TERMS_TEXT = `## 1. Qué es Torq
@@ -46,7 +46,7 @@ Antes de participar en cualquier programa de ejercicio o actividad física, toma
 ## 6. Responsabilidad
 
 1. **Asumes los riesgos de tu práctica deportiva.** En la medida en que lo permita la ley, eres responsable de las lesiones, daños o consecuencias que resulten de entrenar con los planes o sugerencias de Torq. Liberas de esa responsabilidad a Torq, a sus fundadores y a los coaches que colaboraron en su desarrollo.
-2. **Tope.** Si Torq llegara a ser responsable frente a ti, su responsabilidad total no excederá lo que le hayas pagado en los 12 meses anteriores al hecho, o $2,000 MXN, lo que sea mayor. No incluye daños indirectos ni lucro cesante.
+2. **Límite de responsabilidad.** En cualquier caso, la responsabilidad total de Torq frente a ti no excederá lo que le hayas pagado en los 12 meses anteriores al hecho. No incluye daños indirectos ni lucro cesante.
 3. **Lo que no se limita.** Nada de lo anterior limita la responsabilidad que, conforme a la ley, no pueda limitarse: por ejemplo, por dolo o por negligencia grave, ni tus derechos como consumidor ante la Profeco.
 
 ## 7. Suscripción y pagos (Torq Coach IA)
