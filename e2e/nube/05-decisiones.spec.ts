@@ -104,7 +104,7 @@ test.describe('Lista de espera', () => {
     await ux.fill(page.locator('#waitlist-email'), 'Luis@Correo.com', 'Correo');
     await page.locator('#waitlist-discipline').selectOption('gravel');
     await ux.click(page.locator('#waitlist-btn'), 'Apuntarme');
-    await expect(page.locator('#waitlist-result')).toContainText('ya estás en la lista');
+    await expect(page.locator('#waitlist-result')).toContainText('¡Gracias por apuntarte! 🎉 Ya estás en la lista.');
     await expect(page.locator('#waitlist-email')).toBeHidden();
     expect(backend.table('waitlist')).toEqual([expect.objectContaining({ email: 'luis@correo.com', discipline: 'gravel' })]);
     expect(ux.interactions).toBeLessThanOrEqual(4);
@@ -129,7 +129,7 @@ test.describe('Lista de espera', () => {
     await ux.click(page.locator('#waitlist-toggle'), 'Lista de espera');
     await ux.fill(page.locator('#waitlist-email'), 'luis@correo.com', 'Correo');
     await ux.click(page.locator('#waitlist-btn'), 'Apuntarme');
-    await expect(page.locator('#waitlist-result')).toContainText('ya estás en la lista');
+    await expect(page.locator('#waitlist-result')).toContainText('¡Gracias por apuntarte! 🎉 Ya estás en la lista.');
   });
 
   test('desde la lista de espera se vuelve al login en 1 clic', async ({ page, ux }) => {
