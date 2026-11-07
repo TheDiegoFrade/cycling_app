@@ -2,8 +2,8 @@
 // GENERADO a partir de docs/legal/aviso-de-privacidad-BORRADOR.md (BORRADOR).
 export const PRIVACY_TEXT = `## 1. Responsable
 
-[Razón social o nombre], con domicilio en [domicilio] («Torq»), es responsable del tratamiento de tus datos personales.
-**Contacto de privacidad:** [correo]
+Torq, con domicilio en Ciudad de México, es responsable del tratamiento de tus datos personales.
+**Contacto de privacidad:** soporte@ridetorq.app
 
 ## 2. Qué datos recabamos
 
@@ -16,6 +16,7 @@ export const PRIVACY_TEXT = `## 1. Responsable
 | **Lo que escribes a Piñón, en tus notas o al coach** | Preguntas, notas de cada sesión y de la semana. **Pueden contener datos de salud** (cansancio, molestias, lesiones), y se tratan como tales | Contestarte y ajustar tu plan |
 | **Tu expediente de entrenamiento** | Un resumen que el coach IA actualiza con lo que observa de cómo respondes a los entrenamientos | Que los siguientes ajustes tomen en cuenta tu historia. **Lo puedes ver y borrar en Perfil** |
 | **Pago** | Lo gestiona Stripe. Torq **no** guarda los datos de tu tarjeta; solo el estado de tu suscripción y de cada cobro (monto, fecha y si la tarjeta es de crédito o débito, para la factura) y una huella de la tarjeta que da Stripe (no es el número) | Cobrar tu suscripción, facturar y evitar abusos de la prueba y fraude |
+| **Comentarios que nos mandas** | Lo que escribes, el tipo de comentario, la pantalla donde estabas y tu dispositivo | Mejorar Torq y contestarte. Si borras tu cuenta, se quedan sin nada que te identifique |
 | **Técnicos** | Dispositivo, navegador, fecha y hora de aceptación de estos documentos | Seguridad y evidencia de tu consentimiento |
 
 ## 3. Finalidades
@@ -28,10 +29,9 @@ export const PRIVACY_TEXT = `## 1. Responsable
 5. Enviarte correos sobre tu plan (bienvenida, resúmenes semanales).
 
 **Secundarias (puedes negarte sin perder el servicio):**
-6. [Enviarte novedades de Torq.]
-7. [Estadísticas anónimas para mejorar la app.]
+6. Estadísticas anónimas para mejorar la app.
 
-Si no quieres que usemos tus datos para las finalidades secundarias, escríbenos a [correo].
+Si no quieres que usemos tus datos para las finalidades secundarias, escríbenos a soporte@ridetorq.app.
 
 ## 4. Con quién compartimos tus datos
 
@@ -56,13 +56,13 @@ Tus datos de salud son **datos sensibles**. Los usamos solo si nos das tu **cons
 ## 6. Tus derechos ARCO y cómo revocar tu consentimiento
 
 Puedes **acceder** a tus datos, **rectificarlos**, **cancelarlos** u **oponerte** a su uso, y **revocar** tu consentimiento:
-- Escríbenos a [correo] con tu nombre, tu correo de la cuenta y lo que solicitas.
-- Te responderemos en un máximo de [20 días hábiles], como pide la ley.
+- Escríbenos a soporte@ridetorq.app con tu nombre, tu correo de la cuenta y lo que solicitas.
+- Te responderemos en un máximo de 20 días hábiles, como pide la ley.
 - Desde Perfil ya puedes editar tus datos y borrar tus sesiones y tu expediente de entrenamiento.
 
 ## 7. Cuánto tiempo guardamos tus datos
 
-Mientras tengas cuenta. Si la cancelas, los borramos en [plazo], salvo lo que debamos conservar por obligaciones fiscales.
+Mientras tengas cuenta. Si la cancelas, los borramos en un máximo de 30 días, salvo lo que debamos conservar por obligaciones fiscales. Lo que conservemos para estadísticas queda sin nada que te identifique.
 
 ## 8. Cookies y almacenamiento local
 
