@@ -15,3 +15,11 @@ export const COMP_USER_IDS = new Set([
 export const ADMIN_USER_IDS = new Set([
   '95b1f5fc-a167-4c9e-ae16-95d158280c3d', // dpcfrade@gmail.com — dueño de la app
 ]);
+
+/** «Responder a» de los correos que un coach humano le manda a su atleta: su
+ * propio correo, salvo el equipo de Torq (administradores), que responde
+ * desde soporte para no exponer un correo personal. */
+export function coachReplyTo(coachId: string, coachEmail: string | null | undefined, support: string | null): string | undefined {
+  if (ADMIN_USER_IDS.has(coachId)) return support ?? undefined;
+  return coachEmail ?? undefined;
+}
