@@ -34,7 +34,7 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
         </form>
         <button type="button" class="ghost-btn waitlist-toggle" id="waitlist-toggle">¿Sin cuenta? Únete a la lista de espera</button>
         <form class="entry-fields" id="waitlist-form" novalidate>
-          <p class="waitlist-intro">Torq es por invitación. Déjanos tu correo y te escribimos en cuanto haya lugar.</p>
+          <p class="waitlist-intro">¡Qué gusto que quieras rodar con Torq! 🚴 Estamos abriendo poco a poco para acompañar bien a cada ciclista. Déjanos tu correo y te avisamos en cuanto sea tu turno.</p>
           <label>Correo<input type="email" id="waitlist-email" placeholder="tucorreo@ejemplo.com" autocomplete="email"></label>
           <label>Nombre <span class="hint">(opcional)</span><input type="text" id="waitlist-name" maxlength="80" autocomplete="given-name"></label>
           <label>¿Qué ruedas? <span class="hint">(opcional)</span>
@@ -95,7 +95,7 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
     btn.disabled = false;
     if (res === 'ok') {
       waitlistForm.querySelectorAll('label, #waitlist-btn, .waitlist-intro').forEach((el) => ((el as HTMLElement).hidden = true));
-      resultEl.innerHTML = '<p class="waitlist-done">Listo, ya estás en la lista. Te escribimos a ese correo cuando haya lugar.</p>';
+      resultEl.innerHTML = '<p class="waitlist-done">¡Gracias por apuntarte! 🎉 Ya estás en la lista. Te escribimos a ese correo en cuanto sea tu turno. ¡Nos vemos en la bici!</p>';
     } else {
       resultEl.innerHTML = `<div class="error-box">${res === 'invalid_email' ? 'Revisa tu correo: parece que le falta algo.' : 'No se pudo guardar. Intenta de nuevo en un momento.'}</div>`;
     }

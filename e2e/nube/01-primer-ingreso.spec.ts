@@ -89,6 +89,31 @@ test.describe('Entrar a la app', () => {
     expect(backend.calls.filter((c) => c.name === 'login')).toHaveLength(0);
   });
 
+  test('otra cuenta en el mismo navegador: tras «Cerrar sesión» en Perfil entra a su bienvenida, con las guías de Piñón', async ({ page, backend, ux }) => {
+    const ana = user('ana');
+    const beto = user('beto');
+    backend.users.push(ana, beto);
+    await login(page, ux, ana);
+    await expect(page.locator('.home-screen')).toBeVisible();
+    // Ana ya vio la guía de Plan y platicó con Piñón en este navegador
+    await page.evaluate(() => {
+      localStorage.setItem('torq.pinon.guide.plan', '1');
+      localStorage.setItem('torq.pinon.chat.log', '[{"from":"user","text":"hola"}]');
+    });
+    await page.goto('/#/profile');
+    await ux.click(page.locator('#signout'), 'Cerrar sesión');
+    await expect(page.locator('#entry-toggle')).toBeVisible();
+    await expect(page).toHaveURL(/#\/home$/);
+    await ux.click(page.locator('#entry-toggle'), 'Entrar (abrir campos)');
+    await ux.fill(page.locator('#login-email'), beto.email, 'Correo');
+    await ux.fill(page.locator('#login-password'), 'secreta', 'Contraseña');
+    await ux.click(page.locator('#login-password-btn'), 'Entrar');
+    await expect(page.locator('.home-welcome')).toBeVisible();
+    await expect(page).toHaveURL(/#\/home$/);
+    const left = await page.evaluate(() => [localStorage.getItem('torq.pinon.guide.plan'), localStorage.getItem('torq.pinon.chat.log')]);
+    expect(left, 'lo de Ana no se queda para Beto').toEqual([null, null]);
+  });
+
   test('un link profundo sin sesión muestra el login y, al entrar, vuelve a esa pantalla', async ({ page, backend, ux }) => {
     const ana = user('ana');
     backend.users.push(ana);

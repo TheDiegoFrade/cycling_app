@@ -262,6 +262,10 @@ class AppState {
   }
 
   async signOut(): Promise<void> {
+    // Al salir se vuelve a Inicio: si no, quien entre después (otra cuenta en
+    // este navegador) caía en la pantalla donde estaba la anterior — Perfil,
+    // que es donde está «Cerrar sesión» — en vez de su bienvenida.
+    history.replaceState(null, '', '#/home');
     if (supabase) await supabase.auth.signOut();
     // No depende del evento onAuthStateChange para borrar lo local: ese
     // handler compara contra this.user, que el setUser(null) de abajo ya deja
