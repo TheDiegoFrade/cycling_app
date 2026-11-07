@@ -53,7 +53,7 @@ Antes de participar en cualquier programa de ejercicio o actividad física, toma
 > **Nota para el abogado:** se cambió la renuncia total del texto de Joe por una estructura de tres partes, parecida a la de NUA Coach: asumir riesgos, tope de responsabilidad y excepciones de ley. Es más fácil de sostener ante la Profeco (ver notas al final).
 
 1. **Asumes los riesgos de tu práctica deportiva.** En la medida en que lo permita la ley, eres responsable de las lesiones, daños o consecuencias que resulten de entrenar con los planes o sugerencias de Torq. Liberas de esa responsabilidad a Torq, a sus fundadores y a los coaches que colaboraron en su desarrollo.
-2. **Tope.** Si Torq llegara a ser responsable frente a ti, su responsabilidad total no excederá lo que le hayas pagado en los 12 meses anteriores al hecho, o [$2,000 MXN], lo que sea mayor. No incluye daños indirectos ni lucro cesante.
+2. **Tope.** Si Torq llegara a ser responsable frente a ti, su responsabilidad total no excederá lo que le hayas pagado en los 12 meses anteriores al hecho, o $2,000 MXN, lo que sea mayor. No incluye daños indirectos ni lucro cesante.
 3. **Lo que no se limita.** Nada de lo anterior limita la responsabilidad que, conforme a la ley, no pueda limitarse: por ejemplo, por dolo o por negligencia grave, ni tus derechos como consumidor ante la Profeco.
 
 ## 7. Suscripción y pagos (Torq Coach IA)
@@ -64,7 +64,7 @@ Antes de participar en cualquier programa de ejercicio o actividad física, toma
 4. **Cancelación:** puedes cancelar cuando quieras desde Perfil. Conservas el acceso hasta el final del periodo ya pagado. No hay reembolsos de periodos parciales, salvo lo que diga la ley.
 5. **Pago rechazado:** si un cobro de renovación no pasa, te avisaremos y tendrás 7 días para actualizar tu método de pago antes de que se suspenda el plan. Tus datos e historial no se borran.
 6. **Cambios de precio:** te avisaremos con al menos 30 días de anticipación antes de cobrarte un precio distinto. Si no estás de acuerdo, puedes cancelar y conservas el acceso hasta el final del periodo ya pagado.
-7. **Facturación:** si necesitas factura, solicítala en [medio] dentro del mes en que se hizo el cargo.
+7. **Facturación:** si necesitas factura, escríbenos a soporte@ridetorq.app dentro del mes en que se hizo el cargo.
 8. **Atletas con coach:** si tu coach usa Torq contigo, la app va incluida y Torq no te cobra nada.
 
 ## 8. Tu cuenta y uso permitido
@@ -83,7 +83,7 @@ Si estos términos cambian, te avisaremos en la app y te pediremos aceptarlos de
 
 ## 11. Ley aplicable
 
-[Leyes federales de los Estados Unidos Mexicanos; tribunales de [ciudad], salvo lo que disponga la Ley Federal de Protección al Consumidor.] No se usa arbitraje obligatorio: frente a consumidores en México, la Profeco y sus derechos no se pueden renunciar.
+Estos términos se rigen por las leyes de los Estados Unidos Mexicanos. No se usa arbitraje obligatorio: nada de esto limita tus derechos como consumidor ante la Profeco, que no se pueden renunciar.
 
 ---
 
