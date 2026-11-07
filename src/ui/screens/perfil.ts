@@ -8,9 +8,10 @@ import { ZONE_NAMES } from '../../core/zones';
 import type { PowerZone } from '../../core/zones';
 import { beeper } from '../audio';
 import { areGuidesOff, isPeekEnabled, pinonCatches, setGuidesOff, setPeekEnabled } from '../pinon';
+import { requestPinonTour } from '../pinon-tour';
 import { isRidePinonEnabled, setRidePinonEnabled } from '../pinon-ride';
 import { appState } from '../state';
-import { refresh } from '../router';
+import { navigate, refresh } from '../router';
 import { escapeHtml } from '../workout-cover';
 import { COACH_TIER_LABELS } from '../../core/coach-invite';
 import { endMyCoachLink } from '../../sync/coach-link';
@@ -236,6 +237,10 @@ export function renderPerfil(container: HTMLElement): void {
                 <span>Piñón al rodar<span class="hint" style="display:block;margin:2px 0 0">Te anima en la esquina durante el entrenamiento. Nunca encima de una alerta.</span></span>
                 <button class="switch${isRidePinonEnabled() ? ' on' : ''}" role="switch" aria-pressed="${isRidePinonEnabled()}" aria-label="Piñón al rodar" id="pinon-ride-switch"></button>
               </div>
+              <div class="perfil-click-row">
+                <span>Recorrido de Piñón<span class="hint" style="display:block;margin:2px 0 0">Te enseña cada sección, cómo entrenar y el control con el celular.</span></span>
+                <button type="button" class="btn-light" id="pinon-tour-replay">Verlo de nuevo</button>
+              </div>
               ${pinonCatches() > 0 ? `<p class="hint" style="margin:8px 0 0">Lo has atrapado ${pinonCatches()} ${pinonCatches() === 1 ? 'vez' : 'veces'}.</p>` : ''}
             </div>
 
@@ -433,6 +438,11 @@ export function renderPerfil(container: HTMLElement): void {
         beeper.unlock();
         beeper.bike(btn.dataset.bikeSound as 'ratchet' | 'shift' | 'bell');
       });
+    });
+
+    container.querySelector('#pinon-tour-replay')?.addEventListener('click', () => {
+      requestPinonTour();
+      navigate('home');
     });
 
     container.querySelector('#pinon-guides-switch')?.addEventListener('click', () => {

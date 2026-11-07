@@ -387,6 +387,10 @@ export function setGuidesOff(off: boolean): void {
   lsSet(GUIDES_OFF_KEY, off ? 'off' : 'on');
   if (!off) GUIDE_SCREENS.forEach((g) => lsSet(guideKey(g), '')); // volver a verlas desde cero
 }
+/** El recorrido ya explicó todas las pantallas: sus guías no se repiten. */
+export function markGuidesSeen(): void {
+  GUIDE_SCREENS.forEach((g) => lsSet(guideKey(g), '1'));
+}
 function guideSeen(screen: Screen): boolean {
   return !(GUIDE_SCREENS as readonly Screen[]).includes(screen) || lsGet(guideKey(screen as GuideScreen)) === '1';
 }
