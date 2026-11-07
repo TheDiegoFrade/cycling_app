@@ -2,12 +2,14 @@
 // tardar en invitar. Lo llama el trigger `waitlist_notify` de la tabla
 // waitlist (pg_net, ver supabase/schema.sql) con el header x-cron-secret =
 // secreto CRON_SECRET; no recibe sesión de usuario (--no-verify-jwt).
-// El correo va a SUPPORT_EMAIL (el buzón del equipo) y marca
-// waitlist.notified_at para saber que salió.
+// El correo va al correo de cada cuenta en ADMIN_USER_IDS (quienes pueden
+// invitar; SUPPORT_EMAIL solo si no hay ninguno) y marca waitlist.notified_at
+// para saber que salió.
 //
 // body: { id }  → id de la fila nueva de waitlist
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { appUrl, sendEmail, supportEmail } from '../_shared/mailer.ts';
+import { ADMIN_USER_IDS } from '../_shared/coach-access.ts';
 import { buildWaitlistEmail } from './email.ts';
 
 function json(body: unknown, status = 200): Response {
@@ -28,10 +30,14 @@ Deno.serve(async (req) => {
     if (!row) return json({ error: 'not_found' }, 404);
     if (row.notified_at) return json({ ok: true, already: true });
 
-    const to = supportEmail();
-    if (!to) {
-      console.error('[waitlist-notify] falta SUPPORT_EMAIL: no hay a quién avisar');
-      return json({ error: 'sin SUPPORT_EMAIL' }, 500);
+    const adminEmails = await Promise.all(
+      [...ADMIN_USER_IDS].map(async (uid) => (await admin.auth.admin.getUserById(uid)).data?.user?.email ?? null),
+    );
+    const recipients = [...new Set(adminEmails.filter((e): e is string => !!e))];
+    if (!recipients.length && supportEmail()) recipients.push(supportEmail()!);
+    if (!recipients.length) {
+      console.error('[waitlist-notify] no hay administradores con correo ni SUPPORT_EMAIL');
+      return json({ error: 'sin destinatario' }, 500);
     }
     const { count } = await admin.from('waitlist').select('id', { count: 'exact', head: true }).is('invited_at', null);
     const mail = buildWaitlistEmail({
@@ -43,13 +49,12 @@ Deno.serve(async (req) => {
       appUrl: appUrl(),
     });
     // «Responder a» la persona: contestar el aviso le escribe directo.
-    const sent = await sendEmail({ to, ...mail, replyTo: row.email });
-    if (!sent.ok) {
-      console.error('[waitlist-notify] correo', sent.error);
-      return json({ error: 'no se pudo mandar' }, 502);
-    }
+    const results = await Promise.all(recipients.map((to) => sendEmail({ to, ...mail, replyTo: row.email })));
+    const failed = results.filter((r) => !r.ok) as { ok: false; error: string }[];
+    failed.forEach((r) => console.error('[waitlist-notify] correo', r.error));
+    if (failed.length === results.length) return json({ error: 'no se pudo mandar' }, 502);
     await admin.from('waitlist').update({ notified_at: new Date().toISOString() }).eq('id', row.id);
-    return json({ ok: true });
+    return json({ ok: true, sentTo: results.filter((r) => r.ok).map((r) => (r as { sentTo: string }).sentTo) });
   } catch (err) {
     console.error('[waitlist-notify]', err);
     return json({ error: 'error' }, 500);
