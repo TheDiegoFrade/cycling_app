@@ -1,4 +1,4 @@
-import { test, expect, user } from '../support/ux';
+import { test, expect, user, withTour } from '../support/ux';
 import { seedActivePlan, seedProfile } from '../support/seed';
 import { EXPERIMENTADO, NOVATA, bubbleText, dismissGuide, fillOnboarding, login } from '../support/flows';
 
@@ -444,5 +444,88 @@ test.describe('Pantalla táctil: lo que se toca es fácil de tocar', () => {
       });
       expect(bad, `en #/${route}`).toEqual([]);
     }
+  });
+});
+
+test.describe('Recorrido de Piñón la primera vez', () => {
+  test('cuenta nueva: Piñón enseña cada sección, cómo entrenar y el celular; sale una sola vez y se repite desde Perfil', async ({ page, backend, ux }) => {
+    await withTour(page);
+    const ana = user('ana');
+    backend.users.push(ana);
+    await login(page, ux, ana);
+    const tour = page.locator('.pinon-tour');
+    await expect(tour).toBeVisible();
+    await expect(tour.locator('#pinon-tour-count')).toHaveText('1 de 10');
+    await expect(tour.locator('#pinon-tour-title')).toContainText('¡Hola, Ana!');
+    await ux.shot('03b-recorrido-hola', page.locator('body'));
+    const next = tour.locator('#pinon-tour-next');
+    await ux.click(next, 'Empezar');
+    // señala Inicio en la barra lateral
+    await expect(tour).toHaveAttribute('data-step', 'home');
+    await expect(tour.locator('.pinon-tour-spot')).toBeVisible();
+    await ux.click(next, 'Siguiente');
+    await expect(tour.locator('#pinon-tour-title')).toHaveText('Plan');
+    await ux.shot('03c-recorrido-plan', page.locator('body'));
+    for (const id of ['library', 'form', 'ride', 'erg']) {
+      await ux.click(next, 'Siguiente');
+      await expect(tour).toHaveAttribute('data-step', id);
+    }
+    await ux.click(next, 'Siguiente');
+    await expect(tour).toHaveAttribute('data-step', 'phone');
+    await expect(tour.locator('#pinon-tour-text')).toContainText('escanea el código con tu celular');
+    await ux.shot('03d-recorrido-celular', page.locator('body'));
+    await ux.click(tour.locator('#pinon-tour-back'), 'Atrás');
+    await expect(tour).toHaveAttribute('data-step', 'erg');
+    await ux.click(next, 'Siguiente');
+    await ux.click(next, 'Siguiente');
+    await expect(tour).toHaveAttribute('data-step', 'pinon');
+    await ux.click(next, 'Siguiente');
+    await expect(tour).toHaveAttribute('data-step', 'profile');
+    await expect(next).toHaveText('¡Listo!');
+    await ux.click(next, '¡Listo!');
+    await expect(tour).toHaveCount(0);
+    await expect(page.locator('.home-welcome')).toBeVisible();
+    // ya lo explicó: ni se repite al volver ni salen las guías de una frase
+    await page.goto('/#/plan');
+    await page.goto('/#/home');
+    await page.waitForTimeout(1500);
+    await expect(tour).toHaveCount(0);
+    await expect(page.locator('.pinon-bubble-layer')).toHaveCount(0);
+    // desde Perfil se repite
+    await page.goto('/#/profile');
+    await ux.click(page.locator('#pinon-tour-replay'), 'Ver el recorrido de nuevo');
+    await expect(page).toHaveURL(/#\/home/);
+    await expect(tour).toBeVisible();
+    await ux.click(tour.locator('#pinon-tour-skip'), 'Saltar');
+    await expect(tour).toHaveCount(0);
+  });
+
+});
+
+test.describe('Recorrido de Piñón en celular', () => {
+  test.use({ viewport: { width: 390, height: 780 }, hasTouch: true, isMobile: true });
+
+  test('señala la barra de abajo y la tarjeta no tapa lo señalado', async ({ page, backend, ux }) => {
+    await withTour(page);
+    const ana = user('ana');
+    backend.users.push(ana);
+    await login(page, ux, ana);
+    const tour = page.locator('.pinon-tour');
+    await expect(tour).toBeVisible();
+    await tour.locator('#pinon-tour-next').tap();
+    await tour.locator('#pinon-tour-next').tap();
+    await expect(tour).toHaveAttribute('data-step', 'plan');
+    const tab = await page.locator('.tabbar-item[href="#/plan"]').boundingBox();
+    // el resaltado se desliza (0.25 s): se mide cuando ya llegó
+    await expect.poll(async () => { const b = await tour.locator('.pinon-tour-spot').boundingBox(); return Math.round(b!.x + b!.width / 2 - (tab!.x + tab!.width / 2)); }).toBe(0);
+    const spot = await tour.locator('.pinon-tour-spot').boundingBox();
+    const card = await tour.locator('.pinon-tour-card').boundingBox();
+    // el resaltado está sobre «Plan» de la barra de abajo
+    expect(Math.abs(spot!.x + spot!.width / 2 - (tab!.x + tab!.width / 2))).toBeLessThan(4);
+    // la tarjeta queda arriba, sin encimarse
+    expect(card!.y + card!.height).toBeLessThanOrEqual(spot!.y);
+    expect(card!.x).toBeGreaterThanOrEqual(0);
+    expect(card!.x + card!.width).toBeLessThanOrEqual(390);
+    await ux.shot('03e-recorrido-celular-plan', page.locator('body'));
   });
 });

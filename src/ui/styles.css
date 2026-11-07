@@ -8701,3 +8701,147 @@ body.remote-body {
     flex: 1;
   }
 }
+
+/* ── Recorrido de Piñón la primera vez (ui/pinon-tour.ts) ──
+   Oscurece todo menos lo que señala, con una tarjeta junto a él. */
+.pinon-tour {
+  position: fixed;
+  inset: 0;
+  z-index: 140; /* encima de la barra lateral, la de abajo y los modales */
+}
+.pinon-tour.no-target {
+  background: rgba(5, 8, 20, 0.72);
+}
+.pinon-tour-spot {
+  position: fixed;
+  border-radius: 14px;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 9999px rgba(5, 8, 20, 0.72);
+  pointer-events: none;
+  transition:
+    left 0.25s ease,
+    top 0.25s ease,
+    width 0.25s ease,
+    height 0.25s ease;
+}
+.pinon-tour-spot[hidden] {
+  display: none;
+}
+.pinon-tour-card {
+  position: fixed;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  padding: 18px 20px 14px;
+  border-radius: 22px;
+  background: #fff4ec;
+  color: var(--bg);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: pinon-pop 0.32s cubic-bezier(0.2, 0.9, 0.25, 1.2) both;
+}
+.pinon-tour.no-target .pinon-tour-card {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  animation: none;
+}
+.pinon-tour-card.at-top,
+.pinon-tour-card.at-bottom {
+  left: 16px;
+  right: 16px;
+  width: auto;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.pinon-tour-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pinon-tour-head .pinon {
+  flex: none;
+}
+.pinon-tour-count {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c2410c;
+}
+.pinon-tour-title {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.15;
+  color: var(--bg);
+}
+.pinon-tour-icon {
+  font-size: 40px;
+  line-height: 1;
+  text-align: center;
+  font-weight: 700;
+  color: #c2410c;
+}
+.pinon-tour-icon[hidden] {
+  display: none;
+}
+.pinon-tour-text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: #1c2033;
+}
+.pinon-tour-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.pinon-tour-spacer {
+  flex: 1;
+}
+.pinon-tour-actions button {
+  min-height: 44px;
+  border-radius: 999px;
+  font-size: 15px;
+}
+.pinon-tour-skip,
+.pinon-tour-back {
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: #4b5070;
+}
+.pinon-tour-back[hidden] {
+  display: none;
+}
+.pinon-tour-skip:hover,
+.pinon-tour-back:hover {
+  color: var(--bg);
+  border: 0;
+}
+.pinon-tour-next {
+  padding: 0 20px;
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.pinon-tour-next:hover {
+  background: var(--accent-light);
+  color: var(--on-accent);
+}
+.pinon-tour-actions button:focus-visible {
+  outline: 2px solid #c2410c;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pinon-tour-card {
+    animation: none;
+  }
+  .pinon-tour-spot {
+    transition: none;
+  }
+}
