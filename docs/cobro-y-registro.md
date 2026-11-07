@@ -206,6 +206,23 @@ a publicar `coach-chat`, `pinon-chat`, `coach-retire-plan` y
    ```
 
    (el `RedirectTo` ya trae `?signup=1&next=…`; por eso va `&`).
+   La app pide la contraseña y **solo al guardarla** canjea el token
+   (`verifyOtp`): si la persona abre el link y cierra la ventana, el link
+   sigue sirviendo. Vence a las 24 h (`mailer_otp_exp = 86400`, Authentication
+   → Providers → Email → «Email OTP expiration»).
+
+   **Reset password** («¿Olvidaste tu contraseña?»): asunto
+   `Cambia tu contraseña de Torq` y el botón apunta a
+
+   ```
+   {{ .SiteURL }}/?reset=1&token_hash={{ .TokenHash }}&type=recovery
+   ```
+
+   Con `token_hash` el link sirve en cualquier navegador o dispositivo (no
+   depende del `code_verifier` de PKCE guardado donde se pidió) y los
+   escáneres de Gmail/Outlook no lo gastan. **Site URL** debe ser
+   `https://ridetorq.app` (con `https://`). La app acepta también los links
+   viejos `?reset=1&code=…` (solo en el navegador donde se pidieron).
 2. Authentication → URL configuration → Redirect URLs: agregar
    `<APP_URL>/?signup=1*` (o `<APP_URL>/**`).
 3. Authentication → Providers → Email: **desactivar «Allow new users to sign
