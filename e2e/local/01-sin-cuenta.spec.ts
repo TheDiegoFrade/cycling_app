@@ -86,7 +86,8 @@ test('sin cuenta, lo que creas sobrevive a recargar la página', async ({ page, 
   await ux.click(page.locator('#welcome-ride'), 'Rodar 30 min suave ahora');
   await expect(page).toHaveURL(/#\/prepare/);
   await page.reload();
-  await page.goto('/#/plan');
+  // para rodar ahora: queda en la Biblioteca, no agendado en el calendario
+  await page.goto('/#/library');
   await page.reload();
   await expect(page.locator('body')).toContainText('Z2 aeróbico · 30 min');
 });

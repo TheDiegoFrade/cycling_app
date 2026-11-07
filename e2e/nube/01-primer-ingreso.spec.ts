@@ -158,6 +158,8 @@ test.describe('Bienvenida', () => {
     await expect(page.locator('body')).toContainText('Z2 aeróbico · 30 min');
     expect(ux.clicks - before.clicks).toBe(1);
     await expect.poll(() => backend.table('workouts').length).toBe(1);
+    // para rodar ahora: no se agenda (si no rueda, no se queda en el calendario como si fuera del plan)
+    expect((backend.table('workouts')[0] as { data: { scheduledDate?: string } }).data.scheduledDate).toBeUndefined();
   });
 
   test('las guías se pueden apagar en 1 clic y no vuelven', async ({ page, backend, ux }) => {
@@ -348,7 +350,7 @@ test.describe('Cuestionario inicial', () => {
     await expect(m.locator('#ob-guide-text')).toContainText('El FTP es la potencia (en watts) que podrías sostener más o menos una hora');
     await expect(m.locator('#ob-ftp-help')).toBeHidden();
     await ux.click(m.locator('label.ob-toggle:has(#ob-no-ftp)'), 'No sé mi FTP');
-    await expect(m.locator('#ob-ftp-help')).toContainText('Arrancas con unos 100 W');
+    await expect(m.locator('#ob-ftp-help')).toContainText('Arrancas con unos 90 W');
     await ux.shot('09-cuestionario-ftp', m);
   });
 

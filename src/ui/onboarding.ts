@@ -317,7 +317,7 @@ function modalHtml(p: Profile): string {
               </div>
             </div>
             <div class="ob-ftp-help" id="ob-ftp-help"${!!p.ftpSource && !ftpMeasured ? '' : ' hidden'}>
-              <p><strong>Arrancas con unos <span id="ob-ftp-estimate">${esc(estimatedStartingFtp(p))}</span> W</strong>, estimado con tu peso y tu actividad.</p>
+              <p><strong>Arrancas con unos <span id="ob-ftp-estimate">${esc(estimatedStartingFtp(p))}</span> W</strong>: un estimado a propósito conservador, con tu peso y tu actividad. Es mejor que se sienta fácil y subirle que pasarte.</p>
               <ul>
                 <li>El coach te pone un test para medirlo y te pedirá actualizarlo en tu Perfil.</li>
                 <li>Mientras: si una sesión se siente muy dura o muy suave, súbele o bájale con <strong>+ / −</strong> durante el entrenamiento (también desde tu celular), o cambia tu FTP en Perfil.</li>
