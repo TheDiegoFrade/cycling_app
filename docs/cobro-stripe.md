@@ -10,9 +10,12 @@ Plan para cambiar el proveedor de cobro de **Torq Coach IA** de Mercado Pago a
 > `src/core/access.ts` (`aiAccess`, precios, gracia) salvo lo que diga la
 > fase 0. No hagas commit de llaves: todo va como secreto de Supabase.
 
-> **Estado (6-nov-2026):** fases 0, 2, 3, 4, 5 y 6 implementadas en la rama
-> `feat/stripe`. Las fases 1 y 7 son del dashboard de Stripe y de producción.
-> Ver «Notas de implementación» al final.
+> **Estado (7-nov-2026):** **todas las fases hechas; Stripe cobra en modo
+> live.** El precio vigente es **$349 MXN al mes** (#77; las fases de abajo
+> dicen $329 porque era el precio cuando se escribieron). Pendiente al llegar
+> el primer cobro real: revisar que quede su fila en `billing_payments` (la
+> prueba de 7 días es una factura de $0 y no deja fila). Ver «Notas de
+> implementación» al final.
 
 ## Por qué así
 
@@ -30,7 +33,8 @@ Plan para cambiar el proveedor de cobro de **Torq Coach IA** de Mercado Pago a
 
 ## Fase 0 — Decisiones (tomadas el 5-nov-2026)
 
-1. **Precio: $329 MXN al mes, IVA incluido, para todos.** Se comunica
+1. **Precio: $329 MXN al mes, IVA incluido, para todos.** *(Después subió a
+   $349: `PRICE_MXN` en `src/core/access.ts`, #77.)* Se comunica
    como «$329 al mes» o «precio de lanzamiento». **Sin concepto de
    fundador y sin promesa de conservar el precio.** Cuando suba, Diego
    decide en ese momento si a los suscriptores existentes se les respeta
@@ -331,6 +335,8 @@ Actualizar `e2e/nube/06-cobro-y-registro.spec.ts` (backend simulado) con
 
 ## Fase 7 — Producción
 
+> **Hecha:** Stripe en modo live (confirmado el 7-nov-2026).
+
 1. CSD de Andrea tramitado y **activo** antes del primer cobro real (la
    global se timbra con él).
 2. En Stripe, salir de modo de prueba: crear los mismos precios y el mismo
@@ -444,4 +450,5 @@ no genera cobros.
 - **Reembolsos parciales:** no marcan `refunded_at` (necesitan nota de crédito
   a mano); quedan en el log de la función.
 - **Mercado Pago:** `_shared/mercadopago.ts`, `src/core/mercadopago.ts` y los
-  secretos `MP_*` siguen en el repo hasta que Stripe cobre en producción.
+  secretos `MP_*` siguen en el repo, aunque Stripe ya cobra en producción: se
+  pueden borrar.

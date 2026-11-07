@@ -1,20 +1,23 @@
-# Cobro, acceso y registro (modo de prueba)
+# Cobro, acceso y registro
 
-Cómo encender lo que se implementó para **Torq Coach IA** ($329 MXN al mes,
+Cómo encender lo que se implementó para **Torq Coach IA** ($349 MXN al mes,
 IVA incluido, mes con mes, 7 días de prueba la primera vez), el acceso por plan, la
 aceptación de términos y el **registro solo con invitación**. Las decisiones
 de producto están en
 [`evaluaciones/2026-10-20-ux-flujos.md`](evaluaciones/2026-10-20-ux-flujos.md)
 («Decisión de planes»).
 
-> **Estado:** todo funciona en **modo de prueba**. El cobro es con **Stripe**
-> (ver [`cobro-stripe.md`](cobro-stripe.md): dashboard, webhook, secretos y
-> factura global). Mientras no se configure Stripe, el botón «Suscribirme»
-> aparece apagado con el aviso «El cobro todavía no está activo (modo de
-> prueba)». Los términos vigentes son `TERMS_VERSION = '2026-11-06'` (precio
+> **Estado (7-nov-2026):** **en producción.** El cobro es con **Stripe en
+> modo live** (ver [`cobro-stripe.md`](cobro-stripe.md): dashboard, webhook,
+> secretos y factura global): una cuenta nueva se suscribe con tarjeta, tiene
+> 7 días de prueba la primera vez y después paga $349 al mes. El registro es
+> solo con invitación y se probó de punta a punta en producción (ver «Registro
+> solo con invitación»). Si Stripe no estuviera configurado, el botón
+> «Suscribirme» aparece apagado con el aviso «El cobro todavía no está activo
+> (modo de prueba)». Los términos vigentes son `TERMS_VERSION = '2026-11-06'` (precio
 > único, prueba de 7 días, Stripe). La revisión de un abogado queda para
-> después. Lo de Mercado Pago (secciones 2 y 4) se queda como historial hasta
-> que Stripe cobre en producción. Límites de intentos y fraude:
+> después. Lo de Mercado Pago (secciones 2 y 4) es historial: ya no se usa.
+> Límites de intentos y fraude:
 > [`cobro-stripe.md`, «Abuso y fraude»](cobro-stripe.md#abuso-y-fraude).
 
 ## Quién tiene la IA
@@ -38,7 +41,7 @@ plan explican el precio y llevan a «Conocer Torq Coach IA».
 
 ```mermaid
 flowchart LR
-  A[Atleta sin acceso] -->|Plan / Inicio / Perfil| P[Precio $329]
+  A[Atleta sin acceso] -->|Plan / Inicio / Perfil| P[Precio $349]
   P -->|Suscribirme| MP[Stripe Checkout]
   MP -->|success_url ?billing=return| T[Toast: confirmando…]
   MP -.webhook firmado.-> W[billing-webhook]
@@ -253,5 +256,7 @@ a publicar `coach-chat`, `pinon-chat`, `coach-retire-plan` y
   aprobar con máximo, quitar como coach, coach al máximo, atleta con coach
   lleno. Capturas 70–80 en
   `evaluaciones/2026-10-20-ux/img/`.
-- Pendiente con red real: un cobro de prueba de punta a punta con la Stripe
-  CLI y tarjetas de prueba (`cobro-stripe.md`, fase 6).
+- Con red real: el cobro se probó de punta a punta en Stripe live (7-nov-2026).
+  El registro (lista de espera → aviso al admin → invitación → contraseña →
+  recuperación desde otro dispositivo) se probó en producción el mismo día,
+  y los links de correo tienen pruebas en `e2e/nube/08-links-de-correo.spec.ts`.
