@@ -32,5 +32,6 @@ deploy pinon-chat
 deploy coach-retire-plan
 deploy monthly-self-report --no-verify-jwt # la llama el cron con x-cron-secret, sin sesión
 deploy weekly-checkin --no-verify-jwt       # check-in del domingo: la llama el cron con x-cron-secret
+deploy feedback                              # «Mandar comentario»: guarda y manda a SUPPORT_EMAIL
 
-echo "Listo. Revisa en Supabase → Edge Functions que las 9 tengan fecha de hoy."
+echo "Listo. Revisa en Supabase → Edge Functions que las 10 tengan fecha de hoy."

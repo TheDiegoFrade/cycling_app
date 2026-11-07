@@ -140,3 +140,53 @@ test.describe('Lista de espera', () => {
     await expect(page.locator('#waitlist-form')).not.toHaveClass(/open/);
   });
 });
+
+test.describe('Mandar comentario', () => {
+  test('desde el menú: elige el tipo, escribe y llega a soporte con la pantalla y el dispositivo', async ({ page, backend, ux }) => {
+    const u = user('ana');
+    backend.users.push(u);
+    seedProfile(backend, u, 'ana');
+    await backend.seedSession(page, u);
+    await page.addInitScript(() => localStorage.setItem('torq.pinon.guides', 'off'));
+    let sent: Record<string, unknown> | null = null;
+    backend.functions.set('feedback', (body) => {
+      sent = body as Record<string, unknown>;
+      return { body: { ok: true } };
+    });
+    await page.goto('/#/plan');
+    await ux.click(page.locator('#sidebar-feedback'), 'Mandar comentario');
+    const dlg = page.locator('#feedback-form');
+    await expect(dlg).toBeVisible();
+    await expect(dlg.locator('#feedback-message')).toBeFocused();
+    // sin texto no manda
+    await ux.click(dlg.locator('#feedback-send'), 'Mandar');
+    await expect(dlg).toContainText('Escribe tu comentario.');
+    expect(sent).toBeNull();
+    await ux.click(dlg.locator('[data-kind="idea"]'), 'Una idea');
+    await ux.fill(dlg.locator('#feedback-message'), 'Me gustaría ver mis watts promedio por semana', 'Comentario');
+    await ux.shot('65-mandar-comentario', dlg);
+    await ux.click(dlg.locator('#feedback-send'), 'Mandar');
+    await expect(dlg).toContainText('¡Gracias!');
+    expect(sent).toMatchObject({ kind: 'idea', message: 'Me gustaría ver mis watts promedio por semana', screen: 'plan' });
+    expect(String((sent as unknown as { device: string }).device)).toMatch(/^Computadora · Chrome \d+ · /);
+    await ux.click(dlg.locator('#feedback-done'), 'Listo');
+    await expect(page.locator('#feedback-backdrop')).toHaveCount(0);
+  });
+
+  test('si falla, lo dice en español y deja reintentar sin perder el texto', async ({ page, backend, ux }) => {
+    const u = user('ana');
+    backend.users.push(u);
+    seedProfile(backend, u, 'ana');
+    await backend.seedSession(page, u);
+    await page.addInitScript(() => localStorage.setItem('torq.pinon.guides', 'off'));
+    backend.functions.set('feedback', () => ({ status: 429, body: { error: 'Ya mandaste varios comentarios hoy. Gracias: mañana puedes mandar más.' } }));
+    await page.goto('/#/profile');
+    await ux.click(page.locator('#perfil-feedback'), 'Mandar comentario (Perfil)');
+    const dlg = page.locator('#feedback-form');
+    await ux.fill(dlg.locator('#feedback-message'), 'No carga mi historial', 'Comentario');
+    await ux.click(dlg.locator('#feedback-send'), 'Mandar');
+    await expect(dlg.locator('.error-box')).toContainText('Ya mandaste varios comentarios hoy');
+    await expect(dlg.locator('#feedback-message')).toHaveValue('No carga mi historial');
+    await expect(dlg.locator('#feedback-send')).toBeEnabled();
+  });
+});

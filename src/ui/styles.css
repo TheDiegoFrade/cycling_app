@@ -8845,3 +8845,54 @@ body.remote-body {
     transition: none;
   }
 }
+
+/* ── Mandar comentario (ui/feedback.ts) ── */
+.sidebar-feedback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border-control, var(--border));
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-soft, var(--text));
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.sidebar-feedback:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.feedback-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.feedback-modal h2 {
+  margin: 0;
+}
+.feedback-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.feedback-label {
+  font-size: 13px;
+  color: var(--text-soft, var(--text-muted));
+  margin-bottom: -6px;
+}
+.feedback-modal textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  resize: vertical;
+}

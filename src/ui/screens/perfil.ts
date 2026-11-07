@@ -9,6 +9,7 @@ import type { PowerZone } from '../../core/zones';
 import { beeper } from '../audio';
 import { areGuidesOff, isPeekEnabled, pinonCatches, setGuidesOff, setPeekEnabled } from '../pinon';
 import { requestPinonTour } from '../pinon-tour';
+import { openFeedbackDialog } from '../feedback';
 import { isRidePinonEnabled, setRidePinonEnabled } from '../pinon-ride';
 import { appState } from '../state';
 import { navigate, refresh } from '../router';
@@ -238,6 +239,10 @@ export function renderPerfil(container: HTMLElement): void {
                 <button class="switch${isRidePinonEnabled() ? ' on' : ''}" role="switch" aria-pressed="${isRidePinonEnabled()}" aria-label="Piñón al rodar" id="pinon-ride-switch"></button>
               </div>
               <div class="perfil-click-row">
+                <span>¿Algo no funciona o tienes una idea?<span class="hint" style="display:block;margin:2px 0 0">Llega directo al equipo de Torq.</span></span>
+                <button type="button" class="btn-light" id="perfil-feedback">Mandar comentario</button>
+              </div>
+              <div class="perfil-click-row">
                 <span>Recorrido de Piñón<span class="hint" style="display:block;margin:2px 0 0">Te enseña cada sección, cómo entrenar y el control con el celular.</span></span>
                 <button type="button" class="btn-light" id="pinon-tour-replay">Verlo de nuevo</button>
               </div>
@@ -439,6 +444,8 @@ export function renderPerfil(container: HTMLElement): void {
         beeper.bike(btn.dataset.bikeSound as 'ratchet' | 'shift' | 'bell');
       });
     });
+
+    container.querySelector('#perfil-feedback')?.addEventListener('click', () => openFeedbackDialog());
 
     container.querySelector('#pinon-tour-replay')?.addEventListener('click', () => {
       requestPinonTour();

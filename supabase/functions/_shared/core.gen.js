@@ -1017,8 +1017,33 @@ function clampMaxAthletes(v) {
   if (!Number.isInteger(n) || n < 1) return DEFAULT_MAX_ATHLETES;
   return Math.min(n, MAX_ATHLETES_LIMIT);
 }
+
+// src/core/feedback.ts
+var FEEDBACK_KINDS = ["problem", "idea", "like", "other"];
+var FEEDBACK_KIND_LABELS = {
+  problem: "Algo no funciona",
+  idea: "Una idea",
+  like: "Algo que me gust\xF3",
+  other: "Otra cosa"
+};
+var FEEDBACK_MIN_CHARS = 3;
+var FEEDBACK_MAX_CHARS = 2e3;
+var FEEDBACK_DAILY_LIMIT = 10;
+function parseFeedback(body) {
+  const b = body ?? {};
+  const kind = FEEDBACK_KINDS.includes(b.kind) ? b.kind : "other";
+  const message = typeof b.message === "string" ? b.message.trim() : "";
+  if (message.length < FEEDBACK_MIN_CHARS) return { ok: false, error: "Escribe tu comentario." };
+  const clip = (v, n) => typeof v === "string" && v.trim() ? v.trim().slice(0, n) : null;
+  return {
+    ok: true,
+    value: { kind, message: message.slice(0, FEEDBACK_MAX_CHARS), screen: clip(b.screen, 80), device: clip(b.device, 120) }
+  };
+}
 export {
   DEFAULT_MAX_ATHLETES,
+  FEEDBACK_DAILY_LIMIT,
+  FEEDBACK_KIND_LABELS,
   GRACE_DAYS,
   PAID_MARGIN_DAYS,
   PRICE_MXN,
@@ -1051,6 +1076,7 @@ export {
   mxMonthRange,
   normalizeCoachApplication,
   paidUntilFromPeriodEnd,
+  parseFeedback,
   parseOverrideInput,
   parsePinonRequest,
   pinonLimitReached,
