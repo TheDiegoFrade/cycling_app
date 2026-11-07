@@ -7763,6 +7763,91 @@ body:has(.pinon-bubble-layer) .pinon-chat-launcher {
   }
 }
 
+/* Cuestionario en celular: pantalla completa y compacto, para que quepan las
+   preguntas (antes el encabezado y Piñón ocupaban la mitad de la pantalla). */
+@media (max-width: 560px) {
+  #onboarding-backdrop {
+    padding: 0;
+    align-items: stretch;
+  }
+  #onboarding-backdrop .ob-modal {
+    max-width: none;
+    max-height: none;
+    height: 100%;
+    border-radius: 0;
+    border: none;
+  }
+  .ob-head,
+  .ob-compact .ob-head {
+    padding: 12px 16px 10px;
+    align-items: center;
+  }
+  .ob-title,
+  .ob-compact .ob-title {
+    font-size: 20px;
+  }
+  .ob-subtitle,
+  .ob-compact .ob-subtitle {
+    display: none;
+  }
+  .ob-close {
+    font-size: 22px;
+    padding: 8px 10px;
+  }
+  .ob-guide,
+  .ob-compact .ob-guide {
+    padding: 8px 16px;
+    gap: 10px;
+  }
+  .ob-guide-main {
+    gap: 6px;
+  }
+  .ob-guide-text,
+  .ob-compact .ob-guide-text {
+    padding: 8px 12px;
+    font-size: 13.5px;
+    line-height: 1.4;
+  }
+  .ob-steps {
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+  .ob-step-dot {
+    width: 28px;
+    height: 28px;
+    flex: none;
+    font-size: 12px;
+  }
+  .ob-body {
+    padding: 4px 16px 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ob-section {
+    padding: 14px 0;
+  }
+  /* dedos: opciones fáciles de tocar, y 16px en los campos para que el
+     teclado del celular no haga zoom al escribir. */
+  .ob-chip {
+    padding: 11px 16px;
+    font-size: 15px;
+  }
+  .ob-field input,
+  .ob-field textarea,
+  .ob-field select {
+    font-size: 16px;
+    padding: 12px;
+  }
+  .ob-field input[type='date'] {
+    min-height: 46px;
+  }
+  .ob-foot {
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .ob-foot button {
+    min-height: 44px;
+  }
+}
+
 /* Inicio: bienvenida de primera vez (home.ts, `newcomer`) */
 .home-welcome {
   display: flex;

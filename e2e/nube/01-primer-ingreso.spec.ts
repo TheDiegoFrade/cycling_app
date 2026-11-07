@@ -380,3 +380,33 @@ test.describe('Cuestionario inicial', () => {
     await expect(page.locator('#gen-create')).toBeEnabled();
   });
 });
+
+test.describe('Cuestionario en celular', () => {
+  test.use({ viewport: { width: 390, height: 780 }, hasTouch: true, isMobile: true });
+
+  test('fecha de nacimiento con el selector nativo y la primera pantalla cabe sin hacer scroll', async ({ page, backend, ux }) => {
+    const ana = user('ana');
+    backend.users.push(ana);
+    await login(page, ux, ana);
+    await page.locator('#welcome-plan').tap();
+    const m = page.locator('#onboarding-modal');
+    await expect(m).toBeVisible();
+    // táctil: input de fecha nativo (con su teclado/rueda), no los campos segmentados
+    await expect(m.locator('.date-picker')).toHaveCount(0);
+    await expect(m.locator('#ob-birth-date')).toBeVisible();
+    await expect(m.locator('#ob-birth-date')).toHaveAttribute('type', 'date');
+    await m.locator('#ob-sex .ob-chip', { hasText: 'Mujer' }).tap();
+    await m.locator('#ob-birth-date').fill('1992-03-15');
+    await m.locator('#ob-weight').fill('68');
+    await m.locator('#ob-height').fill('165');
+    // sin scroll: Siguiente se ve completo y la página no se ensancha
+    const vh = page.viewportSize()!.height;
+    const next = await m.locator('#onboarding-next').boundingBox();
+    expect(next!.y + next!.height).toBeLessThanOrEqual(vh);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+    expect(await m.locator('#ob-weight').evaluate((el) => getComputedStyle(el).fontSize), '16px: el teclado del celular no hace zoom').toBe('16px');
+    await ux.shot('09-cuestionario-celular', page.locator('body'));
+    await m.locator('#onboarding-next').tap();
+    await expect(m.locator('.ob-step-dot[aria-current="step"]')).toHaveText('2');
+  });
+});
