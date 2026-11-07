@@ -78,7 +78,7 @@ export function openFeedbackDialog(kind: FeedbackKind = 'problem'): void {
       await sendFeedback({ kind: current, message, screen, device: describeDevice(navigator.userAgent, touch, innerWidth) });
       form.innerHTML = `
         <h2 id="feedback-title">¡Gracias! 🙌</h2>
-        <p>Nos llegó tu comentario. Si necesitas respuesta, te escribimos a tu correo.</p>
+        <p>Nos llegó tu comentario y lo vamos a revisar. No todo se puede hacer de inmediato, pero queda en nuestra lista. Si necesitas respuesta, te escribimos a tu correo.</p>
         <div class="row-actions"><button type="button" class="primary" id="feedback-done">Listo</button></div>`;
       const done = form.querySelector<HTMLButtonElement>('#feedback-done')!;
       done.addEventListener('click', close);

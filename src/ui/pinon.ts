@@ -435,7 +435,7 @@ export function maybeWelcomeBack(lastRideKey: string | null, todayKey: string, h
 /** Después de unas rodadas, Piñón pregunta una sola vez cómo le va con Torq. */
 export const FEEDBACK_ASK_AFTER_RIDES = 3;
 export const FEEDBACK_ASK_TEXT =
-  'Ya llevas varias rodadas. Somos una startup pequeña: lo que nos cuentas lo leemos y sí lo cambiamos. ¿Algo no funciona o tienes una idea para mejorar Torq?';
+  'Ya llevas varias rodadas. ¿Algo no funciona o tienes una idea para mejorar Torq? Somos una startup pequeña y lo tomamos en cuenta: no todo se puede hacer de inmediato, pero todo queda en nuestra lista.';
 export function shouldAskForFeedback(rides: number, alreadyAsked: boolean): boolean {
   return !alreadyAsked && rides >= FEEDBACK_ASK_AFTER_RIDES;
 }

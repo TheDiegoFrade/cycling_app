@@ -34,6 +34,7 @@ describe('recorrido de Piñón', () => {
   it('invita a mandar comentarios: es una startup y sí los toma en cuenta', () => {
     const fb = steps.find((s) => s.id === 'feedback')!;
     expect(fb.text).toContain('startup');
+    expect(fb.text).toContain('No todo se puede hacer de inmediato');
     expect(fb.targets).toContain('#sidebar-feedback');
   });
 

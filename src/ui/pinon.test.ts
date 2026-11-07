@@ -172,8 +172,9 @@ describe('Piñón pide comentarios', () => {
     expect(shouldAskForFeedback(3, false)).toBe(true);
     expect(shouldAskForFeedback(10, true)).toBe(false);
   });
-  it('dice que es una startup y que sí lo toma en cuenta', () => {
+  it('dice que es una startup que lo toma en cuenta, sin prometer hacerlo ya', () => {
     expect(FEEDBACK_ASK_TEXT).toContain('startup pequeña');
-    expect(FEEDBACK_ASK_TEXT).toContain('sí lo cambiamos');
+    expect(FEEDBACK_ASK_TEXT).toContain('no todo se puede hacer de inmediato');
+    expect(FEEDBACK_ASK_TEXT).toContain('queda en nuestra lista');
   });
 });

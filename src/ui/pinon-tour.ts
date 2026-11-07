@@ -97,7 +97,7 @@ export function tourSteps(ctx: TourContext = {}): TourStep[] {
     {
       id: 'feedback',
       title: 'Tu opinión cambia Torq',
-      text: 'Somos una startup pequeña: lo que nos cuentas lo leemos y sí lo cambiamos. ¿Algo no funciona o tienes una idea? Mándanos un comentario desde aquí.',
+      text: 'Somos una startup pequeña y lo que nos cuentas lo tomamos en cuenta. No todo se puede hacer de inmediato, pero todo queda en nuestra lista. Mándanos tu comentario desde aquí.',
       targets: ['#sidebar-feedback', '#tabbar-more'],
     },
     {
