@@ -432,6 +432,26 @@ export function maybeWelcomeBack(lastRideKey: string | null, todayKey: string, h
   openPinonBubble({ pose: 'habla', title: 'PIÑÓN', text: welcomeBackText(humanCoach), action: { label: 'Ver mi plan', href: '#/plan' } });
 }
 
+/** Después de unas rodadas, Piñón pregunta una sola vez cómo le va con Torq. */
+export const FEEDBACK_ASK_AFTER_RIDES = 3;
+export const FEEDBACK_ASK_TEXT =
+  'Ya llevas varias rodadas. ¿Algo no funciona o tienes una idea para mejorar Torq? Somos una startup pequeña y lo tomamos en cuenta: no todo se puede hacer de inmediato, pero todo queda en nuestra lista.';
+export function shouldAskForFeedback(rides: number, alreadyAsked: boolean): boolean {
+  return !alreadyAsked && rides >= FEEDBACK_ASK_AFTER_RIDES;
+}
+export function maybeAskForFeedback(rides: number, openFeedback: () => void): void {
+  const key = 'torq.pinon.feedbackAsk';
+  if (!shouldAskForFeedback(rides, lsGet(key) === '1') || bubbleBusy() || homeGuidePending()) return;
+  lsSet(key, '1');
+  openPinonBubble({
+    pose: 'habla',
+    title: '¿CÓMO VAS CON TORQ?',
+    text: FEEDBACK_ASK_TEXT,
+    action: { label: 'Mandar comentario', onSelect: openFeedback },
+    dismissLabel: 'Ahora no',
+  });
+}
+
 /** Racha de 3, 6, 9… semanas seguidas entrenando. */
 export function maybeCelebrateStreak(weeks: number): void {
   const last = Number(lsGet('torq.pinon.racha')) || 0;

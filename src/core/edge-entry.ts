@@ -20,3 +20,4 @@ export { billingLimitReached, disputeIsFraud, isGuardedAction, trialCardReused }
 export { couponIdFor, discountedPriceMxn, effectivePriceMxn, freeActive, freeUntil, parseOverrideInput } from './billing-override';
 export { PAID_MARGIN_DAYS, ivaSplit, laterIso, paidUntilFromPeriodEnd, resumable, stillLive, stripeStatusOf, subscriptionChangeOf, trialEligible } from './stripe';
 export { DEFAULT_MAX_ATHLETES, clampMaxAthletes, normalizeCoachApplication, validateCoachApplication } from './coach-application';
+export { FEEDBACK_DAILY_LIMIT, FEEDBACK_KIND_LABELS, parseFeedback } from './feedback';

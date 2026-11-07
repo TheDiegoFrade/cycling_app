@@ -5,6 +5,7 @@ import type { ConnectionState, HrAdapter, TrainerAdapter } from '../devices/type
 import type { Screen } from './router';
 import { appState } from './state';
 import { escapeHtml } from './workout-cover';
+import { openFeedbackDialog } from './feedback';
 
 /** Las secciones que viven en la barra lateral (ver TORQ_DESIGN.md,
  * "Navegación"). Sesión en vivo y Antes de empezar no la usan. */
@@ -122,6 +123,7 @@ function sidebarHtml(active: SidebarScreen | null): string {
           <span class="sidebar-sensor-text"><span class="sidebar-sensor-name">Pulso</span><span class="sidebar-sensor-state" id="sidebar-hr-state">${STATE_LABEL.disconnected}</span></span>
         </button>
       </div>
+      ${appState.user ? `<button type="button" class="sidebar-feedback" id="sidebar-feedback">💬 Mandar comentario</button>` : ''}
       <a href="#/profile" class="sidebar-profile${active === 'profile' ? ' active' : ''}" aria-label="Ir a tu perfil">
         <span class="perfil-avatar sidebar-avatar" aria-hidden="true">${escapeHtml(profileInitial())}</span>
         <span class="sidebar-profile-text"><span class="sidebar-profile-name">${escapeHtml(profileName())}</span><span class="sidebar-sensors-title">Ver perfil</span></span>
@@ -223,6 +225,10 @@ export function withSidebar(
     moreBtn?.addEventListener('click', () => setDrawer(!shell.classList.contains('drawer-open')));
     shell.querySelector('#drawer-backdrop')?.addEventListener('click', () => setDrawer(false));
     shell.querySelector('#drawer-close')?.addEventListener('click', () => setDrawer(false));
+    shell.querySelector('#sidebar-feedback')?.addEventListener('click', () => {
+      setDrawer(false);
+      openFeedbackDialog();
+    });
     shell.querySelectorAll('.sidebar a').forEach((a) => a.addEventListener('click', () => setDrawer(false)));
 
     const unsubTrainer = wireSensorRow('trainer', 'sidebar-trainer-row', 'sidebar-trainer-state', 'sidebar-trainer-dot', shell);
