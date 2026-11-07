@@ -69,6 +69,6 @@ test('quien no sabe su FTP no arranca con 200 W: uno estimado y marcado como apr
   await page.goto('/');
   await ux.click(page.locator('.home-ride-btn').first(), 'Empezar a rodar');
   await expect(page).toHaveURL(/#\/prepare/);
-  await expect(page.locator('body')).toContainText('con FTP 100 (aproximado: lo afinamos con tu test)');
+  await expect(page.locator('body')).toContainText('con FTP 90 (aproximado: lo afinamos con tu test)');
   await expect(page.locator('body')).not.toContainText('FTP 200');
 });

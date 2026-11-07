@@ -23,13 +23,26 @@ export const STARTING_FTP_FALLBACK = 150;
 /** El default que traían los perfiles viejos (se reemplaza al cargar). */
 export const LEGACY_DEFAULT_FTP = 200;
 
-/** W/kg de arranque según qué tan activo ha estado (conservador: el test de
- * las primeras semanas lo afina). */
+/** W/kg de arranque según qué tan activo ha estado. A propósito por debajo
+ * del promedio: es mejor que la primera semana se sienta fácil y subir con
+ * +/− (o con el test de las primeras semanas) que prometer un número que no
+ * sostiene. */
 const START_WKG: Record<NonNullable<Profile['generalFitnessLevel']>, number> = {
-  sedentary: 1.7,
-  active_other_sport: 2.1,
-  active_cyclist: 2.5,
+  sedentary: 1.6,
+  active_other_sport: 1.9,
+  active_cyclist: 2.2,
 };
+const START_WKG_EXPERIENCED_CYCLIST = 2.7;
+
+/** Peso que cuenta para la potencia: hasta un peso de referencia cuenta
+ * completo; arriba, solo una parte. Los kilos de más no suben la potencia en
+ * la misma proporción (85 kg × 2.5 W/kg daba 215 W a un ciclista recreativo). */
+const REF_WEIGHT_KG = { M: 70, F: 60 } as const;
+const EXTRA_WEIGHT_SHARE = 0.3;
+function powerWeightKg(weightKg: number, sex: Profile['sex']): number {
+  const ref = sex === 'F' ? REF_WEIGHT_KG.F : REF_WEIGHT_KG.M;
+  return weightKg <= ref ? weightKg : ref + (weightKg - ref) * EXTRA_WEIGHT_SHARE;
+}
 
 /** FTP estimado para quien no sabe el suyo, con lo que contestó en el
  * cuestionario: peso, actividad, experiencia, sexo y edad. Redondeado a 5 W,
@@ -40,12 +53,12 @@ export function estimatedStartingFtp(
 ): number {
   if (!p.weight_kg || p.weight_kg <= 0) return STARTING_FTP_FALLBACK;
   let wkg = p.generalFitnessLevel ? START_WKG[p.generalFitnessLevel] : 1.9;
-  if (p.generalFitnessLevel === 'active_cyclist' && p.experienceLevel === 'experienced') wkg = 2.9;
+  if (p.generalFitnessLevel === 'active_cyclist' && p.experienceLevel === 'experienced') wkg = START_WKG_EXPERIENCED_CYCLIST;
   if (p.sex === 'F') wkg *= 0.88;
   const age = ageFromBirthDate(p.birth_date, today);
   if (age !== null && age >= 60) wkg *= 0.85;
   else if (age !== null && age >= 50) wkg *= 0.92;
-  return Math.min(280, Math.max(80, Math.round((p.weight_kg * wkg) / 5) * 5));
+  return Math.min(280, Math.max(80, Math.round((powerWeightKg(p.weight_kg, p.sex) * wkg) / 5) * 5));
 }
 
 /** Perfil cargado con el FTP por defecto de antes (200, o el de respaldo):

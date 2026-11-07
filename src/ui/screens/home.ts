@@ -330,15 +330,19 @@ export function renderHome(container: HTMLElement): void {
 
   /** Arma un workout de plantilla, lo guarda (local y nube) y lo agrega al
    * Plan. Sin `workout` si no pasó la validación (van los errores). */
-  async function createFromTemplate(t: WorkoutTemplate, minutes: number, scheduledDate: string): Promise<{ workout?: Workout; errors: string[] }> {
-    const dateObj = new Date(`${scheduledDate}T00:00:00`);
+  /** `scheduledDate` null = para rodar ahora: no se agenda. Si se agendaba
+   * para hoy y la persona no rodaba, se quedaba en el calendario como si fuera
+   * del plan (p. ej. a las 10 pm, con el plan arrancando mañana). La sesión
+   * hecha aparece en el calendario de todos modos. */
+  async function createFromTemplate(t: WorkoutTemplate, minutes: number, scheduledDate: string | null): Promise<{ workout?: Workout; errors: string[] }> {
+    const dateObj = new Date(`${scheduledDate ?? todayKey}T00:00:00`);
     const workout: Workout = {
       format_version: 1,
       id: crypto.randomUUID(),
       name: `${t.name} · ${minutes} min · ${dateObj.getDate()} ${MONTH_NAMES_SHORT[dateObj.getMonth()]}`,
       intervals: t.build(minutes),
       created_at: new Date().toISOString(),
-      scheduledDate,
+      ...(scheduledDate ? { scheduledDate } : {}),
     };
     const result = validateWorkout(workout);
     if (!result.valid) return { errors: result.errors };
@@ -403,7 +407,7 @@ export function renderHome(container: HTMLElement): void {
         genErrors.innerHTML = errorsHtml(['Elige una fecha válida.']);
         return;
       }
-      const { workout, errors } = await createFromTemplate(t, minutes, scheduledDate);
+      const { workout, errors } = await createFromTemplate(t, minutes, later ? scheduledDate : null);
       genErrors.innerHTML = errorsHtml(errors);
       if (!workout) return;
       if (later) {
@@ -438,7 +442,7 @@ export function renderHome(container: HTMLElement): void {
   });
   container.querySelector('#welcome-ride')?.addEventListener('click', async () => {
     const z2 = findTemplate('z2')!;
-    const { workout } = await createFromTemplate(z2, 30, todayKey);
+    const { workout } = await createFromTemplate(z2, 30, null);
     if (!workout) return;
     appState.selectedWorkoutId = workout.id;
     navigate('prepare');
