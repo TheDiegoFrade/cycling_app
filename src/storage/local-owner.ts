@@ -11,7 +11,32 @@ import { dbClear, STORES } from './db';
  * sincronizar nada. */
 const OWNER_KEY = 'torq.local_data_owner';
 
+/** Lo que es de la persona y no del navegador: guías de Piñón ya vistas,
+ * su historial de chat, logros vistos, avisos que cerró y sus preferencias
+ * de vistas. Si entra otra cuenta en el mismo navegador, se borra: si no,
+ * la cuenta nueva no veía las guías (ya vistas por la anterior) y podía ver
+ * el chat de Piñón de otra persona. */
+const LAST_USER_KEY = 'torq.local_last_user';
+const PERSONAL_PREFIXES = ['torq.pinon.', 'torq.onboarding.draft.', 'torq.seenAchievements', 'torq.ftpOfferDismissed', 'torq.formaAnalysisDays', 'torq.coachAnalysisDays'];
+
+/** Borra lo personal si `userId` no es la última cuenta que entró aquí.
+ * Cerrar sesión y volver a entrar con la misma cuenta no borra nada; la
+ * primera vez (sin última cuenta guardada) tampoco. */
+export function clearPersonalPrefsIfOtherUser(userId: string, storage: Storage = localStorage): void {
+  const last = storage.getItem(LAST_USER_KEY);
+  if (last && last !== userId) {
+    const doomed: string[] = [];
+    for (let i = 0; i < storage.length; i++) {
+      const k = storage.key(i);
+      if (k && PERSONAL_PREFIXES.some((p) => k.startsWith(p))) doomed.push(k);
+    }
+    doomed.forEach((k) => storage.removeItem(k));
+  }
+  storage.setItem(LAST_USER_KEY, userId);
+}
+
 export async function ensureLocalDataOwnership(userId: string | null): Promise<void> {
+  if (userId) clearPersonalPrefsIfOtherUser(userId);
   const owner = localStorage.getItem(OWNER_KEY);
   const current = userId ?? '';
   if (owner === current) return;
