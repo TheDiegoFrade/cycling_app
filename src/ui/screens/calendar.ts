@@ -645,9 +645,11 @@ export function renderCalendar(container: HTMLElement): () => void {
               <button class="plan-view-btn${isMonth ? ' on' : ''}" id="view-month">Mes</button>
             </div>
             <button id="plan-today">Hoy</button>
-            <button id="plan-prev" aria-label="Anterior">‹</button>
-            <span class="live-col-label" style="width:170px;text-align:center;display:inline-block">${rangeLabel}</span>
-            <button id="plan-next" aria-label="Siguiente">›</button>
+            <div class="plan-nav">
+              <button id="plan-prev" aria-label="Anterior">‹</button>
+              <span class="live-col-label plan-range">${rangeLabel}</span>
+              <button id="plan-next" aria-label="Siguiente">›</button>
+            </div>
             <button type="button" class="plan-import-link csv-download-btn" id="plan-download-csv" title="Todo lo agendado, para abrir en Excel o Google Sheets">Descargar CSV</button>
           </div>
         </div>

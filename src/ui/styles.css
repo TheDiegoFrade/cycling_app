@@ -8626,3 +8626,78 @@ body.remote-body {
 .plan-how-toggle .plan-how-list {
   margin-top: 8px;
 }
+
+/* ---------- Pantalla táctil: todo lo que se toca, fácil de tocar ----------
+   Solo con el dedo como puntero principal (celular, tableta): en computadora
+   no cambia nada. Botones, campos y desplegables miden al menos 44 px, los
+   campos van a 16px (si no, el celular hace zoom al escribir) y los enlaces
+   de texto suelto ganan alto sin moverse de lugar. */
+@media (pointer: coarse) {
+  button:not(.switch):not(.ob-step-dot):not(.plan-day-mini-add):not(.perfil-danger-link),
+  select,
+  summary,
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='hidden']) {
+    min-height: 44px;
+  }
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  button:not(.switch):not(.ob-step-dot):not(.plan-day-mini-add) {
+    min-width: 44px;
+  }
+  summary {
+    display: flex;
+    align-items: center;
+  }
+  /* enlaces de texto suelto: más alto para tocarlos, sin cambiar su aspecto */
+  a.prepare-link,
+  a.plan-import-link,
+  a.sidebar-logo,
+  .perfil-danger-link,
+  .perfil-header a,
+  a.back-link,
+  a.perfil-coach-reports {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  /* interruptores: el dibujo no cambia, la zona de toque sí */
+  .switch::before {
+    content: '';
+    position: absolute;
+    inset: -10px -4px;
+  }
+  /* «+» de cada día del calendario: dibujo chico, zona de toque de 44 px */
+  .plan-day-mini-add {
+    position: relative;
+  }
+  .plan-day-mini-add::before {
+    content: '';
+    position: absolute;
+    inset: -11px;
+  }
+}
+
+/* Plan: ‹ rango › siempre juntos; en celular ocupan su propia fila. */
+.plan-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.plan-range {
+  width: 170px;
+  text-align: center;
+  display: inline-block;
+}
+@media (max-width: 560px) {
+  .plan-nav {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+  .plan-range {
+    width: auto;
+    flex: 1;
+  }
+}

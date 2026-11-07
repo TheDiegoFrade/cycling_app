@@ -1,4 +1,5 @@
 import { test, expect, user } from '../support/ux';
+import { seedActivePlan, seedProfile } from '../support/seed';
 import { EXPERIMENTADO, NOVATA, bubbleText, dismissGuide, fillOnboarding, login } from '../support/flows';
 
 /**
@@ -408,5 +409,38 @@ test.describe('Cuestionario en celular', () => {
     await ux.shot('09-cuestionario-celular', page.locator('body'));
     await m.locator('#onboarding-next').tap();
     await expect(m.locator('.ob-step-dot[aria-current="step"]')).toHaveText('2');
+  });
+});
+
+test.describe('Pantalla táctil: lo que se toca es fácil de tocar', () => {
+  test.use({ viewport: { width: 390, height: 780 }, hasTouch: true, isMobile: true });
+
+  test('botones y campos de Plan, Perfil y Registrar sesión miden ≥ 44 px, con 16px, y la página no se ensancha', async ({ page, backend }) => {
+    const u = user('ana');
+    backend.users.push(u);
+    seedProfile(backend, u, 'ana');
+    seedActivePlan(backend, u);
+    await backend.seedSession(page, u);
+    await page.addInitScript(() => localStorage.setItem('torq.pinon.guides', 'off'));
+    for (const route of ['plan', 'profile', 'log']) {
+      await page.goto(`/#/${route}`);
+      await expect(page.locator('.screen, .perfil-screen').first()).toBeVisible();
+      await page.waitForTimeout(500);
+      const bad = await page.evaluate(() => {
+        const out: string[] = [];
+        const seen = (e: Element) => { const b = (e as HTMLElement).getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(e).visibility !== 'hidden'; };
+        document.querySelectorAll('.screen button:not(.switch):not(.plan-day-mini-add):not(.perfil-danger-link), .screen select, .screen input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden])').forEach((e) => {
+          if (!seen(e)) return;
+          const h = (e as HTMLElement).getBoundingClientRect().height;
+          if (h < 43.5) out.push(`${e.tagName.toLowerCase()}#${e.id} ${Math.round(h)}px alto`);
+        });
+        document.querySelectorAll('input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]), select, textarea').forEach((e) => {
+          if (seen(e) && parseFloat(getComputedStyle(e).fontSize) < 16) out.push(`${e.tagName.toLowerCase()}#${e.id} fuente ${getComputedStyle(e).fontSize}`);
+        });
+        if (document.documentElement.scrollWidth > innerWidth) out.push('la página se ensancha');
+        return out;
+      });
+      expect(bad, `en #/${route}`).toEqual([]);
+    }
   });
 });
