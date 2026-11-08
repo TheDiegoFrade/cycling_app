@@ -1,8 +1,9 @@
 import { isSupabaseConfigured, supabase } from '../../supabase/client';
 import { subscribeAmbientState, toggleAmbientTrack } from '../ambient-audio';
-import { navigate } from '../router';
+import { getRouteParam, navigate } from '../router';
 import { appState } from '../state';
 import { requestPasswordReset } from '../password-reset';
+import { escapeHtml } from '../workout-cover';
 import { joinWaitlist } from '../../sync/waitlist';
 import { BROWSER_HINT, browserWarning } from '../../devices/ble-support';
 
@@ -17,6 +18,12 @@ export function loginErrorText(error: { message: string; code?: string; status?:
   return 'No se pudo entrar. Intenta de nuevo en un momento.';
 }
 
+/** `?unete` en la URL (o `#/login/unete`): el link que se comparte para
+ * invitar a alguien abre directo el formulario de invitación. */
+function wantsInvite(): boolean {
+  return new URLSearchParams(location.search).has('unete') || getRouteParam() === 'unete';
+}
+
 function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supabase>): void {
   container.innerHTML = `
     <div class="hero${appState.settings.heroCharacter === 'woman' ? ' hero-woman' : ''}" style="min-height:100vh">
@@ -24,7 +31,34 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
         <div class="brand"><img class="brand-logo" src="/brand/logo-torq.webp" alt="torq" width="150" height="70"></div>
         <div class="tag">Entrena sin mirar la pantalla.</div>
         <p class="entry-browser${browserWarning() ? ' warn' : ''}" id="entry-browser">${browserWarning() ?? BROWSER_HINT}</p>
-        <button type="button" class="ghost-btn" id="entry-toggle">Entrar</button>
+        <button type="button" class="invite-cta" id="waitlist-toggle">
+          <span class="invite-cta-label">Pide tu invitación</span>
+          <span class="invite-cta-arrow" aria-hidden="true">→</span>
+        </button>
+        <p class="invite-cta-sub" id="invite-cta-sub">Solo tu correo · te avisamos en cuanto sea tu turno</p>
+        <form class="entry-fields" id="waitlist-form" novalidate>
+          <p class="waitlist-intro">¡Qué gusto que quieras rodar con Torq! 🚴 Déjanos tu correo y te mandamos tu invitación.</p>
+          <label>Correo<input type="email" id="waitlist-email" placeholder="tucorreo@ejemplo.com" autocomplete="email" inputmode="email" enterkeyhint="send"></label>
+          <button type="submit" class="invite-cta invite-cta-submit" id="waitlist-btn">
+            <span class="invite-cta-label">Envíame mi invitación</span>
+            <span class="invite-cta-arrow" aria-hidden="true">→</span>
+          </button>
+          <div id="waitlist-result" aria-live="polite"></div>
+          <details class="waitlist-extra">
+            <summary>Cuéntanos más <span class="hint">(opcional)</span></summary>
+            <label>Nombre<input type="text" id="waitlist-name" maxlength="80" autocomplete="given-name"></label>
+            <label>¿Qué ruedas?
+              <select id="waitlist-discipline">
+                <option value="">—</option>
+                <option value="road">Ruta</option>
+                <option value="mountain">Montaña / XC</option>
+                <option value="gravel">Gravel</option>
+                <option value="other">Otra</option>
+              </select>
+            </label>
+          </details>
+        </form>
+        <button type="button" class="ghost-btn entry-login-link" id="entry-toggle">¿Ya tienes cuenta? Entrar</button>
         <form class="entry-fields" id="entry-fields" novalidate>
           <label>Correo<input type="email" id="login-email" placeholder="tucorreo@ejemplo.com" autocomplete="email"></label>
           <label>Contraseña<input type="password" id="login-password" autocomplete="current-password"></label>
@@ -32,23 +66,7 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
           <a href="#" class="hint" id="login-forgot" style="display:block;margin-top:8px">¿Olvidaste tu contraseña?</a>
           <div id="login-result" aria-live="polite"></div>
         </form>
-        <button type="button" class="ghost-btn waitlist-toggle" id="waitlist-toggle">¿Sin cuenta? Únete a la lista de espera</button>
-        <form class="entry-fields" id="waitlist-form" novalidate>
-          <p class="waitlist-intro">¡Qué gusto que quieras rodar con Torq! 🚴 Estamos abriendo poco a poco para acompañar bien a cada ciclista. Déjanos tu correo y te avisamos en cuanto sea tu turno.</p>
-          <label>Correo<input type="email" id="waitlist-email" placeholder="tucorreo@ejemplo.com" autocomplete="email"></label>
-          <label>Nombre <span class="hint">(opcional)</span><input type="text" id="waitlist-name" maxlength="80" autocomplete="given-name"></label>
-          <label>¿Qué ruedas? <span class="hint">(opcional)</span>
-            <select id="waitlist-discipline">
-              <option value="">—</option>
-              <option value="road">Ruta</option>
-              <option value="mountain">Montaña / XC</option>
-              <option value="gravel">Gravel</option>
-              <option value="other">Otra</option>
-            </select>
-          </label>
-          <button type="submit" class="primary" id="waitlist-btn">Apuntarme</button>
-          <div id="waitlist-result" aria-live="polite"></div>
-        </form>
+        <button type="button" class="ghost-btn waitlist-back" id="waitlist-back" hidden>¿No tienes cuenta? Pide tu invitación</button>
       </div>
       <button type="button" class="music-toggle" id="music-toggle" title="Still Corners – The Trip (click para reproducir)">🔇</button>
       <button type="button" class="hero-toggle" id="hero-toggle" title="Cambiar apariencia">${appState.settings.heroCharacter === 'woman' ? '🚴‍♀️' : '🚴‍♂️'}</button>
@@ -69,33 +87,43 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
 
   const waitlistToggle = container.querySelector<HTMLButtonElement>('#waitlist-toggle')!;
   const waitlistForm = container.querySelector<HTMLFormElement>('#waitlist-form')!;
-  /** Muestra el login o la lista de espera (uno a la vez). */
+  const waitlistBack = container.querySelector<HTMLButtonElement>('#waitlist-back')!;
+  const ctaSub = container.querySelector<HTMLElement>('#invite-cta-sub')!;
+  /** Muestra el login o la invitación (uno a la vez). La invitación es lo
+   * principal: casi todos los que llegan con el link todavía no tienen cuenta. */
   const show = (which: 'login' | 'waitlist') => {
     pill.classList.add('active');
     fields.classList.toggle('open', which === 'login');
     waitlistForm.classList.toggle('open', which === 'waitlist');
     toggleBtn.hidden = which === 'login';
-    toggleBtn.textContent = which === 'waitlist' ? 'Ya tengo cuenta: entrar' : 'Entrar';
-    waitlistToggle.hidden = which === 'waitlist';
+    waitlistToggle.hidden = true;
+    ctaSub.hidden = true;
+    waitlistBack.hidden = which === 'waitlist';
     container.querySelector<HTMLInputElement>(which === 'login' ? '#login-email' : '#waitlist-email')?.focus();
   };
   toggleBtn.addEventListener('click', () => show('login'));
   waitlistToggle.addEventListener('click', () => show('waitlist'));
+  waitlistBack.addEventListener('click', () => show('waitlist'));
+  // Link para compartir: torq…/?unete (o #/login/unete) abre directo el
+  // correo para pedir la invitación, sin buscar el botón.
+  if (wantsInvite()) show('waitlist');
   waitlistForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const resultEl = container.querySelector<HTMLElement>('#waitlist-result')!;
     const btn = container.querySelector<HTMLButtonElement>('#waitlist-btn')!;
     btn.disabled = true;
     resultEl.innerHTML = '<p class="hint">Enviando…</p>';
+    const email = container.querySelector<HTMLInputElement>('#waitlist-email')!.value;
     const res = await joinWaitlist(
-      container.querySelector<HTMLInputElement>('#waitlist-email')!.value,
+      email,
       container.querySelector<HTMLInputElement>('#waitlist-name')!.value,
       container.querySelector<HTMLSelectElement>('#waitlist-discipline')!.value,
     );
     btn.disabled = false;
     if (res === 'ok') {
-      waitlistForm.querySelectorAll('label, #waitlist-btn, .waitlist-intro').forEach((el) => ((el as HTMLElement).hidden = true));
-      resultEl.innerHTML = '<p class="waitlist-done">¡Gracias por apuntarte! 🎉 Ya estás en la lista. Te escribimos a ese correo en cuanto sea tu turno. ¡Nos vemos en la bici!</p>';
+      waitlistForm.querySelectorAll('label, #waitlist-btn, .waitlist-intro, .waitlist-extra').forEach((el) => ((el as HTMLElement).hidden = true));
+      waitlistBack.hidden = true;
+      resultEl.innerHTML = `<div class="waitlist-done"><span class="waitlist-done-icon" aria-hidden="true">🎉</span><strong>¡Listo, ya estás en la lista!</strong><span>Te mandamos tu invitación a <b>${escapeHtml(email.trim().toLowerCase())}</b> en cuanto sea tu turno. ¡Nos vemos en la bici!</span></div>`;
     } else {
       resultEl.innerHTML = `<div class="error-box">${res === 'invalid_email' ? 'Revisa tu correo: parece que le falta algo.' : 'No se pudo guardar. Intenta de nuevo en un momento.'}</div>`;
     }
