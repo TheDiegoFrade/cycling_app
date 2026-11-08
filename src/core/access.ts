@@ -3,7 +3,8 @@
 // app para mostrar el estado. Ver docs/evaluaciones/2026-10-20-ux-flujos.md,
 // «Decisión de planes»:
 //  - Todos pagan la suscripción Torq Coach IA ($349 al mes, cobro con Stripe;
-//    ver docs/cobro-stripe.md): atletas, con o sin coach, y coaches.
+//    ver docs/cobro-stripe.md): ser coach o tener coach no la incluye.
+//    (Cómo pagarán los coaches está por decidir.)
 //  - Solo no paga quien tiene cortesía (equipo y pruebas, o un cliente
 //    especial «gratis» que da un administrador). Los descuentos se aplican
 //    en el cobro (billing_overrides), no aquí.

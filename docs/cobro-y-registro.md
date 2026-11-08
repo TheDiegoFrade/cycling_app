@@ -35,9 +35,10 @@ decide.
 | Canceló | Sí, hasta `paid_until` | Conserva lo que pagó |
 | Nadie de lo anterior | No | Ve el precio antes del cuestionario |
 
-**Todos pagan** (decisión del 8-nov-2026): ser coach o tener coach ya no da
-la IA gratis. Coaches y atletas, con o sin coach, se suscriben igual; los
-descuentos y las cortesías los da un administrador en `#/admin/clients`.
+**Todos pagan** (decisión del 8-nov-2026): tener coach ya no da la IA gratis;
+los atletas, con o sin coach, se suscriben igual. Ser coach tampoco la
+incluye; cómo pagarán los coaches está por decidir. Los descuentos y las
+cortesías los da un administrador en `#/admin/clients`.
 
 Sin IA, los botones de Piñón siguen funcionando; la pregunta abierta y crear
 plan explican el precio y llevan a «Conocer Torq Coach IA».
