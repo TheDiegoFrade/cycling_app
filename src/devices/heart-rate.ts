@@ -15,6 +15,7 @@ export class BleHrAdapter implements HrAdapter {
   private stateCbs = new Set<(s: ConnectionState) => void>();
   private reconnectAttempt = 0;
   private manuallyDisconnected = false;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   async connect(): Promise<void> {
     this.manuallyDisconnected = false;
@@ -46,6 +47,9 @@ export class BleHrAdapter implements HrAdapter {
 
   disconnect(): void {
     this.manuallyDisconnected = true;
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    this.device?.removeEventListener('gattserverdisconnected', this.handleDisconnected);
     this.device?.gatt?.disconnect();
     this.setState('disconnected');
   }
@@ -103,8 +107,12 @@ export class BleHrAdapter implements HrAdapter {
     this.setState('reconnecting');
     const delay = RECONNECT_DELAYS_MS[Math.min(this.reconnectAttempt, RECONNECT_DELAYS_MS.length - 1)];
     this.reconnectAttempt++;
-    setTimeout(() => {
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      if (this.manuallyDisconnected) return;
       this.attachToDevice().catch(() => {
+        if (this.manuallyDisconnected) return;
         this.setState('error');
         this.scheduleReconnect();
       });

@@ -240,9 +240,15 @@ function wireSensor<A extends TrainerAdapter | HrAdapter, R>(
   }
 
   if (existing) attach(existing);
+  let current: A | null = existing;
 
   document.getElementById(cfg.connectBtn)?.addEventListener('click', () => {
+    // Soltar el intento anterior antes de abrir uno nuevo: si no, el viejo
+    // seguía reintentando por su cuenta contra el mismo rodillo y los dos se
+    // pisaban («GATT operation failed for unknown reason»).
+    current?.disconnect();
     const adapter = cfg.makeReal();
+    current = adapter;
     attach(adapter);
     adapter.connect().catch((err: unknown) => {
       paint('error');
