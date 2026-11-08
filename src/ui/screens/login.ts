@@ -35,7 +35,7 @@ function renderLoginGate(container: HTMLElement, client: NonNullable<typeof supa
           <span class="invite-cta-label">Pide tu invitación</span>
           <span class="invite-cta-arrow" aria-hidden="true">→</span>
         </button>
-        <p class="invite-cta-sub" id="invite-cta-sub">Solo tu correo · te avisamos en cuanto sea tu turno</p>
+        <p class="invite-cta-sub" id="invite-cta-sub">Solo tu correo · 7 días de prueba al entrar</p>
         <form class="entry-fields" id="waitlist-form" novalidate>
           <p class="waitlist-intro">¡Qué gusto que quieras rodar con Torq! 🚴 Déjanos tu correo y te mandamos tu invitación.</p>
           <label>Correo<input type="email" id="waitlist-email" placeholder="tucorreo@ejemplo.com" autocomplete="email" inputmode="email" enterkeyhint="send"></label>
