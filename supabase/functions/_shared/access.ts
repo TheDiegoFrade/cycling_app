@@ -1,7 +1,7 @@
 // ¿Este usuario tiene la IA? La única fuente de verdad (la app solo muestra lo
-// que esto decide). Reglas en src/core/access.ts: cortesía, coach, atleta con
-// coach vinculado (que siga siendo coach) o suscripción al corriente (con
-// gracia si falló un cobro). Cortesía = COMP_USER_IDS (equipo) o un cliente
+// que esto decide). Reglas en src/core/access.ts: cortesía o suscripción al
+// corriente (con gracia si falló un cobro). Todos pagan, coaches y atletas
+// con coach incluidos. Cortesía = COMP_USER_IDS (equipo) o un cliente
 // especial «gratis» vigente (billing_overrides, lo da un administrador).
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { aiAccess, freeActive } from './core.gen.js';
@@ -9,35 +9,22 @@ import { COMP_USER_IDS } from './coach-access.ts';
 
 export interface AccessResult {
   ai: boolean;
-  reason: 'comp' | 'coach' | 'coached' | 'subscription' | 'grace' | 'none';
+  reason: 'comp' | 'subscription' | 'grace' | 'none';
   subscription: { status: string; price_mxn: number; paid_until: string | null; grace_until: string | null } | null;
 }
 
 export async function loadAiAccess(admin: SupabaseClient, userId: string, now = new Date()): Promise<AccessResult> {
-  const [profile, link, sub, override] = await Promise.all([
-    admin.from('profiles').select('is_coach').eq('user_id', userId).maybeSingle(),
-    admin.from('coach_athletes').select('coach_id').eq('athlete_id', userId).eq('status', 'active').limit(1),
+  const [sub, override] = await Promise.all([
     admin.from('subscriptions').select('status, price_mxn, paid_until, grace_until').eq('user_id', userId).maybeSingle(),
     admin.from('billing_overrides').select('kind, until').eq('user_id', userId).maybeSingle(),
   ]);
   // Si la tabla todavía no existe (SQL sin correr), nadie es especial; no se
   // rompe la IA de los demás por eso.
   if (override.error) console.warn('[access] billing_overrides', override.error.message);
-  if (profile.error || link.error || sub.error) throw new Error(`no se pudo leer el acceso: ${(profile.error ?? link.error ?? sub.error)!.message}`);
+  if (sub.error) throw new Error(`no se pudo leer el acceso: ${sub.error.message}`);
   const s = sub.data;
-  // El vínculo solo cuenta si quien lo dio sigue siendo coach: si Torq le
-  // quita el permiso, sus atletas dejan de tener la IA incluida.
-  const coachId = (link.data ?? [])[0]?.coach_id as string | undefined;
-  let hasActiveCoach = false;
-  if (coachId) {
-    const { data: coach, error } = await admin.from('profiles').select('is_coach').eq('user_id', coachId).maybeSingle();
-    if (error) throw new Error(`no se pudo leer el acceso: ${error.message}`);
-    hasActiveCoach = Boolean(coach?.is_coach);
-  }
   const access = aiAccess({
     comp: COMP_USER_IDS.has(userId) || freeActive(override.error ? null : override.data, now),
-    isCoach: Boolean(profile.data?.is_coach),
-    hasActiveCoach,
     subscription: s ? { status: s.status, paidUntil: s.paid_until, graceUntil: s.grace_until, priceMxn: s.price_mxn } : null,
     now,
   });

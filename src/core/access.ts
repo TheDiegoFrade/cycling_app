@@ -2,10 +2,12 @@
 // la usa el servidor para decidir (supabase/functions/_shared/access.ts) y la
 // app para mostrar el estado. Ver docs/evaluaciones/2026-10-20-ux-flujos.md,
 // «Decisión de planes»:
-//  - Atleta sin coach: suscripción Torq Coach IA ($349 al mes, cobro con Stripe;
-//    ver docs/cobro-stripe.md).
-//  - Coach (por invitación) y atleta con coach vinculado: gratis.
-//  - Cuentas de cortesía (equipo y pruebas): gratis.
+//  - Todos pagan la suscripción Torq Coach IA ($349 al mes, cobro con Stripe;
+//    ver docs/cobro-stripe.md): ser coach o tener coach no la incluye.
+//    (Cómo pagarán los coaches está por decidir.)
+//  - Solo no paga quien tiene cortesía (equipo y pruebas, o un cliente
+//    especial «gratis» que da un administrador). Los descuentos se aplican
+//    en el cobro (billing_overrides), no aquí.
 
 /** Precio en MXN al mes, IVA incluido. Es el de respaldo: el que se cobra de
  * verdad sale del precio de Stripe del lookup key vigente
@@ -31,13 +33,11 @@ export interface SubscriptionState {
 
 export interface AccessInput {
   comp: boolean;
-  isCoach: boolean;
-  hasActiveCoach: boolean;
   subscription: SubscriptionState | null;
   now: Date;
 }
 
-export type AccessReason = 'comp' | 'coach' | 'coached' | 'subscription' | 'grace' | 'none';
+export type AccessReason = 'comp' | 'subscription' | 'grace' | 'none';
 
 export interface Access {
   ai: boolean;
@@ -48,8 +48,6 @@ const after = (iso: string | null, now: Date) => !!iso && new Date(iso).getTime(
 
 export function aiAccess(i: AccessInput): Access {
   if (i.comp) return { ai: true, reason: 'comp' };
-  if (i.isCoach) return { ai: true, reason: 'coach' };
-  if (i.hasActiveCoach) return { ai: true, reason: 'coached' };
   const s = i.subscription;
   if (s) {
     if (s.status === 'authorized' && (s.paidUntil === null || after(s.paidUntil, i.now))) return { ai: true, reason: 'subscription' };

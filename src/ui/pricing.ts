@@ -1,13 +1,12 @@
 // Torq Coach IA: precio, suscripción (cobro con Stripe) y su estado. El precio
-// se ve ANTES del cuestionario (nunca después del esfuerzo). Los coaches y
-// sus atletas no pagan; a un atleta con coach nunca se le ofrece esto.
+// se ve ANTES del cuestionario (nunca después del esfuerzo). Todos pagan:
+// coaches y atletas, con o sin coach (solo la cortesía no paga).
 import { PRICE_MXN } from '../core/access';
 import { fmtMxn } from '../core/billing-override';
 import { cancelSubscription, openBillingPortal, startSubscription } from '../sync/billing';
 import type { BillingStatus, SubscribeError } from '../sync/billing';
 import { refresh } from './router';
 import { appState } from './state';
-import { escapeHtml } from './workout-cover';
 
 /** ¿Tiene la IA? Si no se sabe (sin internet), se deja intentar: el
  * servidor decide de todos modos. */
@@ -47,7 +46,6 @@ export function pricingPanelHtml(b: BillingStatus | null = appState.billing): st
       </ul>
       <button class="primary" data-subscribe ${ready ? '' : 'disabled'}>Suscribirme</button>
       <p class="hint pricing-fine">${fineHtml(b)}${ready ? '' : ' <strong>El cobro todavía no está activo (modo de prueba).</strong>'}</p>
-      <p class="hint pricing-fine">¿Tu coach usa Torq? Pídele tu invitación: con coach, Torq va incluido.</p>
       <p class="hint" data-subscribe-status aria-live="polite"></p>
     </div>`;
 }
@@ -98,12 +96,9 @@ export function openPricingModal(): void {
 /** «Tu plan» en Perfil: qué tiene y qué puede hacer. */
 export function subscriptionPanelHtml(b: BillingStatus | null = appState.billing): string {
   if (!b) return '';
-  const coachName = appState.coach.myCoach?.coachName;
   const s = b.subscription;
   let body: string;
   if (b.reason === 'comp') body = `<p>Cuenta de cortesía: tienes Torq Coach IA sin costo${b.compUntil ? ` hasta el ${fmtDate(b.compUntil)}` : ''}.</p>`;
-  else if (b.reason === 'coach') body = '<p>Como coach, usas Torq gratis con tus atletas.</p>';
-  else if (b.reason === 'coached') body = `<p>Torq va incluido por tu coach${coachName ? ` <strong>${escapeHtml(coachName)}</strong>` : ''}.</p>`;
   else if (b.reason === 'grace')
     body = `<p><strong>No pudimos cobrar tu mes.</strong> Actualiza tu tarjeta${s?.grace_until ? ` antes del ${fmtDate(s.grace_until)}` : ''} para no perder el coach IA. Tus datos no se borran.</p>
       <div class="row-actions"><button class="btn-light" id="billing-portal">Actualizar tarjeta</button></div>

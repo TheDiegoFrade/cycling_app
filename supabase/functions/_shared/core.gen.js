@@ -776,8 +776,6 @@ var GRACE_DAYS = 7;
 var after = (iso, now) => !!iso && new Date(iso).getTime() > now.getTime();
 function aiAccess(i) {
   if (i.comp) return { ai: true, reason: "comp" };
-  if (i.isCoach) return { ai: true, reason: "coach" };
-  if (i.hasActiveCoach) return { ai: true, reason: "coached" };
   const s = i.subscription;
   if (s) {
     if (s.status === "authorized" && (s.paidUntil === null || after(s.paidUntil, i.now))) return { ai: true, reason: "subscription" };

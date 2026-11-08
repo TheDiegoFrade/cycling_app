@@ -7,8 +7,8 @@
 //  - preview / submit (con sesión): quien recibió la invitación la abre con
 //    la cuenta de ESE correo y llena la solicitud.
 // Al aprobar se enciende is_coach (con la service role). Al quitar el permiso
-// se terminan sus vínculos: sus atletas dejan de ver al coach y de tener la
-// IA incluida.
+// se terminan sus vínculos: sus atletas dejan de ver al coach. (Sus atletas
+// pagan Torq aparte: no va incluido por tener coach.)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUserId } from '../_shared/strava.ts';

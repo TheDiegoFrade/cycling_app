@@ -90,7 +90,7 @@ function form(container: HTMLElement, token: string, initial: CoachApplicationAn
     `<div data-field="${key}"><label class="terms-check"><input type="checkbox" id="ca-${key}"${on ? ' checked' : ''}> <span>${label}</span></label><span class="field-error" data-error="${key}"></span></div>`;
 
   container.innerHTML = shell(`
-    <p class="hint">Torq es para coaches que entrenan atletas de verdad. Cuéntanos de ti: lo revisamos una persona del equipo y te contestamos por correo. Tus atletas usan Torq gratis contigo; tú decides tu precio y cobras por tu cuenta.</p>
+    <p class="hint">Torq es para coaches que entrenan atletas de verdad. Cuéntanos de ti: lo revisamos una persona del equipo y te contestamos por correo. Tus atletas pagan su suscripción a Torq; tu entrenamiento lo cobras por tu cuenta, al precio que decidas.</p>
     <form id="coach-apply-form" novalidate>
       <section class="panel">
         <h2 class="perfil-h2">Quién eres</h2>
