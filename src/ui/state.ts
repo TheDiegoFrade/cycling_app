@@ -50,6 +50,11 @@ class AppState {
    * conecte simuladores por su cuenta y grabe una sesión falsa (ver
    * TORQ_DESIGN.md, bug #1). Se resetea al entrar de nuevo a Antes de empezar. */
   demoSession = false;
+  /** Bloques libres (índice base 0) que la persona eligió hacer con ERG en
+   * Antes de empezar: siguen el % del bloque con el FTP de su perfil. Los
+   * demás bloques libres se respetan (el ERG se suelta y ella regula). Se
+   * vacía en cada Antes de empezar. */
+  ergFreeBlocks = new Set<number>();
   /** true solo entre terminar un entrenamiento real (no demo) y que Resumen
    * lo consuma — dispara el chequeo de logros nuevos ahí, y solo ahí: así
    * revisar una sesión vieja desde Historial nunca celebra nada "de nuevo". */
