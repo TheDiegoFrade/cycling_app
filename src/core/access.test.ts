@@ -3,17 +3,15 @@ import { PRICE_MXN, aiAccess } from './access';
 import type { AccessInput, SubscriptionState } from './access';
 
 const now = new Date('2026-11-15T12:00:00Z');
-const none: AccessInput = { comp: false, isCoach: false, hasActiveCoach: false, subscription: null, now };
+const none: AccessInput = { comp: false, subscription: null, now };
 const sub = (s: Partial<SubscriptionState>): SubscriptionState => ({ status: 'authorized', paidUntil: '2026-12-01T00:00:00Z', graceUntil: null, priceMxn: PRICE_MXN, ...s });
 
 describe('aiAccess', () => {
   it('sin nada no hay IA', () => {
     expect(aiAccess(none)).toEqual({ ai: false, reason: 'none' });
   });
-  it('cortesía, coach y atleta con coach: gratis', () => {
-    expect(aiAccess({ ...none, comp: true }).reason).toBe('comp');
-    expect(aiAccess({ ...none, isCoach: true }).reason).toBe('coach');
-    expect(aiAccess({ ...none, hasActiveCoach: true }).reason).toBe('coached');
+  it('solo la cortesía no paga (ser coach o tener coach ya no cuenta)', () => {
+    expect(aiAccess({ ...none, comp: true })).toEqual({ ai: true, reason: 'comp' });
   });
   it('suscripción al corriente', () => {
     expect(aiAccess({ ...none, subscription: sub({}) })).toEqual({ ai: true, reason: 'subscription' });

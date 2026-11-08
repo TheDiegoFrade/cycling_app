@@ -3,7 +3,7 @@
 // Aprobado como versión vigente el 20-oct-2026 (pendiente revisión de un
 // abogado). Al cambiar el texto se cambia TERMS_VERSION, y la app vuelve a
 // pedir aceptarlo a todos.
-export const TERMS_VERSION = '2026-11-07c';
+export const TERMS_VERSION = '2026-11-08';
 export const TERMS_IS_DRAFT = false;
 
 export const TERMS_TEXT = `## 1. Qué es Torq
@@ -58,7 +58,7 @@ Antes de participar en cualquier programa de ejercicio o actividad física, toma
 5. **Pago rechazado:** si un cobro de renovación no pasa, te avisaremos y tendrás 7 días para actualizar tu método de pago antes de que se suspenda el plan. Tus datos e historial no se borran.
 6. **Cambios de precio:** te avisaremos con al menos 30 días de anticipación antes de cobrarte un precio distinto. Si no estás de acuerdo, puedes cancelar y conservas el acceso hasta el final del periodo ya pagado.
 7. **Facturación:** si necesitas factura, escríbenos a soporte@ridetorq.app dentro del mes en que se hizo el cargo.
-8. **Atletas con coach:** si tu coach usa Torq contigo, la app va incluida y Torq no te cobra nada.
+8. **Coaches y atletas con coach:** la suscripción aplica a todos, también si eres coach o si entrenas con un coach en Torq. Lo que te cobre tu coach por su entrenamiento es aparte y se paga fuera de Torq.
 
 ## 8. Tu cuenta y uso permitido
 

@@ -29,12 +29,15 @@ decide.
 | Quién | ¿IA? | Por qué |
 |---|---|---|
 | Cuentas de cortesía (`COMP_USER_IDS`) | Sí | Equipo y pruebas |
-| Coach aprobado (`profiles.is_coach`) | Sí, gratis | Torq no cobra a coaches |
-| Atleta con coach vinculado (activo) **y que siga siendo coach** | Sí, gratis | «Torq va incluido por tu coach» |
+| Cliente especial «gratis» vigente (`billing_overrides`) | Sí | Lo da un administrador |
 | Suscripción autorizada y pagada | Sí | `paid_until` en el futuro |
 | Cobro rechazado | Sí, 7 días | Gracia para actualizar la tarjeta |
 | Canceló | Sí, hasta `paid_until` | Conserva lo que pagó |
 | Nadie de lo anterior | No | Ve el precio antes del cuestionario |
+
+**Todos pagan** (decisión del 8-nov-2026): ser coach o tener coach ya no da
+la IA gratis. Coaches y atletas, con o sin coach, se suscriben igual; los
+descuentos y las cortesías los da un administrador en `#/admin/clients`.
 
 Sin IA, los botones de Piñón siguen funcionando; la pregunta abierta y crear
 plan explican el precio y llevan a «Conocer Torq Coach IA».

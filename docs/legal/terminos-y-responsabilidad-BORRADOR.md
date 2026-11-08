@@ -65,7 +65,7 @@ Antes de participar en cualquier programa de ejercicio o actividad física, toma
 5. **Pago rechazado:** si un cobro de renovación no pasa, te avisaremos y tendrás 7 días para actualizar tu método de pago antes de que se suspenda el plan. Tus datos e historial no se borran.
 6. **Cambios de precio:** te avisaremos con al menos 30 días de anticipación antes de cobrarte un precio distinto. Si no estás de acuerdo, puedes cancelar y conservas el acceso hasta el final del periodo ya pagado.
 7. **Facturación:** si necesitas factura, escríbenos a soporte@ridetorq.app dentro del mes en que se hizo el cargo.
-8. **Atletas con coach:** si tu coach usa Torq contigo, la app va incluida y Torq no te cobra nada.
+8. **Coaches y atletas con coach:** la suscripción aplica a todos, también si eres coach o si entrenas con un coach en Torq. Lo que te cobre tu coach por su entrenamiento es aparte y se paga fuera de Torq.
 
 ## 8. Tu cuenta y uso permitido
 
@@ -112,7 +112,7 @@ Se envía una copia por correo.
    - Se propone: asumir riesgos + tope (lo pagado en 12 meses o un monto fijo) + excepciones de ley.
    - NUA Coach usa la misma estructura con un tope de 12 meses o US$100, bajo ley española y con arbitraje. Revisar si el monto y la redacción sirven en México.
 2. **IA (§4).** Revisar si la advertencia sobre planes generados por IA es suficiente, y si hace falta algo sobre la responsabilidad de Torq por errores del sistema.
-3. **Coaches (§5 y §6).** Los coaches usan Torq gratis y cobran por su cuenta. Revisar que quede claro que la relación de entrenamiento es entre atleta y coach. Uno de los fundadores (Joe Hernández) también es coach: confirmar que §6 lo cubre en ambos papeles.
+3. **Coaches (§5 y §6).** Los coaches pagan su suscripción a Torq como cualquier persona, y cobran su entrenamiento por su cuenta. Revisar que quede claro que la relación de entrenamiento es entre atleta y coach. Uno de los fundadores (Joe Hernández) también es coach: confirmar que §6 lo cubre en ambos papeles.
 4. **Aceptación electrónica.** Es un clic con dos casillas, con registro de fecha, versión, hash y dispositivo, más copia por correo. Confirmar que basta como consentimiento (Código de Comercio y LFPDPPP para los datos sensibles).
 5. **Menores (§2).** La decisión es no permitir menores de 18. Confirmar que basta con la fecha de nacimiento declarada.
 6. **Pagos (§7).** Confirmar los plazos (aviso de cambio de precio, prueba de 7 días, días de gracia, reembolsos) contra la LFPC y las condiciones de Stripe.

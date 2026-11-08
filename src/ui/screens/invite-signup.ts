@@ -17,7 +17,7 @@ export function renderInviteSignup(container: HTMLElement): void {
   container.innerHTML = `
     <div class="screen invite-screen">
       <h1>Tu coach te invitó a Torq</h1>
-      <p class="hint">Crea tu cuenta con tu correo: te mandamos un link para poner tu contraseña, y al volver aceptas la invitación de tu coach. Con coach, Torq va incluido.</p>
+      <p class="hint">Crea tu cuenta con tu correo: te mandamos un link para poner tu contraseña, y al volver aceptas la invitación de tu coach.</p>
       <form class="panel invite-signup" id="invite-signup-form" novalidate>
         <label class="live-col-label">Correo<input type="email" id="invite-email" autocomplete="email" placeholder="tucorreo@ejemplo.com" style="width:100%"></label>
         <button type="submit" class="primary" id="invite-signup-btn" style="margin-top:12px">Crear mi cuenta</button>

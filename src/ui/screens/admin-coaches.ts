@@ -2,7 +2,7 @@
 // por invitación: aquí se invita por correo, se revisan las solicitudes
 // (aprobar con un máximo de atletas, o rechazar) y se ve cuántos atletas
 // tiene cada coach. «Quitar como coach» termina sus vínculos: sus atletas
-// dejan de tener la IA incluida.
+// dejan de ver al coach. Coaches y atletas pagan su suscripción a Torq.
 import { DEFAULT_MAX_ATHLETES, MAX_ATHLETES_LIMIT } from '../../core/coach-application';
 import type { CoachApplicationAnswers } from '../../core/coach-application';
 import { adminInviteCoach, adminListCoaches, adminReviewApplication, adminRevokeCoach } from '../../sync/coach-apply';
@@ -93,7 +93,7 @@ export function renderAdminCoaches(container: HTMLElement): void {
     container.innerHTML = `
       <div class="screen admin-screen">
         <h1>Coaches</h1>
-        <p class="hint">Ser coach en Torq es solo por invitación. Invita por correo; la persona llena su solicitud y aquí la apruebas o rechazas. Sus atletas usan la IA gratis, hasta su máximo.</p>
+        <p class="hint">Ser coach en Torq es solo por invitación. Invita por correo; la persona llena su solicitud y aquí la apruebas o rechazas. Cada coach puede vincular atletas hasta su máximo. Coaches y atletas pagan su propia suscripción a Torq.</p>
         <form class="panel admin-invite-coach" id="admin-coach-invite" novalidate>
           <h2 class="perfil-h2">Invitar a un coach</h2>
           <div class="admin-invite-row">

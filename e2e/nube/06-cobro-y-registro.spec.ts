@@ -209,18 +209,17 @@ test.describe('Precio y suscripción', () => {
   });
 });
 
-test.describe('Con coach, Torq va incluido', () => {
-  test('el atleta de un coach no ve precios, y el plan es «de» su coach', async ({ page, backend, ux }) => {
+test.describe('Con coach, también se paga', () => {
+  test('el atleta de un coach sin suscripción ve el precio, y el plan es «de» su coach', async ({ page, backend, ux }) => {
     await enter(page, backend);
-    backend.billingStatus = { ai: true, reason: 'coached', subscription: null, priceMxn: 329, billingReady: true, isAdmin: false };
+    backend.billingStatus = { ai: false, reason: 'none', subscription: null, priceMxn: 329, billingReady: true, isAdmin: false };
     backend.rpcs.set('my_coach', () => [{ coach_name: 'Joe Hernández', tier: 'todo', started_at: new Date().toISOString() }]);
     await page.goto('/#/plan');
     await expect(page.locator('.plan-coach-brand')).toHaveText('Plan de Joe Hernández');
-    await expect(page.locator('[data-pricing] [data-subscribe]')).toHaveCount(0);
     await ux.shot('73-plan-de-joe');
     await page.goto('/#/profile');
-    await expect(page.locator('.perfil-panel[data-pricing]')).toContainText('Torq va incluido por tu coach Joe Hernández');
-    await expect(page.locator('[data-subscribe]')).toHaveCount(0);
+    await expect(page.locator('[data-pricing-host] [data-subscribe]').first()).toBeVisible();
+    await expect(page.locator('body')).not.toContainText('incluido por tu coach');
   });
 });
 
