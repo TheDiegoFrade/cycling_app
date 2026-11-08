@@ -701,7 +701,15 @@ export function renderCalendar(container: HTMLElement): () => void {
     wireDayButtons();
     wireCreatePanel();
     wireDragAndDrop();
-    renderCoachSection(container, paint);
+    renderCoachSection(container, (focusDate) => {
+      // plan recién creado: se ve la semana de su primer entreno
+      if (focusDate) {
+        const d = new Date(`${focusDate}T00:00:00`);
+        weekStart = startOfWeek(d);
+        monthAnchor = new Date(d.getFullYear(), d.getMonth(), 1);
+      }
+      paint();
+    });
     container.querySelector('#plan-open-onboarding')?.addEventListener('click', () => {
       // al guardarlo, directo a «Crear tu plan» (para eso se pidió)
       openOnboardingForm(() => {
