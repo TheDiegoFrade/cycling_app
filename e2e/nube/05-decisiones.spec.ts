@@ -99,12 +99,13 @@ test.describe('Piñón en el Resumen', () => {
 test.describe('Lista de espera', () => {
   test('sin invitación: se apunta en 2 campos y queda claro qué sigue', async ({ page, backend, ux }) => {
     await page.goto('/');
-    await ux.click(page.locator('#waitlist-toggle'), '¿Sin cuenta? Lista de espera');
+    await ux.click(page.locator('#waitlist-toggle'), 'Pide tu invitación');
     await ux.shot('63-lista-de-espera');
     await ux.fill(page.locator('#waitlist-email'), 'Luis@Correo.com', 'Correo');
+    await page.locator('.waitlist-extra summary').click();
     await page.locator('#waitlist-discipline').selectOption('gravel');
-    await ux.click(page.locator('#waitlist-btn'), 'Apuntarme');
-    await expect(page.locator('#waitlist-result')).toContainText('¡Gracias por apuntarte! 🎉 Ya estás en la lista.');
+    await ux.click(page.locator('#waitlist-btn'), 'Envíame mi invitación');
+    await expect(page.locator('#waitlist-result')).toContainText('¡Listo, ya estás en la lista!');
     await expect(page.locator('#waitlist-email')).toBeHidden();
     expect(backend.table('waitlist')).toEqual([expect.objectContaining({ email: 'luis@correo.com', discipline: 'gravel' })]);
     expect(ux.interactions).toBeLessThanOrEqual(4);
@@ -112,9 +113,9 @@ test.describe('Lista de espera', () => {
 
   test('correo mal escrito: avisa en español y no manda nada', async ({ page, backend, ux }) => {
     await page.goto('/');
-    await ux.click(page.locator('#waitlist-toggle'), 'Lista de espera');
+    await ux.click(page.locator('#waitlist-toggle'), 'Pide tu invitación');
     await ux.fill(page.locator('#waitlist-email'), 'luis@', 'Correo');
-    await ux.click(page.locator('#waitlist-btn'), 'Apuntarme');
+    await ux.click(page.locator('#waitlist-btn'), 'Envíame mi invitación');
     await expect(page.locator('#waitlist-result')).toContainText('Revisa tu correo');
     expect(backend.table('waitlist')).toHaveLength(0);
   });
@@ -126,16 +127,26 @@ test.describe('Lista de espera', () => {
       route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ code: '23505', message: 'duplicate key value' }) }),
     );
     await page.goto('/');
-    await ux.click(page.locator('#waitlist-toggle'), 'Lista de espera');
+    await ux.click(page.locator('#waitlist-toggle'), 'Pide tu invitación');
     await ux.fill(page.locator('#waitlist-email'), 'luis@correo.com', 'Correo');
-    await ux.click(page.locator('#waitlist-btn'), 'Apuntarme');
-    await expect(page.locator('#waitlist-result')).toContainText('¡Gracias por apuntarte! 🎉 Ya estás en la lista.');
+    await ux.click(page.locator('#waitlist-btn'), 'Envíame mi invitación');
+    await expect(page.locator('#waitlist-result')).toContainText('¡Listo, ya estás en la lista!');
+  });
+
+  test('el link para compartir (?unete) abre directo el correo de la invitación', async ({ page, backend, ux }) => {
+    await page.goto('/?unete');
+    await expect(page.locator('#waitlist-email')).toBeFocused();
+    await ux.fill(page.locator('#waitlist-email'), 'ana@correo.com', 'Correo');
+    await ux.click(page.locator('#waitlist-btn'), 'Envíame mi invitación');
+    await expect(page.locator('#waitlist-result')).toContainText('ana@correo.com');
+    expect(backend.table('waitlist')).toEqual([expect.objectContaining({ email: 'ana@correo.com' })]);
+    expect(ux.interactions).toBeLessThanOrEqual(2);
   });
 
   test('desde la lista de espera se vuelve al login en 1 clic', async ({ page, ux }) => {
     await page.goto('/');
-    await ux.click(page.locator('#waitlist-toggle'), 'Lista de espera');
-    await ux.click(page.locator('#entry-toggle'), 'Ya tengo cuenta: entrar');
+    await ux.click(page.locator('#waitlist-toggle'), 'Pide tu invitación');
+    await ux.click(page.locator('#entry-toggle'), '¿Ya tienes cuenta? Entrar');
     await expect(page.locator('#login-email')).toBeFocused();
     await expect(page.locator('#waitlist-form')).not.toHaveClass(/open/);
   });
