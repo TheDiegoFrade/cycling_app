@@ -673,7 +673,10 @@ function modalHtml(): string {
     </div>`;
 }
 
-export function renderCoachSection(container: HTMLElement, onChange: () => void): void {
+/** `onChange(focusDate)`: al crear un plan, el día de su primer entreno, para
+ * que el calendario muestre esa semana (si se crea en domingo, arranca el
+ * lunes y la semana en curso se vería vacía). */
+export function renderCoachSection(container: HTMLElement, onChange: (focusDate?: string) => void): void {
   if (!isSupabaseConfigured() || !appState.user) return; // el coach necesita cuenta — sin eso, no se muestra nada
   const slot = container.querySelector<HTMLElement>('#coach-slot');
   if (!slot) return;
@@ -1187,7 +1190,7 @@ async function computeWeekEvalContext(
   };
 }
 
-function openCreateModal(onChange: () => void): void {
+function openCreateModal(onChange: (focusDate?: string) => void): void {
   document.body.insertAdjacentHTML('beforeend', modalHtml());
   const backdrop = document.getElementById('coach-modal-backdrop')!;
   const selectedDays = new Set<string>();
@@ -1378,7 +1381,12 @@ function openCreateModal(onChange: () => void): void {
     backdrop.querySelector('#coach-done')?.addEventListener('click', async () => {
       await reloaded;
       close();
-      onChange();
+      const today = localTodayKey();
+      const first = appState.workouts
+        .map((w) => w.scheduledDate)
+        .filter((d): d is string => !!d && d >= today)
+        .sort()[0];
+      onChange(first);
     });
   });
 }

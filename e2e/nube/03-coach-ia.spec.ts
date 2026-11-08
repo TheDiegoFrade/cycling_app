@@ -19,7 +19,10 @@ function coachOk(backend: MockSupabase, u: { id: string }, delayMs = 2000) {
     seedActivePlan(backend, u as never, body.context.goal);
     // como el servidor: el plan arranca hoy y guarda la nota del coach
     const plan = backend.table('training_plans').at(-1) as { data: Record<string, unknown> };
-    plan.data.startDate = todayKey();
+    // Como el servidor (usableStartDate): si ya no quedan días de la semana
+    // (domingo), el plan arranca el lunes.
+    const sunday = new Date().getDay() === 0;
+    plan.data.startDate = sunday ? todayKey(1) : todayKey();
     plan.data.lastEvalNote = COACH_NOTE;
     seedWorkout(backend, u as never, { template: 'z2', minutes: 45, date: todayKey(1), name: 'Base Z2 · 45 min' });
     return { body: { result: { coachNote: COACH_NOTE, nextTest: null } }, delayMs };
@@ -127,7 +130,8 @@ test.describe('Crear mi plan', () => {
     await expect(page.locator('body')).toContainText('Base Z2');
     // y en la tarjeta del coach sigue la explicación del plan y en qué semana va
     await expect(page.locator('#coach-slot')).toContainText('3 semanas de base');
-    await expect(page.locator('#coach-slot')).toContainText('Semana 1 de 3 · Base.');
+    // en domingo el plan arranca el lunes (y el calendario ya enseña esa semana)
+    await expect(page.locator('#coach-slot')).toContainText(new Date().getDay() === 0 ? 'Tu plan arranca el lunes' : 'Semana 1 de 3 · Base.');
     await expect(page.locator('#coach-slot')).toContainText('Evalúa tu primera semana cuando termine');
     await expect(page.locator('#coach-slot')).not.toContainText('cambios de plan este mes');
     // y queda a la mano en la tarjeta
