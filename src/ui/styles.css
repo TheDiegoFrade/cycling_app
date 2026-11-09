@@ -9047,3 +9047,17 @@ body.remote-body {
   font-size: 15px;
   resize: vertical;
 }
+
+/* Antes de empezar: cada bloque libre, por sensación o con ERG. */
+.prepare-free-choice .hint {
+  margin: 6px 0 8px;
+}
+.free-block-toggle {
+  margin-top: 6px;
+  font-size: 13px;
+  padding: 4px 10px;
+}
+.free-block-toggle.is-erg {
+  border-color: var(--z4);
+  color: var(--text);
+}

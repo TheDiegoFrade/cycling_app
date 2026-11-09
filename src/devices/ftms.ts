@@ -17,6 +17,36 @@ const FALLBACK_RESISTANCE_PCT = 20;
 
 const RECONNECT_DELAYS_MS = [1000, 2000, 4000, 8000, 16000];
 
+/** Intentos del primer enganche. Chrome a veces falla el primero con
+ * «GATT operation failed for unknown reason» (el rodillo aún no termina de
+ * soltar una conexión anterior, o el Bluetooth de la compu va lento); soltar
+ * y volver a intentar casi siempre lo arregla sin que la persona haga nada. */
+const CONNECT_ATTEMPTS = 3;
+export const CONNECT_RETRY_DELAY_MS = 1500;
+
+/** Errores de Bluetooth "de canal" (no "no existe el servicio"): el rodillo
+ * está ocupado o la conexión se cayó a medio enganche. */
+function isGattChannelError(message: string): boolean {
+  return /GATT operation failed|GATT Server is disconnected|Connection failed|NetworkError|not connected|in progress/i.test(message);
+}
+
+/** El mensaje que ve la persona cuando no se pudo enganchar el rodillo. */
+export function explainTrainerError(err: unknown, deviceName?: string): Error {
+  const message = err instanceof Error ? err.message : String(err);
+  if (isGattChannelError(message)) {
+    const name = deviceName ? `«${deviceName}»` : 'El rodillo';
+    return new Error(
+      `${name} no aceptó la conexión: casi siempre es porque otro aparato lo tiene agarrado. ` +
+        'Cierra Zwift, la app de Saris, Wahoo, Rouvy o TrainerRoad en tu celular o tablet (ciérralas por completo, no solo minimizar), ' +
+        'apaga el Bluetooth del celular, y si usas reloj o ciclocomputadora Garmin/Wahoo quítale el rodillo como sensor. ' +
+        'Después desconecta el rodillo de la corriente 30 segundos, vuelve a conectarlo y dale a «Conectar por Bluetooth» otra vez.',
+    );
+  }
+  return err instanceof Error ? err : new Error(message);
+}
+
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 /** Rodillo real vía FTMS (`fitness_machine`), probado contra un Saris H3.
  * No se puede verificar end-to-end sin el hardware conectado — este código
  * sigue al pie de la letra SPEC.md § Dispositivos (banderas de
@@ -38,6 +68,7 @@ export class BleTrainerAdapter implements TrainerAdapter {
   private lastSentResistance: number | null = null;
   private pendingResistanceWrite = false;
   private recoveringErg = false;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   /** Lo último que se le pidió: el modo en el que DEBE estar el rodillo. Al
    * reconectar o al recuperar el control se repite esto, no siempre ERG
    * (antes, con ERG apagado, un rechazo o una reconexión lo regresaban a
@@ -58,12 +89,38 @@ export class BleTrainerAdapter implements TrainerAdapter {
       filters: [{ services: ['fitness_machine'] }],
       optionalServices: ['fitness_machine'],
     });
-    this.device.addEventListener('gattserverdisconnected', this.handleDisconnected);
-    await this.attachToDevice();
+    // El aviso de desconexión se escucha hasta que el enganche funcionó: entre
+    // reintentos soltamos la conexión a propósito y eso no debe disparar la
+    // reconexión automática (se pelearía con el reintento).
+    let lastErr: unknown = null;
+    for (let attempt = 0; attempt < CONNECT_ATTEMPTS; attempt++) {
+      if (this.manuallyDisconnected) break;
+      try {
+        await this.attachToDevice();
+        this.device.addEventListener('gattserverdisconnected', this.handleDisconnected);
+        return;
+      } catch (err) {
+        lastErr = err;
+        console.warn(`[ftms] intento ${attempt + 1} de enganche falló`, err);
+        // Soltar lo que haya quedado a medias: si no, el siguiente intento
+        // reusa una conexión rota y falla igual.
+        this.device.gatt?.disconnect();
+        if (attempt < CONNECT_ATTEMPTS - 1) await wait(CONNECT_RETRY_DELAY_MS);
+      }
+    }
+    if (this.manuallyDisconnected) {
+      this.setState('disconnected');
+      throw new Error('User cancelled');
+    }
+    this.setState('error');
+    throw explainTrainerError(lastErr, this.device.name);
   }
 
   disconnect(): void {
     this.manuallyDisconnected = true;
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    this.device?.removeEventListener('gattserverdisconnected', this.handleDisconnected);
     this.device?.gatt?.disconnect();
     this.setState('disconnected');
   }
@@ -303,8 +360,12 @@ export class BleTrainerAdapter implements TrainerAdapter {
     this.setState('reconnecting');
     const delay = RECONNECT_DELAYS_MS[Math.min(this.reconnectAttempt, RECONNECT_DELAYS_MS.length - 1)];
     this.reconnectAttempt++;
-    setTimeout(() => {
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      if (this.manuallyDisconnected) return;
       this.attachToDevice().catch(() => {
+        if (this.manuallyDisconnected) return;
         this.setState('error');
         this.scheduleReconnect();
       });

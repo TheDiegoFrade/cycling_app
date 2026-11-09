@@ -5,6 +5,7 @@ import { BleHrAdapter } from '../../devices/heart-rate';
 import { SimulatedHrAdapter, SimulatedTrainerAdapter } from '../../devices/simulated';
 import type { ConnectionState, HrAdapter, TrainerAdapter, TrainerReading } from '../../devices/types';
 import { estimateWorkout } from '../../core/workout-estimate';
+import { isTestWorkoutDoc } from '../../core/workout-zone';
 import { escapeHtml, renderWorkoutCover } from '../workout-cover';
 import { tokenForWorkout, tokenHtml } from '../workout-token';
 import { navigate } from '../router';
@@ -25,7 +26,13 @@ function fmtMinutes(totalS: number): string {
   return `${Math.round(totalS / 60)} min`;
 }
 
-function intervalBlockHtml(iv: Interval): string {
+/** Bloque libre que se puede hacer con ERG: necesita un % de referencia (un
+ * FreeRide importado sin watts no tiene a qué watts ir). */
+function ergCapableFree(iv: Interval): boolean {
+  return iv.type === 'free' && (iv.power_pct > 0 || (iv.watts ?? 0) > 0);
+}
+
+function intervalBlockHtml(iv: Interval, index: number): string {
   // Bloques cortos (ej. activaciones de 8s) redondeaban a "0 min", que no
   // dice nada — segundos para menos de 1 min, minutos para el resto.
   const durationLabel = iv.duration_s < 60 ? `${iv.duration_s}s` : `${Math.round(iv.duration_s / 60)} min`;
@@ -37,6 +44,7 @@ function intervalBlockHtml(iv: Interval): string {
         <span class="workout-detail-block-name">${escapeHtml(iv.name || iv.type)}</span>
         <span class="live-col-label">${durationLabel}</span>
       </div>
+      ${ergCapableFree(iv) ? `<button type="button" class="free-block-toggle" data-free-index="${index}" aria-pressed="false">Por sensación</button>` : ''}
       <div class="live-col-label">${power}${escapeHtml(cadence)}</div>
     </div>`;
 }
@@ -55,6 +63,7 @@ export function canUseDemo(): boolean {
  * una sesión falsa que además se reanudaba sola). */
 export function renderConnect(container: HTMLElement): void {
   appState.demoSession = false;
+  appState.ergFreeBlocks = new Set();
   // Los simuladores solo existen para la demo: si quedaron conectados de una
   // demo anterior, «Empezar» se habilitaba y grababa la rodada simulada como
   // sesión real. Volver aquí los suelta.
@@ -77,6 +86,23 @@ export function renderConnect(container: HTMLElement): void {
       </div>`;
     return;
   }
+
+  // Bloques libres: la persona decide antes de empezar, bloque por bloque,
+  // si los hace por sensación (el ERG se suelta y ella regula) o con ERG. En
+  // un test se recomienda por sensación: con ERG fijo no mide su FTP.
+  const hasFreeBlocks = workout.intervals.some(ergCapableFree) && workout.protocol !== 'rpe_ramp';
+  const isTest = isTestWorkoutDoc(workout);
+  const freeChoiceHtml = hasFreeBlocks
+    ? `
+          <div class="panel prepare-free-choice">
+            <div class="prepare-sensor-name">Bloques libres</div>
+            <p class="hint">Por sensación, el ERG se suelta y tú regulas la potencia. Con ERG, el bloque va a sus watts con tu FTP de perfil (${appState.profile.ftp} W). Toca cada bloque en la lista para cambiarlo.${isTest ? ' Es un test: por sensación mide bien tu FTP.' : ''}</p>
+            <div class="row-actions">
+              <button type="button" id="free-all-sense">Todos por sensación</button>
+              <button type="button" id="free-all-erg">Todos con ERG</button>
+            </div>
+          </div>`
+    : '';
 
   const estimate = estimateWorkout(workout.intervals, appState.profile.ftp);
   const [wattsLow, wattsHigh] = estimate.wattsRange;
@@ -101,7 +127,7 @@ export function renderConnect(container: HTMLElement): void {
             <div><div class="prepare-stat-num num">${wattsLabel}</div><div class="live-col-label">en los bloques, con FTP ${appState.profile.ftp}${isMeasuredFtp(ftpSourceOf(appState.profile)) ? '' : ' (aproximado: lo afinamos con tu test)'}</div></div>${isMeasuredFtp(ftpSourceOf(appState.profile)) ? '' : `<p class="hint prepare-ftp-hint" id="prepare-ftp-hint">¿Muy duro o muy suave? Súbele o bájale con + / − durante la sesión (también desde tu celular), o cambia tu FTP en Perfil.</p>`}
           </div>
           <div class="workout-detail-blocks" style="margin-top:10px">
-            ${workout.intervals.map(intervalBlockHtml).join('')}
+            ${workout.intervals.map((iv, i) => intervalBlockHtml(iv, i)).join('')}
           </div>
           ${workout.description ? `<div class="perfil-h2" style="margin-top:10px;font-size:15px">Sobre este entrenamiento</div><p class="hint prepare-description">${escapeHtml(workout.description)}</p>` : ''}
           <div class="row-actions">
@@ -133,6 +159,7 @@ export function renderConnect(container: HTMLElement): void {
               <div id="hr-error"></div>
             </div>
           </div>
+          ${freeChoiceHtml}
           <button class="prepare-start" id="continue" disabled>▶ Empezar</button>
           <div class="prepare-hint">Arranca en cuanto pedaleas. Espacio para pausar. En el celular, deja Torq abierto durante la sesión: si cambias de app, el rodillo se puede desconectar.</div>
           ${canUseDemo() ? '<a href="#" id="demo-link" class="prepare-demo-link">Probar sin rodillo (modo demo, no se graba)</a>' : ''}
@@ -175,6 +202,34 @@ export function renderConnect(container: HTMLElement): void {
   });
 
   updateStartButton();
+
+  // Toggle por bloque libre: «Por sensación» ↔ «ERG».
+  const toggles = Array.from(container.querySelectorAll<HTMLButtonElement>('.free-block-toggle'));
+  function paintFreeToggles(): void {
+    for (const btn of toggles) {
+      const erg = appState.ergFreeBlocks.has(Number(btn.dataset.freeIndex));
+      btn.textContent = erg ? '⚡ ERG' : 'Por sensación';
+      btn.classList.toggle('is-erg', erg);
+      btn.setAttribute('aria-pressed', String(erg));
+    }
+  }
+  if (!hasFreeBlocks) toggles.forEach((btn) => btn.remove());
+  for (const btn of toggles) {
+    btn.addEventListener('click', () => {
+      const i = Number(btn.dataset.freeIndex);
+      if (appState.ergFreeBlocks.has(i)) appState.ergFreeBlocks.delete(i);
+      else appState.ergFreeBlocks.add(i);
+      paintFreeToggles();
+    });
+  }
+  container.querySelector('#free-all-sense')?.addEventListener('click', () => {
+    appState.ergFreeBlocks.clear();
+    paintFreeToggles();
+  });
+  container.querySelector('#free-all-erg')?.addEventListener('click', () => {
+    toggles.forEach((btn) => appState.ergFreeBlocks.add(Number(btn.dataset.freeIndex)));
+    paintFreeToggles();
+  });
 
   container.querySelector<HTMLButtonElement>('#continue')?.addEventListener('click', () => navigate('train'));
 
@@ -240,9 +295,15 @@ function wireSensor<A extends TrainerAdapter | HrAdapter, R>(
   }
 
   if (existing) attach(existing);
+  let current: A | null = existing;
 
   document.getElementById(cfg.connectBtn)?.addEventListener('click', () => {
+    // Soltar el intento anterior antes de abrir uno nuevo: si no, el viejo
+    // seguía reintentando por su cuenta contra el mismo rodillo y los dos se
+    // pisaban («GATT operation failed for unknown reason»).
+    current?.disconnect();
     const adapter = cfg.makeReal();
+    current = adapter;
     attach(adapter);
     adapter.connect().catch((err: unknown) => {
       paint('error');

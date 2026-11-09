@@ -112,3 +112,47 @@ describe('BleTrainerAdapter sin ERG', () => {
     expect(opcodes(writes).filter((o) => o === CONTROL_POINT_OPCODE.setTargetPower)).toHaveLength(1); // solo el del enganche inicial
   });
 });
+
+describe('BleTrainerAdapter al conectar', () => {
+  it('reintenta si Chrome falla el primer enganche con error de GATT', async () => {
+    vi.useFakeTimers();
+    try {
+      const fake = fakeTrainer({ simulation: true });
+      const realConnect = fake.device.gatt.connect;
+      let calls = 0;
+      fake.device.gatt.connect = async () => {
+        calls++;
+        if (calls === 1) throw new Error('GATT operation failed for unknown reason.');
+        return realConnect();
+      };
+      vi.stubGlobal('navigator', { bluetooth: { requestDevice: async () => fake.device } });
+      const trainer = new BleTrainerAdapter();
+      const done = trainer.connect();
+      await vi.advanceTimersByTimeAsync(2000);
+      await done;
+      expect(calls).toBe(2);
+      expect(trainer.state).toBe('connected');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('si nunca engancha, explica que otro aparato tiene el rodillo', async () => {
+    vi.useFakeTimers();
+    try {
+      const fake = fakeTrainer({ simulation: true });
+      fake.device.gatt.connect = async () => {
+        throw new Error('GATT operation failed for unknown reason.');
+      };
+      vi.stubGlobal('navigator', { bluetooth: { requestDevice: async () => fake.device } });
+      const trainer = new BleTrainerAdapter();
+      const done = trainer.connect().catch((e: Error) => e);
+      await vi.advanceTimersByTimeAsync(5000);
+      const err = await done;
+      expect((err as Error).message).toMatch(/otro aparato/);
+      expect(trainer.state).toBe('error');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

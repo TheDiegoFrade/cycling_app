@@ -259,10 +259,13 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   let cdShown = -1;
   let currentIndex0 = 0;
   // Un bloque 'free' es autodosificado (el bloque máximo de un test de 20
-  // min): el atleta regula su potencia, así que el rodillo no puede quedarse
-  // en ERG aunque el atleta lo tenga prendido. Antes el ERG global mantenía
-  // el objetivo del bloque y el "test" medía solo que aguantaba esa potencia.
-  const isSelfPaced = (): boolean => workout.intervals[currentIndex0]?.type === 'free';
+  // min, intervalos por RPE): el atleta regula su potencia, así que el
+  // rodillo no se queda en ERG aunque el atleta lo tenga prendido. Antes el
+  // ERG global mantenía el objetivo del bloque y el "test" medía solo que
+  // aguantaba esa potencia. Salvo los que en Antes de empezar marcó con ERG:
+  // esos siguen su % con el FTP del perfil.
+  const ergFreeBlocks = new Set(appState.ergFreeBlocks);
+  const isSelfPaced = (): boolean => workout.intervals[currentIndex0]?.type === 'free' && !ergFreeBlocks.has(currentIndex0);
   let ergReleasedForFree = false;
   /** ¿El rodillo está siguiendo watts ahora mismo? Con ERG prendido pero en
    * un bloque libre (test de 20 min, 40:20s), no: ahí +/- y el control del
@@ -827,8 +830,12 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
           if (!rampByHr) askRampRpe(event.index1 - 2);
         }
         pushRemote();
-        if (event.interval.type === 'free') {
+        if (event.interval.type === 'free' && isSelfPaced()) {
           showBanner('info', event.interval.name, 'Bloque libre: tú regulas la potencia, el ERG se suelta', 4000);
+        } else if (event.interval.type === 'free' && ergEnabled) {
+          showBanner('info', event.interval.name, `${event.targetWatts} W en ERG, con tu FTP de perfil · si se siente muy duro, baja con −`, 4000);
+        } else if (event.interval.type === 'free') {
+          showBanner('info', event.interval.name, 'Por sensación: tú regulas la potencia', 4000);
         } else {
           showBanner('info', event.interval.name, `${event.targetWatts} W · ${event.interval.cadence_min ?? '—'}+ rpm`, 1800);
         }
