@@ -1,6 +1,6 @@
 import type { Session } from '@supabase/supabase-js';
 import type { Profile, Workout } from '../core/types';
-import type { HrAdapter, TrainerAdapter } from '../devices/types';
+import type { CadenceAdapter, HrAdapter, TrainerAdapter } from '../devices/types';
 import { DEFAULT_PROFILE, loadProfile, saveProfile } from '../storage/profile-store';
 import { withStartingFtpEstimate } from '../core/coach-profile';
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../storage/settings-store';
@@ -45,6 +45,8 @@ class AppState {
   resumeDraftId: string | null = null;
   trainer: TrainerAdapter | null = null;
   hr: HrAdapter | null = null;
+  /** Sensor de cadencia: solo para la rodada libre (ver Workout.mode). */
+  cadence: CadenceAdapter | null = null;
   /** true solo cuando se entró a Entrenar por el link explícito "Probar sin
    * rodillo (modo demo, no se graba)" de Antes de empezar — evita que Entrenar
    * conecte simuladores por su cuenta y grabe una sesión falsa (ver

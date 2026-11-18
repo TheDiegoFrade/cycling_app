@@ -1,7 +1,7 @@
 import { buildCompletedSessionFromFit } from '../../core/completed-session-import';
 import { importWorkoutFile } from '../../core/workout-file-import';
 import { validateWorkout } from '../../core/validator';
-import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
+import { FREE_RIDE_TEMPLATE, WORKOUT_TEMPLATES, findTemplate, isFreeRide, workoutMetaLabel } from '../../core/workout-templates';
 import { estimateWorkout } from '../../core/workout-estimate';
 import type { Sample, Workout } from '../../core/types';
 import { powerZone, powerPctToHeightPct } from '../../core/zones';
@@ -277,7 +277,7 @@ export function renderCalendar(container: HTMLElement): () => void {
     // Bloques cortos (ej. activaciones de 8s) redondeaban a "0 min", que no
     // dice nada — segundos para menos de 1 min, minutos para el resto.
     const durationLabel = iv.duration_s < 60 ? `${iv.duration_s}s` : `${Math.round(iv.duration_s / 60)} min`;
-    const power = iv.ramp_to_pct ? `${iv.power_pct}% → ${iv.ramp_to_pct}% FTP` : `${iv.power_pct}% FTP`;
+    const power = iv.type === 'free' && iv.power_pct === 0 ? 'Sin objetivo · a tu ritmo' : iv.ramp_to_pct ? `${iv.power_pct}% → ${iv.ramp_to_pct}% FTP` : `${iv.power_pct}% FTP`;
     const cadence = iv.cadence_min || iv.cadence_max ? ` · cadencia ${iv.cadence_min ?? ''}${iv.cadence_min && iv.cadence_max ? '-' : ''}${iv.cadence_max ?? ''}` : '';
     return `
       <div class="workout-detail-block">
@@ -301,7 +301,7 @@ export function renderCalendar(container: HTMLElement): () => void {
             <h2 class="perfil-h2" style="margin:0">${escapeHtml(w.name)}</h2>
             <button class="plan-create-close" id="workout-detail-close" aria-label="Cerrar">✕</button>
           </div>
-          <div class="live-col-label">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS</div>
+          <div class="live-col-label">${workoutMetaLabel(w, Math.round(est.durationS / 60), est.tss)}</div>
           <div class="workout-detail-blocks" style="margin-top:12px">
             ${w.intervals.map(intervalBlockHtml).join('')}
           </div>
@@ -344,7 +344,7 @@ export function renderCalendar(container: HTMLElement): () => void {
           <button class="plan-create-close" id="plan-create-close" aria-label="Cerrar">✕</button>
         </div>
         <div class="plan-chip-row" id="create-chips">
-          ${WORKOUT_TEMPLATES.map((t, i) => `<button class="plan-chip${i === 0 ? ' on' : ''}" data-template="${t.id}">${t.name}</button>`).join('')}
+          ${[...WORKOUT_TEMPLATES, FREE_RIDE_TEMPLATE].map((t, i) => `<button class="plan-chip${i === 0 ? ' on' : ''}" data-template="${t.id}">${t.name}</button>`).join('')}
         </div>
         <label class="live-col-label">Duración<input type="number" id="create-minutes" value="${WORKOUT_TEMPLATES[0].defaultMinutes}" min="${WORKOUT_TEMPLATES[0].minMinutes}" max="${WORKOUT_TEMPLATES[0].maxMinutes}"></label>
         <p class="hint" id="create-description">${WORKOUT_TEMPLATES[0].description}</p>
@@ -404,7 +404,7 @@ export function renderCalendar(container: HTMLElement): () => void {
           <div class="plan-day-entry" ${dragAttrs(entry)}>
             <button class="plan-day-cover" data-workout-id="${w.id}" title="${escapeHtml(w.name)} — Ver detalle">
               <span class="plan-day-name">${escapeHtml(w.name)}</span>
-              <span class="live-col-label">${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS</span>
+              <span class="live-col-label">${workoutMetaLabel(w, Math.round(est.durationS / 60), est.tss)}</span>
             </button>
           </div>`;
       }
@@ -482,7 +482,9 @@ export function renderCalendar(container: HTMLElement): () => void {
       const est = estimateWorkout(w.intervals, appState.profile.ftp);
       const [low, high] = est.wattsRange;
       name = w.name;
-      meta = `${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS · ${low === high ? `${low} W` : `${low}–${high} W`}`;
+      meta = isFreeRide(w)
+        ? `${workoutMetaLabel(w, Math.round(est.durationS / 60), est.tss)} · sin rodillo inteligente`
+        : `${Math.round(est.durationS / 60)} min · ${est.tss ?? '—'} TSS · ${low === high ? `${low} W` : `${low}–${high} W`}`;
       cover = `<div class="plan-sel-cover">${renderWorkoutCover(w.intervals, 'lg')}</div>`;
       note = shortNote(w.description);
       actions = `
@@ -866,6 +868,7 @@ export function renderCalendar(container: HTMLElement): () => void {
         intervals: t.build(minutes),
         created_at: new Date().toISOString(),
         scheduledDate: date,
+        ...t.extras,
       };
       const result = validateWorkout(workout);
       createErrors.innerHTML = errorsHtml(result.errors);

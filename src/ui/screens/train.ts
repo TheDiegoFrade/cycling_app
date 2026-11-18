@@ -6,6 +6,8 @@ import { buildPlan, intervalIndexAt, targetWattsAt } from '../../engine/plan';
 import { SessionEngine } from '../../engine/session';
 import type { EngineEvent } from '../../engine/session';
 import { WakeLockGuard } from '../../devices/wake-lock';
+import { SensorOnlyTrainer } from '../../devices/sensor-only-trainer';
+import { isFreeRide } from '../../core/workout-templates';
 import { clearDraft, getDraft, saveDraft } from '../../storage/session-draft';
 import { saveSession } from '../../storage/session-store';
 import type { SessionRecord } from '../../storage/session-store';
@@ -33,7 +35,14 @@ function fmt(totalS: number): string {
 
 function factoryRulesForSettings(workout: Workout): Rule[] {
   const enabled = appState.settings.factoryRulesEnabled;
+  // Rodada libre sin rodillo ni sensor de cadencia: la cadencia siempre es 0,
+  // las alertas de cadencia sonarían toda la sesión.
+  const trainer = appState.trainer;
+  const noCadence = trainer instanceof SensorOnlyTrainer && !trainer.hasCadence;
   return buildFactoryRules(appState.profile, workout).filter((r) => {
+    if (noCadence && (r.id === 'factory-cadence-floor' || r.id === 'factory-cadence-ceiling')) return false;
+    // sin rodillo no hay potencia medida: «no estás llegando al objetivo» sonaría siempre
+    if (trainer instanceof SensorOnlyTrainer && r.id === 'factory-erg-detached') return false;
     if (r.id === 'factory-cadence-floor') return enabled.cadenceFloor;
     if (r.id === 'factory-hr-ceiling') return enabled.hrCeiling;
     if (r.id === 'factory-hr-floor') return enabled.hrFloor;
@@ -195,7 +204,17 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const plan = buildPlan(workout.intervals);
   $('total').textContent = fmt(plan.totalDuration);
 
-  const engine = new SessionEngine({ workout, profile: appState.profile, rules: buildRules(), autoPauseAfterS: 5 });
+  // Rodada libre (Workout.mode): sin ERG ni objetivos. Sin rodillo
+  // inteligente, el «rodillo» es un SensorOnlyTrainer: no mide potencia y,
+  // sin sensor de cadencia, tampoco puede pausarse solo (la cadencia siempre
+  // es 0): se arranca y se pausa con el botón.
+  const freeRide = isFreeRide(workout);
+  const sensorOnly = appState.trainer instanceof SensorOnlyTrainer;
+  const noCadence = appState.trainer instanceof SensorOnlyTrainer && !appState.trainer.hasCadence;
+  // Cualquier workout hecho «sin rodillo» (Antes de empezar): los watts de
+  // cada bloque se muestran como guía, pero no se miden ni se graban.
+  const guided = sensorOnly && !freeRide;
+  const engine = new SessionEngine({ workout, profile: appState.profile, rules: buildRules(), autoPauseAfterS: noCadence ? Number.POSITIVE_INFINITY : 5 });
   const clock = new Clock();
   const wakeLock = new WakeLockGuard();
 
@@ -274,7 +293,9 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
   const ergFollowing = (): boolean => ergEnabled && !ergReleasedForFree;
   let currentTimeLeft = workout.intervals[0]?.duration_s ?? 0;
   // Las sesiones por sensación del coach arrancan sin ERG (ver Workout.erg).
-  let ergEnabled = workout.erg !== 'off';
+  // Sin rodillo el «ERG» solo decide qué muestra la pantalla: con guía, los
+  // watts del bloque (y +/- los ajustan); nadie los manda a un rodillo.
+  let ergEnabled = guided ? true : workout.erg !== 'off';
   let lastTargetWatts = 0;
 
   const history: Sample[] = [];
@@ -752,8 +773,8 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         $('elapsed').textContent = fmt(event.t);
 
         const pwEl = $('pw');
-        pwEl.textContent = String(event.sample.power);
-        pwEl.classList.remove('empty');
+        pwEl.textContent = sensorOnly ? '—' : String(event.sample.power);
+        pwEl.classList.toggle('empty', sensorOnly);
         const z = powerZone(workout.intervals[currentIndex0]?.power_pct ?? 0);
         const zColor = zoneColor(z);
         $('tgt').textContent = String(event.sample.target);
@@ -766,20 +787,22 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
         // que con el número crudo se ven como si la cadencia se hubiera
         // caído de verdad.
         const cadEl = $('cad');
-        cadEl.textContent = String(Math.round(event.metrics.cadence_10s ?? event.sample.cadence));
-        cadEl.classList.remove('empty');
+        cadEl.textContent = noCadence ? '—' : String(Math.round(event.metrics.cadence_10s ?? event.sample.cadence));
+        cadEl.classList.toggle('empty', noCadence);
         const cadenceMin = workout.intervals[currentIndex0]?.cadence_min;
         // si el bloque no trae piso de cadencia, no se muestra esa parte —
         // nunca "· piso —".
         $('cadSub').textContent = cadenceMin !== undefined ? `rpm · piso ${cadenceMin}` : 'rpm';
 
         const hrEl = $('hr');
-        hrEl.textContent = String(event.sample.hr);
-        hrEl.classList.remove('empty');
+        // sin pulso (sin banda, o se cayó) se ve «—», no un 0 que parece lectura
+        const noHr = event.sample.hr <= 0;
+        hrEl.textContent = noHr ? '—' : String(event.sample.hr);
+        hrEl.classList.toggle('empty', noHr);
         const hrPct = event.metrics.hr_pct_max ?? 0;
         const hz = hrPct < 60 ? 1 : hrPct < 70 ? 2 : hrPct < 80 ? 3 : hrPct < 90 ? 4 : 5;
-        $('hrSub').textContent = `zona ${hz}`;
-        $('hrSub').style.color = zoneColor(hz);
+        $('hrSub').textContent = noHr ? 'sin banda' : `zona ${hz}`;
+        $('hrSub').style.color = noHr ? '' : zoneColor(hz);
 
         const ivLeftEl = $('ivLeft');
         ivLeftEl.textContent = fmt(currentTimeLeft);
@@ -830,7 +853,11 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
           if (!rampByHr) askRampRpe(event.index1 - 2);
         }
         pushRemote();
-        if (event.interval.type === 'free' && isSelfPaced()) {
+        if (freeRide) {
+          // el aviso de la rodada libre ya salió al abrir la sesión
+        } else if (guided) {
+          showBanner('info', event.interval.name, event.interval.type === 'free' ? 'Por sensación: tú regulas el esfuerzo' : `Guía: ${event.targetWatts} W · ${event.interval.cadence_min ?? '—'}+ rpm`, 2400);
+        } else if (event.interval.type === 'free' && isSelfPaced()) {
           showBanner('info', event.interval.name, 'Bloque libre: tú regulas la potencia, el ERG se suelta', 4000);
         } else if (event.interval.type === 'free' && ergEnabled) {
           showBanner('info', event.interval.name, `${event.targetWatts} W en ERG, con tu FTP de perfil · si se siente muy duro, baja con −`, 4000);
@@ -1042,7 +1069,7 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
    * pegado al último objetivo para siempre), así que sin esto no había
    * ninguna forma de hacerlo más fácil/difícil una vez apagado el ERG. */
   function adjustIntensity(deltaPct: number): void {
-    if (ergFollowing()) {
+    if (ergFollowing() || guided) {
       paintBias(engine.adjustIntensityPct(deltaPct));
       return;
     }
@@ -1116,7 +1143,44 @@ export function renderTrain(container: HTMLElement): (() => void) | void {
     $('erg-quick').classList.add('off');
     applyFreeMode();
     paintResistance();
-    showBanner('info', 'Sesión por sensación: sin ERG', freeModeLabel(), 4000);
+    if (freeRide) {
+      showBanner(
+        'info',
+        'Rodada libre',
+        sensorOnly ? freeRideSensorLine() : `sin ERG: tú pones el ritmo · ${freeModeLabel()}`,
+        5000,
+      );
+    } else {
+      showBanner('info', 'Sesión por sensación: sin ERG', freeModeLabel(), 4000);
+    }
+  }
+  /** Qué graba la rodada libre sin rodillo y cómo arranca. */
+  function freeRideSensorLine(): string {
+    const parts = [hr?.state === 'connected' ? 'tu pulso' : null, noCadence ? null : 'tu cadencia'].filter(Boolean);
+    const what = parts.length ? `se graba ${parts.join(' y ')}` : 'se graba solo el tiempo';
+    return `sin rodillo: ${what} · ${noCadence ? 'arranca y pausa con el botón' : 'dale «Empezar» o pedalea'}`;
+  }
+  // Rodada libre: nada de ERG ni objetivos en pantalla. Sin rodillo
+  // inteligente tampoco hay dureza que ajustar con +/−.
+  const hide = (el: Element | null) => el && ((el as HTMLElement).style.display = 'none');
+  if (freeRide) {
+    hide($('zonePill'));
+    hide($('zoneStrip'));
+    hide($('menuFtp'));
+    hide(container.querySelector('.live-target-wrap'));
+    if (sensorOnly) hide(container.querySelector('.live-intensity'));
+  }
+  // Sin rodillo inteligente (o en la rodada libre) no hay ERG que prender, ni
+  // potencia medida que comparar con el objetivo.
+  if (freeRide || sensorOnly) {
+    hide($('erg-quick'));
+    hide($('menuErg'));
+  }
+  if (sensorOnly) hide(container.querySelector('.live-power-rangebar'));
+  if (guided) {
+    const label = container.querySelector('.live-target-label');
+    if (label) label.textContent = 'guía W (no se mide)';
+    showBanner('info', 'Sin rodillo', `los watts son tu guía, no se graban · ${noCadence ? 'arranca y pausa con el botón' : 'dale «Empezar» o pedalea'}`, 5000);
   }
 
   $('menuFtp').addEventListener('click', () => {

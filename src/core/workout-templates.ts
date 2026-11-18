@@ -1,4 +1,4 @@
-import type { Interval } from './types';
+import type { Interval, Workout } from './types';
 
 /** Generador de workouts a partir de solo una duración — el %FTP de cada
  * bloque ya hace que escale solo al perfil de quien lo entrene (`power_pct`
@@ -13,6 +13,8 @@ export interface WorkoutTemplate {
   maxMinutes: number;
   defaultMinutes: number;
   build: (minutes: number) => Interval[];
+  /** Campos extra del workout que arma (p. ej. la rodada libre). */
+  extras?: Pick<Workout, 'mode' | 'erg'>;
 }
 
 function clamp(n: number, min: number, max: number): number {
@@ -158,6 +160,32 @@ export const WORKOUT_TEMPLATES: WorkoutTemplate[] = [
   },
 ];
 
+/** Rodada libre: un solo bloque sin objetivo, sin ERG. Va aparte de
+ * WORKOUT_TEMPLATES porque no es un entrenamiento estructurado: solo la
+ * ofrece Crear en el Plan del atleta. */
+export const FREE_RIDE_TEMPLATE: WorkoutTemplate = {
+  id: 'free_ride',
+  name: 'Rodada libre',
+  description:
+    'Sin rodillo inteligente ni ERG: para rodar afuera o en un rodillo sin Bluetooth. Graba tu pulso y tu cadencia (con banda y sensor de cadencia) y, si conectas un rodillo, también la potencia. Puedes terminar antes de la duración.',
+  minMinutes: 10,
+  maxMinutes: 360,
+  defaultMinutes: 60,
+  // power_pct 0: sin objetivo, y no suma TSS planeado (no es carga que se sepa de antemano).
+  build: (minutes) => [{ name: 'Rodada libre', type: 'free', duration_s: minutes * 60, power_pct: 0 }],
+  extras: { mode: 'free_ride', erg: 'off' },
+};
+
 export function findTemplate(id: string): WorkoutTemplate | undefined {
+  if (id === FREE_RIDE_TEMPLATE.id) return FREE_RIDE_TEMPLATE;
   return WORKOUT_TEMPLATES.find((t) => t.id === id);
+}
+
+export function isFreeRide(w: Pick<Workout, 'mode'> | null | undefined): boolean {
+  return w?.mode === 'free_ride';
+}
+
+/** «45 min · 23 TSS» de un workout; la rodada libre no tiene TSS planeado. */
+export function workoutMetaLabel(w: Pick<Workout, 'mode'>, minutes: number, tss: number | null): string {
+  return isFreeRide(w) ? `${minutes} min · rodada libre` : `${minutes} min · ${tss ?? '—'} TSS`;
 }

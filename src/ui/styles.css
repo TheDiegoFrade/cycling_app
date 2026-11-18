@@ -9061,3 +9061,20 @@ body.remote-body {
   border-color: var(--z4);
   color: var(--text);
 }
+
+/* Antes de empezar, rodada libre: nota bajo un sensor opcional. */
+.prepare-sensor-note {
+  margin: 6px 0 0;
+  font-size: 13px;
+}
+
+/* Antes de empezar: hacer cualquier workout sin rodillo (watts de guía). */
+.prepare-no-trainer {
+  width: 100%;
+  margin-top: 10px;
+}
+.prepare-no-trainer-hint {
+  margin: 6px 0 0;
+  font-size: 13px;
+  text-align: center;
+}
