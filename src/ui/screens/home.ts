@@ -2,7 +2,7 @@ import type { Workout } from '../../core/types';
 import { fmtMxn } from '../../core/billing-override';
 import { validateWorkout } from '../../core/validator';
 import { estimateWorkout } from '../../core/workout-estimate';
-import { WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
+import { FREE_RIDE_TEMPLATE, WORKOUT_TEMPLATES, findTemplate } from '../../core/workout-templates';
 import type { WorkoutTemplate } from '../../core/workout-templates';
 import { byGender, genderOf } from '../../core/gender';
 import { pinonFigureHtml } from '../pinon';
@@ -269,7 +269,7 @@ export function renderHome(container: HTMLElement): void {
         <h2 class="perfil-h2" style="margin:0">Generar workout</h2>
         <p class="hint" style="margin:4px 0 0">Créalo y entrena ahora mismo — también queda guardado en tu Plan.</p>
         <div class="home-gen-cards" id="gen-chips" role="radiogroup" aria-label="Tipo de workout">
-          ${WORKOUT_TEMPLATES.map(
+          ${[...WORKOUT_TEMPLATES, FREE_RIDE_TEMPLATE].map(
             (t, i) =>
               `<button type="button" role="radio" aria-checked="${i === 0}" class="home-gen-card lift${i === 0 ? ' on' : ''}" data-template="${t.id}">${tokenHtml(tokenForTemplate(t.id) ?? 'end', 54)}<span>${t.name}</span></button>`,
           ).join('')}
@@ -344,6 +344,7 @@ export function renderHome(container: HTMLElement): void {
       intervals: t.build(minutes),
       created_at: new Date().toISOString(),
       ...(scheduledDate ? { scheduledDate } : {}),
+      ...t.extras,
     };
     const result = validateWorkout(workout);
     if (!result.valid) return { errors: result.errors };

@@ -7,7 +7,7 @@ import { isTestWorkoutDoc } from '../core/workout-zone';
 export type Token = 'end' | 'ss' | 'ftp' | 'vo2' | 'rec' | 'moon' | 'fuerza';
 
 /** Plantillas de Generar workout (src/core/workout-templates.ts). */
-const BY_TEMPLATE: Record<string, Token> = { z2: 'end', recovery: 'rec', sweet_spot: 'ss', threshold: 'ftp', vo2max: 'vo2' };
+const BY_TEMPLATE: Record<string, Token> = { z2: 'end', recovery: 'rec', sweet_spot: 'ss', threshold: 'ftp', vo2max: 'vo2', free_ride: 'rec' };
 
 /** Lo que define la intensidad de la sesión: el %FTP más alto que se
  * sostiene al menos 2 min, sumando bloques (unos 30/30 a 120 % cuentan). */
