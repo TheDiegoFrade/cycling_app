@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { WORKOUT_TEMPLATES, findTemplate } from './workout-templates';
+import { FREE_RIDE_TEMPLATE, WORKOUT_TEMPLATES, findTemplate, isFreeRide, workoutMetaLabel } from './workout-templates';
+import { estimateWorkout } from './workout-estimate';
 import { validateWorkout } from './validator';
 
 function totalDuration(intervals: { duration_s: number }[]): number {
@@ -75,5 +76,22 @@ describe('WORKOUT_TEMPLATES', () => {
 
   it('findTemplate devuelve undefined para un id que no existe', () => {
     expect(findTemplate('no-existe')).toBeUndefined();
+  });
+});
+
+
+describe('Rodada libre', () => {
+  it('un solo bloque libre sin objetivo: no suma TSS planeado y es un workout válido', () => {
+    const intervals = FREE_RIDE_TEMPLATE.build(45);
+    expect(intervals).toEqual([{ name: 'Rodada libre', type: 'free', duration_s: 2700, power_pct: 0 }]);
+    const w = { format_version: 1, id: 'x', name: 'Rodada libre', created_at: '2026-11-18', intervals, ...FREE_RIDE_TEMPLATE.extras };
+    expect(validateWorkout(w).valid).toBe(true);
+    expect(isFreeRide(w)).toBe(true);
+    expect(estimateWorkout(intervals, 184).tss ?? 0).toBe(0);
+  });
+
+  it('se etiqueta como rodada libre, no con TSS', () => {
+    expect(workoutMetaLabel({ mode: 'free_ride' }, 45, 0)).toBe('45 min · rodada libre');
+    expect(workoutMetaLabel({}, 60, 52)).toBe('60 min · 52 TSS');
   });
 });

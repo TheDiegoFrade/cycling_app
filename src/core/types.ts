@@ -102,6 +102,11 @@ export interface Workout {
   /** 'rpe_ramp' = la rampa por RPE de Joe (core/rpe-ramp.ts): Entrenar
    * pregunta el RPE al final de cada escalón y se detiene en 8+. */
   protocol?: 'rpe_ramp';
+  /** 'free_ride' = rodada libre (core/workout-templates.ts): no hace falta
+   * rodillo inteligente; se graba lo que haya (pulso, cadencia y, si hay
+   * rodillo, potencia) sin ERG ni objetivos. Para rodar afuera o en un
+   * rodillo sin Bluetooth. */
+  mode?: 'free_ride';
 }
 
 /** Archivo de solo reglas (modo A del prompt de importación): mismas reglas,

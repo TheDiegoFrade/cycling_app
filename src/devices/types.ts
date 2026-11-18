@@ -46,3 +46,13 @@ export interface HrAdapter {
   onRr?(cb: (rrMs: number[]) => void): () => void;
   onStateChange(cb: (state: ConnectionState) => void): () => void;
 }
+
+/** Sensor de cadencia (servicio estándar `cycling_speed_and_cadence`): para
+ * la rodada libre en una bici o un rodillo sin Bluetooth. Manda rpm. */
+export interface CadenceAdapter {
+  readonly state: ConnectionState;
+  connect(): Promise<void>;
+  disconnect(): void;
+  onReading(cb: (rpm: number) => void): () => void;
+  onStateChange(cb: (state: ConnectionState) => void): () => void;
+}

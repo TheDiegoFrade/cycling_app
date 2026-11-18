@@ -2,8 +2,11 @@ import { hasWebBluetooth, noBluetoothMessage } from '../../devices/ble-support';
 import { ftpSourceOf, isMeasuredFtp } from '../../core/coach-profile';
 import { BleTrainerAdapter } from '../../devices/ftms';
 import { BleHrAdapter } from '../../devices/heart-rate';
+import { BleCadenceAdapter } from '../../devices/cadence';
+import { SensorOnlyTrainer } from '../../devices/sensor-only-trainer';
+import { isFreeRide } from '../../core/workout-templates';
 import { SimulatedHrAdapter, SimulatedTrainerAdapter } from '../../devices/simulated';
-import type { ConnectionState, HrAdapter, TrainerAdapter, TrainerReading } from '../../devices/types';
+import type { CadenceAdapter, ConnectionState, HrAdapter, TrainerAdapter, TrainerReading } from '../../devices/types';
 import { estimateWorkout } from '../../core/workout-estimate';
 import { isTestWorkoutDoc } from '../../core/workout-zone';
 import { escapeHtml, renderWorkoutCover } from '../workout-cover';
@@ -71,6 +74,12 @@ export function renderConnect(container: HTMLElement): void {
     appState.trainer.disconnect();
     appState.trainer = null;
   }
+  // El «rodillo» de la rodada libre tampoco se reusa: se arma de nuevo al
+  // darle Empezar, con lo que esté conectado en ese momento.
+  if (appState.trainer instanceof SensorOnlyTrainer) {
+    appState.trainer.disconnect();
+    appState.trainer = null;
+  }
   if (appState.hr instanceof SimulatedHrAdapter) {
     appState.hr.disconnect();
     appState.hr = null;
@@ -90,7 +99,10 @@ export function renderConnect(container: HTMLElement): void {
   // Bloques libres: la persona decide antes de empezar, bloque por bloque,
   // si los hace por sensación (el ERG se suelta y ella regula) o con ERG. En
   // un test se recomienda por sensación: con ERG fijo no mide su FTP.
-  const hasFreeBlocks = workout.intervals.some(ergCapableFree) && workout.protocol !== 'rpe_ramp';
+  // Rodada libre (Workout.mode): sin rodillo inteligente ni ERG; el rodillo
+  // y los sensores son opcionales, basta con uno para empezar.
+  const freeRide = isFreeRide(workout);
+  const hasFreeBlocks = !freeRide && workout.intervals.some(ergCapableFree) && workout.protocol !== 'rpe_ramp';
   const isTest = isTestWorkoutDoc(workout);
   const freeChoiceHtml = hasFreeBlocks
     ? `
@@ -113,7 +125,7 @@ export function renderConnect(container: HTMLElement): void {
       <a href="#/home" class="back-link">← Volver a Inicio</a>
       <div class="prepare-grid">
         <div class="prepare-left">
-          ${renderWorkoutCover(workout.intervals, 'lg')}
+          ${freeRide ? '' : renderWorkoutCover(workout.intervals, 'lg')}
           <div class="prepare-heading">
             <div class="prepare-heading-top">
               <div class="prepare-kicker">Vas a entrenar</div>
@@ -122,13 +134,17 @@ export function renderConnect(container: HTMLElement): void {
             <div class="prepare-title">${escapeHtml(workout.name)}</div>
           </div>
           <div class="prepare-stats">
-            <div><div class="prepare-stat-num num">${fmtMinutes(estimate.durationS)}</div><div class="live-col-label">duración</div></div>
-            <div><div class="prepare-stat-num num">${estimate.tss ?? '—'}</div><div class="live-col-label">TSS estimado</div></div>
-            <div><div class="prepare-stat-num num">${wattsLabel}</div><div class="live-col-label">en los bloques, con FTP ${appState.profile.ftp}${isMeasuredFtp(ftpSourceOf(appState.profile)) ? '' : ' (aproximado: lo afinamos con tu test)'}</div></div>${isMeasuredFtp(ftpSourceOf(appState.profile)) ? '' : `<p class="hint prepare-ftp-hint" id="prepare-ftp-hint">¿Muy duro o muy suave? Súbele o bájale con + / − durante la sesión (también desde tu celular), o cambia tu FTP en Perfil.</p>`}
+            <div><div class="prepare-stat-num num">${fmtMinutes(estimate.durationS)}</div><div class="live-col-label">duración${freeRide ? ' (puedes terminar antes)' : ''}</div></div>
+            ${freeRide ? '' : `<div><div class="prepare-stat-num num">${estimate.tss ?? '—'}</div><div class="live-col-label">TSS estimado</div></div>
+            <div><div class="prepare-stat-num num">${wattsLabel}</div><div class="live-col-label">en los bloques, con FTP ${appState.profile.ftp}${isMeasuredFtp(ftpSourceOf(appState.profile)) ? '' : ' (aproximado: lo afinamos con tu test)'}</div></div>${isMeasuredFtp(ftpSourceOf(appState.profile)) ? '' : `<p class="hint prepare-ftp-hint" id="prepare-ftp-hint">¿Muy duro o muy suave? Súbele o bájale con + / − durante la sesión (también desde tu celular), o cambia tu FTP en Perfil.</p>`}`}
           </div>
-          <div class="workout-detail-blocks" style="margin-top:10px">
+          ${
+            freeRide
+              ? `<p class="hint" style="margin-top:10px">Sin objetivos ni ERG: rueda a tu ritmo. Se graba lo que conectes.</p>`
+              : `<div class="workout-detail-blocks" style="margin-top:10px">
             ${workout.intervals.map((iv, i) => intervalBlockHtml(iv, i)).join('')}
-          </div>
+          </div>`
+          }
           ${workout.description ? `<div class="perfil-h2" style="margin-top:10px;font-size:15px">Sobre este entrenamiento</div><p class="hint prepare-description">${escapeHtml(workout.description)}</p>` : ''}
           <div class="row-actions">
             <a href="#/limits" class="prepare-link">Editar límites por bloque</a>
@@ -141,11 +157,12 @@ export function renderConnect(container: HTMLElement): void {
           <div class="panel prepare-sensor">
             <span class="prepare-sensor-obj disconnected" id="trainer-dot" aria-hidden="true" style="background-image:url('/brand/obj-trainer.webp')"></span>
             <div class="prepare-sensor-body">
-              <div class="prepare-sensor-head"><div class="prepare-sensor-name">Rodillo</div><div class="prepare-sensor-status"><span id="trainer-state">${STATE_LABEL.disconnected}</span></div></div>
+              <div class="prepare-sensor-head"><div class="prepare-sensor-name">Rodillo${freeRide ? ' <span class="prepare-sensor-opt">· opcional</span>' : ''}</div><div class="prepare-sensor-status"><span id="trainer-state">${STATE_LABEL.disconnected}</span></div></div>
               <div class="prepare-sensor-reading" id="trainer-reading"><span><b class="num">0</b> W</span><span><b class="num">0</b> rpm</span></div>
               <div class="row-actions">
                 <button id="trainer-connect" ${hasBluetooth ? '' : 'disabled title="este navegador no soporta Web Bluetooth"'}>Conectar por Bluetooth</button>
               </div>
+              ${freeRide ? '<p class="hint prepare-sensor-note">Solo si es un rodillo inteligente: también graba tu potencia, sin ERG.</p>' : ''}
               <div id="trainer-error"></div>
             </div>
           </div>
@@ -159,9 +176,31 @@ export function renderConnect(container: HTMLElement): void {
               <div id="hr-error"></div>
             </div>
           </div>
+          ${
+            freeRide
+              ? `<div class="panel prepare-sensor">
+            <span class="prepare-sensor-obj disconnected" id="cadence-dot" aria-hidden="true" style="background-image:url('/brand/obj-trainer.webp')"></span>
+            <div class="prepare-sensor-body">
+              <div class="prepare-sensor-head"><div class="prepare-sensor-name">Sensor de cadencia <span class="prepare-sensor-opt">· opcional</span></div><div class="prepare-sensor-status"><span id="cadence-state">${STATE_LABEL.disconnected}</span></div></div>
+              <div class="prepare-sensor-reading" id="cadence-reading"><span><b class="num">0</b> rpm</span></div>
+              <div class="row-actions">
+                <button id="cadence-connect" ${hasBluetooth ? '' : 'disabled title="este navegador no soporta Web Bluetooth"'}>Buscar sensor</button>
+              </div>
+              <p class="hint prepare-sensor-note">Para una bici o un rodillo sin Bluetooth: el sensor que va en la biela.</p>
+              <div id="cadence-error"></div>
+            </div>
+          </div>`
+              : ''
+          }
           ${freeChoiceHtml}
           <button class="prepare-start" id="continue" disabled>▶ Empezar</button>
-          <div class="prepare-hint">Arranca en cuanto pedaleas. Espacio para pausar. En el celular, deja Torq abierto durante la sesión: si cambias de app, el rodillo se puede desconectar.</div>
+          ${
+            !freeRide && !isTest && workout.protocol !== 'rpe_ramp'
+              ? `<button type="button" class="prepare-no-trainer" id="no-trainer">Hacer sin rodillo</button>
+          <p class="hint prepare-no-trainer-hint">Afuera o en un rodillo sin Bluetooth: solo con tu banda de pulso (o sin nada). Te mostramos los watts de cada bloque como guía, pero no se miden ni se graban.</p>`
+              : ''
+          }
+          <div class="prepare-hint">${freeRide ? 'No necesitas rodillo: conecta tu banda de pulso o tu sensor de cadencia si los tienes. Sin sensor de cadencia ni rodillo, arranca y pausa con el botón: no se pausa sola.' : 'Arranca en cuanto pedaleas.'} Espacio para pausar. En el celular, deja Torq abierto durante la sesión: si cambias de app, el rodillo se puede desconectar.</div>
           ${canUseDemo() ? '<a href="#" id="demo-link" class="prepare-demo-link">Probar sin rodillo (modo demo, no se graba)</a>' : ''}
         </div>
       </div>
@@ -170,7 +209,10 @@ export function renderConnect(container: HTMLElement): void {
 
   function updateStartButton(): void {
     const btn = container.querySelector<HTMLButtonElement>('#continue')!;
-    btn.disabled = appState.trainer?.state !== 'connected';
+    const trainerReady = appState.trainer?.state === 'connected';
+    // La rodada libre no necesita nada conectado: se puede rodar solo con el
+    // reloj de la sesión y conectar lo que haya.
+    btn.disabled = freeRide ? false : !trainerReady;
   }
 
   wireSensor<TrainerAdapter, TrainerReading>('trainer', appState.trainer, {
@@ -198,8 +240,27 @@ export function renderConnect(container: HTMLElement): void {
     formatReading: () => '',
     onReady: (a) => {
       appState.hr = a;
+      updateStartButton();
     },
+    onState: updateStartButton,
   });
+
+  if (freeRide) {
+    wireSensor<CadenceAdapter, number>('cadence', appState.cadence, {
+      connectBtn: 'cadence-connect',
+      dot: 'cadence-dot',
+      stateEl: 'cadence-state',
+      readingEl: 'cadence-reading',
+      errorEl: 'cadence-error',
+      makeReal: () => new BleCadenceAdapter(),
+      formatReading: (rpm) => `<span><b class="num">${rpm}</b> rpm</span>`,
+      onReady: (a) => {
+        appState.cadence = a;
+        updateStartButton();
+      },
+      onState: updateStartButton,
+    });
+  }
 
   updateStartButton();
 
@@ -231,7 +292,23 @@ export function renderConnect(container: HTMLElement): void {
     paintFreeToggles();
   });
 
-  container.querySelector<HTMLButtonElement>('#continue')?.addEventListener('click', () => navigate('train'));
+  container.querySelector<HTMLButtonElement>('#continue')?.addEventListener('click', () => {
+    // Rodada libre sin rodillo conectado: un «rodillo» que solo pasa la
+    // cadencia del sensor (si hay) y no controla nada.
+    if (freeRide && appState.trainer?.state !== 'connected') {
+      appState.trainer?.disconnect();
+      appState.trainer = new SensorOnlyTrainer(appState.cadence?.state === 'connected' ? appState.cadence : null);
+    }
+    navigate('train');
+  });
+
+  // Cualquier workout sin rodillo: mismo «rodillo» que la rodada libre; los
+  // watts quedan de guía en Entrenar.
+  container.querySelector<HTMLButtonElement>('#no-trainer')?.addEventListener('click', () => {
+    if (appState.trainer && !(appState.trainer instanceof SensorOnlyTrainer)) appState.trainer.disconnect();
+    appState.trainer = new SensorOnlyTrainer(appState.cadence?.state === 'connected' ? appState.cadence : null);
+    navigate('train');
+  });
 
   // Modo demo explícito: el único lugar donde se conectan simuladores. Se
   // marca `appState.demoSession` para que Entrenar sepa que esta sesión no
@@ -247,7 +324,7 @@ export function renderConnect(container: HTMLElement): void {
   });
 }
 
-interface SensorWiring<A extends TrainerAdapter | HrAdapter, R> {
+interface SensorWiring<A extends TrainerAdapter | HrAdapter | CadenceAdapter, R> {
   connectBtn: string;
   dot: string | null;
   stateEl: string;
@@ -259,8 +336,8 @@ interface SensorWiring<A extends TrainerAdapter | HrAdapter, R> {
   onState?: (state: ConnectionState) => void;
 }
 
-function wireSensor<A extends TrainerAdapter | HrAdapter, R>(
-  kind: 'trainer' | 'hr',
+function wireSensor<A extends TrainerAdapter | HrAdapter | CadenceAdapter, R>(
+  kind: 'trainer' | 'hr' | 'cadence',
   existing: A | null,
   cfg: SensorWiring<A, R>,
 ): void {
@@ -288,7 +365,7 @@ function wireSensor<A extends TrainerAdapter | HrAdapter, R>(
       if (kind === 'trainer') {
         (adapter as TrainerAdapter).onReading((r) => (readingEl.innerHTML = cfg.formatReading(r as R)));
       } else {
-        (adapter as HrAdapter).onReading((hr) => (readingEl.innerHTML = cfg.formatReading(hr as R)));
+        (adapter as HrAdapter | CadenceAdapter).onReading((v) => (readingEl.innerHTML = cfg.formatReading(v as R)));
       }
     }
     cfg.onReady(adapter);
